@@ -53,8 +53,9 @@ the result alert as fallback; the browser assertion was strengthened accordingly
 The first check also found formatting-only issues in generated metadata and the
 blocked private-meeting draft; these were formatted without semantic changes.
 
-Final review target is `2803d1f..c07f558` plus the integration reconciliation and
-focus repair committed with this report. Coverage: full integration scope against
+Final reviewed and verified implementation commit is `c25d7c4cd037470bfececcacb06ba7d85ffc6b58`,
+with baseline `2803d1f`; a subsequent documentation-only evidence commit records
+this hash without changing tested code. Coverage: full integration scope against
 the authorized blueprint and all three source contracts. Work packages: M4.1,
 local M4.4 and library-only M5.1; requirements TUT-04, FAM-01/FAM-02 and MEET-01.
 
