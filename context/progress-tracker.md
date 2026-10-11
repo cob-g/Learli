@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.2 — Verified local identity foundation
+> **Version:** 1.3 — Verified local M4/M5 integration
 > **Last updated:** 2026-10-11  
-> **Current overall status:** **M3 verified locally (catalog, applications, review, public directory, matching on level and subject); hosted integration deferred**
+> **Current overall status:** **M4.1, local M4.4 and M5.1 validator integrated and verified locally; independent review/main merge pending**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -17,25 +17,24 @@
 
 ## Current Phase
 
-- **Phase:** **M4 in progress — M4.1 weekly availability verified in its isolated feature worktree; M4.2 engine verified in isolation.**
+- **Phase:** **M4 in progress — availability and synthetic learner slices integrated with the M5.1 validator; combined verification passed.**
 - **Product definition:** Documented; core marketplace scope agreed.
-- **Application implementation:** M1–M3 and the M4.2 engine are present at base `2803d1f`. M4.1 storage/editor are verified as uncommitted changes on `cob-g/m4-1-tutor-availability`; they are not merged into `main`. Guardian links and bookings are not implemented.
+- **Application implementation:** M1–M3 and the M4.2 engine are present at base `2803d1f`. The integration branch now combines weekly availability, private fixture-provisioned learner/guardian profiles and the pure meeting-link validator. Bookings, private meeting storage and real-user onboarding are not implemented. Main remains unchanged.
 - **Pilot / production deployment:** **Not verified**.
 - **Live payment processing:** **Blocked pending founder-approved business rules**.
 - **Public onboarding of minors:** **Blocked pending launch-market guardian-consent and safeguarding decisions**.
 
 ## Current Goal
 
-**M4.1 is locally verified; preserve its isolated worktree for review and integration.**
+**Complete independent read-only review of the verified `cob-g/m4-m5-integration`
+branch, then return to the user’s main-merge checkpoint.**
 
-The tutor can save weekly hours, explicit overnight ranges and their teaching
-zone with server ownership checks and stale-edit protection. Work remains local,
-uncommitted and unmerged on `cob-g/m4-1-tutor-availability`.
-
-**Next development slice:** Architect M4.3 time-off exceptions when required;
-learner/guardian and booking work remains gated by the applicable open policies.
-M4.2 has a guarded adapter from persisted weekly windows, but public slot display,
-booking duration/start-step policy and active-booking exclusion remain unimplemented.
+Migrations are ordered as availability `0006`, learners `0007`. Runtime learner
+ownership and guardian-link changes remain fixture-tooling only. Integration uses
+its own fresh local PostgreSQL cluster on 55442 (dev 3003, E2E 3103). Source
+clusters are isolated historical feature environments, not canonical migration
+upgrade targets. Source verification histories below remain historical evidence;
+combined results are recorded in the integration session and `docs/operations/m4-m5-integration.md`.
 
 ## Completed
 
@@ -74,7 +73,7 @@ booking duration/start-step policy and active-booking exclusion remain unimpleme
 - **Requirements readiness:** Founder decisions under **Open Questions** remain unresolved.
 - **Design readiness:** The M1 development shell uses proposed UI tokens and the documented plain-text brand placeholder. Generated shadcn primitives and final brand assets remain gated by `ui-context.md` decision 14 and related open decisions.
 - **Dependency maintenance:** 13 audit findings (4 moderate, 9 high) remain in upstream tooling chains. `--omit=dev` still reports 4 moderate findings because Better Auth declares Drizzle Kit as an optional peer. See README and the recovery handoff; do not represent the audit as clean.
-- **Remote verification:** M4.1 changes are local and uncommitted in their feature worktree. GitHub CI and Railway have not been run in this session.
+- **Remote verification:** Source slices are committed locally and merged into the integration branch only. GitHub CI and Railway have not been run.
 
 ## Next Up
 
@@ -97,8 +96,8 @@ Resolve open design decisions and dependency advisories alongside this sequence.
 | M1 | Repository + app foundation | **Local foundation verified** | Session evidence below; brand/primitive approval pending, remote CI unrun |
 | M2 | Data, authentication, role controls | **Local scope verified; hosted acceptance deferred** | Local migrations, auth/ownership tests and browser journeys passed; Neon/TLS/Resend and production settings unrun |
 | M3 | Tutor catalog, public discovery, matching | **Verified locally** | Catalog, application, review, public discovery and matching tests passed locally; screening policy, time-based matching (needs M4) and hosting remain |
-| M4 | Availability, guardians/learners, booking integrity | **In progress — M4.1 verified on feature worktree; M4.2 engine + stored-window adapter verified** | Weekly editor/storage, schedule ownership and concurrent-save tests pass. Time off, learner links, bookings and actual concurrent-booking tests remain |
-| M5 | Meeting links, dashboards, notifications, basic support | **Partial — M5.1 validation library verified in isolation** | Protected storage, participant access, booking integration, E2E role journeys and email tests remain; M5.1/M5 not complete |
+| M4 | Availability, guardians/learners, booking integrity | **In progress — M4.1 and synthetic M4.4 integrated and locally verified** | Weekly editor/storage and private learner management exist. Time off, real onboarding, bookings and actual concurrent-booking tests remain |
+| M5 | Meeting links, dashboards, notifications, basic support | **Partial — M5.1 validation library verified in the combined branch** | Protected storage, participant access, booking integration, E2E role journeys and email tests remain; M5.1/M5 not complete |
 | M6 | Commerce policy approval | **Blocked** | Founder-approved decision records and provider/jurisdiction assessment |
 | M7 | Payment integration (only if approved) | **Blocked by M6** | Sandbox checkout, verified webhooks, duplicate-event/reconciliation tests |
 | M8 | Pilot, operational readiness, public launch | **Planned; launch-gated** | QA evidence, safeguarding/legal signoff, backups, email domain, explicit release approval |
@@ -339,3 +338,15 @@ Copy this compact entry for the next session; include only **actual evidence**:
 - **Verification:** Node 24.20.0 / npm 11.19.0; `npm ci` PASS (777 packages; existing 13 advisories: 4 moderate, 9 high). `npm run check` PASS (format, lint, typecheck, 326 unit/component tests including 121 new validator tests). `NEXT_TELEMETRY_DISABLED=1 npm run build` PASS; `git diff --check` PASS. Checked uncommitted implementation on unchanged HEAD `2803d1f`; package/lockfile and `src/lib/time` unchanged. No failed checks or recovery loop.
 - **NOT RUN:** `npm run test:integration` and `npm run test:e2e`: no `.env.test.local` or owned isolated cluster in this worktree; existing suites mutate their test database. No other session's database/configuration was borrowed. Provider runtime, remote CI and deployment not run. Responsive/accessibility QA not applicable (no UI changes).
 - **Remaining / next:** Founder/product decides link reuse and safety/access rules; after booking ownership exists, integrate server-side validation with authorized private storage and reads, then test cross-account denial and missing-link behavior. Format acceptance proves neither meeting existence nor attendance nor participant authorization. No commit, push, merge, deployment, database operation or other checkout edit.
+
+### Session — 2026-10-11 (M4/M5 integration — verified locally)
+
+- Authority: dispatched full build workflow and explicit local commit/integration authorization; blueprint `prompts/features/m4-01-m5-integration.md` is **AUTHORIZED — build-feature delegation**. No merge into main, push or deployment.
+- Source commits: A `3271e1e423c94721da685ff382d78a0e2d4ee60c`, B `cbc3c7c285fd9c500aeae6a5350161e50d208666`, C `aba7a7790444e5aa1baca8d0986429090795e994`, all based on `2803d1f3bf2579cc30f5c332b15482c092a9401c`. Reviewed all intended files and exact private secret-value scans; source contents were unchanged at commit.
+- Reconciliation: auditable A/B/C merges; preserved A 0006 and generated learner 0007 with source-identical SQL and combined snapshot; additive grants retained; deterministic closed-pool outage test retained; standard Playwright includes learner project after other auth cases, replacing separate config/private copied acceptance.
+- Integration merge HEAD before final repairs: `c07f558`; A/B/C merge commits `30571b0`, `c2ecd64`, `c07f558`. Final verified implementation hash is recorded below after the repair commit; documentation-only evidence follows it. No main merge.
+- Setup/DB verification: Node 24.20.0/npm 11.19.0/PostgreSQL 17.11, pinned `npm ci` PASS (777 packages; existing 13 advisories). Fresh `LEARLI_DB_PORT=55442 LEARLI_DEV_PORT=3003 LEARLI_TEST_PORT=3103 npm run local:setup` PASS, then `npm run db:migrate`, `npm run db:migrate:test`, `npm run db:seed` PASS. Learner seed repeated with exact unchanged row comparison (4 profiles/3 links). Both databases have 8 expected migration hashes, 14 public tables matching snapshot 0007 and combined least-privilege grants. Source clusters 55441/55434 and main 55432 untouched and noncanonical for this combined chain.
+- Recover: learner validation focused the general alert instead of the first invalid field. Targeted focus repair and stronger browser assertion passed; no reset or policy change. Initial format check found generated metadata/draft formatting issues, repaired without semantics changes. No DB/build/browser failures.
+- Same-agent read-only Review: plan alignment PASS, system integrity PASS, unintended-change audit PASS, no unresolved confirmed findings; **READY FOR VERIFICATION**, no independent signoff or release clearance. Scope and evidence in `docs/operations/m4-m5-integration.md`.
+- Separate Verification: `npm run check` PASS (format, lint, typecheck, **373/373 units, 11 files**); `npm run test:integration` PASS (**58/58, 4 files**); `npm run build` PASS; standard `npm run test:e2e` PASS (**32/32**, including all learner cases). Mobile/desktop and forced-color screenshots visually inspected; axe, keyboard and overflow assertions pass. Private-value/client-bundle scan and `git diff --check` PASS. Ignored logs/artifacts listed in the evidence document.
+- Current state: combined local feature slices verified; main unchanged at `2803d1f`. Pure validator remains no-network/no-storage and its private integration draft stays BLOCKED. No real minors, bookings/payments, provider integrations, external messages, push or deployment; existing audit advisories remain. Next: coordinator-owned independent read-only review, then user main-merge checkpoint.

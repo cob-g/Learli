@@ -137,7 +137,8 @@ test("parent lists and edits authorized profiles with keyboard, responsive valid
   ).toBeVisible();
   await expect(
     page.getByRole("alert").filter({ hasText: "Profile could not be saved" }),
-  ).toBeFocused();
+  ).toBeVisible();
+  await expect(page.getByLabel("Display name", { exact: true })).toBeFocused();
   await page
     .getByLabel("Display name", { exact: true })
     .fill("Synthetic unsaved value");

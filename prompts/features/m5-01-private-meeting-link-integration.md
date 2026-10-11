@@ -58,22 +58,22 @@ truthfully. A link never establishes attendance, existence or authorization.
 
 ## Current repository evidence
 
-| Area | Observed evidence | Consequence |
-| --- | --- | --- |
-| URL validation | `src/lib/validation/meeting-link.ts`, unit tests and supported-format document | Reuse unchanged; do not add network probes |
-| Identity | `src/lib/permissions/access.ts`: verified active identity, trusted roles, ownership helper with no admin bypass | Reuse identity checks; roles alone cannot authorize a booking |
-| Mutation boundary | `src/lib/mutation-handler.ts`, `src/lib/auth-handler.ts`: bounded JSON, same-origin checks, private responses and safe errors | Follow existing local runtime conventions; do not relax CSRF/origin checks |
-| Data | `src/lib/db/schema/app.ts` contains identity access/roles, subjects, tutors and audit events; migrations currently end at `0005_tutor_profile_slug` | No bookings, learner profiles or guardian links exist here |
-| Feature surfaces | `src/features/` and `src/app/` contain account, tutor, catalog and matching work | No booking service/detail surface to extend yet |
-| Audit | Existing audit events target users/subjects, not bookings | Needs a reviewed booking event/target model; never put URLs into audit metadata |
-| Test environment | No worktree `.env.test.local` or owned isolated cluster was present at the validator handoff | Integration requires separate safe setup; do not borrow another session's database |
+| Area              | Observed evidence                                                                                                                                   | Consequence                                                                        |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| URL validation    | `src/lib/validation/meeting-link.ts`, unit tests and supported-format document                                                                      | Reuse unchanged; do not add network probes                                         |
+| Identity          | `src/lib/permissions/access.ts`: verified active identity, trusted roles, ownership helper with no admin bypass                                     | Reuse identity checks; roles alone cannot authorize a booking                      |
+| Mutation boundary | `src/lib/mutation-handler.ts`, `src/lib/auth-handler.ts`: bounded JSON, same-origin checks, private responses and safe errors                       | Follow existing local runtime conventions; do not relax CSRF/origin checks         |
+| Data              | `src/lib/db/schema/app.ts` contains identity access/roles, subjects, tutors and audit events; migrations currently end at `0005_tutor_profile_slug` | No bookings, learner profiles or guardian links exist here                         |
+| Feature surfaces  | `src/features/` and `src/app/` contain account, tutor, catalog and matching work                                                                    | No booking service/detail surface to extend yet                                    |
+| Audit             | Existing audit events target users/subjects, not bookings                                                                                           | Needs a reviewed booking event/target model; never put URLs into audit metadata    |
+| Test environment  | No worktree `.env.test.local` or owned isolated cluster was present at the validator handoff                                                        | Integration requires separate safe setup; do not borrow another session's database |
 
 The validator's earlier check/build results apply to that library state only.
 No integration implementation or verification is claimed by this plan.
 
 ## Language and decisions
 
-No terminology clarification needed. A *booking link* is private joining data
+No terminology clarification needed. A _booking link_ is private joining data
 associated with a booking. It is not a public tutor-profile field or proof that
 Zoom/Meet will admit anyone.
 
@@ -90,15 +90,15 @@ implementing it. Do not build both models speculatively.
 
 ## Blocking decisions and dependencies
 
-| Blocker | Owner | Required before implementation |
-| --- | --- | --- |
-| D-13: per-booking versus reusable link | Founder/product | Record approved model and whether reuse is permitted; do not equate accepting numeric PMI syntax with approval |
-| Read/write lifecycle | Product, with safeguarding review | Define tutor entry/replacement eligibility, learner/guardian access timing, cancelled/completed/expired behavior, reschedule effects and any removal operation; no guessed windows |
-| Learner and guardian authorization | M4 implementation plus policy owner | Inspectable trusted relationships and eligible self-managed learner path; revoked relationships must lose access |
-| Booking ownership and status | M4 implementation | Persisted assigned tutor/learner, approved or explicitly test-only lifecycle, reusable access checks and coordinated mutation locking |
-| Booking-detail UI | Booking implementation | Protected detail surface with ownership checks and honest states; avoid building a parallel booking system here |
-| Support access | Product/security | A task-scoped support capability and audit requirement before enabling support read/write; admin role alone never suffices |
-| Isolated test services | Integration implementer | Owned disposable database/configuration and known-safe scripts/ports; no shared database resets |
+| Blocker                                | Owner                               | Required before implementation                                                                                                                                                     |
+| -------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D-13: per-booking versus reusable link | Founder/product                     | Record approved model and whether reuse is permitted; do not equate accepting numeric PMI syntax with approval                                                                     |
+| Read/write lifecycle                   | Product, with safeguarding review   | Define tutor entry/replacement eligibility, learner/guardian access timing, cancelled/completed/expired behavior, reschedule effects and any removal operation; no guessed windows |
+| Learner and guardian authorization     | M4 implementation plus policy owner | Inspectable trusted relationships and eligible self-managed learner path; revoked relationships must lose access                                                                   |
+| Booking ownership and status           | M4 implementation                   | Persisted assigned tutor/learner, approved or explicitly test-only lifecycle, reusable access checks and coordinated mutation locking                                              |
+| Booking-detail UI                      | Booking implementation              | Protected detail surface with ownership checks and honest states; avoid building a parallel booking system here                                                                    |
+| Support access                         | Product/security                    | A task-scoped support capability and audit requirement before enabling support read/write; admin role alone never suffices                                                         |
+| Isolated test services                 | Integration implementer             | Owned disposable database/configuration and known-safe scripts/ports; no shared database resets                                                                                    |
 
 Support operations may be deferred explicitly to their own slice; until then
 there is no general admin override. Real-minor use remains gated by guardian,
@@ -132,14 +132,14 @@ and inspection of M4's real schema:
   another audit event. A stale retry must never overwrite a newer link. Do not
   alter booking status, time, eligibility or payment state when saving a link.
 
-| Actor | Read | Write |
-| --- | --- | --- |
-| Assigned tutor | Only under approved account/booking rules | Only their assigned booking under approved edit rules |
-| Eligible independent learner | Only their own booking under approved status/time rules | Denied |
-| Authorized guardian | Only the linked learner's booking under approved status/time rules | Denied |
-| Unrelated user or tutor | Denied, same response as nonexistent booking | Denied, same response as nonexistent booking |
-| Admin/support | Denied unless a specific approved support capability exists | Same; no role-only override |
-| Signed out, unverified or suspended identity | Existing identity boundary denies | Existing identity boundary denies |
+| Actor                                        | Read                                                               | Write                                                 |
+| -------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------- |
+| Assigned tutor                               | Only under approved account/booking rules                          | Only their assigned booking under approved edit rules |
+| Eligible independent learner                 | Only their own booking under approved status/time rules            | Denied                                                |
+| Authorized guardian                          | Only the linked learner's booking under approved status/time rules | Denied                                                |
+| Unrelated user or tutor                      | Denied, same response as nonexistent booking                       | Denied, same response as nonexistent booking          |
+| Admin/support                                | Denied unless a specific approved support capability exists        | Same; no role-only override                           |
+| Signed out, unverified or suspended identity | Existing identity boundary denies                                  | Existing identity boundary denies                     |
 
 Authorized absence, policy-unavailable access and infrastructure failure must be
 distinct domain outcomes. Never return a URL as part of a denied/missing response.

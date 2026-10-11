@@ -3,7 +3,7 @@
 > **Product:** Learli (`learli` in the visual identity)  
 > **Document type:** System Architecture / Technical Blueprint  
 > **Version:** 1.0 — Initial MVP architecture  
-> **Updated:** 2026-10-10  
+> **Updated:** 2026-10-11
 > **Status:** Approved technology direction; several business decisions remain open  
 > **Intended audience:** Founders, beginner developers, and implementation assistants
 
@@ -519,6 +519,13 @@ Don't rely on a hidden UI element, `proxy.ts`, or a role passed in the request b
 
 Use PostgreSQL for **structured records**, not for general-purpose file storage. The table names below are a **starting model** to refine into a reviewed ERD before writing migrations.
 
+**Current local implementation:** identity, roles/access/audit, subject catalog,
+tutor profiles/subjects, weekly availability and synthetic learner/guardian tables
+are implemented. The combined migration chain adds availability as `0006` and
+learners as `0007`; local implementation notes below distinguish these from the
+remaining proposed booking, review, support and payment entities. Integration uses
+fresh databases, not source-branch databases with conflicting migration histories.
+
 ### 9.1 Identity and roles
 
 **Better Auth-owned tables** (names/schema according to the installed version): users, sessions, linked accounts, verification records. Let Better Auth generate its required schema; don't independently recreate competing auth tables.
@@ -565,6 +572,22 @@ Use PostgreSQL for **structured records**, not for general-purpose file storage.
 - `guardian_user_id`, `learner_id`, relationship status and verified/authorized state.
 - Unique pair (`guardian_user_id`, `learner_id`).
 - Controls who can book, pay, and view a minor's schedule.
+
+### Local M4.4 implementation note — 2026-10-11
+
+The local synthetic slice adds `learner_profiles` and `guardian_learner_links`
+under `src/lib/db/schema/learners.ts`. Display name, level and IANA time zone are
+the only editable learner details. Fixture provenance, status, ownership and
+relationships are owner-tooling controlled; runtime grants allow only SELECT and
+column-limited profile UPDATE. A composite foreign key prevents guardian links
+to self-managed profiles; self profiles require a unique user and College Support.
+The server checks current account status, verification, trusted roles, active
+profile and authorized link or exact self ownership on reads and writes. No admin
+bypass exists. `scripts/seed-local-learners.ts` provisions synthetic records only
+for identities owned by the existing private fixture manifest and preserves edits
+and revoked links on rerun. Browser creation/linking is absent. This local
+technical model is not an approved real-world age, consent or guardian policy;
+real onboarding and booking remain gated. See `prompts/features/m4-04-learner-profiles.md`.
 
 ### 9.4 Tutor scheduling
 
@@ -700,7 +723,7 @@ Official integration instructions: [Better Auth Next.js](https://better-auth.com
 
 ### 10.3 Example checks
 
-**Tutor availability update:** user is authenticated, has tutor role, owns the `tutor_id`, account is approved/eligible, requested times are valid.
+**Tutor availability update:** user is authenticated and verified, has an active account and trusted tutor role, owns the `tutor_id`, and requested times are valid. In the local M4.1 slice, pending/rejected tutor profiles may prepare hours; suspended profiles cannot edit. Public eligibility and booking approval remain separate gates.
 
 **Parent's child booking:** parent is authenticated, link to the learner is authorized, tutor is approved, slot is free, booking/payment policy is met.
 
@@ -1206,19 +1229,3 @@ These references support the proposed integrations but **do not replace testing 
 - [Neon Object Storage overview](https://neon.com/blog/building-neon-object-storage) — **future option, not a V1 dependency**
 
 **Document precedence:** This Learli architecture updates/supersedes the earlier CalcStream concept *only where our latest discussions explicitly changed the business*: brand, marketplace-only scope, simplified dashboards, launch categories, technical stack, hosting, and removal of assignments/LMS features. Pricing, payment flow, legal compliance details, and other open choices still require approval.
-
-### Local M4.4 implementation note — 2026-10-11
-
-The local synthetic slice adds `learner_profiles` and `guardian_learner_links`
-under `src/lib/db/schema/learners.ts`. Display name, level and IANA time zone are
-the only editable learner details. Fixture provenance, status, ownership and
-relationships are owner-tooling controlled; runtime grants allow only SELECT and
-column-limited profile UPDATE. A composite foreign key prevents guardian links
-to self-managed profiles; self profiles require a unique user and College Support.
-The server checks current account status, verification, trusted roles, active
-profile and authorized link or exact self ownership on reads and writes. No admin
-bypass exists. `scripts/seed-local-learners.ts` provisions synthetic records only
-for identities owned by the existing private fixture manifest and preserves edits
-and revoked links on rerun. Browser creation/linking is absent. This local
-technical model is not an approved real-world age, consent or guardian policy;
-real onboarding and booking remain gated. See `prompts/features/m4-04-learner-profiles.md`.

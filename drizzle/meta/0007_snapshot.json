@@ -110,12 +110,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -162,9 +158,7 @@
         "rate_limit_key_unique": {
           "name": "rate_limit_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "key"
-          ]
+          "columns": ["key"]
         }
       },
       "policies": {},
@@ -247,12 +241,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -262,9 +252,7 @@
         "session_token_unique": {
           "name": "session_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -335,9 +323,7 @@
         "user_email_unique": {
           "name": "user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -460,12 +446,8 @@
           "name": "audit_events_actor_user_id_user_id_fk",
           "tableFrom": "audit_events",
           "tableTo": "user",
-          "columnsFrom": [
-            "actor_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["actor_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -473,12 +455,8 @@
           "name": "audit_events_target_user_id_user_id_fk",
           "tableFrom": "audit_events",
           "tableTo": "user",
-          "columnsFrom": [
-            "target_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["target_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -486,12 +464,8 @@
           "name": "audit_events_target_subject_id_subjects_id_fk",
           "tableFrom": "audit_events",
           "tableTo": "subjects",
-          "columnsFrom": [
-            "target_subject_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["target_subject_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -581,9 +555,7 @@
         "subjects_slug_unique": {
           "name": "subjects_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -679,12 +651,8 @@
           "name": "tutor_availability_tutor_id_tutor_profiles_id_fk",
           "tableFrom": "tutor_availability",
           "tableTo": "tutor_profiles",
-          "columnsFrom": [
-            "tutor_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tutor_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -802,12 +770,8 @@
           "name": "tutor_profiles_user_id_user_id_fk",
           "tableFrom": "tutor_profiles",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -817,16 +781,12 @@
         "tutor_profiles_user_id_unique": {
           "name": "tutor_profiles_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         },
         "tutor_profiles_slug_unique": {
           "name": "tutor_profiles_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -909,12 +869,8 @@
           "name": "tutor_subjects_tutor_id_tutor_profiles_id_fk",
           "tableFrom": "tutor_subjects",
           "tableTo": "tutor_profiles",
-          "columnsFrom": [
-            "tutor_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tutor_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -922,12 +878,8 @@
           "name": "tutor_subjects_subject_id_subjects_id_fk",
           "tableFrom": "tutor_subjects",
           "tableTo": "subjects",
-          "columnsFrom": [
-            "subject_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["subject_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -935,10 +887,7 @@
       "compositePrimaryKeys": {
         "tutor_subjects_tutor_id_subject_id_pk": {
           "name": "tutor_subjects_tutor_id_subject_id_pk",
-          "columns": [
-            "tutor_id",
-            "subject_id"
-          ]
+          "columns": ["tutor_id", "subject_id"]
         }
       },
       "uniqueConstraints": {},
@@ -986,12 +935,8 @@
           "name": "user_access_user_id_user_id_fk",
           "tableFrom": "user_access",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1037,12 +982,8 @@
           "name": "user_roles_user_id_user_id_fk",
           "tableFrom": "user_roles",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1050,10 +991,7 @@
       "compositePrimaryKeys": {
         "user_roles_user_id_role_pk": {
           "name": "user_roles_user_id_role_pk",
-          "columns": [
-            "user_id",
-            "role"
-          ]
+          "columns": ["user_id", "role"]
         }
       },
       "uniqueConstraints": {},
@@ -1138,12 +1076,8 @@
           "name": "guardian_learner_links_guardian_user_id_user_id_fk",
           "tableFrom": "guardian_learner_links",
           "tableTo": "user",
-          "columnsFrom": [
-            "guardian_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["guardian_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1151,14 +1085,8 @@
           "name": "guardian_learner_links_learner_id_management_learner_profiles_id_management_fk",
           "tableFrom": "guardian_learner_links",
           "tableTo": "learner_profiles",
-          "columnsFrom": [
-            "learner_id",
-            "management"
-          ],
-          "columnsTo": [
-            "id",
-            "management"
-          ],
+          "columnsFrom": ["learner_id", "management"],
+          "columnsTo": ["id", "management"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1166,10 +1094,7 @@
       "compositePrimaryKeys": {
         "guardian_learner_links_guardian_user_id_learner_id_pk": {
           "name": "guardian_learner_links_guardian_user_id_learner_id_pk",
-          "columns": [
-            "guardian_user_id",
-            "learner_id"
-          ]
+          "columns": ["guardian_user_id", "learner_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1271,12 +1196,8 @@
           "name": "learner_profiles_user_id_user_id_fk",
           "tableFrom": "learner_profiles",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1286,24 +1207,17 @@
         "learner_profiles_fixture_key_unique": {
           "name": "learner_profiles_fixture_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "fixture_key"
-          ]
+          "columns": ["fixture_key"]
         },
         "learner_profiles_user_id_unique": {
           "name": "learner_profiles_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         },
         "learner_profiles_id_management_unique": {
           "name": "learner_profiles_id_management_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "id",
-            "management"
-          ]
+          "columns": ["id", "management"]
         }
       },
       "policies": {},

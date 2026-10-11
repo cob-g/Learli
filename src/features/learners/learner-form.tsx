@@ -60,7 +60,12 @@ export function LearnerForm({
       );
     } finally {
       setPending(false);
-      requestAnimationFrame(() => noticeRef.current?.focus());
+      requestAnimationFrame(() => {
+        const invalidField = form.querySelector<HTMLElement>(
+          '[aria-invalid="true"]',
+        );
+        (invalidField ?? noticeRef.current)?.focus();
+      });
     }
   }
 

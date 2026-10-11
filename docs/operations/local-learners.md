@@ -37,22 +37,26 @@ Trusted fixture provisioning is not real-world eligibility or consent evidence.
 npm run check
 npm run test:integration
 npm run build
-npm run test:e2e -- --config playwright.learners.config.ts
+npm run test:e2e
+# Optional focused project; includes its configured prerequisite projects:
+npm run test:e2e -- --project learners
 ```
 
-The dedicated learner browser config reads `APP_URL` from `.env.test.local`,
-requires local test mode and starts its own server with reuse disabled. This
-worktree used DB **55434**, development HTTP **3002**, test HTTP **3102**. Its
-`.env*` and `.local/` files are private and ignored. Do not copy another worktree's
-credentials, run the baseline fixed-port `local:setup` blindly, or reset/stop
-another worktree's cluster. Existing regression browser specs contain fixed-port
-3100 references; this run used ignored copies changing those references to 3102.
+The standard browser configuration reads APP_URL from `.env.test.local` and runs
+all baseline, availability and learner cases. Learner cases run serially after the
+other auth work, so test-only throttle cleanup cannot race another suite. No
+private copied specs or separate learner configuration is needed.
 
-Migration `0006_local_learner_profiles` and its journal/snapshot must be reconciled
-with the independently developed availability migration before combining branches.
-Preserve the learner SELECT and column-limited UPDATE grants in
-`scripts/migrate-local.ts` when reconciling that shared file. Apply no migration
-from another branch to this worktree's databases.
+For a new integration checkout choose unused ports before `local:setup`, e.g.
+DB 55442, development HTTP 3003 and browser HTTP 3103; see README. Configuration
+and cluster files remain ignored and private. Never copy a source checkout's
+credentials or reset/stop another cluster.
+
+The combined migration chain is availability `0006_tutor_weekly_availability`
+then `0007_local_learner_profiles`. The original learner branch used its own
+0006 in its isolated database on 55434; that database remains unchanged and is
+not an upgrade target for the combined chain. Use a fresh database for integration.
+Learner SELECT and column-limited UPDATE grants remain in `scripts/migrate-local.ts`.
 
 Real age eligibility, guardian consent/proof, child login and role self-assignment
 remain OPEN. FAM-01/FAM-02 and M4.4 are not declared complete for real users.

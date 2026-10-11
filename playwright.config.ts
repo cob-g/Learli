@@ -62,8 +62,8 @@ export default defineConfig({
     {
       name: "catalog",
       testMatch: "tutor-catalog.spec.ts",
-      // This spec lists a tutor publicly; zero-inventory checks must finish first.
-      dependencies: ["desktop", "phone", "narrow"],
+      // Finish empty-inventory checks and auth throttle assertions before catalog setup.
+      dependencies: ["desktop", "phone", "narrow", "auth"],
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1440, height: 900 },
@@ -75,6 +75,19 @@ export default defineConfig({
       name: "availability",
       testMatch: "availability.spec.ts",
       dependencies: ["catalog"],
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+        trace: "off",
+        screenshot: "off",
+      },
+    },
+    {
+      name: "learners",
+      testMatch: "learners.spec.ts",
+      // Learner cases reset test-only throttle counters; finish other auth work first.
+      dependencies: ["auth", "availability"],
+      fullyParallel: false,
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1440, height: 900 },
