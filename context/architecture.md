@@ -713,6 +713,8 @@ Scheduling is among Learli's most important backend responsibilities.
 7. Validate lead time, duration, reschedule window, and cancellation policy once approved.
 8. Account for DST gaps/overlaps and cross-midnight changes.
 
+**Window semantics [RECOMMENDED] — M4.2 engine, `src/lib/time/`:** a weekly window covers exactly the instants at which the tutor's local wall clock reads inside it. A local time skipped by a daylight-saving change yields no availability and is never moved to another wall-clock time; a repeated local hour is available on both passes. Lesson lengths are elapsed real time. Lesson duration, the step between start times, and minimum notice are supplied by the caller and stay `[OPEN]` policy. The engine's output is advisory; rule 6 is still enforced in the database.
+
 ### Example
 
 A tutor in Manila offers Monday at 9:00 PM Manila time. A learner in California must see the **correct California date/time for that specific Monday**, which can change when California changes daylight-saving time. Do not use one fixed “Philippines minus 16 hours” rule year-round.
