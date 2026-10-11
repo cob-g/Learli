@@ -43,6 +43,20 @@
       "when": 1791701435981,
       "tag": "0005_tutor_profile_slug",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791707038814,
+      "tag": "0006_tutor_weekly_availability",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791708548920,
+      "tag": "0007_local_learner_profiles",
+      "breakpoints": true
     }
   ]
 }

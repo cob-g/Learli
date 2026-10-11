@@ -35,8 +35,14 @@ export default async function TutorWorkspacePage() {
           publicHref={data.profile ? `/tutors/${data.profile.slug}` : undefined}
         />
       </div>
+      <Link
+        className="mt-8 inline-flex min-h-11 items-center"
+        href="/tutor/availability"
+      >
+        Availability
+      </Link>
       <p className="mt-8 max-w-prose text-body text-muted-foreground">
-        Availability and bookings are not available yet.
+        Bookings are not available yet.
       </p>
       <Link className="mt-4 inline-flex min-h-11 items-center" href="/account">
         Account settings

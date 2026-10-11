@@ -1,5 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const baseURL = process.env.APP_URL ?? "http://127.0.0.1:3100";
+const target = new URL(baseURL);
+if (
+  target.hostname !== "127.0.0.1" ||
+  target.protocol !== "http:" ||
+  !target.port
+)
+  throw new Error("Browser tests require an explicit loopback port.");
+
 export default defineConfig({
   testDir: "./tests/e2e",
   globalSetup: "./tests/e2e/global-setup.ts",
@@ -9,7 +18,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : 3,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
-    baseURL: "http://127.0.0.1:3100",
+    baseURL,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
@@ -53,8 +62,32 @@ export default defineConfig({
     {
       name: "catalog",
       testMatch: "tutor-catalog.spec.ts",
-      // This spec lists a tutor publicly; zero-inventory checks must finish first.
-      dependencies: ["desktop", "phone", "narrow"],
+      // Finish empty-inventory checks and auth throttle assertions before catalog setup.
+      dependencies: ["desktop", "phone", "narrow", "auth"],
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+        trace: "off",
+        screenshot: "off",
+      },
+    },
+    {
+      name: "availability",
+      testMatch: "availability.spec.ts",
+      dependencies: ["catalog"],
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+        trace: "off",
+        screenshot: "off",
+      },
+    },
+    {
+      name: "learners",
+      testMatch: "learners.spec.ts",
+      // Learner cases reset test-only throttle counters; finish other auth work first.
+      dependencies: ["auth", "availability"],
+      fullyParallel: false,
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1440, height: 900 },
@@ -64,10 +97,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run start -- --hostname 127.0.0.1 --port 3100",
-    url: "http://127.0.0.1:3100/api/health",
+    command: `npm run start -- --hostname 127.0.0.1 --port ${target.port}`,
+    url: `${baseURL}/api/health`,
     reuseExistingServer: false,
-    env: { APP_ENV: "test", APP_URL: "http://127.0.0.1:3100" },
+    env: { APP_ENV: "test", APP_URL: baseURL },
     timeout: 60_000,
   },
 });

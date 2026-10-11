@@ -502,11 +502,11 @@ describe("server permissions, validation and database boundaries", () => {
         )
       ).status,
     ).toBe(503);
-    const unavailable = createLocalAuth({
-      ...process.env,
-      DATABASE_URL: process.env.DATABASE_URL!.replace(":55432/", ":55433/"),
-    });
-    try {
+    const unavailable = createLocalAuth(process.env);
+    // A closed pool deterministically simulates a disconnected database without
+    // assuming a port or accidentally contacting another worktree's cluster.
+    await unavailable.pool.end();
+    {
       const response = await handleAuthRequest(
         unavailable,
         new Request(`${runtime.origin}/api/auth/sign-in/email`, {
@@ -522,8 +522,6 @@ describe("server permissions, validation and database boundaries", () => {
       expect(await response.json()).toEqual({
         message: "Account service is unavailable. Try again later.",
       });
-    } finally {
-      await unavailable.pool.end();
     }
   });
 });

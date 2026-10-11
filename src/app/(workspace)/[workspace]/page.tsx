@@ -44,9 +44,17 @@ export default async function WorkspacePage({
       </h1>
       <p className="mt-4 text-body">Signed in as {account.email}</p>
       <p className="mt-4 max-w-prose text-body">
-        Your local account has this workspace role. Learner profiles, scheduling
-        and booking features are not available yet.
+        Your local account has this workspace role. Lessons are not available
+        yet.
       </p>
+      {(workspace === "parent" || workspace === "student") && (
+        <Link
+          className="mt-8 inline-flex min-h-11 items-center"
+          href="/learners"
+        >
+          Your learners
+        </Link>
+      )}
       <Link className="mt-8 inline-flex min-h-11 items-center" href="/account">
         Account settings
       </Link>

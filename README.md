@@ -67,7 +67,7 @@ npm run check              # format, lint, typecheck, unit/component tests
 npm run test:integration   # real isolated PostgreSQL, synthetic records only
 npm run build
 npx --no-install playwright install chromium
-npm run test:e2e           # own local test server on 127.0.0.1:3100
+npm run test:e2e           # all projects; own loopback server from test APP_URL
 ```
 
 Do not run integration/browser suites simultaneously against `learli_test`.
@@ -94,8 +94,15 @@ applying it. Local scripts reject remote DB targets; no destructive reset exists
   submits and edits one application at `/tutor/profile`; an `admin` reviews it at `/admin/tutors`
   and manages the catalog at `/admin/subjects`. Approving lists the tutor
   publicly in this local environment. The tutor screening policy is undecided.
-- Student and parent pages enforce access but contain no learner or booking
-  features. Parent/learner relationship authorization belongs to M4.
+- Student and parent workspaces link to private, fixture-provisioned learner
+  list/detail/edit pages. Runtime can edit only display name, level and time zone;
+  creation, ownership and guardian links stay in trusted synthetic fixture tooling.
+  Run `npx --no-install tsx scripts/seed-local-learners.ts` after `db:seed`;
+  see [local learner setup](docs/operations/local-learners.md). Real onboarding
+  and bookings remain unavailable.
+- The standalone Zoom/Meet URL validator is pure syntax validation only. It makes
+  no network requests and provides no storage, meeting access or attendance proof.
+  The private meeting integration draft remains blocked on product decisions.
 - `/api/health` is uncached process liveness, not a database/email readiness claim.
 - Pages remain excluded from indexing. Local auth is rejected in staging/production.
 - Final brand artwork and generated shadcn primitive approval remain open.
@@ -130,3 +137,29 @@ never commit it. Official references:
 [Drizzle adapter](https://better-auth.com/docs/adapters/drizzle),
 [Email/password flows](https://better-auth.com/docs/authentication/email-password),
 [PostgreSQL/Drizzle](https://orm.drizzle.team/docs/get-started/postgresql-new).
+
+### Separate worktree development
+
+Each concurrent session needs its own checkout and local PostgreSQL cluster.
+On a new worktree, choose unused loopback ports before initial setup, for example:
+
+```sh
+LEARLI_DB_PORT=55441 LEARLI_DEV_PORT=3001 LEARLI_TEST_PORT=3101 npm run local:setup
+npm run dev -- --port 3001
+```
+
+Defaults remain 55432/3000/3100. New clusters remember their selected ports in
+private local state, so subsequent `npm run db:start` needs no overrides. Setup
+rejects changes to those stored ports and preserves existing environment files;
+these settings are for a fresh cluster, not moving an existing cluster's port.
+Browser tests use `APP_URL` from that worktree's `.env.test.local`. Credentials,
+mail captures and cluster files stay in its ignored local directories. Never copy
+another worktree's database configuration or run concurrent test suites against
+one database. Weekly availability is managed at `/tutor/availability`; booking
+and public candidate-slot display remain unavailable.
+
+The combined migration chain preserves availability as `0006` and adds learners
+as `0007`. Use fresh databases when combining source branches that each had their
+own `0006`; do not reinterpret or renumber an already-applied source history.
+See [integration evidence](docs/operations/m4-m5-integration.md) for source commits,
+isolated ports, verification and the remaining main-merge checkpoint.

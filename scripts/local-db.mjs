@@ -9,7 +9,20 @@ const local = path.join(root, ".local");
 const data = path.join(local, "postgres", "data");
 const marker = path.join(local, "postgres", "learli-owned");
 const statePath = path.join(local, "database.json");
-const port = 55432;
+function localPort(name, fallback) {
+  const value = Number(process.env[name] ?? fallback);
+  if (!Number.isInteger(value) || value < 1024 || value > 65535)
+    throw new Error(
+      `Invalid ${name}; use a local port between 1024 and 65535.`,
+    );
+  return value;
+}
+const savedPorts = existsSync(statePath)
+  ? JSON.parse(readFileSync(statePath, "utf8")).ports
+  : undefined;
+const port = localPort("LEARLI_DB_PORT", savedPorts?.database ?? 55432);
+const devPort = localPort("LEARLI_DEV_PORT", savedPorts?.development ?? 3000);
+const testPort = localPort("LEARLI_TEST_PORT", savedPorts?.test ?? 3100);
 const action = process.argv[2] ?? "start";
 const binaries = process.env.PG_BIN;
 const binary = (name) => (binaries ? path.join(binaries, name) : name);
@@ -43,6 +56,13 @@ async function main() {
     console.log("Local PostgreSQL stopped; data preserved.");
     return;
   }
+  if (
+    savedPorts &&
+    (savedPorts.database !== port ||
+      savedPorts.development !== devPort ||
+      savedPorts.test !== testPort)
+  )
+    throw new Error("Existing local ports cannot be changed by setup.");
   mkdirSync(path.join(local, "postgres", "socket"), {
     recursive: true,
     mode: 0o700,
@@ -57,6 +77,7 @@ async function main() {
     writePrivate(
       statePath,
       JSON.stringify({
+        ports: { database: port, development: devPort, test: testPort },
         ownerPassword: randomBytes(32).toString("hex"),
         appPassword: randomBytes(32).toString("hex"),
       }),
@@ -126,8 +147,8 @@ async function main() {
     await pool.end();
   }
   for (const [file, db, env, appPort] of [
-    [".env.local", "learli_dev", "development", 3000],
-    [".env.test.local", "learli_test", "test", 3100],
+    [".env.local", "learli_dev", "development", devPort],
+    [".env.test.local", "learli_test", "test", testPort],
   ]) {
     if (existsSync(file)) continue; // Never overwrite existing user configuration.
     writePrivate(
@@ -136,12 +157,12 @@ async function main() {
     );
   }
   console.log(
-    "Local PostgreSQL ready on 127.0.0.1:55432. Development/test databases are separate. Existing environment files preserved.",
+    `Local PostgreSQL ready on 127.0.0.1:${port}. Development/test databases are separate. Existing environment files preserved.`,
   );
 }
 main().catch(() => {
   console.error(
-    "Local database setup could not complete. Check PostgreSQL 17 tools, port 55432, and private .local/postgres/server.log. Existing data was not reset.",
+    "Local database setup could not complete. Check PostgreSQL 17 tools, the configured local port, and private .local/postgres/server.log. Existing data was not reset.",
   );
   process.exitCode = 1;
 });

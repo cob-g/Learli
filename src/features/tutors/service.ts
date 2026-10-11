@@ -8,6 +8,7 @@ import {
   auditEvents,
   subjects,
   tutorProfiles,
+  tutorAvailability,
   tutorSubjects,
   user,
 } from "@/lib/db/schema";
@@ -122,6 +123,8 @@ export async function saveOwnTutorProfile(
         .select({
           id: tutorProfiles.id,
           reviewStatus: tutorProfiles.reviewStatus,
+          timezone: tutorProfiles.timezone,
+          availabilityVersion: tutorProfiles.availabilityVersion,
         })
         .from(tutorProfiles)
         .where(eq(tutorProfiles.userId, identity.userId))
@@ -131,6 +134,18 @@ export async function saveOwnTutorProfile(
           409,
           "This profile can't be edited right now. Contact support.",
         );
+      if (existing && fields.timezone !== existing.timezone) {
+        const [window] = await tx
+          .select({ id: tutorAvailability.id })
+          .from(tutorAvailability)
+          .where(eq(tutorAvailability.tutorId, existing.id))
+          .limit(1);
+        if (window)
+          throw new RuleError(
+            409,
+            "Change your teaching time zone on the Availability page, together with your weekly hours.",
+          );
+      }
       const subjectIds = offerings.map((offering) => offering.subjectId);
       const offered = await tx
         .select({ id: subjects.id })
@@ -149,7 +164,14 @@ export async function saveOwnTutorProfile(
       if (profileId) {
         await tx
           .update(tutorProfiles)
-          .set({ ...fields, reviewStatus, updatedAt: new Date() })
+          .set({
+            ...fields,
+            reviewStatus,
+            updatedAt: new Date(),
+            ...(existing && fields.timezone !== existing.timezone
+              ? { availabilityVersion: existing.availabilityVersion + 1 }
+              : {}),
+          })
           .where(eq(tutorProfiles.id, profileId));
         await tx
           .delete(tutorSubjects)
