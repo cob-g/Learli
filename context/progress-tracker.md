@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.14 — Four-feature wave independently reviewed and verified locally
+> **Version:** 1.15 — Four-feature wave merged locally
 > **Last updated:** 2026-10-12\
-> **Current overall status:** **Four-feature wave independently reviewed and verified locally; uncommitted and unmerged**
+> **Current overall status:** **Four-feature wave committed and merged locally; next wave being prepared**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -35,9 +35,13 @@
 
 ## Next Up
 
-1. **Owner:** review the completed local candidate on `cob-g/m5-four-feature-integration`; commit and merge when requested.
-2. **Evidence:** current check/build and 101 browser cases pass; historical 337 PostgreSQL and migration/grant proofs apply to unchanged backend source. The initial full reviews and final scoped re-review remain preserved with the failure/recovery history.
-3. **Later operations:** main database migration, cleanup, push/deployment and real-user launch retain their applicable separate scope. Commercial, guardian/consent, safeguarding and production gates remain open.
+1. **Completed:** the user authorized commit and merge on 2026-10-12. Exact reviewed 94-file candidate committed as `dcf2c55b0a38a233529e6aeea0ecce65bb63ff66` and fast-forwarded into local `main`. All 94 accepted file hashes match after merge; working tree was clean. Existing check/build/101 browser and applicable historical 337 PostgreSQL/migration evidence remain unchanged.
+2. **Current authorization:** select, launch and supervise the next feature wave through `$build-feature`. Prepare three independent slices: directory actual-date availability filters (M3.5/M4.11), provider-supported local verified email changes (M2.9/AUTH-04), and safe specialized-subject name maintenance (M3.1/M5.6/ADM-02). Each gets its own worktree/branch and isolated services; no implementation result is claimed yet.
+3. **Deferred operations:** main local database remains at migrations0000–0012; new0013–0015 remain pending there. Existing worktrees/databases/evidence are preserved. The user's wording leaves main migration and old-worktree cleanup afterward. No push/deployment, real-user launch, or next-wave commit/merge is authorized by this step. New workers migrate only their own isolated databases.
+
+## Four-feature merge — 2026-10-12
+
+The reviewed four-feature candidate is now in local `main`, commit `dcf2c55`. Exact premerge and postmerge SHA256 checks passed for all 94 files. No source changed during commit/fast-forward; no redundant test execution was needed. The two full reviews, repaired privacy/accessibility findings and final scoped independent review remain preserved. All nine workers were already completed/released. See `docs/operations/four-feature-merge.md` and ignored `.local/four-feature-merge-2026-10-12/`. The prior recovery/integration sections below describe historical premerge states; their old pending-owner wording is superseded by this entry.
 
 ## Prior baseline phase — historical verified status
 
