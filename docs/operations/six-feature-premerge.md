@@ -144,10 +144,10 @@ Completed at 2026-10-11T22:21:00+08:00 (Asia/Manila). Integration commit
 feature worktrees and integration worktree were preserved. All four supervised
 integration/review tasks succeeded and their agent terminals were released.
 
-Only the isolated integration databases received migration 0012 and updated runtime
-grants. The main-checkout database was not migrated; apply the repository local
-migration commands before exercising this revision against an existing local
-database. No push, deployment or production operation was performed. The merge
+At merge time, only the isolated integration databases received migration 0012 and
+updated runtime grants. The main databases were subsequently migrated under the
+user's separate request, recorded below. No push, deployment or production
+operation was performed. The merge
 does not change the local-simulation or public-launch policy gates.
 
 ## Subsequent cleanup
@@ -169,6 +169,36 @@ excluded. Archives, manifests and cleanup receipts are in ignored
 are in its `evidence/` directory. Historical worktree-local evidence paths in this
 report can be found inside the corresponding archive.
 
-Application runtime files are unchanged. The main database still needs the
-reviewed migration and grants before using the new features. No push, deployment
+Application runtime files are unchanged. Main database migration was pending at
+cleanup time and was subsequently completed as recorded below. No push, deployment
 or production operation was performed.
+
+## Main local database migration
+
+On 2026-10-11, the user explicitly requested the main checkout's pending
+migrations. Inspection found both `learli_dev` and `learli_test` at migration 0005,
+so seven committed migrations, 0006–0012, were required. The earlier handoff's
+assumption that only 0012 remained was incomplete.
+
+Validated local environment modes, loopback connections on port 55432, the
+main-owned PostgreSQL data directory, and owner/runtime credentials without
+printing their values. Created private custom-format backups of both databases;
+their table of contents and complete archive streams were readable. Backups,
+before/after hashes and permission evidence are in ignored
+`.local/main-migration-2026-10-11/`.
+
+`npm run db:migrate` and `npm run db:migrate:test` both completed successfully.
+Both databases now have all 13 applied migration hashes matching committed SQL
+and 24 public tables with columns matching snapshot 0012. Counts and hashes of
+existing column values in all 11 baseline tables are unchanged. The added tutor
+availability version defaults to zero; no notification history was backfilled.
+
+Verified the booking overlap exclusion constraint and all three supplemental
+booking/notification triggers. Twelve actual runtime permission probes per
+database passed, including expected 42501 denials for forbidden writes and schema
+creation. All probes were rolled back; runtime role flags and internal function
+execution permissions remain restricted.
+
+No seed/reset or application-code change was needed. The main local databases are
+current for the merged schema. No remote/production database, push or deployment
+operation was performed, and no backup restore was needed or exercised.
