@@ -33,8 +33,8 @@ See the M2 session below for exact checks and deferred hosted acceptance. Nothin
 has been committed, pushed or deployed during this implementation.
 
 **Next development slice:** Architect M4.1–M4.3: tutor time zone and weekly
-availability. A parallel session reports the pure time and slot library (M4.2)
-on branch `feature/time-utils`; reconcile with it first. Booking durations, lead
+availability. The pure time and slot engine for M4.2 is merged in `src/lib/time/`
+and verified in isolation; build M4.1 to call it. Booking durations, lead
 times and guardian-consent policy are open and gate later M4 packages.
 
 ## Completed
@@ -97,7 +97,7 @@ Resolve open design decisions and dependency advisories alongside this sequence.
 | M1 | Repository + app foundation | **Local foundation verified** | Session evidence below; brand/primitive approval pending, remote CI unrun |
 | M2 | Data, authentication, role controls | **Local scope verified; hosted acceptance deferred** | Local migrations, auth/ownership tests and browser journeys passed; Neon/TLS/Resend and production settings unrun |
 | M3 | Tutor catalog, public discovery, matching | **Verified locally** | Catalog, application, review, public discovery and matching tests passed locally; screening policy, time-based matching (needs M4) and hosting remain |
-| M4 | Availability, guardians/learners, booking integrity | **Planned / not verified** | Time-zone/DST, ownership, concurrent-booking tests |
+| M4 | Availability, guardians/learners, booking integrity | **In progress — M4.2 engine verified in isolation; nothing else started** | Engine unit tests cover time zones and DST. Availability schema and editor, learner links, bookings, ownership and concurrent-booking tests remain |
 | M5 | Meeting links, dashboards, notifications, basic support | **Planned / not verified** | E2E role journeys, meeting-link privacy and email tests |
 | M6 | Commerce policy approval | **Blocked** | Founder-approved decision records and provider/jurisdiction assessment |
 | M7 | Payment integration (only if approved) | **Blocked by M6** | Sandbox checkout, verified webhooks, duplicate-event/reconciliation tests |
@@ -288,3 +288,16 @@ Copy this compact entry for the next session; include only **actual evidence**:
 - **Verification (final code):** `npm run check` PASS (**67** unit/component); `npm run test:integration` PASS **37/37**; `npm run build` PASS; `npm run test:e2e` PASS **26/26** including both questions, Back, results, no-match and invalid-answer states, axe and overflow at 1440, 390 and 320. Results screenshot inspected. Detector `[]`.
 - **Limits:** A match does not mean the tutor has an open time; no time or day preference; no ranking beyond name. Remote CI not run.
 - **Next session:** Architect M4.1–M4.3 after reconciling with `feature/time-utils`.
+
+### Session — 2026-10-11 (M4.2 time-zone and slot engine — verified in isolation)
+
+- **Owner / branch / PR:** Claude Code for the repository owner · built in worktree branch `feature/time-utils`, rebased onto the M3 commits and fast-forwarded into local `main` as `254c16a` and `d6cf53e` · not pushed, no PR, no deployment.
+- **Authority:** Owner requested `/build-feature` for the M4.2 library, then asked for the commit, the form dedupe and the merge. Blueprint `prompts/features/m4-02-time-zone-slot-library.md` — **AUTHORIZED — build-feature delegation**.
+- **Goal:** Policy-independent engine for TUT-04 and MATCH-03: IANA validation, weekly windows to UTC, daylight-saving handling, slot generation.
+- **Changed:** `src/lib/time/time-zone.ts`, `src/lib/time/availability.ts`, `tests/unit/time-zone.test.ts`, `tests/unit/availability.test.ts`; `context/architecture.md` §11 window-semantics note. `src/lib/validation/time-zone.ts` now calls `isValidTimeZone`, so the account and tutor forms refuse fixed-offset names such as `EST`, `GMT` and `Etc/GMT+8`; every value the time-zone picker offers is still accepted. No schema, migration, dependency, route or UI change.
+- **Review:** Same-agent read-only review, not independent. First pass CHANGES REQUIRED (instants before year 100 bypassed the 366-day range guard; one query ran 29 s); repaired with regression tests; then plan alignment PASS, unintended-change audit PASS, READY FOR VERIFICATION.
+- **Verified:** On the final commits: `npm run check` PASS (**205** unit/component); `npm run test:integration` PASS **37/37**; `npm run build` PASS. On merged `main`: `npm run test:e2e` PASS **26/26**. Engine tests also passed under host zones UTC, America/New_York, Pacific/Apia and Asia/Manila, and 19 of 19 injected single-line faults were detected (run before the rebase; the engine files are unchanged since). Remote CI not run.
+- **Milestone status:** M4 Planned → **M4.2 engine verified in isolation; work package not complete** until M4.1 and M4.5 supply availability rows and active bookings.
+- **Blockers / decisions:** Lesson duration, start-time step, minimum notice and holds remain `[OPEN]`; the engine takes them as arguments. A repeated fall-back hour is offered on both passes as a `[RECOMMENDED]` default. An account already stored with a fixed-offset zone must choose a region zone on its next save.
+- **Deployment:** Not deployed.
+- **Next session:** Architect M4.1 availability schema and tutor editor, calling `expandWeeklyWindows` and `generateSlots`.
