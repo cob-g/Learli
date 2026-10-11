@@ -14,12 +14,22 @@ rejected because abandoned tests could block useful demonstrations.
 Only local `.test` actors and fixture learners can create `demo_reserved`.
 Its only transition is `demo_expired`. Original UTC times and request identity
 stay immutable; reservations and minimal created/expired events are retained.
-Read/create transactions materialize elapsed state under the tutor row lock;
+Candidate-read/create transactions materialize elapsed state under the tutor row lock;
 candidate queries independently ignore elapsed rows. No background worker or
 volatile timestamp index predicate is used. Duplicate actor/key returns one
 logical result, including after expiry, and never renews it. Changed key payload
 is rejected. UI says **simulated reservation**, displays **expires at**, and
 never claims paid or confirmed.
+
+M4.9 participant detail/history reads (2026-10-11 delegated local wave) are
+read-only projections: one final current-auth SQL statement uses database
+statement time and displays elapsed TTL as `demo_expired`, without persisting a
+transition or inventing an event. DTOs distinguish effective/persisted state and
+expiry materialization; history contains actual stored events only. These reads
+take no domain row locks, so no tutor lock protocol is added or inverted.
+Candidate/create mutation materialization and booking/time-off races remain
+unchanged. Active/history overview and authorized learner context share the same
+snapshot. This is technical read behavior, not real booking/confirmation policy.
 
 Booking and time-off mutations lock `tutor_profiles FOR UPDATE` before reading
 exceptions or blocking reservations. Booking uses a GiST half-open UTC exclusion

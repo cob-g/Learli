@@ -5,6 +5,10 @@ import { cache } from "react";
 import { levelNames } from "@/features/subjects/catalog";
 import { readPublicTutor } from "@/features/tutors/public";
 import { InitialsAvatar } from "@/features/tutors/tutor-card";
+import { ProfilePicker } from "@/features/public-availability/profile-picker";
+import { loadProfilePreview } from "@/features/public-availability/profile";
+import { listTimeZoneOptions } from "@/lib/time/zones";
+import type { SearchValues } from "@/features/bookings/selection";
 import { teachingLanguageNames } from "@/features/tutors/teaching-languages";
 
 export const dynamic = "force-dynamic";
@@ -24,8 +28,10 @@ export async function generateMetadata({
 
 export default async function TutorPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<SearchValues>;
 }) {
   const tutor = await loadTutor((await params).slug);
   if (tutor === null) notFound();
@@ -42,6 +48,7 @@ export default async function TutorPage({
         </Link>
       </div>
     );
+  const preview = await loadProfilePreview(tutor, await searchParams);
   return (
     <div className="page-shell page-space">
       <div className="flex items-start gap-4">
@@ -51,8 +58,21 @@ export default async function TutorPage({
           <p className="mt-2 max-w-prose text-body wrap-anywhere">
             {tutor.headline}
           </p>
+          <p className="mt-2 max-w-prose text-body">
+            {tutor.offerings.map((row) => row.subjectName).join(" · ")}
+          </p>
+          <p className="mt-2 max-w-prose text-small">
+            {levelNames([
+              ...new Set(tutor.offerings.flatMap((row) => row.levels)),
+            ]).join(" · ")}
+          </p>
         </div>
       </div>
+      <ProfilePicker
+        tutor={tutor}
+        preview={preview}
+        zones={listTimeZoneOptions(new Date(), [preview.timezone])}
+      />
       <section aria-labelledby="subjects-title" className="mt-8">
         <h2 id="subjects-title" className="text-section-title">
           Subjects and levels
@@ -105,17 +125,6 @@ export default async function TutorPage({
         <p className="mt-4 max-w-prose text-prose wrap-anywhere whitespace-pre-line">
           {tutor.teachingBackground}
         </p>
-      </section>
-      <section aria-labelledby="booking-title" className="mt-12">
-        <h2 id="booking-title" className="text-section-title">
-          Booking
-        </h2>
-        <p className="mt-4 max-w-prose text-body">
-          Booking is not available on Learli yet.
-        </p>
-        <Link className="mt-2 inline-flex min-h-11 items-center" href="/tutors">
-          Browse all tutors
-        </Link>
       </section>
     </div>
   );

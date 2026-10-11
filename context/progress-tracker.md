@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.5 — Five-feature local merge complete
+> **Version:** 1.8 — Six-feature local premerge integration
 > **Last updated:** 2026-10-11  
-> **Current overall status:** **Five verified local synthetic features merged into main; related worktrees and branches removed**
+> **Current overall status:** **Six-feature candidate locally verified and independently reviewed; parent commit/merge next**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -17,18 +17,20 @@
 
 ## Current Phase
 
-- **Phase:** **Five-feature integration merged into local main at `a169f61`; cleanup complete.**
+- **Phase:** **Local six-feature premerge integration; no launch or whole milestone promotion.**
 - **Product definition:** Documented; core marketplace scope agreed.
 - **Application implementation:** Local main includes the previous foundation plus demo booking with guarded time off, optional teaching languages, exact-case support and own-session management. Separate independent review and all combined checks passed; the fast-forward merge preserved that exact runtime code.
+- **Assigned worktree:** `cob-g/six-feature-integration` combines six frozen local slices on clean initial `0c078bf`: private booking details/history, family dashboards, tutor dashboard, actual-date profile/auth continuation, availability matching and manual local creation-notice capture. All changes remain uncommitted here; source branches/worktrees remain unchanged.
+- **Current own checkout:** Authorized locator/fixture/DST-label repairs and the explicit tutor fixture sign-in are complete. Final same-agent Review recommends READY FOR VERIFICATION; separate Verify passed initial full check578cases, affected family17cases, repaired static checks/build,255 PostgreSQL cases and real fresh13/baseline12-to13 migration/grant proofs. Browser acceptance covers all79 default-discovered cases:78PASS in full sequential run plus corrected combined case1/1PASS; no single79/79 full-pass claim. Runtime99 aggregate `f83f80976a63927e6699865f1113e7cb97980e1e018dd162a3cd7952cd6db402` is frozen; both final independent reviews are accepted by parent msg_3addf9d89cee for that exact runtime, with plan/integrity/unintended-change PASS, READY FOR VERIFICATION and0outstanding findings. Parent final file audit/commit/merge remain next. Historical failures/source-worker evidence below remain separate.
 - **Pilot / production deployment:** **Not verified**.
 - **Live payment processing:** **Blocked pending founder-approved business rules**.
 - **Public onboarding of minors:** **Blocked pending launch-market guardian-consent and safeguarding decisions**.
 
 ## Current Goal
 
-**Completed: integrate, verify and merge the five local synthetic features, preserve their evidence, and remove their temporary worktrees and branches.**
+**Integrate and verify the six completed local slices as a safe premerge candidate.**
 
-The user explicitly authorized merge and cleanup on 2026-10-11. Main fast-forwarded from `3a055deff54149be48a91b44237d0e28b26f3405` to `a169f61fcf58cb1693a0996f832ad4c5e4ad59f9`. All six related worktrees/branches were removed after preserving verified source edits, reports and stopped synthetic databases under ignored `.local/five-feature-merge-archive/`. The main checkout's database and environment were not migrated or replaced. Source sessions below are historical evidence; the final combined review and verification apply to the unchanged runtime. Blueprint authority remains AUTHORIZED — build-feature delegation; see `prompts/features/m4-05-five-feature-premerge-integration.md`.
+Authority is **AUTHORIZED — build-feature delegation**, following the user's explicit local commit/merge request on 2026-10-11. The integration owner prepares and repairs this isolated candidate; the parent alone accepts, commits and merges. See `prompts/features/m4-09-six-feature-premerge-integration.md`. Both final independent reviews and applicable verification are accepted; runtime remains frozen for parent final file audit and local commit/merge. This task does not authorize production changes, external delivery, worktree removal, real-user onboarding or whole milestone completion. The earlier five-feature merge/cleanup is retained as historical evidence below and in `docs/operations/five-feature-premerge.md`.
 
 ## Completed
 
@@ -62,7 +64,15 @@ The user explicitly authorized merge and cleanup on 2026-10-11. Main fast-forwar
 - [x] **M3.1–M3.3 local tutor catalog:** `subjects`, `tutor_profiles`, `tutor_subjects` migrations with the eight launch subjects; tutor application form for trusted `tutor` accounts; audited admin review transitions and subject add/activate/deactivate; one public-eligibility query with no public consumer yet. 62 unit/component, 32 PostgreSQL integration and 25 browser tests passed. Details in the M3 session.
 - [x] **Five-feature local candidate:** Atomic simulated booking/expiry/history and both booking/time-off conflict orders; dated time off; optional declared teaching languages/filtering; exact-case synthetic support; provider-supported own-session management. Trusted role/current authorization repairs verified. See final session and `docs/operations/five-feature-premerge.md`.
 - [x] **Combined candidate verification:**485 unit/component,161 real PostgreSQL and49 default browser cases; formatting/lint/typecheck/build and fresh+baseline0007 migration upgrade passed. Two independent reviews report no remaining code findings at the114-file frozen fingerprint; separate verification was executed by the integrator.
+- [x] **M5.7–M5.8 local notification slice:** Durable creation-event pending records, current creator/tutor recipient dedup, private local HTML and bounded manual retry/suppression verified in own worktree. Parent integration pending; see the notification session below.
 - **Hosted services deferred:** Neon and Resend packages remain installed but unconnected; Railway and remote CI unrun. Local capture is not email delivery. Live confirmed bookings, external coordination and real-user onboarding remain gated future work.
+- [x] **M4.9 own worker — verified locally, unmerged:** participant-scoped private
+  simulated booking detail/history, same-snapshot family selector/overview,
+  current viewer-local time and actual saved events. Isolated branch
+  `cob-g/m4-9-booking-history` on clean initial `0c078bf`; no main/peer changes.
+  Same-agent Review PASS; separate executed verification:492 unit/component,
+  190 PostgreSQL and55 default browser cases, build PASS. Details and limitations
+  in the M4.9 session below; parent reconciliation/independent review remains.
 
 ## In Progress
 
@@ -75,10 +85,10 @@ The user explicitly authorized merge and cleanup on 2026-10-11. Main fast-forwar
 
 Prioritized, small tasks; **these are planned, not completed**.
 
-1. **Done — local main merge and cleanup.** The authorized fast-forward preserved the reviewed runtime fingerprint. All six related worktrees/branches are removed; private evidence is archived. Choose the next bounded build-plan slice when requested; push and deployment remain separate operations.
+1. **Next owner — parent local acceptance/commit/merge.** Six-feature runtime is locally verified with both independent final reviews accepted. Final operations/context, ignored report/per-file manifests/provenance and local memory record the handoff; parent audits frozen files, commits and merges under the explicit user authorization. Source worktrees remain intact; push/deploy are outside this task.
 2. **Verified locally — M2.9/M3.5/M4.3/M4.5–M4.8/M5.9 synthetic slices.** Own-session management, optional teaching languages, dated time off, simulated reservations and exact assigned-case support pass combined tests. No further implementation is required for this premerge scope.
 3. **P0 — real M4 acceptance.** Approved real guardian/consent/onboarding and booking/trial/confirmation/cancellation policy remain unresolved; local database overlap/concurrency/DST evidence already exists.
-4. **P0 — remaining M5 coordination and safety.** Participant-only meeting storage/access, actual coordination dashboards and transactional notifications need separately scoped work; local synthetic support does not establish real incident ownership/escalation.
+4. **P0 — remaining M5 coordination and safety.** This candidate supplies local simulated family/tutor dashboards and private local creation-notice capture. Participant-only meeting storage/access, real confirmations/provider delivery and incident ownership/escalation still need separately scoped work and applicable approvals.
 5. **Deferred — Hosted M2/operations acceptance.** Neon connection/TLS, provider email, production session settings and remote CI require a later externally enabled phase. Keep current runtime local.
 6. **BLOCKED — M6/M7, commerce.** Obtain explicit business decisions before real charges, prices, payouts or refunds.
 7. **P0 before release — M8.** Separate deployment environments, email domain, safeguarding/legal decisions, operational evidence and explicit release authorization.
@@ -92,9 +102,9 @@ Resolve open design decisions and dependency advisories alongside this sequence.
 | M0 | Business scope and technical documentation | **Documented; M0.1/M0.6 local evidence recorded** | Repository and context inspected; approval ownership and open decisions remain |
 | M1 | Repository + app foundation | **Local foundation verified** | Session evidence below; brand/primitive approval pending, remote CI unrun |
 | M2 | Data, authentication, role controls | **Local scope verified; hosted acceptance deferred** | Local migrations/auth/ownership and provider-supported own-session list/revoke verified in combined tests; Neon/TLS/Resend and production settings unrun |
-| M3 | Tutor catalog, public discovery, matching | **Verified locally** | Catalog/application/review/discovery/matching and optional declared teaching-language editing/filtering verified; real screening, time-based matching and hosting remain |
+| M3 | Tutor catalog, public discovery, matching | **Verified locally; real screening/hosting gated** | Catalog/application/review/discovery, actual-date availability matching and optional declared teaching-language editing/filtering have local synthetic evidence; this is not full launch acceptance |
 | M4 | Availability, guardians/learners, booking integrity | **Local synthetic scheduling/booking verified; real acceptance gated** | Weekly availability, DST/time engine, fixture guardians/self learners, dated time off and simulated booking/expiry/history pass real PostgreSQL conflict/concurrency and both race orders; real onboarding/commercial booking policy remain |
-| M5 | Meeting links, dashboards, notifications, basic support | **Partial — M5.1 validator and M5.9 synthetic support verified** | Exact requester/assigned-reviewer support/history passes combined tests; private meeting storage/participant access, real coordination dashboards/notifications and human incident response remain; M5 not complete |
+| M5 | Meeting links, dashboards, notifications, basic support | **Partial local slices verified; whole milestone open** | M5.1 validator/M5.9 synthetic support plus local family/tutor simulation dashboards and manual creation-notice capture have evidence; private meeting storage/access, real confirmation/provider delivery and human incident response remain |
 | M6 | Commerce policy approval | **Blocked** | Founder-approved decision records and provider/jurisdiction assessment |
 | M7 | Payment integration (only if approved) | **Blocked by M6** | Sandbox checkout, verified webhooks, duplicate-event/reconciliation tests |
 | M8 | Pilot, operational readiness, public launch | **Planned; launch-gated** | QA evidence, safeguarding/legal signoff, backups, email domain, explicit release approval |
@@ -144,6 +154,58 @@ These are **documented selections, not proof of completed deployment or code**.
 | Legal/safeguarding details for operating markets and child learners | **Open / launch-gated** | Basic protections remain mandatory; no real minor onboarding until approved controls are in place |
 
 ## Session Notes
+
+### Session — 2026-10-11 (M5.7–M5.8 local notification slice — verified locally)
+
+- Authority: actual supervised six-feature request, **AUTHORIZED — build-feature delegation**;
+  own initially clean branch `cob-g/m5-7-booking-notifications` at
+  `0c078bf50f9f967b20391ef3640353a7b3897e62`. Blueprint:
+  `prompts/features/m5-07-local-booking-notifications.md` (OPS-04).
+- Implemented event-trigger durable pending state and bounded owned manual capture/retry
+  for simulated reservation creation only. Creator/assigned tutor are deduplicated by account,
+  rechecked for current eligibility/relationship/expiry and rendered in recipient-owned zone.
+  No learner/contact/meeting payload, provider delivery or booking mutation algorithm changes.
+  Existing auth verification/reset capture stays intact. Migration 0012 exclusively allocated
+  before schema/grants edits; baseline 0000–0011 unchanged.
+- Final imported Agent1 version: `m4.9-read-v2+notice-v1.1+detail-v3`. Initial v2 imports
+  authorized by `msg_f406991d29b1`, 15 exact v3 files/two verified loading-boundary deletions
+  by `msg_449366bec7ba`, then only final controls replacement by `msg_6ec4d4d63cb2`.
+  Baseline demo loading preserved; six core/notice hashes unchanged. Full per-file provenance
+  and deletion proof in `.local/provider-imports.json`; provider files never edited locally.
+- Review (separate from execution): final same-agent read-only plan/integrity/unintended-change
+  review PASS, recommendation READY FOR VERIFICATION. Root's LIMITED independent boundary
+  review found no confirmed issues in eight implementation files, aggregate
+  `2ac3d56d49e6924586c2bf5dac80dbf92e96f3bd8a49c0fd5871b488d003f1b3` unchanged.
+  This does not claim whole-feature independent review or production clearance.
+- Executed Verification: pinned `npm ci` and assigned setup passed; both owned databases
+  on 55476 show 13 migrations/24 tables. Final `npm run check` passed 495 units
+  (`.local/check-final-v4.log`). Full real PostgreSQL suite passed 189/189 including 28 own
+  cases (`.local/integration-full-first.log`), covering outer rollback, capture/ack failure
+  retry, concurrent claims, role dedup, stale authorization and expiry. Backend/core hashes
+  unchanged after UI-only imports; no unnecessary repeat database suite.
+  Final production build passed (`.local/build-final-v4.log`).
+- Final default browser discovery selects all 49 baseline +2 new cases; workers1 final run
+  passed 51/51 (`.local/browser-final-v4.log`). Actual owned CLI, keyboard/authenticated/no-JS
+  detail, history filter/Back/native no-JS filtering, anonymous/revoked denial and auth capture
+  regressions pass. Axe/overflow passed at 320/390/768/1024/1440. Final successful 390/1440
+  screenshots inspected and preserved under `.local/evidence/browser-final/`.
+- Privacy/grants: 44 built client assets had zero secret-value hits, changed clients had no
+  notification-server imports. All 68 captured HTML files had zero private learner/account/
+  contact/meeting hits and zero file-permission/filename failures. Five actual CLI invalid/
+  remote cases exited 1 with generic errors and no capture output. Values were never printed.
+  Restricted delivery/event grants inspected; runtime arbitrary INSERT/DELETE/identity/terminal
+  modifications and event UPDATE/DELETE denied. Evidence is private under `.local/`.
+- Recover preserves first formatting failure (targeted formatting repair) and first browser
+  failure (50/51, no-JS detail hidden). Parent-authorized provider v3 removes exact imported
+  loading boundaries and repairs clock-skew display; v4 fixes history pending controls.
+  Original failed log/screenshots retained; final strict assertions pass. See
+  `prompts/recovery/2026-10-11-local-notification-checks.md`.
+- Limits: local synthetic capture only; no email, confirmed lesson, real-user/minor onboarding,
+  reminders, meeting storage, commercial/consent change or exactly-once crash guarantee.
+  Existing files are historical authorized snapshots. Full M5/real OPS-04 remains incomplete.
+  No commit/push/main merge/deploy/reset performed. Next owner: parent reconciles shared
+  schema/journal/grants/docs and imported provenance, reviews/verifies the combined wave.
+  Final report/manifest: `.local/worker-report.md`; local handoff: ignored root `memory.md`.
 
 ### Baseline entry — 2026-10-11
 
@@ -457,3 +519,174 @@ Copy this compact entry for the next session; include only **actual evidence**:
 - Archives and checksums: ignored `.local/five-feature-merge-archive/archive-manifest.json`; directly readable final reports/check logs: `.local/five-feature-merge-archive/evidence/`. Historical source paths above now refer to the corresponding archive. Private archives must not be committed or published.
 - Main database/environment preserved; no database migration, push, hosted service change or deployment. Existing 13 dependency advisories and real-user policy gates remain. Current tracker, architecture implementation note, build-plan status and combined operations guide now record the merge/cleanup.
 - Next small action: select the next bounded build-plan slice when requested. No work remains for this merge/cleanup request.
+
+
+### 2026-10-11 — M4.9 private local simulated booking details/history
+
+- Authority: **AUTHORIZED — build-feature delegation**, actual2026-10-11 dispatched
+  `$build-feature` request (BKG-04, AUTH-03, FAM-03), not separate human blueprint
+  approval. Own initially clean branch `cob-g/m4-9-booking-history`, exact baseline
+  `0c078bf50f9f967b20391ef3640353a7b3897e62`. Blueprint
+  `prompts/features/m4-09-booking-details-history.md`. No peer imports or edits.
+- Delivered: current verified/active synthetic session and role plus exact self
+  College Support, authorized guardian or assigned non-suspended tutor checks in
+  one final SQL read; no admin bypass. Private `/bookings` and `/bookings/[bookingId]`
+  pages plus protected GET APIs; actual tutor/subject/minimum learner labels,
+  current viewer-local UTC-backed times, authorized learner selector and single
+  snapshot active/history overview. Internal claimed creation-notice projection
+  exposes no learner label and performs no delivery.
+- Expiry: elapsed TTL projects demo_expired without writing state or inventing
+  events. Persisted state/materialization and actual saved events remain distinct.
+  Existing candidate/create tutor-first expiry writes, immutable fields and races
+  are untouched; no schema/migration/dependency change. Minimal local runtime
+  SELECT of four booking_events columns was coordinator-authorized; INSERT remains
+  and UPDATE/DELETE stay denied.
+- Review separately: same-agent plan-alignment and unintended-change audit PASS,
+  zero remaining findings, recommendation READY FOR VERIFICATION on the frozen
+  read-v2/notice-v1.1/detail-v3 implementation. This is not independent review.
+- Verification executed on owned ports55471/3031/3131: pinned npm ci and full local
+  setup0000–0011; `npm run check` PASS492 cases17 files;
+  `npm run test:integration` PASS190 cases10 files, including all existing161 and
+  new29 permission/projection cases and final booking concurrency/time-off races;
+  `npm run build` PASS; `npm run test:e2e -- --workers=1` PASS55 cases11 files
+  (all49 baseline plus6 new). Logs under ignored `.local/evidence/`: final
+  check-verified.log, integration-full.log, build-release.log, browser-release.log;
+  discovery lists55 in browser-discovery-current.log. PG remains applicable after
+  UI-only repairs because frozen query/services/grants/schema are unchanged.
+- UI/privacy: actual delayed pending + completion reset, learner/filter Back/Forward,
+  keyboard/native GET/no-JS detail/denied/anonymous, viewer-zone/DST and clock-skew
+  expiry regressions pass. Fifteen synthetic screenshots at320/390/1440 including
+  populated/empty/unavailable/no-JS/pending/elapsed views inspected under
+  `.local/evidence/screenshots/`. Client and changed-file private-value scans report
+  zero matches; UI detector reports no findings.
+- Recovery evidence retained: initial PostgreSQL missing SELECT, repeated synthetic
+  fixture throttle setup, client clock-skew Review finding, filter labels/All sentinel
+  and no-JS streaming boundaries, disabled-script axe waits, and native document
+  pending teardown. Scoped repairs preserved guards, no-JS assertions, baseline
+  loading files and default test discovery. Recovery plan:
+  `prompts/recovery/2026-10-11-booking-history-select-grant.md`.
+- Handoff: exact core/UI dependency/provenance manifest
+  `.local/read-import-manifest-v4.json`; source frozen, uncommitted. Canonical
+  architecture/expiry decision and this tracker updated in own checkout only.
+  Worker report and sanitized ignored memory contain per-file/aggregate hashes
+  and separate Review/Verification. Next owner: parent reconciles exact imports,
+  shared docs/grant/config, obtains independent review and verifies combined wave.
+  No whole-milestone, hosted-provider, production, commercial/consent or real-minor
+  acceptance is claimed; no commits, pushes, main merge or deployment occurred.
+
+### 2026-10-11 — M4.11 / M2.9 local feature in progress
+
+- AUTHORIZED — build-feature delegation, actual 2026-10-11 supervised worker request; blueprint `prompts/features/m4-11-profile-booking.md`. Own clean starting HEAD `0c078bf50f9f967b20391ef3640353a7b3897e62`; no peer imports, commits or external changes.
+- Implemented privacy-safe bounded batched actual-date query, public preview endpoint, native profile picker, public-only continuation schema and narrow auth/demo prefill. Shared pure schedule helpers preserve the existing reservation algorithm; approved overlap tail includes the complete candidate duration.
+- Scoped same-agent provider review found no public private-record projection or write path. First focused evidence:19 unit and64 PostgreSQL cases passed; typecheck required a feature-local503 error and now passes. Subsequent20 unit cases pass; repeat integration fixture throttle failure retained and under targeted recovery. Full feature review, baseline suites, build and browser checks remain pending. This entry does not mark the milestone complete.
+- Next: release the tested shared provider bundle, then finish profile/auth browser acceptance and full verification on isolated DB55474/app3134.
+
+- M4.11 verification checkpoint: full506 unit/component cases17 files and170 PostgreSQL cases10 files passed; full default54 browser discovery proven. First browser runs retained obsolete profile expectation, synchronization failure and a genuine streamed404 regression. Scoped repair moves loading inside the picker after eligibility, preserves denial404 and refines only authorized catalog expectations; new same-agent Review ready for fresh Verify. Browser PASS and final source build are not yet claimed.
+
+- Native-preview recovery: fully awaited server picker now passes populated JavaScript-disabled selection/review; route-level and picker Suspense loaders removed after retained404/no-JS failures. Browser-zone uncontrolled defaults reset on validated filter changes; pending state flushes before native GET and resets on pageshow. Final default run then exposed a busy demo action gap; scoped disabled Load/Create controls and delayed-request/Back regressions implemented. Fresh full verification remains pending; provider v1 hashes unchanged.
+
+### 2026-10-11 — M4.11 / M2.9 verified LOCAL worker feature
+
+- Authority: **AUTHORIZED — build-feature delegation**, actual2026-10-11 six-feature-wave dispatch; canonical blueprint `prompts/features/m4-11-profile-booking.md`. Own branch `cob-g/m4-11-profile-booking` remains uncommitted on clean starting baseline `0c078bf50f9f967b20391ef3640353a7b3897e62`. No peer imports or other checkout changes.
+- Built bounded privacy-safe actual-date query/GET endpoint, native tutor offering/level/IANA-zone picker grouped by actual viewer start date, public selection links, safe sign-in/signup/verification continuation and guarded demo prefill. Authorized learner chosen only after auth; stale resume/create shows alternatives and requires explicit action. Existing reservation mutation remains authoritative, with approved complete-duration busy/time-off query tail only. All states remain local_simulation/demo_reserved/demo_expired under existing60/30/60/14day/10min policy.
+- Provider v1 exact five-file hashes unchanged in `.local/provider-frozen.json`; parent verified/archived and released to matching via `msg_63de3a23b2c6`. Parent approved narrow catalog expectation and pending-control repair; shared docs/config/service/eligibility/catalog hunks require coordinator reconciliation. No matching UI or private history/dashboard built here.
+- Review separately: full and renewed same-agent read-only Review plan/system/unintended-change PASS,0 remaining confirmed findings, READY FOR VERIFICATION at `.local/feature-review.md`; this is not independent review or production clearance.
+- Executed verification: pinned `npm ci` and assigned `local:setup` PASS;12 baseline migrations applied in owned DB55474 (test count12 verified). `npm run check` PASS506 unit/component cases17 files plus format/lint/typecheck (`.local/check-date-final.log`); full `npm run test:integration` PASS170 real PostgreSQL cases10 files including55 booking regressions (`.local/integration-final.log`); `npm run build` PASS (`.local/build-date-final.log`); default `npm run test:e2e -- --workers=1` PASS55 cases11 files, every49 baseline plus6 new (`.local/browser-date-final.log`). Database suites executed sequentially with browser; final static/build/browser sequence also serialized.
+- UI/privacy: keyboard,320/390/768/1024/1440 reflow, forced colors/reduced motion, axe, populated no-JS native selection, submit pending, Back reset, saved/browser/visit-zone, auth verification, level mismatch, stale alternatives and overflow error executed. Three current public preview screenshots manually inspected.22 changed src files and43 client assets scanned against301 actual private values/602 raw-or-encoded patterns:0 matches (`.local/privacy-scan.json`); public HTML/API checks also passed.
+- Recover history retained in `prompts/recovery/2026-10-11-profile-booking.md` and ignored first logs: invalid privacy fixture,503 typecheck, retained test throttle, repeated next array, obsolete catalog assertions, test synchronization, streamed404/no-JS, stale zone default, pending navigation instrumentation, busy demo actions and midnight grouping. Repairs now have applicable green checks; no safety/auth configuration or server mutation weakening.
+- Limits: synthetic local only, no commit/push/merge/deployment/provider email/charges/new migration. Independent combined review, hosted/remote CI, other browser engines and hardware screen reader not performed. Real-user commercial/guardian/legal/safeguarding gates remain OPEN; inherited13 dependency advisories unchanged. Whole M2/M4 or production readiness is not claimed.
+- Next owner: coordinator reconciles exact frozen files/hashes, shared hunks/docs and consumer integration, then performs independent combined review and its separately authorized release checkpoint. Root `memory.md` and ignored `.local/worker-report.md` preserve the local handoff; no implementation remains in this worker's scope.
+
+### Session — 2026-10-11 (M5.3/M5.4 family dashboards — implementation in progress)
+
+- Authority: actual supervised six-feature wave request, AUTHORIZED — build-feature delegation; clean assigned branch cob-g/m5-3-family-dashboard at 0c078bf50f9f967b20391ef3640353a7b3897e62. Blueprint prompts/features/m5-03-family-booking-dashboards.md. PRD OPS-01, OPS-03, FAM-03, BKG-04; local synthetic scope only.
+- Implemented independent presentation model, query schema, expiry refresh and error/loading/help components against explicitly pending provider DTO. No booking authorization/query layer, final stub acceptance, schema or mutation change. Exact provider import authorization remains pending with coordinator; source types and selector snapshot requested.
+- Verification: NOT RUN yet; pinned npm ci underway. Final wiring, same-agent read-only Review, real PostgreSQL/full baseline browser verification, screenshots and Remember remain pending. No milestone promotion, external message/provider action, commit/push/merge/deployment or real-user activity.
+
+- M5.3/M5.4 checkpoint: pinned npm ci PASS (777 packages; inherited13 advisories); owned PostgreSQL17.11 setup full12 migrations/dev+test seed PASS on55472/3032/3132 (.local/npm-ci.log, .local/setup.log). Focused16 UI/model cases PASS (.local/focused-ui.log); scoped lint after JSX escape PASS (.local/lint-focused.log). First full check retained at .local/check-independent.log: formatting passed, lint stopped on one unescaped JSX apostrophe; Recover diagnosed targeted fix in prompts/recovery/2026-10-11-family-dashboard-checks.md.
+- Static parent/student routes, overview adapter, GET selector/history paging, expiry refresh and owned integration/browser tests now authored. Coordinator msg_96a3664668ad supersedes separate reads with provider one-SQL-snapshot listParticipantBookingOverview; exact frozen imports remain pending, so no final typecheck/database/browser/build acceptance claimed. Additive LessonTime variants hash37fb416efeb8e408b780517514c5b371b8aec896d16d6b7aa9c5933a01f753c7 sent to coordinator after focused tests; source frozen.
+
+- M5.3/M5.4 real provider checkpoint: imported16 exact frozen paths under coordinator msg_de33110e4b44, provenance private .local/provider-imports.json; final consumer calls only single-snapshot overview. `npm run check` PASS501/501 (18 files), `NEXT_TELEMETRY_DISABLED=1 npm run build` PASS, full PostgreSQL PASS168/168 (10 files, including55 baseline booking regressions), logs .local/check-final-1.log, .local/build-final-1.log, .local/integration-final-4.log. Failed fixture/overlapping execution/throttle runs retained and diagnosed in prompts/recovery/2026-10-11-family-dashboard-checks.md; source booking/auth behavior and baseline tests unchanged.
+- Default browser checkpoint52/53 (all49 baseline passed) exposed own no-JS automatic loading boundary. Coordinator msg_2c08fade8596 authorized own scoped recovery: new automatic parent/student loading files removed, document pages fully await provider data, native GET/form and useLinkStatus pending feedback retained. Re-review READY FOR VERIFICATION for own scope (same-agent, not independent); full check rerun PASS501/501 in .local/check-final-2.log. Pending provider versioned countdown/All selection/no-JS repair and final build/browser screenshots block final integrated acceptance. Preliminary private-value scan1487values/41changed files/33client assets found zero matches; final scan must cover repaired build. Narrow student/error/loading/empty screenshots inspected; parent/detail and updated pending screenshots remain to verify.
+- M5.3/M5.4 final UI recovery checkpoint: exact15v3 imports and2verified provisional loading removals under msg_0b89fbb7a715; original provenance retained. V3 full browser52/53 again passed49baseline and no-JS parent/detail/student, but native pending locator waited for deliberately blocked document navigation (.local/browser-final-3.log). Own hydrated useTransition/router.push enhancement keeps native GET, authoritative form key restores Back; real focused4/4 passed including SQL-delay visible pending/screenshot, Back All radio/no pending and link revocation during waited read denial (.local/browser-focused-4.log). Full check501 and build passed (.local/check-final-4.log, .local/build-final-3.log); final provider controls-only hash update and full default browser rerun remain pending. No SQL/auth/query or baseline test change; current same-agent review is not independent review.
+
+### Session — 2026-10-11 (M5.3/M5.4 family dashboards — local verification complete)
+
+- Final authority: AUTHORIZED — build-feature delegation, actual2026-10-11 supervised task; baseline0c078bf50f9f967b20391ef3640353a7b3897e62, branch cob-g/m5-3-family-dashboard, no commits. Final15provider imports at frozen v4 hashes under msg_21fc64cd24f6, previous16/v3records and two verified provisional loading deletions retained in .local/provider-imports*.json. No stub or competing booking query/auth layer remains.
+- Delivered: private student/parent reservation summaries, future Next/ongoing agenda/paginated history, viewer account zone and date-specific DST context, named/All authorized guardian selection, local simulation/expiry labels, private scoped details, distinct no-learner/no-reservations/error/pending states, native no-JS GET, hydrated pending/Back restoration, learner/account access. Tutor/admin routing preserved. No meeting/join/payment/cancellation/LMS/onboarding or commercial/safeguarding policy added.
+- Review: same-agent read-only source review, plan alignment and unintended-change audit PASS, READY FOR VERIFICATION, no remaining confirmed findings; .local/review.md. This is not independent review or production/release clearance.
+- Executed final Verification: `npm run check` PASS format/lint/typecheck and501/501 unit/component cases across18files (.local/check-final-5.log); full real PostgreSQL `npm run test:integration` PASS168/168 across10files, including all55 baseline booking tests (.local/integration-final-4.log). Final six provider core hashes match that PostgreSQL run; later authorized UI-only replacements require no unchanged DB-suite repetition. `NEXT_TELEMETRY_DISABLED=1 npm run build` PASS (.local/build-final-4.log). Default `npm run test:e2e -- --workers=1` PASS53/53, all49baseline plus4family cases (.local/browser-final-4.log); focused4/4 also passed (.local/browser-focused-4.log). Standard discovery shows53cases/11files (.local/browser-discovery.log); no alternate final config or skipped baseline cases.
+- Coverage: multi-role self/guardian isolation, foreign/repeated/malformed filters, revoked/inactive learner omission, suspended/unverified/revoked-role callers, paged history, ongoing/future classification, no-JS student and guardian filtering/detail/All control, current zone/date rollover/DST, expired projection without writes, one-hour skew, real delayed-read pending, Back selection restoration, and link revocation while a real SQL read waits. Axe/keyboard/overflow at320/390/768/1024/1440 and forced-colors/reduced-motion/reflow pass. Final narrow/desktop parent, student, private detail, pending, empty/error, expiry and forced-reflow screenshots retained under test-results and visually inspected with no clipping/overflow or inaccessible status identified.
+- Safety/evidence: final exact private-value scan1729values/40changed files/33built client assets, zero matches (.local/privacy-scan-final-2.log); scoped design detector exit0/no findings (.local/design-detector-final-2.log); git diff --check PASS. Owned PostgreSQL17.11 full12migrations on55472; dev3032/test3132. First JSX lint, fixture status, accidental overlapping suites/stale throttle, no-JS boundary and native pending failures retained with scoped Recover notes; no booking algorithm, baseline tests or auth policy weakened.
+- Documentation: architecture/UI/build-plan local facts and this tracker updated; canonical blueprint saved. Ignored root memory and .local/worker-report.md preserve continuation, separate Review/Verification and per-file/aggregate fingerprints. No whole-M5/launch readiness claim. Next owner: coordinator reconciliation, independent review and combined verification; policy, real-user, production and deployment gates remain open.
+
+### Session — 2026-10-11 (M5.5 tutor dashboard — implementation in progress)
+
+- Authority: supervised **AUTHORIZED — build-feature delegation**, actual six-feature request, PRD OPS-02/TUT-06/BKG-04; blueprint `prompts/features/m5-05-local-tutor-dashboard.md`. Clean baseline `0c078bf50f9f967b20391ef3640353a7b3897e62`, own branch `cob-g/m5-5-tutor-dashboard`.
+- Independent presentation, tutor-only navigation and private loading/error states authored. Runtime wiring awaits parent-authorized exact Agent1 booking read bundle; no competing access service, schema or mutation edits.
+- Independent verification: pinned npm ci and own PostgreSQL55473/dev3033/test3133 local:setup PASS with all12 migrations; preintegration npm run check PASS493/493 units and focused8/8 presentation checks PASS. First static lint failure was recovered with encoded JSX apostrophe; original log retained. Full provider/runtime/database/build/browser acceptance NOT RUN; presentation fixtures alone are not acceptance. No peer/main/hosted database accessed.
+- Parent-authorized exact LessonTime import: Agent2 SHA256 `37fb416efeb8e408b780517514c5b371b8aec896d16d6b7aa9c5933a01f753c7`, source and destination matched, no edits after import; private provenance records authority. Agenda date/zone groups and prominent next simulation use its optional variants. Default browser discovery selects54 cases in11 files, including all49 baseline cases and5 tutor cases.
+- Next: integrate approved participant-scoped provider, execute same-agent read-only Review, separate full checks/database/build/default browser suites and Remember. Real-user, meeting, money, attendance, cancellation and production gates remain unchanged.
+
+### Session — 2026-10-11 (M5.5 provider integration — verification in progress)
+
+- Imported only parent-authorized Agent1 frozen16-file bundle and Agent2 LessonTime; provenance/hashes retained privately. Added only approved local `booking_events` column SELECT grant, reapplied on owned dev/test databases; all12 baseline migrations remain unchanged. Tutor composition delegates booking SQL, final authorization and effective TTL to provider single-snapshot overview. No student/parent route edits.
+- `/tutor` now shows assigned next future simulation, date/zone agenda and history, minimal learner label/level, actual subject/time/demo state/expiry, truthful empty/failed access, retained review and navigation. Static noindex metadata and dynamic caching. Profile-less trusted tutor retains first-use profile path; suspended profile is denied by provider. Approved review notice wording and tutor-only baseline auth heading expectation declared to parent.
+- Same-agent read-only Review found no confirmed tutor-owned access/scope defects; provider countdown clock-skew repair and automatic-loading no-JS risk are known pending integration items. Review is not independent signoff, and executed no tests.
+- Separate Verify: integrated check PASS493/493(17 files), production build PASS, full real PostgreSQL PASS171/171(10 files;161 baseline+10 tutor, including role revocation during blocked profile read). First fixture cast failure and immediate repeat baseline sign-up/throttle-state failure retained and diagnosed through Recover; casts corrected and clean sequential full run passed with auth rules unchanged. Logs `.local/check-with-race.log`, `.local/build-first.log`, `.local/integration-final.log`; failures `.local/integration-first.log`, `.local/integration-with-race.log`.
+- Default browser discovery55 tests(49 baseline+6 tutor) in11 files; actual single-worker run in progress. Final browser/screenshots/privacy scan/Remember not yet complete. No milestone or production readiness claim; next owner remains the coordinator for exact provider patch and combined review.
+
+### Session — 2026-10-11 (M5.5 no-JS rendering recovery)
+
+- Default55-browser run53PASS/2FAIL, all49baselinePASS. Two tutor no-JS reads remained hidden by automatic loading boundary. Recover attempt4 diagnosed streaming rendering; parent explicitly authorized scoped own-route recovery. Removed own loading.tsx; native GET Refresh bookings works without scripts and client transition announces slow refresh. Desktop row actions use agenda alignment. Provider imports were not modified.
+- Re-review read-only, same-agent: no confirmed defect in own repaired scope; provider countdown/no-JS repairs remain pending exact import authority. Separate Verify: check493/493PASS and buildPASS; focused default-config refresh test1/1PASS with real PostgreSQL lock (focused run does not replace required full default suite). Logs `.local/e2e-first.log`, `.local/check-refresh-rerun.log`, `.local/build-refresh.log`, `.local/e2e-refresh-focused.log`. Incorrect refresh primitive import/typecheck failure retained `.local/check-refresh.log`, recovered by baseline native action classes.
+- Previous full PG171/171 remains applicable: no service/query/data changes after that run. Required final default55-browser rerun, final screenshots/privacy scan, docs and Remember are outstanding; exact versioned provider repair requested through durable coordinator ask.
+
+### Session — 2026-10-11 (M5.5 repaired provider integration)
+
+- Parent msg_2a138ef85304 authorized exact15-file m4.9-read-v3 provider bundle and2 old-hash-verified imported loading removals. Source/destination hashes all verified; own LessonTime/import grant/navigation/config preserved, six core/notice hashes unchanged. Versioned provenance and deletion proof retained privately. No consumer edits to provider files.
+- Static check after repair PASS493/493,17files (`.local/check-final.log`). Earlier full PG171/171 remains valid for byte-identical SQL/services; final read-only review, build/default55 browser acceptance, inspected final images and privacy scan are next. No independent review or production/whole-milestone clearance claim.
+
+### Session — 2026-10-11 (M5.5 linked browser acceptance; final controls update pending)
+
+- Current v3 build PASS `.local/build-final.log`; full default browser55/55PASS `.local/e2e-final.log` with all49baseline and6tutor tests. Actual native no-JS empty/populated refresh, linked detail visible fields, metadata/private cache, TTL projection,6current account/session/profile refusals, real read fault and real-lock pending all passed. Axe used JS-enabled equivalent settled empty state while native no-JS functional assertions stayed script-disabled.
+- Seven retained images in `.local/e2e-final-artifacts/` inspected: populated390/1440, forced640x400 reflow/reduced motion, empty phone, denied phone, read-error phone and pending desktop. No clipping/overflow; generic denied/error images are byte-identical by design. Screens320/390/768/1024/1440 axe/overflow assertions PASS. Current source/client/log secret/private-value scan0hits; output `.local/privacy-scan-final.log`.
+- Coordinator requires one further exact provider read-controls repair before freeze. Auth/service/query/data unchanged. Added seventh owned bounded-history consumer test for real21-row preview/pagination, native GET, hydrated pending/Back restoration; discovery56tests/11files, all baseline selected. This added test is not yet executed. Await exact parent hash, then read-only re-review and affected static/build/browser acceptance; no independent service or detail implementation, no student/parent route edits.
+
+### Session — 2026-10-11 (M5.5 local tutor dashboard — verified handoff)
+
+- Requested local OPS-02/TUT-06/BKG-04 slice is implemented and verified under **AUTHORIZED — build-feature delegation**, actual2026-10-11 six-feature wave. Own branch remains uncommitted at clean-start baseline `0c078bf50f9f967b20391ef3640353a7b3897e62`. Canonical blueprint `prompts/features/m5-05-local-tutor-dashboard.md`; parent owns independent combined review/reconciliation.
+- Final exact imports: Agent1 v3 fifteen-file bundle plus parent-authorized v4 controls-only SHA256 `6f048472fc276722ad399675c80003358067560b9ba04dbb0ac88d82a4a2e3ac`; Agent2 LessonTime SHA256 `37fb416efeb8e408b780517514c5b371b8aec896d16d6b7aa9c5933a01f753c7`. All current imports unchanged after copy; two provisional loading removals were old-hash verified. Private versioned provenance retained. Only approved shared local grant/config/auth assertion/docs hunks accompany own tutor modules/tests.
+- Final same-agent read-only Review: FULL requested scope, plan alignment PASS, system/unintended-change audit PASS, no confirmed findings, recommendation READY FOR VERIFICATION; no tests executed by Review and no independent release signoff. Separate executed Verify PASS: `npm run check`493/493,17files (`.local/check-frozen.log`); full `npm run test:integration`171/171,10files (`.local/integration-final.log`,161baseline+10own, actual PG revocation race and baseline booking concurrency). Later UI-only imports preserved all SQL/services/core hashes, so PG evidence remains applicable without another run.
+- Production `NEXT_TELEMETRY_DISABLED=1 npm run build`PASS (`.local/build-controls-final.log`); actual default `npm run test:e2e -- --workers=1 --output=.local/e2e-frozen-artifacts`56/56PASS,11files,49baseline+7tutor (`.local/e2e-frozen.log`). Discovery56/11 (`.local/e2e-discovery-controls.log`). Focused pending/control checks each1/1PASS supported repairs; these were supplementary, not replacements for default coverage.
+- Native no-JS empty/populated refresh, keyboard navigation and linked detail visibility; bounded21-history pagination, filter/Back restoration/native GET; real PG blocked pending and fault recovery;6current role/account/profile/session denials; exact assignment, current timezone and DST presentation; metadata/private caching/privacy all passed. Historical browser fixture chronology repaired and approved60min duration/notice,30min grid,14day horizon,600sec lifetime asserted; older synthetic records/immutable fields preserved. No authorization/query stubs.
+- Nine final images in `.local/e2e-frozen-artifacts/` captured and inspected: populated390/1440, forced640x400 reflow/reduced motion, empty/denied/read-error phone, tutor refresh pending, history pending/phone. Axe and overflow assertions passed across320/390/768/1024/1440 as applicable; no clipping in inspected images. Final changed-source/client/log privacy scan0hits (`.local/privacy-scan-frozen.log`,33changed files/46client files/35logs).
+- First failures preserved in ignored logs and canonical Recover note: JSX apostrophe, fixture numeric casts, immediate-repeat baseline sign-up response (consistent with retained throttle state; original HTTP status not captured), automatic-loading no-JS rendering, nonexistent primitive import. Scoped repairs and re-review/checks passed; no auth weakening or destructive reset. Provider clock-skew/no-JS/pending repairs arrived only through authorized versioned imports.
+- Governing docs: build-plan M5.5 local-slice note only, checkbox remains open; tracker factual evidence, blueprint and recovery updated. Existing architecture/UI/PRD/standards/policy boundaries preserved. Local ignored memory/report/fingerprint save is the handoff step. No commit/push/merge/deploy, hosted/main/peer DB, real users/email/provider/charges. Remote CI, other browser engines, literal zoom/hardware screen reader, production and full M5.5 launch scope NOT verified; inherited13 dependency advisories unchanged. Next owner: coordinator validates frozen hashes, performs independent combined review and decides the separate release/merge checkpoint.
+
+### Session — 2026-10-11 (M3.6 availability matching — locally verified)
+
+- Baseline clean `0c078bf50f9f967b20391ef3640353a7b3897e62`, own branch `cob-g/m3-6-availability-matching`. Actual dispatched `$build-feature` request, blueprint `prompts/features/m3-06-availability-matching.md`, authority **AUTHORIZED — build-feature delegation**; no separate human blueprint approval.
+- Added When with explicit Any time, valid viewer IANA zone, ISO weekdays and bounded time bands. Full actual intervals must fit viewer-local preferences; College Support/core choices and same-offering eligibility remain. GET URL restoration uses only public filters, including submitted-history/Back restoration. Native no-JS remains populated; installed Next Form enhances loading/navigation with no prefetch. Whole eligible set bounded100/5 batches; five genuine rows per page; earliest matching time/name ordering, no scores/guaranteed count; separate empty/retry states and aligned13rem time column.
+- Imported exactly five parent-authorized, SHA256-verified `public-availability-v1` files: shared demo schedule, public input/query/profile-link helper and eligibility subset query. Original provider/snapshot provenance is separate in `.local/import-provenance.json`; provider-reported64 PostgreSQL cases are **imported evidence**, not own execution. No provider edits, booking mutation, schema/migration, profile-picker, CSS/dependency or external action.
+- Review separately: same-agent read-only plan/system/unintended-change review, recommendation **READY FOR VERIFICATION**, with targeted re-reviews in `.local/review.md`. Same-agent review is not independent; parent owns combined independent reconciliation.
+- Executed verification PASS: pinned `npm ci`; assigned own local setup (DB55475/dev3035/test3135) with12 migrations/23 public tables in each owned database; `npm run check` format/lint/typecheck plus516 unit/component cases18 files (`.local/check-layout.log`); full real PostgreSQL172 cases10 files including55 baseline booking and11 matching cases (`.local/integration-final.log`); production build (`.local/build-layout.log`); all53 default browser cases11 files,49 baseline+4 matching, workers1 (`.local/browser-layout.log`). Browser and PostgreSQL suites ran sequentially. PostgreSQL proof is reused after UI-only repairs; backend source stayed unchanged.
+- Actual PostgreSQL matching/public-query/private-preview agreement, unexpired hold/time-off exclusion, elapsed reserved inclusion without mutation, fresh eligibility revocation, same-offering fit and21 tutors in2 snapshots PASS. Pure LA gap/fold, Lord Howe half-hour DST, date-line/midnight and whole-range boundaries PASS. Separate actual DB-clock London October25 fold proof confirms both repeated instants/offsets/preference fit/private preview (`.local/dst-evidence.json`).
+- UI/accessibility:320/390/768/1024/1440 axe/no overflow, keyboard/error focus, reduced motion/forced colors/reflow, enhanced pending, browser Back/refresh and populated no-JS PASS. Seven scoped screenshots inspected; final desktop time-column alignment asserted and screenshot confirmed. Shared LessonTime's existing full date/time/zone form is retained as the blueprint's documented narrow limitation. Detector returned no findings. Private-value scan covered26 changed files/32 client assets against1193 actual private values with0 matches; final result `.local/privacy-scan.json`.
+- Retained failures and scoped Recovery: formatting/type/unsupported radio ARIA, strict-link test extras, native-navigation observation, cached Back URL/control restoration, Next route-announcer locator ambiguity and desktop time-column alignment. Diagnosis correction/failed attempts retained in `prompts/recovery/2026-10-11-matching-validation-focus.md` and ignored logs; no reset, bypass or weakened expected behavior.
+- Documentation updated: PRD/architecture/build-plan implementation notes, this tracker, blueprint and delegated technical decision record. Detailed final file list/SHA256 and evidence in `.local/worker-report.md`; local `memory.md` handoff. No commit/push/merge/deployment; own worktree retained for parent reconciliation.
+- Limits: synthetic/local simulation only. Real consent/safeguarding/guardian/legal/commercial/production decisions OPEN; inherited13 dependency advisories unchanged. Hosted deployment, other browser engines, literal browser zoom/hardware screen reader and real users NOT RUN. No whole-milestone or production-readiness claim.
+- Next owner/action: coordinator independently reviews/reconciles frozen imports and matching/catalog-test/Playwright/canonical-doc hunks against peer work, then decides integration/release separately. No feature implementation remains in this worker.
+
+### Session — 2026-10-11 (six-feature integration assembled)
+
+- Authority: AUTHORIZED — build-feature delegation; actual dispatched request and user local merge request. Parent alone commits/merges; integrator does neither.
+- Clean baseline 0c078bf50f9f967b20391ef3640353a7b3897e62. Canonical blueprint prompts/features/m4-09-six-feature-premerge-integration.md.
+- Imported all six frozen file sets after checking exact source hashes/aggregates. Reconciled additive projects/grants, separate auth/catalog assertions, append-only context facts and historical source evidence. Preserved exact20 frozen bundle files, family LessonTime and baseline0000–0011/demo loader.
+- Source worker evidence above is historical isolated proof. Same-agent FULL Review: plan alignment/system/unintended-change audits PASS, no confirmed findings, READY FOR VERIFICATION (`.local/same-agent-review.md`). Separate combined Verify so far: `npm run check` PASS578/24files, `npm run test:integration` PASS255/15files, production build PASS; full default discovery79/17files. Fresh dev13 and actual test baseline12→13 preserve records in all23 baseline tables and enforce restricted runtime grants. Full browser/cross-feature acceptance and two independent reviews remain pending.
+- Only owned ports55477/3037/3137; real-user/commercial/consent/safeguarding/production gates remain OPEN. Next: inspect actual combined coverage and publish stable runtime candidate.
+- Review/verification correction: parent independent flows inspection found one missed tutor-detail heading locator in the new combined case; initial same-agent readiness statement is superseded by CHANGES REQUIRED. First default browser run72PASS/1FAIL/6not run preserves all49 baseline passes. Read-only real-service diagnosis identifies the intentionally overflowing848-window owned profile fixture; no matching product defect or relaxed bound. Recovery note `prompts/recovery/2026-10-11-six-feature-integration.md` prepares exact owned-fixture cleanup and locator/status repair after parent authorizes runtime edits. Privacy scan of122 changed files/68src/38client assets against1986 raw/encoded actual synthetic private/secret patterns found0matches (`.local/privacy-scan.json`).
+- Parent msg_c1e87bad0cf5 authorizes three-finding repair after both full independent initial reports: exact combined detail heading/separate state, guaranteed teardown suspending only profile-suite-owned IDs, and family same-date opposite-offset grouping/unique keys. The new rendered DST regression observed1FAIL/6PASS before the presentation fix (`.local/dst-regression-before.log`); affected family unit/component suite now17/17PASS (`.local/repair-family-tests.log`). Repaired format/lint/typecheck PASS; production rebuild and full79 browser run remain pending. Exactly5 runtime paths differ from initial99-path candidate; backend/query/service/config/migrations and all PG/integration cases remain byte-identical (`.local/repair-delta.json`).
+- Final runtime execution checkpoint: production rebuild PASS (`.local/build-repaired.log`); second default browser78PASS/1FAIL (`.local/browser-repaired.log`), failing only the combined tutor fixture's missing explicit sign-in with autoSignIn:false. Parent msg_c6ea196e1741 authorized that exact test-only correction; repaired final static checks PASS and combined-only `npm run test:e2e -- --project=six-feature-integration --no-deps --workers=1` PASS1/1 (`.local/browser-combined-final.log`). All79 discovered cases have applicable successful coverage (unchanged78 plus corrected1), as explicitly authorized; full default command itself did not pass79/79. F1/B1, F2/B2 and F3 are repaired; final99 runtime aggregate `f83f80976a63927e6699865f1113e7cb97980e1e018dd162a3cd7952cd6db402`, exact one-file last delta `.local/signin-delta.json`. Same-agent scoped Review READY FOR VERIFICATION; independent final-runtime follow-ups remain pending. No backend/service/query/config/PG/migration drift or repeated broad database run for UI/test-only changes.
+
+- Final independent acceptance: parent msg_3addf9d89cee accepts definitive backend `.local/independent-backend-review.md` and original broad flows `.local/independent-flows-review.md` plus final focused `.local/independent-flows-followup-review.md` at exact99-path f83f runtime. Plan/integrity/unintended-change PASS; READY FOR VERIFICATION;0outstanding findings. Separate Verify accepted: initial check578, affected family17, PG255, static/rebuild, fresh13/real baseline12→13/grants, all79 applicable browser cases (78unchanged +1corrected),16 inspected screenshots, final privacy0hits/123changed/68src/38assets/2976patterns. Both first failures remain evidence, not accepted failures. Final artifact formatting/diff and exact source/provider preservation audits passed; `.local/final-manifest.json`/`.local/final-runtime-fingerprint.json`, `.local/integration-report.md` and ignored `memory.md` record handoff. All123 changed nonignored paths remain uncommitted; worker neither stages nor commits/merges. Parent alone audits/accepts/commits/merges; no whole milestone/production/real-user readiness claim.

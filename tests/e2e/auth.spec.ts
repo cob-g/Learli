@@ -143,11 +143,11 @@ test("workspace pages enforce trusted role grants", async ({ page }) => {
   await expect(page).toHaveURL("/account");
   await page.getByRole("link", { name: "Parent workspace" }).click();
   await expect(
-    page.getByRole("heading", { name: "Parent workspace" }),
+    page.getByRole("heading", { name: "Bookings", exact: true }),
   ).toBeVisible();
   await page.goto("/tutor");
   await expect(
-    page.getByRole("heading", { name: "Tutor workspace" }),
+    page.getByRole("heading", { name: "Your bookings", exact: true }),
   ).toBeVisible();
   await page.goto("/admin");
   await expect(

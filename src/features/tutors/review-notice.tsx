@@ -15,7 +15,7 @@ const notices: Record<ReviewStatus | "none", { title: string; body: string }> =
     },
     approved: {
       title: "Your application is approved",
-      body: "Your profile is listed on Learli. Booking is not available yet.",
+      body: "Your profile is listed on Learli. Local simulated reservations do not confirm lessons.",
     },
     rejected: {
       title: "Your application was not approved",

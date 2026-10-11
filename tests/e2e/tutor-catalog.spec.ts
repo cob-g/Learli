@@ -342,24 +342,32 @@ test("a tutor applies, an admin decides, and each sees the stored result", async
   ]) {
     await visitor.setViewportSize({ width, height });
     await visitor.goto("/get-matched");
-    await expect(visitor.getByText("Question 1 of 2")).toBeVisible();
+    await expect(visitor.getByText("Question 1 of 3")).toBeVisible();
     await expectAccessible(visitor);
   }
   await visitor.setViewportSize({ width: 1440, height: 900 });
   await visitor.getByLabel("High School").check();
   await visitor.getByRole("button", { name: "Continue" }).click();
-  await expect(visitor).toHaveURL("/get-matched?level=high_school");
-  await expect(visitor.getByText("Question 2 of 2")).toBeVisible();
+  await expect(visitor).toHaveURL(
+    /\/get-matched\?change=subject&level=high_school/,
+  );
+  await expect(visitor.getByText("Question 2 of 3")).toBeVisible();
   await expectAccessible(visitor);
   await visitor.getByRole("link", { name: "Back", exact: true }).click();
   await expect(visitor.getByLabel("High School")).toBeChecked();
   await visitor.getByRole("button", { name: "Continue" }).click();
   await visitor.getByLabel("Math", { exact: true }).check();
-  await visitor.getByRole("button", { name: "Show matching tutors" }).click();
-  await expect(visitor).toHaveURL(
-    "/get-matched?level=high_school&subject=math",
+  await visitor.getByRole("button", { name: "Continue", exact: true }).click();
+  await expect(visitor.getByText("Question 3 of 3")).toBeVisible();
+  await visitor.getByLabel("Your time zone").selectOption("Asia/Manila");
+  await visitor.getByLabel("Any time", { exact: true }).check();
+  // Owned synthetic schedule; matching now requires actual date-specific times.
+  await owner.pool.query(
+    'INSERT INTO tutor_availability(tutor_id,iso_weekday,start_minute,end_minute) SELECT id,day,0,1440 FROM tutor_profiles CROSS JOIN generate_series(1,7) day WHERE slug IN (SELECT slug FROM tutor_profiles JOIN "user" ON "user".id=tutor_profiles.user_id WHERE name=$1)',
+    [tutorName],
   );
-  await expect(visitor.getByRole("status")).toHaveText(
+  await visitor.getByRole("button", { name: "Show matching tutors" }).click();
+  await expect(visitor.getByRole("status")).toContainText(
     "1 tutor teaches Math at High School",
   );
   await expect(visitor.getByRole("heading", { name: tutorName })).toBeVisible();
@@ -368,13 +376,17 @@ test("a tutor applies, an admin decides, and each sees the stored result", async
     path: info.outputPath("match-results-1440.png"),
     fullPage: true,
   });
-  await visitor.goto("/get-matched?level=college_support&subject=math");
+  await visitor.goto(
+    "/get-matched?level=college_support&subject=math&timezone=UTC&when=any",
+  );
   await expect(
     visitor.getByRole("heading", { name: "No tutors match your answers" }),
   ).toBeVisible();
-  await expect(visitor.getByText("College Support · Math")).toBeVisible();
+  await expect(
+    visitor.getByText("College Support · Math · Any time"),
+  ).toBeVisible();
   await visitor.getByRole("link", { name: "Change answers" }).click();
-  await expect(visitor.getByText("Question 1 of 2")).toBeVisible();
+  await expect(visitor.getByText("Question 3 of 3")).toBeVisible();
   await visitor.goto("/get-matched?level=phd");
   await expect(visitor.getByRole("main").getByRole("alert")).toHaveText(
     "Choose a level",
@@ -411,12 +423,17 @@ test("a tutor applies, an admin decides, and each sees the stored result", async
     visitor.getByText("Learli has not checked these details"),
   ).toBeVisible();
   await expect(
-    visitor.getByText("Booking is not available on Learli yet."),
+    visitor.getByRole("heading", { name: "Choose a time" }),
   ).toBeVisible();
-  // Public HTML carries no sign-in address or time zone.
+  await expect(visitor.getByText(/Local simulation only/)).toBeVisible();
+  // Public HTML carries no sign-in email; the selected zone belongs to the viewer.
   const html = await visitor.content();
   expect(html).not.toContain("@learli.test");
-  expect(html).not.toContain("Manila");
+  await expect(visitor.getByLabel("Time zone", { exact: true })).toHaveValue(
+    await visitor.evaluate(
+      () => Intl.DateTimeFormat().resolvedOptions().timeZone,
+    ),
+  );
   await visitor.setViewportSize({ width: 390, height: 844 });
   await expectAccessible(visitor);
   await visitor.screenshot({
@@ -424,7 +441,9 @@ test("a tutor applies, an admin decides, and each sees the stored result", async
     fullPage: true,
   });
   await tutor.getByRole("link", { name: "View public profile" }).click();
-  await expect(tutor).toHaveURL(profileUrl);
+  await expect(tutor).toHaveURL(
+    (url) => url.pathname === new URL(profileUrl).pathname,
+  );
 
   await admin.getByRole("button", { name: "Suspend tutor" }).click();
   await admin

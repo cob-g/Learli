@@ -1,53 +1,90 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
-import { readAccount } from "@/features/account/service";
-import { readOwnTutorProfile } from "@/features/tutors/service";
+import {
+  readTutorBookingWorkspace,
+  tutorAgendaBooking,
+} from "@/features/tutors/booking-workspace";
+import { TutorBookingAgenda } from "@/features/tutors/booking-agenda";
+import { TutorWorkspaceNavigation } from "@/features/tutors/workspace-navigation";
+import { TutorBookingRefresh } from "@/features/tutors/booking-refresh";
 import { ReviewNotice } from "@/features/tutors/review-notice";
 import { SignOut } from "@/features/auth/sign-out";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Tutor workspace",
+  title: "Your bookings",
   robots: { index: false, follow: false },
 };
 export default async function TutorWorkspacePage() {
-  const data = await loadPrivatePage("/tutor", async (runtime, headers) => ({
-    // The role check runs first, so a non-tutor learns nothing else.
-    profile: await readOwnTutorProfile(runtime, headers),
-    account: await readAccount(runtime, headers),
-  }));
+  const data = await loadPrivatePage("/tutor", readTutorBookingWorkspace);
   if (!data)
     return (
-      <UnavailablePage
-        title="Workspace access unavailable"
-        message="This workspace is not available to your current account. Return to your account to see your assigned access."
-      />
+      <>
+        <UnavailablePage
+          title="Workspace access unavailable"
+          message="This workspace is not available to your current account. Return to your account to see your assigned access."
+        />
+        <nav
+          aria-label="Workspace recovery"
+          className="page-shell flex flex-wrap gap-4 pb-8"
+        >
+          <Link className="inline-flex min-h-11 items-center" href="/tutor">
+            Try again
+          </Link>
+          <Link className="inline-flex min-h-11 items-center" href="/account">
+            Account settings
+          </Link>
+          <Link className="inline-flex min-h-11 items-center" href="/contact">
+            Contact support
+          </Link>
+        </nav>
+      </>
     );
   return (
     <div className="page-shell page-space">
-      <h1 className="text-page-title">Tutor workspace</h1>
-      <p className="mt-4 text-body">Signed in as {data.account.email}</p>
+      <h1 className="text-page-title">Your bookings</h1>
+      <div className="mt-4">
+        <TutorWorkspaceNavigation />
+      </div>
+      <p className="mt-4 max-w-prose text-body text-muted-foreground">
+        Local simulated bookings assigned to you. Times use your current account
+        time zone.
+      </p>
+      <div className="mt-4">
+        <TutorBookingRefresh />
+      </div>
       <div className="mt-8">
+        <TutorBookingAgenda
+          active={data.overview?.active.items.map(tutorAgendaBooking) ?? []}
+          history={data.overview?.history.items.map(tutorAgendaBooking) ?? []}
+          evaluatedAt={data.overview?.active.snapshotAtUtc}
+          hasMoreActive={data.overview?.active.hasNext ?? false}
+          hasMoreHistory={data.overview?.history.hasNext ?? false}
+        />
+      </div>
+      <div className="mt-12">
         <ReviewNotice
           status={data.profile?.reviewStatus ?? null}
           editHref="/tutor/profile"
           publicHref={data.profile ? `/tutors/${data.profile.slug}` : undefined}
         />
       </div>
-      <Link
-        className="mt-8 inline-flex min-h-11 items-center"
-        href="/tutor/availability"
-      >
-        Availability
-      </Link>
-      <p className="mt-8 max-w-prose text-body text-muted-foreground">
-        Bookings are not available yet.
-      </p>
-      <Link className="mt-4 inline-flex min-h-11 items-center" href="/account">
-        Account settings
-      </Link>
       <SignOut />
+      <nav
+        aria-label="Workspace support"
+        className="mt-12 flex flex-wrap gap-4 text-small"
+      >
+        <Link className="inline-flex min-h-11 items-center" href="/contact">
+          Contact support
+        </Link>
+        <Link
+          className="inline-flex min-h-11 items-center"
+          href="/report-a-concern"
+        >
+          Report a concern
+        </Link>
+      </nav>
     </div>
   );
 }

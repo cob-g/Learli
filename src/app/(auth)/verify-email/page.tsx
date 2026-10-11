@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AuthFrame } from "@/features/auth/auth-frame";
 import { AuthForm } from "@/features/auth/auth-form";
+import { PendingBookingChoice } from "@/features/bookings/pending-choice";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Verify your email",
@@ -14,6 +15,7 @@ export default async function Page({
   const params = await searchParams;
   return (
     <AuthFrame title="Verify your email">
+      <PendingBookingChoice next={params.next} />
       <AuthForm
         mode="verify"
         next={params.next}

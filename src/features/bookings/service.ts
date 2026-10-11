@@ -16,7 +16,6 @@ import {
 import { AccessError, requireIdentity } from "@/lib/permissions/access";
 import { isLoopbackOrigin, syntheticEmail } from "@/lib/local-mode";
 import { RuleError } from "@/lib/rule-error";
-import { generateSlots } from "@/lib/time/availability";
 import {
   readAuthorizedLearner,
   listMyLearners,
@@ -28,6 +27,7 @@ import {
 } from "@/features/tutors/eligibility";
 import { readTutorTimeOffIntervals } from "@/features/time-off/repository";
 import { demoBookingPolicy } from "./demo-policy";
+import { demoCandidateIntervals, demoCandidateRange } from "./demo-schedule";
 import { bookingChoiceInput, createDemoBookingInput } from "./input";
 import { formatLessonTime } from "./format-time";
 import { bookingFingerprint } from "./request-fingerprint";
@@ -200,12 +200,7 @@ async function candidateIntervals(
   tutor: { id: string; timezone: string },
   now: Date,
 ) {
-  const from = new Date(
-    now.getTime() + demoBookingPolicy.noticeMinutes * 60_000,
-  );
-  const to = new Date(
-    now.getTime() + demoBookingPolicy.horizonDays * 86_400_000,
-  );
+  const { from, to, busyTo } = demoCandidateRange(now);
   const windows = await tx
     .select({
       isoWeekday: tutorAvailability.isoWeekday,
@@ -222,18 +217,21 @@ async function candidateIntervals(
         eq(bookings.tutorId, tutor.id),
         eq(bookings.state, "demo_reserved"),
         gt(bookings.expiresAt, now),
-        lt(bookings.startAtUtc, to),
+        lt(bookings.startAtUtc, busyTo),
         gt(bookings.endAtUtc, from),
       ),
     );
-  const exceptions = await readTutorTimeOffIntervals(tx, tutor.id, from, to);
-  return generateSlots({
-    timeZone: tutor.timezone,
+  const exceptions = await readTutorTimeOffIntervals(
+    tx,
+    tutor.id,
+    from,
+    busyTo,
+  );
+  return demoCandidateIntervals({
+    timezone: tutor.timezone,
     windows,
     from,
     to,
-    slotMinutes: demoBookingPolicy.durationMinutes,
-    stepMinutes: demoBookingPolicy.stepMinutes,
     busy: [...occupied, ...exceptions],
   });
 }

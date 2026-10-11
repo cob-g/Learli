@@ -564,6 +564,8 @@ Each requirement has an **ID**, **priority**, **status**, a user-visible outcome
 - Results show fewer than three suggestions if fewer than three fit.
 - A no-match case offers to change filters or contact support; no synthetic/fake tutors.
 
+Local implementation note (2026-10-11, delegated M3.6 extension): the three-question GET flow asks level, subject, and When, with explicit Any time, viewer IANA timezone, weekday choices and bounded local time bands. Results require an actual eligible subject+level offering and a shared date-specific open candidate; whole intervals must fit the chosen viewer days/band. Ordering is earliest matching time then name, with five per page and truthful zero/load-failure states. Demo scheduling inputs are explicit local simulation, not live lesson policy. See `prompts/features/m3-06-availability-matching.md`; verification status is recorded separately.
+
 #### MATCH-02 — Search and matching agreement `P0 [AGREED]`
 
 **As a user**, I should not see a tutor offered through matching when browsing would say they are ineligible.
@@ -739,6 +741,19 @@ guardian consent or commercial approval; see the local synthetic booking decisio
 - Appropriate changes have clear actions and explanations of policy.
 
 #### OPS-04 — Transactional email `P0 [AGREED]`
+
+Local-only development slice authorized on 2026-10-11 through the six-feature
+build delegation: committed **simulated reservation created** events queue one
+minimal captured notice for the currently eligible/authorized booking creator
+and assigned tutor, deduplicated by account. Owned bounded manual invocation
+checks current authorization/expiry and captures subject/time/simulation expiry
+and an authenticated detail link, or safely suppresses outdated notices. No
+learner/meeting information or actual email; every artifact says local capture,
+no email sent and no confirmed lesson. Capture failures preserve committed booking
+state and retry safely with stable local artifact identity, without an exactly-once
+claim. Authentication capture stays unchanged. This is not acceptance of real
+Resend delivery, confirmations/expiry/cancellation notices, reminders, consent
+or commercial terms; see the local-booking-notifications decision.
 
 **As an account holder**, I receive essential notices related to authentication and bookings.
 

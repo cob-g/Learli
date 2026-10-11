@@ -671,6 +671,28 @@ policy is coordinator-delegated (60-minute elapsed duration, 30-minute step,
 `docs/decisions/2026-10-11-local-synthetic-booking.md`. Real policy remains OPEN;
 combined time-off acceptance requires the integrated guard and real database tests.
 
+**Local M4.9 participant reads — 2026-10-11:** detail/history read services use one
+current session/account/role/relationship SQL snapshot and acquire no domain row
+locks or writes. Elapsed TTL projects `demo_expired`; persisted state and expiry
+materialization remain distinct, and detail history contains actual stored events
+only. Existing candidate-read/create expiry materialization retains tutor-first
+locks and post-wait authorization unchanged. Viewer-local times use the current
+account zone. Family learner selectors and active/history overview share the same
+authorization/time snapshot; no generic admin access exists. The local runtime
+gains SELECT only on the four booking-event columns, preserving append-only
+history. A separate internal creation-notice recipient projection accepts committed
+IDs on the notification owner's READ COMMITTED connection: only current eligible
+creator or assigned approved tutor, actual creation event and live TTL; no learner
+data, sessionless web route or notification delivery. The new private booking read
+pages await authorized SSR content without automatic loading boundaries: browser
+evidence showed those new boundaries left resolved HTML hidden without JavaScript.
+Native GET works without scripts; hydrated GET uses a bounded booking URL through
+client navigation to retain content and pending feedback. A keyed form aligns
+learner/filter inputs on Back/Forward; enhanced links also report pending. This
+applies to these new booking read
+routes only; no global rendering change is claimed. See the M4.9 blueprint for
+coordinator contract authority; real launch and confirmation policies remain gated.
+
 **`bookings`**
 
 - `id` (opaque UUID), `tutor_id`, `learner_id`, `booked_by_user_id`, `subject_id`.
@@ -916,6 +938,20 @@ Do not build bulk marketing, newsletters, or a full notification center for the 
 **Practical launch gate:** Buy/verify an appropriate domain **before relying on public transactional emails**. The application can still be developed on the free Railway-generated URL.
 
 ### 14.3 Email reliability
+
+**Local M5.7–M5.8 slice authorized 2026-10-11:** migration 0012 queues one
+`booking_notification_deliveries` row per committed demo creation-event/account/
+kind through an event trigger, using creator/tutor UNION dedup. A bounded owned
+manual invocation on an independent local Pool connection captures private HTML
+only after current recipient authorization and TTL checks; stale rows are
+suppressed with safe internal state. Capture failure cannot alter booking state.
+Stable atomic artifact identity permits retries after capture-before-ack failure;
+filesystem/PostgreSQL do not establish exactly-once delivery. No learner or
+meeting fields, recipient override/public retry endpoint, Resend call or reminder
+worker. Auth verification/reset capture stays intact. See
+`docs/decisions/2026-10-11-local-booking-notifications.md`; real-email/consent/
+commercial/safeguarding gates remain unchanged. Verification status is recorded
+in the tracker, separately from this authorized architecture.
 
 - Trigger email only after a successful database state transition.
 - If mail fails, keep the correct booking state; log a safe, retryable failure.
@@ -1294,3 +1330,53 @@ These references support the proposed integrations but **do not replace testing 
 - [Neon Object Storage overview](https://neon.com/blog/building-neon-object-storage) — **future option, not a V1 dependency**
 
 **Document precedence:** This Learli architecture updates/supersedes the earlier CalcStream concept *only where our latest discussions explicitly changed the business*: brand, marketplace-only scope, simplified dashboards, launch categories, technical stack, hosting, and removal of assignments/LMS features. Pricing, payment flow, legal compliance details, and other open choices still require approval.
+
+**Local profile preview and auth continuation — 2026-10-11:** M4.11/M2.9 uses
+`features/public-availability` for an advisory read-only repeatable-read snapshot.
+One database clock, public eligibility by1..20 unique slugs, and bulk weekly
+window/time-off/unexpired reservation reads avoid per-tutor SQL. Strict public
+subject/level/IANA-zone/from/to filters intersect existing60min notice/14day
+horizon;60min candidates at30min starts use the existing actual-date/DST engine.
+Bounded rows/output refuse excess with503, never partial/false-empty results.
+Busy reads include the entire final candidate duration. The query returns only
+public slugs and formatted/UTC times, never learner/account/booking/participant
+identifiers; preview ignores elapsed holds without writing expiry events.
+
+The native profile picker carries only public tutor/subject/level/zone/start/end
+selection into `/bookings/demo`. Auth return validation extends safeReturnPath
+with a strict canonical selection; signup/verification/signin carry the same
+safe next. Learner choice remains after authentication and ownership scoped.
+Resume and create revalidate current eligibility, learner level, subject and time;
+stale choices show current alternatives and never automatically reserve. Existing
+atomic reservation/retry/expiry mutation behavior remains authoritative. This
+work is gated to loopback development/test and remains local_simulation only;
+commercial, guardian/consent and real-user launch gates remain OPEN.
+
+### Local M5.3/M5.4 family dashboard composition — 2026-10-11
+
+Student and parent landing pages consume the coordinator-frozen private booking
+provider's single-statement overview, using one current authorization snapshot,
+viewer account time zone, authorized learner context and expiry projection for
+both active and history lists. The consumer adds no booking query or authorization
+layer. Parent All learners/single-learner selection and history paging use GET;
+students use only eligible self-managed profiles. Future starts supply Next
+simulated reservation; ongoing active times remain in the agenda. Expired rows
+retain original scheduled instants and link to private detail; reads append no
+events or mutations. Local simulation labels and expiry deadlines remain explicit.
+No join, payment, cancellation, onboarding, meeting storage, LMS or production
+capability is added. Runtime receives column-limited booking_events SELECT for
+private persisted detail history, preserving existing grants. Exact imported
+hashes and local execution evidence are retained in the worker's ignored report.
+Core document content is fully awaited so native GET and detail navigation work
+without JavaScript. Hydrated filter submission enhances the same GET URL with a
+router transition and pending feedback; server validation and authorization stay
+identical. The authoritative selected learner keys the form for Back restoration.
+
+
+### Local M3.6 availability matching extension — 2026-10-11
+
+`AUTHORIZED — build-feature delegation` for the dispatched 2026-10-11 request. Public matching accepts only visitor-selected subject/level, an explicit valid IANA viewer zone, Any time or ISO weekday preferences with one bounded time band. Preferences remain in an allowlisted GET URL; no learner lookup, account-zone mutation, or private learner field is involved. Unknown/malformed query values are removed before rendering.
+
+Actual dates come from the parent-authorized shared `public-availability-v1` query using the existing DST engine, tutor time off, and unexpired local simulated reservations. The public read neither materializes expiry nor changes booking state. Matching rechecks the shared directory eligibility and requests <=100 complete eligible tutors in <=5 batches of <=20, then filters whole viewer-local intervals within a common start-time window, orders by earliest matching time/name, and pages five genuine matches. Overflow or a failed batch produces a retry state, never partial or fabricated matches. Profile links use the shared canonical helper and carry only visitor filters and the selected public UTC interval. Every subsequent booking still revalidates.
+
+The existing 60-minute/30-minute-step/60-minute-notice/14-day-start-horizon/10-minute-reservation-TTL values remain local simulation inputs. Live duration, pricing, trial, cancellation/rescheduling, consent and safeguarding policy remain OPEN. No schema or booking mutation change is part of this matching feature. Final executed evidence belongs to the progress tracker and worker handoff.

@@ -11,24 +11,44 @@ import type {
 import type { DemoBookingInput } from "./input";
 import { LessonTime } from "./lesson-time";
 import { demoBookingPolicy } from "./demo-policy";
+import type { PublicBookingSelection } from "./selection";
+import type { LessonTimeValue } from "./lesson-time";
 
 export function DemoBookingForm({
   options,
   zones,
+  prefill = null,
+  prefilledTimes = null,
+  requestedTime = null,
+  initialNotice = "",
 }: {
   options: DemoBookingOptions;
   zones: TimeZoneOption[];
+  prefill?: PublicBookingSelection | null;
+  prefilledTimes?: DemoCandidates["times"] | null;
+  requestedTime?: LessonTimeValue | null;
+  initialNotice?: string;
 }) {
   const [learnerId, setLearner] = useState(
     options.learners.length === 1 ? options.learners[0].id : "",
   );
-  const [tutorSlug, setTutor] = useState("");
-  const [subjectSlug, setSubject] = useState("");
-  const [timezone, setTimezone] = useState(options.timezone);
-  const [times, setTimes] = useState<DemoCandidates["times"] | null>(null);
-  const [selected, setSelected] = useState("");
+  const [tutorSlug, setTutor] = useState(prefill?.tutorSlug ?? "");
+  const [subjectSlug, setSubject] = useState(prefill?.subjectSlug ?? "");
+  const [timezone, setTimezone] = useState(
+    prefill?.displayTimezone ?? options.timezone,
+  );
+  const [times, setTimes] = useState<DemoCandidates["times"] | null>(
+    prefilledTimes,
+  );
+  const [selected, setSelected] = useState(
+    prefilledTimes?.find(
+      (time) =>
+        time.startAtUtc === requestedTime?.startAtUtc &&
+        time.endAtUtc === requestedTime?.endAtUtc,
+    )?.startAtUtc ?? "",
+  );
   const [pending, setPending] = useState<"times" | "booking" | null>(null);
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState(initialNotice);
   const [unknown, setUnknown] = useState(false);
   const [result, setResult] = useState<DemoReservation | null>(null);
   const attempt = useRef<DemoBookingInput | null>(null);
@@ -72,7 +92,29 @@ export function DemoBookingForm({
         setNotice(data.message);
         setTimes(null);
         focusNotice();
-      } else setTimes(data.times);
+      } else {
+        const current = data as DemoCandidates;
+        setTimes(current.times);
+        if (
+          prefill &&
+          requestedTime &&
+          tutorSlug === prefill.tutorSlug &&
+          subjectSlug === prefill.subjectSlug
+        ) {
+          const saved = current.times.find(
+            (time) =>
+              time.startAtUtc === requestedTime.startAtUtc &&
+              time.endAtUtc === requestedTime.endAtUtc,
+          );
+          if (saved) setSelected(saved.startAtUtc);
+          else {
+            setNotice(
+              "That time is no longer available. Please choose another.",
+            );
+            focusNotice();
+          }
+        }
+      }
     } catch {
       if (version !== choiceVersion.current) return;
       setTimes(null);
@@ -118,6 +160,25 @@ export function DemoBookingForm({
       if (!response.ok) {
         setNotice(data.message);
         setUnknown(response.status >= 500);
+        if (response.status === 409) {
+          setSelected("");
+          try {
+            const query = new URLSearchParams({
+              learnerId,
+              tutorSlug,
+              subjectSlug,
+              displayTimezone: timezone,
+            });
+            const alternatives = await fetch(
+              `/api/bookings/demo/candidates?${query}`,
+            );
+            if (alternatives.ok)
+              setTimes(((await alternatives.json()) as DemoCandidates).times);
+            else setTimes(null);
+          } catch {
+            setTimes(null);
+          }
+        }
         focusNotice();
       } else {
         setResult(data);
@@ -164,6 +225,16 @@ export function DemoBookingForm({
         disabled={unknown || pending === "booking" || !!result}
       >
         <legend className="mb-4 text-section-title">Who and what</legend>
+        {requestedTime && !times && (
+          <section className="space-y-2">
+            <h2 className="text-item-title">Requested time</h2>
+            <LessonTime value={requestedTime} />
+            <p className="text-small">
+              Choose an authorized learner and load open times to check this
+              choice again.
+            </p>
+          </section>
+        )}
         {options.learners.length === 1 ? (
           <p className="text-body">
             {learner?.management === "self"
@@ -188,7 +259,7 @@ export function DemoBookingForm({
                   checked={learnerId === row.id}
                   onChange={() => {
                     setLearner(row.id);
-                    setSubject("");
+                    if (!prefill || row.level !== prefill.level) setSubject("");
                     resetChoices();
                   }}
                 />
@@ -263,7 +334,8 @@ export function DemoBookingForm({
         <button
           type="button"
           className="action action-outline"
-          aria-disabled={pending === "times"}
+          aria-disabled={!!pending}
+          disabled={!!pending}
           onClick={loadTimes}
         >
           {pending === "times" && (
@@ -287,7 +359,14 @@ export function DemoBookingForm({
           </p>
           {times.length ? (
             <ul className="divide-y divide-border border-s border-border ps-4">
-              {times.slice(0, 8).map((time) => (
+              {(selected &&
+              !times.slice(0, 8).some((time) => time.startAtUtc === selected)
+                ? [
+                    ...times.slice(0, 8),
+                    ...times.filter((time) => time.startAtUtc === selected),
+                  ]
+                : times.slice(0, 8)
+              ).map((time) => (
                 <li className="py-4" key={time.startAtUtc}>
                   <label className="flex min-h-11 items-start gap-4 text-body">
                     <input
@@ -354,7 +433,8 @@ export function DemoBookingForm({
         <button
           type="submit"
           className="action action-primary"
-          aria-disabled={pending === "booking"}
+          aria-disabled={!!pending}
+          disabled={!!pending}
         >
           {pending === "booking" && (
             <LoaderCircle

@@ -1179,3 +1179,45 @@ These are raised by this revision. Each stays `[PROPOSED]` until a founder decid
 
 - **1.1 (2026-10-11):** Reviewed with the Impeccable design skill to remove generic "AI slop" defaults. Added the design thesis, first-viewport contract, anti-slop guardrails, contrast contract, interaction states, type roles, radius ladder, motion table, primitive overrides, the time column and the other signature components, spacing roles, and UI copy rules. Replaced ranges and hedges with single values. Removed the lavender accent and the separate success green. Added `--border-control` (inputs previously used a 1.29:1 border), navy-field tokens, and a focus ring that holds on navy. Changed elevation to flat. Rebuilt the home page around a working tutor search. Corrected document links and component paths. All values remain `[PROPOSED]`.
 - **1.0 (2026-10-11):** Initial V1 UI system.
+
+### Local tutor-profile actual-date preview — 2026-10-11
+
+M4.11 adds a native GET subject/level/time-zone picker below the public tutor
+identity and offering summary. Candidate radios group by actual viewer-local
+date, display elapsed60min ranges and explicit zone, and reveal remaining dates
+through native details. Checked radios retain native semantics plus visible text
+and approved navy/white treatment; no fake availability, ratings or prices.
+Loading, unavailable, empty and error text remain distinct. Preview and review
+are visibly local simulation and never imply a confirmed lesson.
+
+An explicit visit-zone choice is stored in sessionStorage only; otherwise a saved
+signed-in account zone is used, then browser IANA detection. The server/no-JS
+fallback is explicitly labeled as the tutor teaching zone (UTC only if unavailable).
+Public preview never changes account settings or uses a learner zone. Public-only
+pending-choice summaries appear on sign-in/sign-up/verification; the private demo
+chooses an authorized learner and rechecks candidates before explicit creation.
+
+The actual-date picker is fully awaited server HTML to preserve visible native
+controls with JavaScript disabled and denied-tutor404 responses. Optional client
+feedback reports pending native filter navigation without intercepting submission
+or changing its public fields; no route/picker streaming boundary is required.
+
+### Local family dashboard implementation — 2026-10-11
+
+M5.3/M5.4 follows the workspace top-bar, named-learner and time-column patterns
+with explicit local simulation wording. Multiple currently authorized guardian
+learners default to All learners; one has a named heading without a selector.
+The native radio GET form works without JavaScript. Agenda and history use date
+headings, explicit date-specific zone lines and aligned time ranges. Rows on a
+single local DST-transition date are grouped separately by their actual formatted
+zone/offset, with stable unique date-and-zone keys, so the shared label remains
+accurate for every row. The shared
+LessonTime component now accepts additive full (unchanged default), prominent
+(section-title date/time) and time-only variants; time-only callers supply an
+adjacent date heading and zone context. Parent time display uses the account
+zone. Change time zone links to existing account settings. Loading/error/empty
+states remain distinct; no gated join/payment/cancellation action is rendered.
+Core HTML is fully awaited rather than hidden behind automatic streaming loading
+boundaries. Native GET works without JavaScript; hydrated filter transitions show
+pending text while retaining current content, and Back restores learner selection.
+These are local synthetic coordination capabilities, not real launch approval.

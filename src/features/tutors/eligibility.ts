@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { Database } from "@/lib/db/connection";
 import {
   subjects,
@@ -39,8 +39,12 @@ export type TutorFilters = {
  * one offering on an active subject. Directory, tutor page, matching and booking
  * must all read tutors through this module so they can never disagree.
  */
-async function eligibleTutors(db: Pick<Database, "select">, slug?: string) {
-  const rows = await db
+async function eligibleTutors(
+  db: Pick<Database, "select">,
+  slug?: string,
+  slugs?: readonly string[],
+) {
+  const query = db
     .select({
       slug: tutorProfiles.slug,
       displayName: user.name,
@@ -66,9 +70,16 @@ async function eligibleTutors(db: Pick<Database, "select">, slug?: string) {
         sql`EXISTS (SELECT 1 FROM ${userRoles} r WHERE r.user_id = ${user.id} AND r.role = 'tutor')`,
         eq(subjects.isActive, true),
         slug === undefined ? undefined : eq(tutorProfiles.slug, slug),
+        slugs === undefined
+          ? undefined
+          : inArray(tutorProfiles.slug, [...slugs]),
       ),
     )
     .orderBy(asc(user.name), asc(tutorProfiles.slug), asc(subjects.name));
+  // Public batched availability refuses excess rows, never a partial tutor scan.
+  const rows = await (slugs ? query.limit(601) : query);
+  if (slugs && rows.length > 600)
+    throw new RangeError("Public tutor query exceeds its resource bound.");
   const tutors = new Map<string, PublicTutor>();
   for (const {
     subjectSlug,
@@ -108,6 +119,24 @@ export async function listEligibleTutors(
   filters: TutorFilters = {},
 ) {
   return filterTutors(await eligibleTutors(db), filters);
+}
+
+/** Bounded subset using the exact same public eligibility predicate. */
+export async function listEligibleTutorsBySlugs(
+  db: Pick<Database, "select">,
+  slugs: readonly string[],
+  filters: TutorFilters = {},
+) {
+  if (
+    slugs.length < 1 ||
+    slugs.length > 20 ||
+    new Set(slugs).size !== slugs.length ||
+    slugs.some(
+      (slug) => slug.length > 80 || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug),
+    )
+  )
+    throw new RangeError("Choose 1 to 20 unique tutor slugs.");
+  return filterTutors(await eligibleTutors(db, undefined, slugs), filters);
 }
 
 /** One eligible tutor, or null. Ineligible and unknown look the same. */

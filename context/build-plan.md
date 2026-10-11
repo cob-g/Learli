@@ -236,7 +236,7 @@ M6 begins **as early as possible in parallel**; postponing decisions until all e
 **Source:** `PRD.md` §§6–7 (`PUB`, `TUT`, `MATCH`); `architecture.md` §§6–7, 9.2; `ui-context.md` §Layout Patterns.  
 **PRD:** `PUB-01`–`PUB-04`; `PUB-05` is gated for public paid launch; `TUT-01`–`TUT-03`, `TUT-06` as relevant; `MATCH-01`, `MATCH-02`, with live-slot accuracy completed in M4.
 
-**Local status (2026-10-11):** M3.1–M3.3 are implemented and verified locally with synthetic data only: catalog table and launch subjects, admin add/activate/deactivate, tutor application form, a self-service "Start tutor application" entry on `/become-a-tutor` that grants only the `tutor` role (first slice of M3.4), audited admin review transitions, and one eligibility query. The boxes below stay unchecked because the real screening policy is `[OPEN]`, and nothing is hosted. M3.4 public pages (home entry, subjects, directory, tutor detail) and M3.5 subject and level filters are also verified locally (`prompts/features/m3-04-public-tutor-discovery.md`); Guided matching (M3.6) is verified locally on level and subject only (`prompts/features/m3-06-guided-matching.md`); its time question waits for availability in M4. See `prompts/features/m3-01-tutor-catalog-foundation.md`.
+**Local status (2026-10-11):** M3.1–M3.3 are implemented and verified locally with synthetic data only: catalog table and launch subjects, admin add/activate/deactivate, tutor application form, a self-service "Start tutor application" entry on `/become-a-tutor` that grants only the `tutor` role (first slice of M3.4), audited admin review transitions, and one eligibility query. The boxes below stay unchecked because the real screening policy is `[OPEN]`, and nothing is hosted. M3.4 public pages (home entry, subjects, directory, tutor detail) and M3.5 subject and level filters are also verified locally (`prompts/features/m3-04-public-tutor-discovery.md`); Guided matching (M3.6) is verified locally on level and subject only (`prompts/features/m3-06-guided-matching.md`); its time question now has a separately delegated availability extension in `prompts/features/m3-06-availability-matching.md` (implemented and verified locally; exact matching evidence recorded separately in the progress tracker). See `prompts/features/m3-01-tutor-catalog-foundation.md`.
 
 ### Work packages
 
@@ -309,12 +309,29 @@ M6 begins **as early as possible in parallel**; postponing decisions until all e
 - [ ] **M5.3 — Student workspace.** Display the student's own upcoming/past bookings, tutor/subject/time/status and valid join action when permitted. Do not build homework, grades, lesson submissions or progress charts.
 - [ ] **M5.4 — Parent/guardian workspace.** Show only authorized learners, unmistakable selected-learner context, upcoming lessons, booking history, allowed changes and payment information **only if actual approved payment records exist**.
 - [ ] **M5.5 — Tutor workspace.** Own profile, subjects, timezone, availability, next lessons, booked learners with minimum necessary details, safe meeting-link entry and personal booking history.
+  - **2026-10-11 local slice:** authorized tutor dashboard consumes participant-scoped synthetic booking reads for next future simulation, agenda/history, minimal learner label/level and actual subject/time/demo status/expiry. Retains profile review, availability/time-off/profile/account routes. Uses native GET refresh with an accessible enhanced pending status; no meeting entry/join, money, attendance, cancellation or teaching metrics. This local slice does not complete M5.5's launch scope or authorize live lessons; verification evidence is in progress tracker and its canonical blueprint.
 - [ ] **M5.6 — Essential admin workspace.** Limited tutor eligibility actions, subject catalog, booking/support lookup and account safety restrictions. Require audit for sensitive actions. **No tutor KPI scoring or curriculum enforcement.**
 - [ ] **M5.7 — Transactional email integration.** Better Auth emails and event-based booking/changes via Resend, with safe recipient resolution and sensible retry/error handling. **Queue/delivery strategy should match actual hosting limits**; do not add Redis or an always-on worker by default.
 - [ ] **M5.8 — Respect transaction boundaries.** Send booking notices **after the booking DB transition commits**. Failed email delivery must not undo a valid booking or create a false confirmation. Scheduled reminders are optional and require a justified reliable scheduler.
+
+  Local M5.7–M5.8 slice (2026-10-11 six-feature delegation): event-driven durable
+  queue plus bounded owned manual HTML capture for simulation-created notices
+  only; exact current creator/tutor authorization, recipient dedup, safe expiry
+  suppression, committed-row visibility and capture-independent booking state.
+  See `prompts/features/m5-07-local-booking-notifications.md`. This slice does not
+  complete real Resend delivery or the full M5 exit gates; execution evidence
+  belongs in the tracker.
 - [ ] **M5.9 — Basic support and safeguarding reporting.** Provide a visible contact/report route, restricted `support_cases` access, human reviewer responsibilities and escalation path. **Real child-safety operations are launch-gated** until owner/process requirements are approved.
 - [ ] **M5.10 — Reviews only when authorized by policy.** `OPS-06` is P1 and publication/matching policy `[OPEN]`. If implemented after approval, require eligible real bookings, appropriate moderation, no duplicates and no invented social proof.
 - [ ] **M5.11 — Clear third-party responsibility.** UX says sessions occur on Zoom/Meet; Learli does not host recordings, run video calls, automatically verify who attended, or offer in-app adult–minor private chat.
+
+Local synthetic M5.3/M5.4 slice (2026-10-11): student/parent reservation
+overviews are implemented using the frozen private-read provider, current
+authorized learner context, account-local times, next/agenda/history and
+progressive GET selection. See `context/progress-tracker.md` for executed local
+verification evidence. This does not complete full M5 or authorize real lesson
+confirmation, joining, payments, cancellation, minor onboarding or deployment;
+the work-package and exit checkboxes remain open for their full approved scope.
 
 ### M5 exit criteria
 
@@ -721,3 +738,33 @@ The default browser command selects every new suite. Candidate verification and
 source/migration evidence live in `docs/operations/five-feature-premerge.md` and
 the tracker. All six related worktrees/branches were removed after private
 archival; no push, main database migration or deployment was performed.
+
+### 2026-10-11 — Local M4.11 / M2.9 worker evidence
+
+The isolated profile-booking worker implements M4.11 actual-date advisory preview
+and the M2.9 public-selection continuation subset for the existing local demo.
+Evidence:506 unit/component,170 real PostgreSQL,55 default browser cases and
+production build passed; blueprint `prompts/features/m4-11-profile-booking.md`,
+current worker tracker entry and ignored worker report contain exact commands and
+hashes. Provider v1 is released to matching through the coordinator. Live booking,
+whole-milestone completion and production readiness remain gated; this note does
+not check off policy-dependent M4 or the entire M2.9 package. Coordinator owns
+shared-file reconciliation, consumer integration and independent combined review.
+
+### 2026-10-11 — Six-feature combined local candidate
+
+`prompts/features/m4-09-six-feature-premerge-integration.md` integrates the six
+frozen M4.9/M4.11/M3.6/M5.3–M5.5/M5.7–M5.8 local slices under AUTHORIZED —
+build-feature delegation. Initial full check578cases,255 real PostgreSQL cases,
+fresh13/baseline12→13 preservation/restricted-grant proof passed. Authorized
+integration repairs received17 affected family cases, static validation and
+production rebuild. All79 default-discovered browser cases have applicable passing
+evidence:78 unchanged cases from the full sequential command and the corrected
+combined journey1/1 after exact test-only setup repair. No single79/79 full-pass
+command is claimed. Parent accepted both final independent reviews for runtime
+f83f80976a63927e6699865f1113e7cb97980e1e018dd162a3cd7952cd6db402, with no
+outstanding findings; final file audit/commit/merge remain parent-owned. Worker
+neither commits nor merges. See
+`docs/operations/six-feature-premerge.md` and current progress-tracker evidence.
+This records local subsets without checking off entire M2/M3/M4/M5 launch packages
+or changing real-user/commercial/consent/provider/production gates.

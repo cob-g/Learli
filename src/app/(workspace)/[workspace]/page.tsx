@@ -20,6 +20,8 @@ export default async function WorkspacePage({
 }) {
   const { workspace } = await params;
   if (!roles.includes(workspace as Role)) notFound();
+  // Student and parent have explicit booking dashboards; keep other routing.
+  if (workspace === "student" || workspace === "parent") notFound();
   let account;
   try {
     const runtime = getAuthRuntime();
@@ -47,14 +49,6 @@ export default async function WorkspacePage({
         Your local account has this workspace role. Lessons are not available
         yet.
       </p>
-      {(workspace === "parent" || workspace === "student") && (
-        <Link
-          className="mt-8 inline-flex min-h-11 items-center"
-          href="/learners"
-        >
-          Your learners
-        </Link>
-      )}
       <Link className="mt-8 inline-flex min-h-11 items-center" href="/account">
         Account settings
       </Link>

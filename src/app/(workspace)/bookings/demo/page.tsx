@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
-import { loadDemoBookingOptions } from "@/features/bookings/service";
+import { loadDemoBookingResume } from "@/features/bookings/resume";
+import {
+  parsePublicBookingSelection,
+  bookingSelectionHref,
+  type SearchValues,
+} from "@/features/bookings/selection";
 import { DemoBookingForm } from "@/features/bookings/demo-booking-form";
 import { listTimeZoneOptions } from "@/lib/time/zones";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
@@ -10,12 +15,18 @@ export const metadata: Metadata = {
   title: "Simulated booking",
   robots: { index: false, follow: false },
 };
-export default async function DemoBookingPage() {
-  const options = await loadPrivatePage(
-    "/bookings/demo",
-    loadDemoBookingOptions,
+export default async function DemoBookingPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchValues>;
+}) {
+  const params = await searchParams;
+  const choice = parsePublicBookingSelection(params);
+  const resumed = await loadPrivatePage(
+    choice ? bookingSelectionHref(choice) : "/bookings/demo",
+    (runtime, headers) => loadDemoBookingResume(runtime, headers, choice),
   );
-  if (!options)
+  if (!resumed)
     return (
       <UnavailablePage
         title="Simulated bookings unavailable"
@@ -30,8 +41,19 @@ export default async function DemoBookingPage() {
         simulated reservation, with no confirmed lesson or payment.
       </p>
       <DemoBookingForm
-        options={options}
-        zones={listTimeZoneOptions(new Date(), [options.timezone])}
+        options={resumed.options}
+        prefill={resumed.choice}
+        prefilledTimes={resumed.times}
+        requestedTime={resumed.requestedTime}
+        initialNotice={
+          resumed.message ||
+          (Object.keys(params).length && !choice
+            ? "The booking choice could not be used. Choose a tutor, subject and time again."
+            : "")
+        }
+        zones={listTimeZoneOptions(new Date(), [
+          resumed.choice?.displayTimezone ?? resumed.options.timezone,
+        ])}
       />
       <Link className="mt-8 inline-flex min-h-11 items-center" href="/account">
         Account settings

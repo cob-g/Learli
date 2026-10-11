@@ -1,44 +1,69 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CircleAlert } from "lucide-react";
+import { redirect } from "next/navigation";
+import { getAuthRuntime } from "@/lib/auth";
+import { learnerLevelOptions } from "@/features/subjects/catalog";
+import { resolveMatch, matchLimit } from "@/features/matching/match";
+import { MatchQuestions } from "@/features/matching/questions";
 import {
-  groupSubjects,
-  learnerLevelOptions,
-} from "@/features/subjects/catalog";
-import { resolveMatch } from "@/features/matching/match";
-import { readPublicCatalog, tutorsHref } from "@/features/tutors/public";
-import { TutorList } from "@/features/tutors/tutor-card";
+  matchingHref,
+  sanitizeMatchParams,
+  type MatchParams,
+} from "@/features/matching/preferences";
+import {
+  MatchResultList,
+  preferenceDescription,
+} from "@/features/matching/results";
+import {
+  readMatchingAvailability,
+  type MatchingAvailability,
+} from "@/features/matching/service";
+import { readPublicCatalog } from "@/features/tutors/public";
+import { publicProfileHref } from "@/features/public-availability/links";
 import { EmptyState } from "@/components/shared/empty-state";
+import { demoBookingPolicy } from "@/features/bookings/demo-policy";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Get matched" };
 
-function ChoiceError({ message }: { message?: string }) {
-  if (!message) return null;
+function LoadFailure({
+  href,
+  times = false,
+}: {
+  href: string;
+  times?: boolean;
+}) {
   return (
-    <p role="alert" className="flex items-center gap-1 text-small text-error">
-      <CircleAlert size={16} aria-hidden="true" />
-      {message}
-    </p>
+    <div className="page-shell page-space">
+      <h1 className="text-page-title">Get matched</h1>
+      <p role="alert" className="mt-8 max-w-prose text-body">
+        We couldn&apos;t load {times ? "matching times" : "tutors"}. Try again,
+        or contact support if this keeps happening.
+      </p>
+      <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+        <Link className="action action-outline" href={href}>
+          Try again
+        </Link>
+        <Link className="inline-flex min-h-11 items-center" href="/tutors">
+          Browse all tutors
+        </Link>
+        <Link className="inline-flex min-h-11 items-center" href="/contact">
+          Contact support
+        </Link>
+      </div>
+    </div>
   );
 }
 
 export default async function GetMatchedPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: Promise<MatchParams>;
 }) {
+  const safe = sanitizeMatchParams(await searchParams);
+  if (safe.changed) redirect(safe.href);
   const catalog = await readPublicCatalog();
-  if (!catalog)
-    return (
-      <div className="page-shell page-space">
-        <h1 className="text-page-title">Get matched</h1>
-        <p role="alert" className="mt-8 max-w-prose text-body">
-          We couldn&apos;t load tutors. Try again, or{" "}
-          <Link href="/contact">contact support</Link> if this keeps happening.
-        </p>
-      </div>
-    );
+  if (!catalog) return <LoadFailure href={safe.href} />;
   if (catalog.tutors.length === 0)
     return (
       <div className="page-shell page-space">
@@ -55,133 +80,53 @@ export default async function GetMatchedPage({
         </div>
       </div>
     );
-
-  const match = resolveMatch(
-    await searchParams,
-    catalog.subjects,
-    catalog.tutors,
+  const match = resolveMatch(safe.params, catalog.subjects, catalog.tutors);
+  if (match.step !== "ready")
+    return <MatchQuestions match={match} params={safe.params} />;
+  const answers = {
+    level: match.level,
+    subject: match.subject.slug,
+    preferences: match.preferences,
+  };
+  const runtime = getAuthRuntime();
+  let availability: MatchingAvailability;
+  try {
+    if (!runtime) throw new Error("Availability is not configured.");
+    availability = await readMatchingAvailability(runtime, catalog.tutors, {
+      subjectSlug: match.subject.slug,
+      level: match.level,
+      preferences: match.preferences,
+    });
+  } catch {
+    return <LoadFailure href={matchingHref(answers)} times />;
+  }
+  const level = learnerLevelOptions.find(
+    ([value]) => value === match.level,
+  )?.[1];
+  const summary = `${level} · ${match.subject.name} · ${preferenceDescription(match.preferences)}`;
+  const change = matchingHref(answers, "when");
+  const total = availability.matches.length;
+  const pages = Math.max(1, Math.ceil(total / matchLimit));
+  const requestedPage =
+    typeof safe.params.page === "string" ? Number(safe.params.page) : 1;
+  const page = Math.min(pages, requestedPage);
+  const matches = availability.matches.slice(
+    (page - 1) * matchLimit,
+    page * matchLimit,
   );
-  const levelName = (value: string) =>
-    learnerLevelOptions.find(([level]) => level === value)?.[1] ?? "";
-  const browse = (
-    <Link className="inline-flex min-h-11 items-center" href="/tutors">
-      Browse all tutors
-    </Link>
-  );
-
-  if (match.step === "level")
-    return (
-      <div className="page-shell page-space">
-        <div className="mx-auto max-w-xl">
-          <h1 className="text-page-title">Get matched</h1>
-          <p className="mt-4 text-small text-muted-foreground">
-            Question 1 of 2
-          </p>
-          <form method="get" className="mt-2">
-            <fieldset>
-              <legend className="text-section-title">
-                Which level is the learner at?
-              </legend>
-              <div className="mt-2">
-                <ChoiceError message={match.error} />
-              </div>
-              <div className="mt-2 flex flex-col">
-                {learnerLevelOptions.map(([value, label]) => (
-                  <label
-                    key={value}
-                    className="inline-flex min-h-11 items-center gap-2 text-body"
-                  >
-                    <input
-                      type="radio"
-                      className="size-5"
-                      name="level"
-                      value={value}
-                      defaultChecked={match.level === value}
-                      required
-                    />
-                    {label}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2">
-              <button className="action action-primary" type="submit">
-                Continue
-              </button>
-              {browse}
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-
-  if (match.step === "subject")
-    return (
-      <div className="page-shell page-space">
-        <div className="mx-auto max-w-xl">
-          <h1 className="text-page-title">Get matched</h1>
-          <p className="mt-4 text-small text-muted-foreground">
-            Question 2 of 2
-          </p>
-          <form method="get" className="mt-2">
-            <input type="hidden" name="level" value={match.level} />
-            <fieldset>
-              <legend className="text-section-title">
-                Which subject do you need help with?
-              </legend>
-              <div className="mt-2">
-                <ChoiceError message={match.error} />
-              </div>
-              {groupSubjects(match.choices).map((group) => (
-                <div key={group.category} className="mt-4">
-                  <h2 className="text-label text-muted-foreground">
-                    {group.label}
-                  </h2>
-                  <div className="flex flex-col">
-                    {group.subjects.map((subject) => (
-                      <label
-                        key={subject.slug}
-                        className="inline-flex min-h-11 items-center gap-2 text-body"
-                      >
-                        <input
-                          type="radio"
-                          className="size-5"
-                          name="subject"
-                          value={subject.slug}
-                          required
-                        />
-                        {subject.name}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </fieldset>
-            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2">
-              <button className="action action-primary" type="submit">
-                Show matching tutors
-              </button>
-              <Link
-                className="inline-flex min-h-11 items-center"
-                href={`/get-matched?level=${match.level}&change=level`}
-              >
-                Back
-              </Link>
-              {browse}
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-
-  const level = levelName(match.level);
-  const change = `/get-matched?level=${match.level}&change=level`;
   return (
     <div className="page-shell page-space">
       <div className="max-w-5xl">
         <h1 className="text-page-title">Get matched</h1>
+        <p className="mt-4 max-w-prose text-small text-muted-foreground">
+          Local demo search: {demoBookingPolicy.durationMinutes}-minute times in{" "}
+          {demoBookingPolicy.stepMinutes}-minute steps, at least{" "}
+          {demoBookingPolicy.noticeMinutes} minutes ahead, within{" "}
+          {demoBookingPolicy.horizonDays} days. These are simulated options;
+          live lesson terms are not set. Times can change before a reservation.
+        </p>
         <div className="mt-8">
-          {match.total === 0 ? (
+          {total === 0 ? (
             <EmptyState
               title="No tutors match your answers"
               href={change}
@@ -191,43 +136,74 @@ export default async function GetMatchedPage({
                 { href: "/contact", label: "Contact support" },
               ]}
             >
+              <p>{summary}</p>
               <p>
-                {level} · {match.subject.name}
+                No eligible tutor has an open demo time that fits these answers.
               </p>
             </EmptyState>
           ) : (
             <>
               <p role="status" className="text-body">
-                {match.total === 1
-                  ? `1 tutor teaches ${match.subject.name} at ${level}`
-                  : `${match.total} tutors teach ${match.subject.name} at ${level}`}
+                {total} {total === 1 ? "tutor teaches" : "tutors teach"}{" "}
+                {match.subject.name} at {level} with an open time that fits.
               </p>
-              <p className="mt-2 text-small text-muted-foreground">
-                Matched by subject and level, listed by name.
+              <p className="mt-2 text-small text-muted-foreground">{summary}</p>
+              <p className="mt-2 max-w-prose text-small text-muted-foreground">
+                Ordered by the earliest matching time, then tutor name.
               </p>
               <div className="mt-4">
-                <TutorList tutors={match.tutors} />
-              </div>
-              <p className="mt-4 flex flex-wrap gap-x-6">
-                {match.total > match.tutors.length && (
-                  <Link
-                    className="inline-flex min-h-11 items-center"
-                    href={tutorsHref({
-                      subject: match.subject.slug,
+                <MatchResultList
+                  matches={matches}
+                  preferences={match.preferences}
+                  profileHref={({ tutor, nextTime }) =>
+                    publicProfileHref({
+                      tutorSlug: tutor.slug,
+                      subjectSlug: match.subject.slug,
                       level: match.level,
-                    })}
-                  >
-                    See all {match.total} matching tutors
-                  </Link>
-                )}
-                <Link
-                  className="inline-flex min-h-11 items-center"
-                  href={change}
+                      displayTimezone: match.preferences.timezone,
+                      startAtUtc: nextTime.startAtUtc,
+                      endAtUtc: nextTime.endAtUtc,
+                    })
+                  }
+                />
+              </div>
+              {pages > 1 && (
+                <nav
+                  aria-label="Matching result pages"
+                  className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2"
                 >
+                  <p className="text-small">
+                    Page {page} of {pages}
+                  </p>
+                  {page > 1 && (
+                    <Link
+                      className="action action-outline"
+                      href={matchingHref(answers, undefined, page - 1)}
+                    >
+                      Previous tutors
+                    </Link>
+                  )}
+                  {page < pages && (
+                    <Link
+                      className="action action-outline"
+                      href={matchingHref(answers, undefined, page + 1)}
+                    >
+                      More tutors
+                    </Link>
+                  )}
+                </nav>
+              )}
+              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2">
+                <Link className="action action-outline" href={change}>
                   Change answers
                 </Link>
-                {browse}
-              </p>
+                <Link
+                  className="inline-flex min-h-11 items-center"
+                  href="/tutors"
+                >
+                  Browse all tutors
+                </Link>
+              </div>
             </>
           )}
         </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AuthFrame } from "@/features/auth/auth-frame";
 import { AuthForm } from "@/features/auth/auth-form";
+import { PendingBookingChoice } from "@/features/bookings/pending-choice";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Create a test account",
@@ -14,6 +15,7 @@ export default async function Page({
   const params = await searchParams;
   return (
     <AuthFrame title="Create a test account">
+      <PendingBookingChoice next={params.next} />
       <AuthForm
         mode="sign-up"
         next={params.next}

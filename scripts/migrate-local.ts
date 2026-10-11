@@ -16,6 +16,9 @@ try {
     GRANT SELECT, INSERT ON bookings TO learli_app;
     GRANT UPDATE (state) ON bookings TO learli_app;
     GRANT INSERT ON booking_events TO learli_app;
+    GRANT SELECT (id, booking_id, event, created_at) ON booking_events TO learli_app;
+    GRANT SELECT ON booking_notification_deliveries TO learli_app;
+    GRANT UPDATE (state, attempts, last_attempt_at, closed_at, failure_code, suppressed_reason) ON booking_notification_deliveries TO learli_app;
     GRANT UPDATE (display_name, level, timezone, updated_at) ON learner_profiles TO learli_app;
     GRANT SELECT ON user_roles TO learli_app;
     GRANT SELECT ON support_reviewers, support_case_assignments TO learli_app;

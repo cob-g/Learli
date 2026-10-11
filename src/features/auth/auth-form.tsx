@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import { authClient } from "@/lib/auth-client";
-import { safeReturnPath } from "@/lib/permissions/return-path";
+import { safeBookingReturnPath } from "@/features/bookings/selection";
 
 type Mode = "sign-in" | "sign-up" | "forgot" | "reset" | "verify";
 const labels: Record<Mode, string> = {
@@ -29,7 +29,7 @@ export function AuthForm({
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
   const status = useRef<HTMLParagraphElement>(null);
-  const returnTo = safeReturnPath(next);
+  const returnTo = safeBookingReturnPath(next);
   const notice = (text: string, error = false) => {
     setMessage(text);
     setFailed(error);

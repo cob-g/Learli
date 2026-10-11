@@ -17,7 +17,7 @@ import {
   describeTutorProfileIssues,
   tutorProfileInput,
 } from "@/features/tutors/input";
-import { matchLimit, resolveMatch } from "@/features/matching/match";
+import { resolveMatch } from "@/features/matching/match";
 import { filterTutors } from "@/features/tutors/eligibility";
 import { tutorSlug } from "@/features/tutors/service";
 import {
@@ -298,23 +298,19 @@ describe("guided matching", () => {
     ).toMatchObject({ step: "subject", error: "Choose a subject" });
   });
 
-  it("returns a small real set, the true total, and never pads a short one", () => {
-    const many = resolveMatch(
-      { level: "high_school", subject: "math" },
-      subjects,
-      tutors,
-    );
-    expect(many).toMatchObject({ step: "results", total: 7 });
-    expect(many.step === "results" && many.tutors.length).toBe(matchLimit);
+  it("asks When after the subject and requires explicit time preferences", () => {
+    expect(
+      resolveMatch({ level: "high_school", subject: "math" }, subjects, tutors),
+    ).toMatchObject({ step: "when" });
     expect(
       resolveMatch(
-        { level: "elementary", subject: "robotics" },
+        { level: "high_school", subject: "math", timezone: "UTC", when: "any" },
         subjects,
         tutors,
       ),
-    ).toMatchObject({ total: 1, tutors: [{ displayName: "robot" }] });
-    expect(
-      resolveMatch({ level: "elementary", subject: "math" }, subjects, tutors),
-    ).toMatchObject({ step: "results", total: 0, tutors: [] });
+    ).toMatchObject({
+      step: "ready",
+      preferences: { timezone: "UTC", when: "any" },
+    });
   });
 });
