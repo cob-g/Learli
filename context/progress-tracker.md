@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.4 — Five-feature premerge candidate
+> **Version:** 1.5 — Five-feature local merge complete
 > **Last updated:** 2026-10-11  
-> **Current overall status:** **Five-feature local synthetic candidate verified and independently reviewed; next checkpoint is coordinator-owned main merge**
+> **Current overall status:** **Five verified local synthetic features merged into main; related worktrees and branches removed**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -17,18 +17,18 @@
 
 ## Current Phase
 
-- **Phase:** **Five-feature premerge integration locally verified on baseline `3a055de`; candidate commit authorized, main merge pending.**
+- **Phase:** **Five-feature integration merged into local main at `a169f61`; cleanup complete.**
 - **Product definition:** Documented; core marketplace scope agreed.
-- **Application implementation:** Locally merged baseline `3a055de` contains M1–M3, time engine, weekly availability, fixture learners and pure meeting validation. The verified candidate adds demo booking plus guarded time off, optional teaching languages, exact-case support and own-session management; separate independent review and all candidate checks passed locally.
+- **Application implementation:** Local main includes the previous foundation plus demo booking with guarded time off, optional teaching languages, exact-case support and own-session management. Separate independent review and all combined checks passed; the fast-forward merge preserved that exact runtime code.
 - **Pilot / production deployment:** **Not verified**.
 - **Live payment processing:** **Blocked pending founder-approved business rules**.
 - **Public onboarding of minors:** **Blocked pending launch-market guardian-consent and safeguarding decisions**.
 
 ## Current Goal
 
-**Assemble and verify the five-feature candidate in `premerge-five-features`, return the frozen fingerprint/evidence and authorized local candidate commit to the coordinator before any main merge.**
+**Completed: integrate, verify and merge the five local synthetic features, preserve their evidence, and remove their temporary worktrees and branches.**
 
-Baseline main is `3a055deff54149be48a91b44237d0e28b26f3405`, already containing the previous integration. This candidate owns PostgreSQL55461/dev3021/test3121. Preserve baseline0000–0007 and booking0008/time-off0009; generate additive language/support snapshots. Source sessions below are historical isolated evidence, not combined verification. Authority: AUTHORIZED — build-feature delegation, actual premerge request2026-10-11; blueprint `prompts/features/m4-05-five-feature-premerge-integration.md`.
+The user explicitly authorized merge and cleanup on 2026-10-11. Main fast-forwarded from `3a055deff54149be48a91b44237d0e28b26f3405` to `a169f61fcf58cb1693a0996f832ad4c5e4ad59f9`. All six related worktrees/branches were removed after preserving verified source edits, reports and stopped synthetic databases under ignored `.local/five-feature-merge-archive/`. The main checkout's database and environment were not migrated or replaced. Source sessions below are historical evidence; the final combined review and verification apply to the unchanged runtime. Blueprint authority remains AUTHORIZED — build-feature delegation; see `prompts/features/m4-05-five-feature-premerge-integration.md`.
 
 ## Completed
 
@@ -69,13 +69,13 @@ Baseline main is `3a055deff54149be48a91b44237d0e28b26f3405`, already containing 
 - **Requirements readiness:** Founder decisions under **Open Questions** remain unresolved.
 - **Design readiness:** The M1 development shell uses proposed UI tokens and the documented plain-text brand placeholder. Generated shadcn primitives and final brand assets remain gated by `ui-context.md` decision 14 and related open decisions.
 - **Dependency maintenance:** 13 audit findings (4 moderate, 9 high) remain in upstream tooling chains. `--omit=dev` still reports 4 moderate findings because Better Auth declares Drizzle Kit as an optional peer. See README and the recovery handoff; do not represent the audit as clean.
-- **Remote verification:** Baseline `3a055de` is locally merged main. All five current source worktrees remain frozen and uncommitted; their changes are combined in this reviewed local candidate. One candidate-only commit is authorized, with its identity in ignored report/memory; no current-feature main merge or push. GitHub CI, hosted Neon/Resend and Railway have not been run.
+- **Remote verification:** The five-feature candidate is merged into local main at `a169f61`. Source worktrees and branches are removed; private archives preserve their original state and evidence. Nothing was pushed or deployed. GitHub CI, hosted Neon/Resend and Railway have not been run.
 
 ## Next Up
 
 Prioritized, small tasks; **these are planned, not completed**.
 
-1. **Immediate — coordinator main-merge checkpoint.** Inspect the authorized candidate commit/tree and unchanged reviewed code fingerprint; decide the separate local main merge. No push or deployment is authorized by this candidate.
+1. **Done — local main merge and cleanup.** The authorized fast-forward preserved the reviewed runtime fingerprint. All six related worktrees/branches are removed; private evidence is archived. Choose the next bounded build-plan slice when requested; push and deployment remain separate operations.
 2. **Verified locally — M2.9/M3.5/M4.3/M4.5–M4.8/M5.9 synthetic slices.** Own-session management, optional teaching languages, dated time off, simulated reservations and exact assigned-case support pass combined tests. No further implementation is required for this premerge scope.
 3. **P0 — real M4 acceptance.** Approved real guardian/consent/onboarding and booking/trial/confirmation/cancellation policy remain unresolved; local database overlap/concurrency/DST evidence already exists.
 4. **P0 — remaining M5 coordination and safety.** Participant-only meeting storage/access, actual coordination dashboards and transactional notifications need separately scoped work; local synthetic support does not establish real incident ownership/escalation.
@@ -447,3 +447,13 @@ Copy this compact entry for the next session; include only **actual evidence**:
 - UI/privacy:33 changed TSX detector targets no findings; keyboard/axe/reflow/forced-color cases pass and15 screenshots manually inspected.30 client assets and139 changed files scanned against52 actual private values,0 matches. A worker metadata read accidentally printed candidate-local DB credentials; both roles were rotated, old passwords denied/new connections and all49 browser cases passed afterward, private file modes0600 retained, no schema/data/source or external credential change. Sanitized `.local/credential-correction.json`.
 - Limits: all data local synthetic. Real guardian/consent/legal/commercial/incident-response/production decisions OPEN; inherited13 dependency advisories unchanged. Remote CI, other engines, literal browser zoom/hardware screen reader, hosted migration/backup/real-user launch NOT RUN. Final evidence and reconciliation are in `docs/operations/five-feature-premerge.md`.
 - Next small task: coordinator checks the final local candidate commit/tree against the frozen reviewed fingerprint and decides the separate main-merge checkpoint; no implementation expansion is needed.
+
+
+### Session — 2026-10-11 (five-feature main merge and cleanup)
+
+- Recorded at 2026-10-11T19:09:43+08:00; user explicitly requested merging all five features and removing their worktrees/branches. Local main fast-forwarded from `3a055de` to `a169f61fcf58cb1693a0996f832ad4c5e4ad59f9`, tree `994e3b964c1bc668af105503db972eb8a8e78fff`, without conflicts.
+- Recomputed all 114 reviewed runtime hashes and all 176 original source hashes/file sets before removal. Runtime fingerprint remains `b096dd33636548b83ecb7cf15912df49411763fc6ee6d7fa67c0d5d3726f6166`; prior independent reviews and 485 unit/component, 161 PostgreSQL, 49 browser, build and fresh/upgrade PASS evidence still cover this code. Suites were not rerun for the identical-code fast-forward and factual documentation updates.
+- Stopped all six owned temporary PostgreSQL clusters, verified private archives of original edits/configuration/databases/test artifacts, then removed all five feature worktrees and the integration worktree with their six branches through Orca. Git and Orca both report only the main worktree; unrelated branches were preserved.
+- Archives and checksums: ignored `.local/five-feature-merge-archive/archive-manifest.json`; directly readable final reports/check logs: `.local/five-feature-merge-archive/evidence/`. Historical source paths above now refer to the corresponding archive. Private archives must not be committed or published.
+- Main database/environment preserved; no database migration, push, hosted service change or deployment. Existing 13 dependency advisories and real-user policy gates remain. Current tracker, architecture implementation note, build-plan status and combined operations guide now record the merge/cleanup.
+- Next small action: select the next bounded build-plan slice when requested. No work remains for this merge/cleanup request.

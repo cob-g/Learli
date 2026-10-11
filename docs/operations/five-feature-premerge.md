@@ -1,6 +1,14 @@
 # Five-feature local premerge evidence
 
-Authority: **AUTHORIZED — build-feature delegation**, actual premerge request2026-10-11. Blueprint `prompts/features/m4-05-five-feature-premerge-integration.md`; baseline/main `3a055deff54149be48a91b44237d0e28b26f3405`. The reviewed candidate belongs to `premerge-five-features`; frozen sources and main are preserved. The coordinator authorized one local candidate commit after final checks; its identity is recorded in the ignored `.local/worker-report.md`. Main merge/push remains a separate checkpoint.
+Authority: **AUTHORIZED — build-feature delegation**, actual premerge request2026-10-11. Blueprint `prompts/features/m4-05-five-feature-premerge-integration.md`; review baseline `3a055deff54149be48a91b44237d0e28b26f3405`.
+
+## Authorized merge and cleanup — 2026-10-11
+
+The user explicitly requested merging all five features into main and removing their worktrees/branches. Local main fast-forwarded to verified candidate `a169f61fcf58cb1693a0996f832ad4c5e4ad59f9`, tree `994e3b964c1bc668af105503db972eb8a8e78fff`, without conflicts or runtime edits. All 114 reviewed code hashes and 176 original source hashes/file sets matched before cleanup. The five feature worktrees and `premerge-five-features`, plus their six `cob-g/` branches, were removed through Orca. Only the main worktree remains; unrelated branches were preserved.
+
+Private source snapshots, local configuration, stopped synthetic databases, screenshots and reports are retained in six verified archives under ignored `.local/five-feature-merge-archive/` (directory mode0700, archives mode0600). Final reviews/check logs are directly available in its `evidence/` directory. References below to candidate `.local/` paths are historical paths inside `premerge-five-features.tar.gz`; original source artifacts are in the corresponding source archive. These archives contain private local credentials and must never be committed or published. The import manifest describes the reviewed premerge snapshot; later factual merge documentation is outside its candidate document hashes.
+
+All six owned worktree PostgreSQL clusters were stopped before archiving/removal. Main's existing database and environment were preserved; no main database migration, remote push, external service action or deployment occurred. Prior executed verification remains applicable because the merged runtime is byte-identical. Only factual merge/cleanup documentation was updated afterward; formatting and diff checks cover those updates.
 
 ## Imported identities and shared scope
 

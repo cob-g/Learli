@@ -525,9 +525,11 @@ tutor profiles/subjects, weekly availability and synthetic learner/guardian tabl
 are implemented. The combined migration chain adds availability as `0006` and
 learners as `0007`; local implementation notes below distinguish these from the
 remaining proposed review/payment and live-booking entities. The five-feature
-local candidate adds demo booking/time off0008–0009, optional languages0010 and
-corrected support0011. Baseline0007 upgrades and fresh migration checks are
-required; source-branch databases retain their own conflicting histories.
+integration merged locally at `a169f61` adds demo booking/time off0008–0009,
+optional languages0010 and corrected support0011. Baseline0007 upgrades and
+fresh migration checks passed in isolated databases. Source-branch databases
+with conflicting histories were stopped and privately archived before worktree
+cleanup; main's existing database was not migrated as part of the Git merge.
 
 ### 9.1 Identity and roles
 
