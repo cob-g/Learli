@@ -34,8 +34,7 @@ export default async function AccountPage() {
       <h1 className="text-page-title">Your account</h1>
       <p className="mt-4 text-body">Signed in as {account.email}</p>
       <p className="mt-2 max-w-prose text-body text-muted-foreground">
-        This is a local test account. Lessons and learner profiles are not
-        available yet.
+        This is a local test account. Lessons are not available yet.
       </p>
       {account.roles.length ? (
         <nav
