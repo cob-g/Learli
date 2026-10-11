@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+coverage/
+playwright-report/
+test-results/
+package-lock.json
+next-env.d.ts
+.claude/
+.agents/
+skills/
+context/
+AGENTS.md
+CLAUDE.md
+memory.md
+.env*
+.local/

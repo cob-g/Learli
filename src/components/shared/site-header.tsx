@@ -1,0 +1,92 @@
+"use client";
+
+import Link from "next/link";
+import { Menu, X } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useRef } from "react";
+
+const links = [
+  ["/tutors", "Find a tutor"],
+  ["/get-matched", "Get matched"],
+  ["/subjects", "Subjects"],
+  ["/become-a-tutor", "Become a tutor"],
+] as const;
+
+export function SiteHeader() {
+  const pathname = usePathname();
+  const dialog = useRef<HTMLDialogElement>(null);
+
+  return (
+    <header className="border-b border-border bg-surface">
+      <div className="page-shell flex min-h-14 items-center justify-between gap-4 lg:min-h-16">
+        {/* Development placeholder allowed by ui-context.md; not final artwork. */}
+        <Link href="/" className="nav-link text-item-title">
+          Learli
+        </Link>
+        <nav
+          aria-label="Main navigation"
+          className="hidden items-center gap-6 lg:flex"
+        >
+          {links.map(([href, label]) => (
+            <Link
+              key={href}
+              href={href}
+              className="nav-link"
+              aria-current={pathname === href ? "page" : undefined}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+        <div className="flex items-center gap-4">
+          <Link
+            href="/sign-in"
+            className="nav-link"
+            aria-current={pathname === "/sign-in" ? "page" : undefined}
+          >
+            Sign in
+          </Link>
+          <button
+            type="button"
+            className="action action-outline lg:hidden"
+            aria-haspopup="dialog"
+            onClick={() => dialog.current?.showModal()}
+          >
+            <Menu size={20} aria-hidden="true" /> Menu
+          </button>
+        </div>
+      </div>
+      <dialog ref={dialog} aria-labelledby="menu-title" className="mobile-menu">
+        <div className="flex items-center justify-between gap-4">
+          <h2 id="menu-title" className="text-item-title">
+            Menu
+          </h2>
+          <button
+            type="button"
+            className="action action-outline"
+            aria-label="Close menu"
+            onClick={() => dialog.current?.close()}
+          >
+            <X size={20} aria-hidden="true" />
+          </button>
+        </div>
+        <nav
+          aria-label="Mobile navigation"
+          className="mt-8 flex flex-col gap-2"
+        >
+          {links.map(([href, label]) => (
+            <Link
+              key={href}
+              href={href}
+              className="nav-link"
+              aria-current={pathname === href ? "page" : undefined}
+              onClick={() => dialog.current?.close()}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+      </dialog>
+    </header>
+  );
+}

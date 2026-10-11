@@ -143,6 +143,17 @@ Do **not** build these unless the founders approve a scope change:
 | Error monitoring | Railway logs at first; Sentry if needed | Diagnose errors without logging student data | [RECOMMENDED] |
 | DNS / custom domain | Railway-generated domain initially; purchased custom domain later | URL, branding, production email identity | [AGREED] |
 
+### Local M2 implementation mode — 2026-10-11
+
+The owner explicitly requested local-only M2. For this phase use an isolated,
+repository-owned PostgreSQL 17 cluster on loopback with separate dev/test databases,
+Drizzle's node-postgres driver, and a private local email capture adapter. Neon,
+Resend and Railway remain the hosted targets, but are not contacted. Local auth
+accepts synthetic `.test` identities, starts with no assigned roles, and is gated
+off for staging/production. See `docs/decisions/2026-10-11-local-m2.md` (repository
+root) and the M2 blueprint. This is a local development exception, not a change of
+hosted provider or approval for real-user onboarding.
+
 ### Why Next.js, not Laravel?
 
 Next.js lets the first Learli team build the site, data fetching, forms, protected actions, and API routes with TypeScript in **one repository**. A separate Laravel backend is unnecessary for this particular MVP.

@@ -203,6 +203,8 @@ M6 begins **as early as possible in parallel**; postponing decisions until all e
 **Source:** `architecture.md` §§9–10, 17; `AGENTS.md` §§7–10; `CODE-STANDARDS.md` §§TypeScript/API/Data/Security.  
 **PRD:** `AUTH-01`, `AUTH-02`, `AUTH-03` (P0); `AUTH-04`, `AUTH-05` (P1); technical prerequisites for `TUT`, `FAM`, `BKG`, `OPS`, `ADM`.
 
+**Local-only execution decision (2026-10-11):** The owner requested no cloud services, deployment or external email. Use local PostgreSQL and captured local mail for M2; record Neon/TLS and provider email as deferred, not verified. See `docs/decisions/2026-10-11-local-m2.md` from the repository root.
+
 ### Work packages
 
 - [ ] **M2.1 — Connect an isolated Neon development database.** Keep connection string server-only, verify TLS/connection mode, pooling/transaction behavior, error handling and permission restrictions. Do not configure local tests to hit production.

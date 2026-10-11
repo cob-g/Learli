@@ -1,5 +1,8 @@
 .DS_Store
 
+# Local session handoff maintained by the Remember skill.
+/memory.md
+
 # Claude Code: machine-local settings (the Impeccable design hook, if enabled, lives here)
 .claude/settings.local.json
 
@@ -30,3 +33,18 @@
 **/.impeccable/live/deferred-svelte-component-accepts.json
 **/.impeccable/live/*.png
 # impeccable-ignore-end
+
+# Application dependencies, generated artifacts, and local credentials.
+/node_modules/
+/.next/
+/out/
+/coverage/
+/playwright-report/
+/test-results/
+*.tsbuildinfo
+.env*
+!.env.example
+*.log
+
+# Local PostgreSQL, captured test mail, and fixture credentials.
+/.local/

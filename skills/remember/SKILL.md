@@ -5,6 +5,24 @@ description: Save and restore concise, evidence-backed Learli repository handoff
 
 # Learli — Remember Skill
 
+## Orchestrated mode — called by `build-feature`
+
+During an authorized [build-feature](../build-feature/SKILL.md) run, accept the
+coordinator's explicit `save` or `restore` mode and return its result to that
+coordinator. Save after review/verification, or honestly save partial/blocked
+work. Record `AUTHORIZED — build-feature delegation` verbatim when that is the
+blueprint's authority; do not convert it to separately human-approved. Preserve
+the exact Review outcome and the coordinator's separate Verification evidence.
+A same-agent verification stage is not an independent reviewer or external signoff.
+
+For an explicit build-feature resume, a reconciled restoration returns control
+without the routine confirmation question below. A material mismatch, unclear
+scope, or missing authorization still needs resolution before dependent edits.
+This exception does not make standalone Remember resume implementation. All
+local-only, untracked-file, ownership, sanitization, and history-preservation
+rules remain in force. The coordinator must arrange the ignore rule before Save;
+Remember itself still writes only `memory.md` and never runs tests or changes Git.
+
 Preserve **only the essential state the next Learli developer or agent needs to resume without guessing**. Use the repository-root `memory.md` as a **local, temporary session handoff**, not as a substitute for the source code, the approved Architect blueprint, or the durable documents under `context/`.
 
 **Learli is a tutor-discovery, matching, and booking intermediary—not an LMS.** Save facts about the current work, not a transcript or a speculative list of new product features.

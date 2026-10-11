@@ -1,0 +1,282 @@
+@import "tailwindcss" source(none);
+@source "../";
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  color-scheme: light;
+
+  /* Neutrals: cool, tinted toward navy */
+  --bg-base: #f7f9fc;
+  --bg-surface: #ffffff;
+  --bg-subtle: #eff3f9;
+  --border-default: #dde3ef;
+  --border-control: #7c87a0;
+  --text-primary: #16204d;
+  --text-muted: #55627a;
+
+  /* Navy: ink, action, selection */
+  --brand-navy: #1e2a78;
+  --brand-navy-hover: #162267;
+  --brand-navy-active: var(--text-primary);
+  --focus-ring: #364bd6;
+
+  /* Teal: confirmed on light surfaces, the one action inside a navy field */
+  --accent-primary: #2eccb0;
+  --accent-strong: #056d60;
+  --accent-soft: #e7faf5;
+
+  /* Navy fields: the home first-viewport field and the footer */
+  --bg-inverse: var(--brand-navy);
+  --text-inverse: #ffffff;
+  --text-inverse-muted: #dde3ef;
+  --focus-ring-inverse: #ffffff;
+  --scrim: rgb(22 32 77 / 0.5);
+
+  /* State tones */
+  --state-success: var(--accent-strong);
+  --state-success-soft: var(--accent-soft);
+  --state-warning: #8a5300;
+  --state-warning-soft: #fff4dd;
+  --state-error: #b42318;
+  --state-error-soft: #fef1f1;
+
+  /* shadcn semantic aliases */
+  --background: var(--bg-base);
+  --foreground: var(--text-primary);
+  --card: var(--bg-surface);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-surface);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--brand-navy);
+  --primary-foreground: var(--text-inverse);
+  --secondary: var(--bg-subtle);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--bg-subtle);
+  --muted-foreground: var(--text-muted);
+  --accent: var(
+    --bg-subtle
+  ); /* neutral hover and keyboard highlight, never teal */
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--state-error);
+  --border: var(--border-default);
+  --input: var(--border-control);
+  --ring: var(--focus-ring);
+  --radius: 0.875rem;
+}
+
+/* A navy field re-scopes text and focus tokens for everything inside it */
+[data-surface="inverse"] {
+  background: var(--bg-inverse);
+  color: var(--text-inverse);
+  --focus-ring: var(--focus-ring-inverse);
+  --ring: var(--focus-ring-inverse);
+}
+
+/* Element defaults sit in the base layer so a utility can still adjust them */
+@layer base {
+  ::selection {
+    background: var(--brand-navy);
+    color: var(--text-inverse);
+  }
+  [data-surface="inverse"] ::selection {
+    background: var(--text-inverse);
+    color: var(--brand-navy);
+  }
+  :root {
+    caret-color: var(--brand-navy);
+    accent-color: var(--brand-navy);
+  }
+  ::placeholder {
+    color: var(--text-muted);
+    opacity: 1;
+  }
+  a {
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  a:focus-visible {
+    text-decoration-thickness: 2px;
+  }
+  @media (hover: hover) {
+    a:hover {
+      text-decoration-thickness: 2px;
+    }
+  }
+  b,
+  strong {
+    font-weight: 600;
+  }
+  html {
+    font-synthesis: none;
+  }
+}
+
+/* Unlayered on purpose: it outranks every utility, so outline-none in a generated
+   primitive cannot remove it. Do not move this rule into a layer. */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-surface: var(--bg-surface);
+  --color-subtle: var(--bg-subtle);
+  --color-control: var(--border-control);
+  --color-primary-hover: var(--brand-navy-hover);
+  --color-primary-active: var(--brand-navy-active);
+  --color-success: var(--state-success);
+  --color-success-soft: var(--state-success-soft);
+  --color-warning: var(--state-warning);
+  --color-warning-soft: var(--state-warning-soft);
+  --color-error: var(--state-error);
+  --color-error-soft: var(--state-error-soft);
+  --color-inverse: var(--bg-inverse);
+  --color-on-inverse: var(--text-inverse);
+  --color-on-inverse-muted: var(--text-inverse-muted);
+  --color-inverse-action: var(--accent-primary);
+  --color-inverse-action-hover: var(--accent-soft);
+  --color-scrim: var(--scrim);
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme {
+  --container-prose: 34rem;
+  --radius-check: 0.25rem;
+  --radius-tag: 0.375rem;
+  --radius-control: 0.625rem;
+  --radius-surface: 0.875rem;
+  --radius-overlay: 1.125rem;
+  --shadow-float: 0 4px 12px -2px rgb(22 32 77 / 0.12);
+  --shadow-modal: 0 16px 40px -8px rgb(22 32 77 / 0.2);
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --text-display: clamp(2.25rem, 1.833rem + 2.083vw, 3.5rem);
+  --text-display--line-height: 1.1;
+  --text-display--font-weight: 700;
+  --text-display--letter-spacing: -0.02em;
+  --text-headline: clamp(1.75rem, 1.583rem + 0.833vw, 2.25rem);
+  --text-headline--line-height: 1.2;
+  --text-headline--font-weight: 700;
+  --text-headline--letter-spacing: -0.01em;
+  --text-lead: 1.125rem;
+  --text-lead--line-height: 1.75rem;
+  --text-lead--font-weight: 400;
+  --text-lead--letter-spacing: 0;
+  --text-page-title: 1.75rem;
+  --text-page-title--line-height: 2.25rem;
+  --text-page-title--font-weight: 600;
+  --text-page-title--letter-spacing: 0;
+  --text-section-title: 1.5rem;
+  --text-section-title--line-height: 2rem;
+  --text-section-title--font-weight: 600;
+  --text-section-title--letter-spacing: 0;
+  --text-item-title: 1.125rem;
+  --text-item-title--line-height: 1.5rem;
+  --text-item-title--font-weight: 600;
+  --text-item-title--letter-spacing: 0;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5rem;
+  --text-body--font-weight: 400;
+  --text-body--letter-spacing: 0;
+  --text-prose: 1rem;
+  --text-prose--line-height: 1.625rem;
+  --text-prose--font-weight: 400;
+  --text-prose--letter-spacing: 0;
+  --text-action: 1rem;
+  --text-action--line-height: 1.5rem;
+  --text-action--font-weight: 600;
+  --text-action--letter-spacing: 0;
+  --text-time: 1rem;
+  --text-time--line-height: 1.5rem;
+  --text-time--font-weight: 600;
+  --text-time--letter-spacing: 0;
+  --text-label: 0.875rem;
+  --text-label--line-height: 1.25rem;
+  --text-label--font-weight: 500;
+  --text-label--letter-spacing: 0;
+  --text-label-strong: 0.875rem;
+  --text-label-strong--line-height: 1.25rem;
+  --text-label-strong--font-weight: 600;
+  --text-label-strong--letter-spacing: 0;
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.25rem;
+  --text-small--font-weight: 400;
+  --text-small--letter-spacing: 0;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-caption--font-weight: 500;
+  --text-caption--letter-spacing: 0;
+}
+
+@layer base {
+  a {
+    color: var(--brand-navy);
+    text-decoration-line: underline;
+  }
+  [data-surface="inverse"] a {
+    color: var(--text-inverse);
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .page-space {
+    @apply py-8 md:py-12;
+  }
+  .nav-link {
+    @apply inline-flex min-h-11 min-w-11 items-center text-label no-underline;
+  }
+  .nav-link[aria-current="page"] {
+    @apply text-label-strong underline decoration-2;
+  }
+  .nav-link:hover {
+    @apply underline;
+  }
+  .action {
+    @apply inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-control px-4 py-2 text-action no-underline transition-colors duration-150;
+  }
+  .action-outline {
+    @apply border border-control bg-surface text-primary hover:bg-subtle;
+  }
+  .action-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active;
+  }
+  .skip-link {
+    @apply absolute top-2 left-4 z-50 -translate-y-24 rounded-control bg-surface px-4 py-2 text-action focus:translate-y-0;
+  }
+  .mobile-menu {
+    @apply fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-dvh w-80 max-w-full border-l border-border bg-surface p-6 text-foreground shadow-modal;
+  }
+  .mobile-menu::backdrop {
+    background: var(--scrim);
+  }
+}
+
+@layer components {
+  .field {
+    @apply block min-h-11 w-full rounded-control border border-control bg-surface px-3 py-2 text-body text-foreground;
+  }
+  .action:disabled {
+    @apply cursor-not-allowed border border-control bg-subtle text-muted-foreground;
+  }
+}

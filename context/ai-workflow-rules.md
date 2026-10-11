@@ -172,6 +172,25 @@ A lockfile is **not** a protected artifact against legitimate dependency changes
 
 ## Implementation Workflow
 
+### Optional complete-feature coordinator
+
+The repository's [`build-feature`](../skills/build-feature/SKILL.md) skill runs
+Architect → Implement → Review → Verify → Remember for one requested feature,
+with Recover for confirmed defects or failed checks. The repository owner
+requested automatic coordination on 2026-10-11. Its coordinator owns code edits,
+test execution, routine in-scope repairs, and factual tracker updates; the four
+child skills retain their stage-specific responsibilities.
+
+For a full build request, a blueprint within that request and established
+decisions can be `AUTHORIZED — build-feature delegation`. Record the actual
+request and scope; this is execution authority, not a claim that the user
+separately reviewed the generated plan. Routine transitions need no repeated
+confirmation. A request to approve the plan first, unresolved material decisions,
+and production/destructive actions retain their applicable gates. Standalone
+Architect/Review/Recover/Remember behavior is unchanged. The coordinator saves
+actual review and verification outcomes through Remember to ignored local
+`memory.md`; it never treats Review alone as executed verification.
+
 ### Step 1 — Establish reality
 
 - Inspect the repo path, branch, status, recent commits, installed dependencies, app routes, schema, migrations, tests, and build scripts.

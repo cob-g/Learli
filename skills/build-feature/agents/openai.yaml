@@ -1,0 +1,4 @@
+interface:
+  display_name: "Learli Build Feature"
+  short_description: "Build, review, verify, and remember Learli features"
+  default_prompt: "Use $build-feature to implement the requested Learli feature through architecture, review, verification, recovery when needed, and a saved handoff."

@@ -1,15 +1,15 @@
 # Learli — Progress Tracker
 
 > **Project:** Learli (`learli` visual brand)  
-> **Document:** `PROGRESS-TRACKER.md`  
-> **Version:** 1.0 — Initial development baseline  
+> **Document:** `progress-tracker.md`
+> **Version:** 1.2 — Verified local identity foundation
 > **Last updated:** 2026-10-11  
-> **Current overall status:** **Pre-implementation / documentation prepared; application implementation not verified**  
-> **Source documents:** [`PROJECT-OVERVIEW.md`](./PROJECT-OVERVIEW.md) · [`PRD.md`](./PRD.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](./AGENTS.md) · [`CODE-STANDARDS.md`](./CODE-STANDARDS.md)
+> **Current overall status:** **M2 local identity verified; hosted integration deferred; M1 verified**
+> **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
 
-**Evidence rule:** Mark an implementation task **Done** only after the relevant code, tests, and result have been verified. A written specification is **not** an implemented feature. Because no application repository, CI run, or deployment was inspected while establishing this baseline, the development milestones below are **not verified**; their statuses must be refreshed from actual repository evidence at the first coding session.
+**Evidence rule:** Mark an implementation task **Done** only after the relevant code, tests, and result have been verified. A written specification is **not** an implemented feature. The original documentation-only baseline is preserved in Session Notes. Current statuses below reflect local repository evidence; a local result does not establish remote CI, provider integration, or deployment success.
 
 **Status legend:** `Documented` = specified only · `Planned` = not verified as started · `In progress` = active work with evidence · `Blocked` = waiting on an explicit decision/dependency · `Done` = verified and linked to evidence.
 
@@ -17,24 +17,25 @@
 
 ## Current Phase
 
-- **Phase:** **0 — Preparation and project bootstrap**.
+- **Phase:** **M2 — Local data, identity and authorization verified**.
 - **Product definition:** Documented; core marketplace scope agreed.
-- **Application implementation:** **Not verified** (no Learli code repository or CI evidence inspected for this tracker).
+- **Application implementation:** Next.js shell, local PostgreSQL, Better Auth flows, account settings and server role/ownership checks verified on `main` at base `4503177` plus uncommitted M1/M2 changes. Tutor catalog, guardian links and bookings are not implemented.
 - **Pilot / production deployment:** **Not verified**.
 - **Live payment processing:** **Blocked pending founder-approved business rules**.
 - **Public onboarding of minors:** **Blocked pending launch-market guardian-consent and safeguarding decisions**.
 
 ## Current Goal
 
-**Prepare a safe, testable foundation for Learli without expanding the MVP scope.**
+**Keep the verified M2 identity foundation entirely local while preparing the next catalog slice.**
 
-1. Confirm the GitHub repository, current branch, and whether any implementation already exists; record the evidence before changing statuses.
-2. Bootstrap or verify **Next.js App Router + TypeScript + Tailwind CSS + shadcn/ui** with basic responsive pages and quality scripts.
-3. Establish an isolated **Neon development PostgreSQL** database, **Drizzle ORM / migrations**, and a non-sensitive health check.
-4. Wire up **Better Auth**, basic role/ownership boundaries, and test-only email flows; do not expose real learner data.
-5. Obtain founder decisions needed to unlock real bookings involving minors and any live commercial flow.
+Local M2 is implemented and verified under the owner's local-only instruction.
+See the M2 session below for exact checks and deferred hosted acceptance. Nothing
+has been committed, pushed or deployed during this implementation.
 
-**Immediate success condition:** A developer can run the app locally, build it, verify the development database/migrations, and demonstrate the first protected auth flow against **test data**, with passing checks and a documented handoff.
+**Next development slice:** Architect M3.1–M3.3: subject catalog, synthetic tutor
+profiles and publication eligibility, continuing local-only development. Actual
+tutor screening policy remains open. Hosted Neon/TLS and Resend verification wait
+until external integration is requested.
 
 ## Completed
 
@@ -53,40 +54,48 @@
 - [x] **`CODE-STANDARDS.md` prepared:** TypeScript, Next.js, database, API, security, testing, and deployment conventions.
 - [x] **Initial `PROGRESS-TRACKER.md` baseline prepared** using the supplied template.
 
-### Application implementation — *No completion verified*
+### Application implementation — *Verified locally*
 
-- **No application code, migrations, tests, CI, or Railway deployment has been inspected for this baseline.** Do not mark any software milestone complete until verified against the actual repository.
+- [x] **M1.1 / M1.2:** Next.js 16.4.0, React 19.3.0, strict TypeScript 6.0.3; Node 24.20.0/npm 11.19.0 pins, exact dependency lockfile, application/shared/helper/test directories. Domain services and migrations were added in M2 when needed.
+- [x] **M1.3 / M1.4 local setup:** Tailwind 4.3.3, Learli proposed tokens/Poppins, semantic class merging, shadcn CLI/config. No generated primitives; final preset approval, brand artwork and design decisions remain open.
+- [x] **M1.5 / M1.9:** Responsive public header/footer, keyboard/mobile menu, truthful discovery/unavailable pages, metadata, 404 and retry error boundary. M2 now replaces the original workspace placeholders with authenticated, role-guarded shells.
+- [x] **M1.6:** ESLint, Prettier, Vitest/Testing Library, Playwright/axe; 17 unit/component tests and 15 browser checks passed. Production build passed without integration credentials.
+- [x] **M1.7 / M1.8 local setup:** Non-secret environment template, ignored credentials/artifacts, server-only startup validation with redacted errors, uncached liveness endpoint. GitHub Actions workflow exists; a remote CI run is not yet observed.
+- [x] **Development startup:** Homepage and health HTTP 200. Next's automatic agent-rule generation is disabled to preserve the maintained repository contract.
+- [x] **M2 local data:** Owned PostgreSQL 17.11 cluster, isolated dev/test databases, generated Better Auth schema, reviewed Drizzle migration, restricted runtime role and idempotent synthetic fixture setup.
+- [x] **M2 local identity:** Registration, verification through local capture, sign-in/out, password recovery, session revocation, persistent rate limits, trusted multi-role grants, account status and ownership guards. New signups have no roles.
+- [x] **M2 local account UI:** Safe return paths, private account settings and guarded role shells; accessible native forms tested at desktop, phone and 320px widths. No learner relationship or tutor eligibility claim.
+- [x] **M2 verification:** 37 unit/component, 15 real PostgreSQL integration and 22 browser tests passed; lint/typecheck/format and production build passed. Details in the M2 session.
+- **Hosted services deferred:** Neon and Resend packages remain installed but unconnected; Railway and remote CI unrun. Local capture is not email delivery. Marketplace functionality and real-user onboarding remain future work.
 
 ## In Progress
 
-- **Requirements readiness:** Founders still need to resolve launch and commerce decisions listed under **Open Questions**.
-- **Repository reconnaissance:** **Not started in this tracker / no evidence supplied**. First development session should confirm repository state and replace this line with findings.
-- **Coding tasks:** **None confirmed as actively in progress** by the evidence available here.
-
-> **How to record actual work:** Once development starts, add an item such as `- [ ] [In progress] Auth foundation — owner: … · branch/PR: … · started: YYYY-MM-DD · current blocker: …`. Move it to **Completed** only with passing test/build evidence.
+- **Requirements readiness:** Founder decisions under **Open Questions** remain unresolved.
+- **Design readiness:** The M1 development shell uses proposed UI tokens and the documented plain-text brand placeholder. Generated shadcn primitives and final brand assets remain gated by `ui-context.md` decision 14 and related open decisions.
+- **Dependency maintenance:** 13 audit findings (4 moderate, 9 high) remain in upstream tooling chains. `--omit=dev` still reports 4 moderate findings because Better Auth declares Drizzle Kit as an optional peer. See README and the recovery handoff; do not represent the audit as clean.
+- **Remote verification:** Changes are local and uncommitted. GitHub CI and Railway have not been run in this session.
 
 ## Next Up
 
 Prioritized, small tasks; **these are planned, not completed**.
 
-1. **P0 — Inspect or initialize the Learli repository.** Read the five source documents; confirm branch conventions, dependencies, scripts, and current work. **Exit:** Actual repo/commit identified; baseline lint/typecheck/build commands and results captured.
-2. **P0 — App foundation.** Set up Next.js App Router, TypeScript strict mode, Tailwind/shadcn, environment validation, responsive homepage shell, and safe logging. **Exit:** App runs and production build succeeds locally; no credentials committed.
-3. **P0 — Neon + Drizzle foundation.** Use a **development-only** Neon database, typed schema/migration workflow, and a health endpoint that exposes no secrets. **Exit:** Migrations run and are tested on an isolated database; connection fails safely when unconfigured.
-4. **P0 — Authentication and authorization baseline.** Better Auth; sign-up/sign-in, logout, verification/reset in test mode; server-enforced Student/Parent/Tutor/Admin roles. **Exit:** Unauthenticated access, privilege escalation, and cross-account data access are denied in tests.
-5. **P0 — Tutor catalog and discovery.** Genuine subject catalog, tutor records, minimal eligibility/publication gate, public directory, profiles, subject/level filters, and honest empty states. **Exit:** Only actually eligible test tutors appear; unauthorized edits fail. Maps to `PUB`, `TUT`, `ADM` PRD requirements.
-6. **P0 — Availability and guided matching.** Rule-based recommendations, IANA time zones, UTC storage, available-slot calculation, and basic tutor-schedule editing. **Exit:** Time-zone/DST tests pass; unavailable slots and unapproved tutors are never suggested. Maps to `MATCH` and `TUT`.
-7. **P0 — Learner/guardian records and bookings.** Guardian ownership model (with **real-minor onboarding gated** until approved), eligible self-managed learners, retry-safe booking and **database-level overlap protection**. **Exit:** Concurrent overlapping requests cannot both confirm; cross-family access denied. Maps to `FAM` and `BKG`.
-8. **P0 — Lesson coordination and safety.** Role-specific schedules/history, participant-only Zoom/Meet links, Resend test emails, support and safety-report path, essential admin operations. **Exit:** Private links are inaccessible to outsiders; test email failures do not corrupt bookings. Maps to `MEET`, `OPS`, `ADM`.
-9. **BLOCKED — Real commerce.** Select and approve payment model, processor, prices, payout/refund rules and market compliance **before** live checkout or subscription work. **Exit:** Decision records approved; only then implement and test payment webhooks/idempotency/reconciliation. Maps to `PAY`.
-10. **P0 for public release — Controlled pilot and readiness.** Railway deployment with separate Neon production data, verified sending domain, backups/restoration test, safeguarding/legal review, monitoring, accessibility and E2E QA. **Exit:** Founder explicitly approves pilot/public launch after all hard gates pass.
+1. **P0 — M3.1–M3.3, local tutor catalog.** Model subjects, synthetic tutor profiles and publication gates; preserve unresolved real screening policy.
+2. **P0 — Remaining M3 discovery.** Directory/filtering and rule-based matching based on actual local records; honest empty states and no fabricated production inventory.
+3. **P0 — M4, availability and bookings.** IANA time zones, authorized learner relationships, approved booking policies and database-level overlap protection with concurrency tests.
+4. **P0 — M5, lesson coordination and safety.** Participant-only meeting links, role dashboards, transactional notifications, support/reporting and scoped admin operations.
+5. **Deferred — Hosted M2/operations acceptance.** Neon connection/TLS, provider email, production session settings and remote CI require a later externally enabled phase. Keep all current runtime work local.
+6. **BLOCKED — M6/M7, commerce.** Obtain explicit business decisions before implementing real charges, prices, payouts or refunds.
+7. **P0 before release — M8.** Separate deployment environments, email domain, safeguarding/legal decisions, operational evidence and explicit release authorization.
+
+Resolve open design decisions and dependency advisories alongside this sequence.
 
 ### Milestone Snapshot
 
-| Milestone | Scope | Status at baseline | Evidence required to change to Done |
+| Milestone | Scope | Current status | Evidence / remaining exit requirements |
 |---|---|---|---|
-| M0 | Business scope and technical documentation | **Documented** | Five source documents and this tracker exist; unresolved decisions remain visible |
-| M1 | Repository + app foundation | **Planned / not verified** | Repo commit, local build, typecheck/lint results |
-| M2 | Neon, Drizzle, authentication, role controls | **Planned / not verified** | Migration/test results, protected-auth flow, authorization tests |
+| M0 | Business scope and technical documentation | **Documented; M0.1/M0.6 local evidence recorded** | Repository and context inspected; approval ownership and open decisions remain |
+| M1 | Repository + app foundation | **Local foundation verified** | Session evidence below; brand/primitive approval pending, remote CI unrun |
+| M2 | Data, authentication, role controls | **Local scope verified; hosted acceptance deferred** | Local migrations, auth/ownership tests and browser journeys passed; Neon/TLS/Resend and production settings unrun |
 | M3 | Tutor catalog, public discovery, matching | **Planned / not verified** | Public browsing QA, filtering tests, tutor-publication checks |
 | M4 | Availability, guardians/learners, booking integrity | **Planned / not verified** | Time-zone/DST, ownership, concurrent-booking tests |
 | M5 | Meeting links, dashboards, notifications, basic support | **Planned / not verified** | E2E role journeys, meeting-link privacy and email tests |
@@ -159,6 +168,16 @@ These are **documented selections, not proof of completed deployment or code**.
 - **Deployment:** Not deployed.
 - **Next session:** Founder review of the open design decisions in `ui-context.md`, then M1 as planned.
 
+### Session — 2026-10-11 (Build Feature skill)
+
+- **Owner / branch / PR:** Codex for the repository owner · `main` working tree, based on `4503177` · no commit or PR created for this change.
+- **Goal:** Add the requested automatic feature workflow using Architect, Review, Recover, and Remember.
+- **Changed:** Added `skills/build-feature/SKILL.md` and Codex UI metadata, with discovery symlinks in `.agents/skills/` and `.claude/skills/`. Added explicit orchestrated-mode exceptions to the four child skills while preserving their standalone responsibilities. Updated `AGENTS.md`, `context/ai-workflow-rules.md`, and the `/memory.md` ignore rule.
+- **Workflow decision:** The user's full build request authorizes routine scoped planning, implementation, review, verification, recovery repairs, and memory saving. Blueprints record `AUTHORIZED — build-feature delegation`; this does not represent separate human review of the generated plan. Material unresolved decisions and production/destructive actions retain their applicable gates.
+- **Verified:** `quick_validate.py` passed for all five skills. Python checks passed for both discovery directories, child-skill links, UI metadata, default implicit discovery, and the untracked/ignored memory path. `git diff --check` passed. Manually inspected routing for normal completion, reserved blueprint approval, failed checks, review findings, missing verification access, and resume. No application build/tests or real feature workflow was executed; this is instruction/configuration setup only.
+- **Milestone status:** No application milestone changed; no feature implementation or deployment claimed.
+- **Next session:** Invoke `$build-feature` with a specific Learli feature or work package; observe the workflow on actual implementation.
+
 ### Required update format after each meaningful development session
 
 Copy this compact entry for the next session; include only **actual evidence**:
@@ -187,3 +206,29 @@ Copy this compact entry for the next session; include only **actual evidence**:
 ---
 
 **Definition of progress for Learli:** An eligible learner or authorized guardian can safely discover an eligible tutor, book a genuinely available 1:1 slot without conflicts, obtain the correct private Zoom/Meet details, and manage the booking under **approved** business and safeguarding rules. Everything else should support that journey—not turn Learli into an LMS.
+
+### Session — 2026-10-11 (M1 application foundation)
+
+- **Owner / branch / PR:** Codex for the repository owner · `main` working tree at base `4503177` · remote `cob-g/Learli` · no commit, push, PR or deployment performed for this slice.
+- **Authority:** User requested the app foundation, dependencies/tools, and analysis of `context/build-plan.md`. Blueprint: `prompts/features/m1-01-app-foundation.md` — **AUTHORIZED — build-feature delegation**. This is delegated authority, not a claim of separate human blueprint approval.
+- **Plan analysis:** M1 is the correct first application slice. M2 owns isolated PostgreSQL, schema/auth and permissions; M3–M5 own marketplace functionality; M6/M7 require commercial policy decisions; M8 owns deployment/launch evidence. Installing an SDK does not complete its integration milestone.
+- **Changed:** Pinned Node/npm and current compatible dependencies; Next.js App Router/TypeScript/Tailwind/shadcn configuration; proposed theme and responsive shell; unavailable public/workspace routes; generic error/404 handling; server-only environment validation; `/api/health`; quality scripts/tests; GitHub Actions; README. UI context records provisional CLI configuration without final primitive approval. Previous uncommitted skill work was preserved.
+- **Review:** `prompts/reviews/m1-01-app-foundation.md` records full scoped source/diff inspection. Plan alignment **PASS**, unintended-change audit **PASS**, recommendation **READY FOR VERIFICATION — local foundation only**. The initial malformed-origin configuration issue was repaired and re-reviewed. No remaining confirmed application defect in scope; upstream dependency findings remain documented. Same agent performed review and separate verification; no independent reviewer or release approval is claimed.
+- **Verification:** `npm ci` succeeded; `npm ls --all --json` reported no dependency problems; `npx --no-install shadcn info` recognized the configuration. `npm run check` passed formatting, lint, typecheck and **17 unit/component tests**. `npm run build` passed without integration credentials. Final `npm run test:e2e` passed **15/15** Chromium checks at **1440×900, 390×844, 320×720**, including keyboard navigation, Escape/focus return, route/health/404 semantics, no overflow, dark-OS light rendering, and axe scans. Homepage screenshots for all three sizes were visually inspected. The required `.claude/skills/impeccable/scripts/impeccable detect src --json` returned **[]**. Client asset search found no server configuration secret names/validation strings. Dev homepage and health returned HTTP 200, including after configuration restart.
+- **Recovery:** `prompts/recovery/2026-10-11-foundation-tooling.md` records peer compatibility, sanitized configuration parsing, lint repairs, the corrected duplicate-robots-tag test assertion, and disabling Next's automatic AGENTS edits. Failed checks were repaired rather than skipped; all final app checks above passed.
+- **Dependency limitations:** Clean install reports **13 vulnerabilities: 4 moderate, 9 high** in braces and legacy Drizzle Kit/esbuild chains. `npm audit --omit=dev` reports **4 moderate**, because Better Auth's optional Drizzle Kit peer is in that graph. No patched stable braces release was available when inspected; forced audit fixes proposed incompatible downgrades. ESLint 9 is compatible but deprecated. Audit is **not clean**; reassess upstream fixes/exposure before database tooling or public release.
+- **Not verified / not implemented:** Remote GitHub CI, Neon connectivity/migrations, Better Auth flows/authorization, Resend delivery, payments, real learner records, provider provisioning and Railway deployment. Final brand assets and generated shadcn primitive approval remain open. No release approval is implied.
+- **Next smallest task:** Architect M2.1–M2.2: isolated development Neon plus reviewed Drizzle/Better Auth schema/migration workflow. Keep real-minor onboarding and commercial policy gates unresolved until explicitly decided.
+
+### Session — 2026-10-11 (M2 local identity — verified)
+
+- **Authority:** User requested M2 entirely locally and confirmed no further restriction beyond no cloud services, deployment or external email. Blueprint: `prompts/features/m2-01-local-identity-foundation.md` — **AUTHORIZED — build-feature delegation**.
+- **Baseline:** `main` at `4503177` plus prior uncommitted M1/skill work; pre-M2 file digests captured locally for scoped comparison. Earlier work is preserved.
+- **Implemented:** Repository-owned PostgreSQL 17.11 on loopback, separate development/test databases, generated Better Auth 1.7.7 schema, reviewed Drizzle migration and restricted runtime grants; local verification/reset mail; complete account/auth flows, no-role signup, trusted synthetic multi-role fixtures, account status/ownership guards and minimal audit events. Native account/forms follow the current proposed theme; final shadcn/brand decisions remain open.
+- **Review:** Same-agent read-only inspection against the authorized M2 blueprint and pre-M2 file-digest baseline: plan alignment **PASS**, unintended-change audit **PASS**, recommendation **READY FOR VERIFICATION — local scope**. Revised Host handling and scoped browser assertion re-reviewed. No outstanding confirmed application finding. No independent review or release clearance claimed. No tests were executed by Review; results below belong to separate Verification.
+- **Verification:** Clean `npm ci` succeeded (777 packages); dependency tree reported no problems. Local cluster initialization, both migrations, idempotent migration reruns and fixture rerun succeeded. `npm run check` passed formatting, lint, typecheck and **37 unit/component tests**. `npm run test:integration` passed **15/15** real PostgreSQL tests: verification/recovery, expired/single-use tokens, logout/session revocation, synthetic input/role injection, active/verified status, multi-role and cross-account/admin ownership denial, CSRF/origin/redirect rejection, throttling, constraints, restricted privileges, transaction rollback and safe DB failure. `npm run build` passed. Final `npm run test:e2e` passed **22/22** Chromium checks, including complete auth/settings/reset/logout journeys, private cache behavior, role denial, zero external browser requests in the primary journey, responsive/keyboard/axe checks at **1440×900, 390×844, 320×720**. All three sign-in screenshots visually inspected; local artifacts under `test-results/` and `playwright-report/` remain ignored.
+- **Additional checks:** UI detector returned **[]**. All 29 production client asset files scanned against actual local auth/DB configuration values: **zero secret matches**. Private env/database/mail/fixture files remain ignored. `git diff --check` passed. Development sign-in and health returned HTTP 200 at `http://127.0.0.1:3000`; test server stopped after the suite.
+- **Recovery evidence:** `prompts/recovery/2026-10-11-local-m2.md` records loopback CI binding, suspended-login response, formatting normalization, Better Auth test-mode origin defaults, Next internal localhost versus incoming Host, and Next route-announcer test ambiguity. Final checks pass without skipped tests or disabled origin/CSRF checks.
+- **Remaining acceptance:** Hosted Neon/TLS/pooling behavior, Resend delivery, production secure-cookie behavior, remote CI and deployment are **NOT RUN** under local-only scope. Guardian relationships/tutor eligibility belong to subsequent milestones; auth does not establish their policy. The existing **13 dependency advisories (4 moderate/9 high)** remain; audit is not clean. No real-minor onboarding, payment or release approval.
+- **Next smallest task:** Architect M3.1–M3.3 using local synthetic data, preserving open screening and product decisions.
+- **Scope distinction:** Local PostgreSQL replaces hosted Neon only for this authorized development phase. No Neon/Railway/Resend operation, real-user data, message send, push or deployment was performed. Updated the architecture, build plan and local-only decision record accordingly.

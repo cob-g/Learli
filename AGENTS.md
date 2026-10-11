@@ -6,19 +6,25 @@ same kind of symlinks in `.claude/skills/`; edit the source files under
 `skills/` so there is only one maintained copy. All project paths in these
 skills are relative to the repository root unless explicitly stated otherwise.
 
+- **build-feature** — Coordinate a complete feature: Architect → Implement → Review → Verify → Remember, with Recover on failures. Read [SKILL.md](skills/build-feature/SKILL.md).
 - **architect** — Plan a Learli change and prepare an implementation blueprint. Read [SKILL.md](skills/architect/SKILL.md).
 - **recover** — Diagnose failures and prepare a safe recovery handoff. Read [SKILL.md](skills/recover/SKILL.md).
 - **remember** — Save or restore a concise session handoff. Read [SKILL.md](skills/remember/SKILL.md).
 - **review** — Review implementation against its approved blueprint. Read [SKILL.md](skills/review/SKILL.md).
 
-In Codex, invoke these with `$architect`, `$recover`, `$remember save`,
+In Codex, invoke these with `$build-feature <feature>`, `$architect`, `$recover`, `$remember save`,
 `$remember restore`, or `$review`. Slash-command examples inside the skill
 instructions express the same intent; use `$name` for Codex skill mentions.
-In Claude Code, invoke them as `/architect`, `/recover`, `/remember save`,
+In Claude Code, invoke them as `/build-feature <feature>`, `/architect`, `/recover`, `/remember save`,
 `/remember restore`, or `/review`.
 Other agents can read the linked files directly. Load the applicable skill
-before using it, preserve its scope, and do not automatically chain skills.
-These four skills do not supply implementation or test-execution workflows.
+before using it and preserve its scope. Standalone skills do not automatically
+chain. When the user requests the complete `build-feature` workflow, its
+coordinator owns automatic transitions, implementation, verification, and scoped
+repairs; the four child skills follow their **Orchestrated mode** sections.
+Record delegated blueprint authority as `AUTHORIZED — build-feature delegation`,
+not as separate human blueprint approval. Unresolved material decisions and
+production/destructive actions retain their applicable authorization gates.
 
 ---
 

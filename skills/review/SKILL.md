@@ -5,6 +5,22 @@ description: Read-only post-implementation review for Learli. Compare a complete
 
 # Learli — Review Skill
 
+## Orchestrated mode — called by `build-feature`
+
+During an authorized [build-feature](../build-feature/SKILL.md) run, return the
+completed report to the coordinator instead of ending the overall task or waiting
+for another routine instruction. This overrides Step 4's standalone wait and
+no-chaining requirement for the coordinator only. Review stays read-only and
+does not repair code or execute checks. The coordinator owns recovery, repairs,
+separate verification, and re-review after changes.
+
+Accept a blueprint labeled `AUTHORIZED — build-feature delegation` as the scoped
+execution baseline only when its recorded user request supports that authority
+and all necessary product/policy decisions are resolved. Report this exact status;
+do not relabel it as separately human-approved. A bare label is not permission.
+Missing authorization, an unresolved material decision, or an unreliable code
+baseline still blocks a full PASS. Standalone Review keeps the rules below.
+
 A feature is **not** correct merely because the developer says it is finished or its UI looks right. This skill compares **what the Architect approved** with **what the Implementation workflow actually changed**, and checks whether existing Learli behavior and invariants were preserved.
 
 **Learli is a one-on-one online tutoring marketplace and booking intermediary, not an LMS.** Its job is tutor discovery, rule-based matching, scheduling, booking, basic account and marketplace administration, and coordination of Zoom/Google Meet lessons. Do not accept unnecessary expansion into assignment uploads, teaching tools, grading, AI tutors, or advanced tutor management.

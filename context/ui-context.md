@@ -648,6 +648,8 @@ This is a proposed scope for editing generated primitives. It is not the approva
 
 Stock values depend on the shadcn base and preset, which is an open decision. Record the choice here when `components.json` is created. The stock column lists values seen in the `new-york-v4` style on 2026-10-11, with `nova` differences noted, as examples of what to look for. The Learli column does not change with the preset.
 
+**M1 tooling note — 2026-10-11:** `components.json` now uses `new-york` as a provisional CLI setting for the local foundation. No generated primitives have been installed or edited; the shell uses native controls. This records configuration, not founder approval of decision 14 or the final design system.
+
 | Primitive | Learli value | Stock values to replace |
 |---|---|---|
 | Button | `min-h-11` (44px), the `action` role, label may wrap, `transition-colors` at 150ms, `--brand-navy-hover` and `--brand-navy-active`, the disabled tokens, no transform | `h-9` (`h-8` in nova), `text-sm font-medium`, `whitespace-nowrap`, `transition-all`, `hover:bg-primary/90`, `disabled:opacity-50`, `active:translate-y-px` in nova |
