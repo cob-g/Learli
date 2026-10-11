@@ -708,3 +708,14 @@ For each meaningful development session, update `PROGRESS-TRACKER.md` with:
 6. Update `PROGRESS-TRACKER.md` with real M0/M1 evidence and the next slice (usually isolated Neon + Better Auth from M2).
 
 **Final guiding principle:** *Build the smallest safe path from finding a genuine tutor to a legitimately booked external lesson. Ship verifiable capabilities, not imagined marketplace scale.*
+
+## Local five-feature premerge candidate — 2026-10-11
+
+The actual locally merged foundation is `3a055de`. The authorized integration
+candidate combines M2.3/M2.9 own-session management, M3.2/M3.5 optional declared
+languages, M4.3 guarded time off, M4.5–M4.8 synthetic atomic reservations, and
+M5.9 exact-case support. These local slices preserve real guardian/legal/
+commercial/incident/production gates; full milestone exit boxes remain gated.
+The default browser command selects every new suite. Candidate verification and
+source/migration evidence live in `docs/operations/five-feature-premerge.md` and
+the tracker; source worktree verification does not prove the combined candidate.

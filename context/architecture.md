@@ -158,7 +158,8 @@ hosted provider or approval for real-user onboarding.
 
 `subjects`, `tutor_profiles` and `tutor_subjects` now exist as reviewed local
 migrations, following §9.2 with these recorded differences: no
-`teaching_languages` or `meeting_provider_preference` column yet; `slug` was
+`meeting_provider_preference` column yet; teaching languages now use an optional
+normalized relation (see §9.2); `slug` was
 added with the public pages and is set once at creation; `teaching_background` added per build-plan M3.2;
 `tutor_profiles.user_id` is `ON DELETE RESTRICT`; `audit_events` gained
 `target_subject_id` and tutor/subject actions. `listEligibleTutors` in
@@ -523,8 +524,10 @@ Use PostgreSQL for **structured records**, not for general-purpose file storage.
 tutor profiles/subjects, weekly availability and synthetic learner/guardian tables
 are implemented. The combined migration chain adds availability as `0006` and
 learners as `0007`; local implementation notes below distinguish these from the
-remaining proposed booking, review, support and payment entities. Integration uses
-fresh databases, not source-branch databases with conflicting migration histories.
+remaining proposed review/payment and live-booking entities. The five-feature
+local candidate adds demo booking/time off0008–0009, optional languages0010 and
+corrected support0011. Baseline0007 upgrades and fresh migration checks are
+required; source-branch databases retain their own conflicting histories.
 
 ### 9.1 Identity and roles
 
@@ -557,6 +560,21 @@ fresh databases, not source-branch databases with conflicting migration historie
 
 - `tutor_id`, `subject_id`, supported learner levels, optional specialty description.
 - Unique pair (`tutor_id`, `subject_id`) unless a justified level-specific design replaces it.
+
+### Local M3.2 / M3.5 teaching-language implementation — 2026-10-11
+
+`tutor_teaching_languages` stores optional tutor declarations as a tutor FK plus
+the bounded `teaching_language_code` enum, with a composite primary key. It
+replaces the proposed `tutor_profiles.teaching_languages` field; no existing
+profile is inferred/backfilled or made ineligible for missing languages. Exact
+unique code arrays are validated in the owner profile service and replaced in
+the existing locked transaction. Omitted fields preserve declarations; [] clears.
+Public eligibility reads include the complete set in the same SQL statement;
+the directory composes language with its subject/level filters. English display
+labels originate in `src/features/tutors/teaching-languages.ts`, not free text.
+Public copy identifies tutor declarations and makes no proficiency verification
+claim. See `docs/decisions/2026-10-11-teaching-languages.md` for the coordinator's
+delegated catalogue choice. This remains local synthetic development.
 
 ### 9.3 Learners and guardians
 
@@ -598,7 +616,7 @@ real onboarding and booking remain gated. See `prompts/features/m4-04-learner-pr
 
 **`tutor_availability_exceptions`** [RECOMMENDED when tutors need holidays/time off]
 
-- `id`, `tutor_id`, UTC start/end, unavailable reason/category (non-sensitive), created_at.
+- `id`, `tutor_id`, UTC start/end, created_at. Local M4.3 collects no reason text.
 - A tutor can mark exceptions without changing weekly patterns.
 
 **Local M4.1 implementation — 2026-10-11:** weekly windows now use ISO weekdays
@@ -615,10 +633,41 @@ Initial/profile-only zone changes increment the same revision. Pending/rejected
 profiles can prepare hours without becoming public; suspended profiles cannot edit.
 Reads and writes are owner-scoped. `readOwnAvailabilityIntervals` connects stored
 windows to the existing UTC engine; public slots, busy-booking exclusion, time off
-and actual bookings remain later M4 work. The 42-window request limit is a technical
+and actual bookings were later work at M4.1 completion. The 42-window request limit is a technical
 bound, not a lesson duration or booking policy.
 
+**Local M4.3 time-off integration — 2026-10-11:** dated owner-only periods store
+finite UTC instants with duplicate prevention and no reason text. Add/remove,
+shared revision and minimal audit event commit under the tutor profile lock.
+IANA local input rejects ambiguous/nonexistent endpoints; stored intervals survive
+teaching-zone edits. Effective weekly availability subtracts their union. The
+128-period bound is technical, not retention or booking policy. The verified
+standalone source was imported under coordinator authority; combined addition
+rejects overlap with `demo_reserved` rows whose expiry is after current DB time,
+before any exception/revision/audit write. No reservation is silently cancelled.
+Real PostgreSQL tests must cover both lock acquisition orders, adjacent and
+expired reservations and rollback preservation before claiming combined acceptance.
+
 ### 9.5 Bookings and attendance status
+
+**Local simulation work — 2026-10-11:** M4.5–M4.8 introduces separate explicit
+`demo_reserved` / `demo_expired` semantics, not the illustrative live states below.
+UTC instants and actor-scoped request fingerprints stay immutable; minimal events
+retain creation/expiry. GiST exclusion on half-open tutor intervals blocks only
+`demo_reserved`; server transactions materialize elapsed expiry before inserts.
+Booking/time-off share a tutor-row-first lock protocol and actual exception query.
+READ COMMITTED statements after domain waits recheck current identity, trusted
+roles, access and learner ownership. The tutor lock plus exclusion constraints
+serialize overlapping reservations; an actor user-row NO KEY UPDATE lock bounds the technical
+create quota across tutors. Creation and expiry history use the same captured
+post-lock database clock as the mutation. Revocations committed before a fresh
+authorization check deny the request; an already authorized in-flight request may
+finish. Post-lock tutor and support checks use their transaction's connection,
+without expanding role/access/link/capability write grants. The local
+policy is coordinator-delegated (60-minute elapsed duration, 30-minute step,
+60-minute notice, 14 days, 10-minute TTL), documented in
+`docs/decisions/2026-10-11-local-synthetic-booking.md`. Real policy remains OPEN;
+combined time-off acceptance requires the integrated guard and real database tests.
 
 **`bookings`**
 
@@ -646,6 +695,20 @@ Whichever model is selected, payment records should store:
 - **Never store raw card details or sensitive payment credentials.**
 
 ### 9.7 Reviews and reports
+
+Local M5.9 synthetic support (2026-10-11): `support_cases`, support-specific
+reviewer capability/events, current case assignments and append-only case events
+are added in integration migration `0011`, with nullable event-shape checks
+requiring TRUE. The frozen support source retains its applied0008/0009 history;
+this unapplied combined chain generates the corrected shape directly. Active verified synthetic accounts submit/read
+only their cases. Reviewers require admin role, explicit active fixture capability
+and exact current assignment, and cannot review their own case. Owner tooling
+alone grants/revokes capability and assigns/reassigns cases; runtime column
+grants cannot change those records or case ownership/body/history. Status and
+assignment revisions/events commit atomically. No learner/booking joins, replies,
+notes, email or real incident operations. See the delegated local decision
+`docs/decisions/2026-10-11-local-support-reporting.md`; real safeguarding response,
+owner/escalation, consent/legal/retention remain OPEN launch gates.
 
 **`reviews`** (simple, verified lesson review)
 

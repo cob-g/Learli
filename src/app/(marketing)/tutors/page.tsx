@@ -12,6 +12,10 @@ import {
 import { TutorList } from "@/features/tutors/tutor-card";
 import { TutorFilterForm } from "@/features/tutors/tutor-filter-form";
 import { EmptyState } from "@/components/shared/empty-state";
+import {
+  declaredTeachingLanguages,
+  teachingLanguageLabels,
+} from "@/features/tutors/teaching-languages";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Find a tutor" };
@@ -21,7 +25,9 @@ export default async function TutorsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { subject, level, page } = parseTutorSearch(await searchParams);
+  const { subject, level, language, page } = parseTutorSearch(
+    await searchParams,
+  );
   const catalog = await readPublicCatalog();
   if (!catalog)
     return (
@@ -34,7 +40,7 @@ export default async function TutorsPage({
         <p className="mt-2 flex flex-wrap gap-x-6">
           <Link
             className="inline-flex min-h-11 items-center"
-            href={tutorsHref({ subject, level, page })}
+            href={tutorsHref({ subject, level, language, page })}
           >
             Try again
           </Link>
@@ -65,7 +71,7 @@ export default async function TutorsPage({
     (item) => item.slug === subject,
   )?.name;
   const levelName = learnerLevelOptions.find(([value]) => value === level)?.[1];
-  const matches = filterTutors(catalog.tutors, { subject, level });
+  const matches = filterTutors(catalog.tutors, { subject, level, language });
   const pages = Math.max(1, Math.ceil(matches.length / tutorsPerPage));
   const current = Math.min(page, pages);
   const shown = matches.slice(
@@ -75,9 +81,13 @@ export default async function TutorsPage({
   const applied = [
     subject && {
       label: subjectName ?? "Unknown subject",
-      href: tutorsHref({ level }),
+      href: tutorsHref({ level, language }),
     },
-    levelName && { label: levelName, href: tutorsHref({ subject }) },
+    levelName && { label: levelName, href: tutorsHref({ subject, language }) },
+    language && {
+      label: `Teaching language: ${teachingLanguageLabels[language]}`,
+      href: tutorsHref({ subject, level }),
+    },
   ].filter((item) => !!item);
 
   return (
@@ -90,11 +100,13 @@ export default async function TutorsPage({
             subjects={catalog.subjects}
             subject={subject}
             level={level}
+            languages={declaredTeachingLanguages(catalog.tutors)}
+            language={language}
           />
         </div>
         <div className="min-w-0 flex-1">
           {matches.length === 0 ? (
-            subjectName && !level ? (
+            subjectName && !level && !language ? (
               <EmptyState
                 title={`No tutors teach ${subjectName} on Learli right now`}
                 href="/tutors"
@@ -107,6 +119,19 @@ export default async function TutorsPage({
                 action="Clear filters"
               >
                 <p>{applied.map((item) => item.label).join(" · ")}</p>
+                <div className="mt-2 flex flex-wrap gap-x-4">
+                  {applied.map((item) => (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      aria-label={`Remove filter: ${item.label}`}
+                      className="inline-flex min-h-11 items-center gap-1 text-label"
+                    >
+                      {item.label}
+                      <X size={16} aria-hidden="true" />
+                    </Link>
+                  ))}
+                </div>
               </EmptyState>
             )
           ) : (
@@ -140,7 +165,12 @@ export default async function TutorsPage({
                   {current > 1 && (
                     <Link
                       className="inline-flex min-h-11 items-center"
-                      href={tutorsHref({ subject, level, page: current - 1 })}
+                      href={tutorsHref({
+                        subject,
+                        level,
+                        language,
+                        page: current - 1,
+                      })}
                     >
                       Previous page
                     </Link>
@@ -151,7 +181,12 @@ export default async function TutorsPage({
                   {current < pages && (
                     <Link
                       className="inline-flex min-h-11 items-center"
-                      href={tutorsHref({ subject, level, page: current + 1 })}
+                      href={tutorsHref({
+                        subject,
+                        level,
+                        language,
+                        page: current + 1,
+                      })}
                     >
                       Next page
                     </Link>

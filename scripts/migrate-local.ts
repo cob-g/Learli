@@ -13,12 +13,20 @@ try {
     REVOKE ALL ON ALL TABLES IN SCHEMA public FROM learli_app;
     GRANT SELECT, INSERT, UPDATE, DELETE ON "user", "session", "account", "verification", "rate_limit" TO learli_app;
     GRANT SELECT ON learner_profiles, guardian_learner_links TO learli_app;
+    GRANT SELECT, INSERT ON bookings TO learli_app;
+    GRANT UPDATE (state) ON bookings TO learli_app;
+    GRANT INSERT ON booking_events TO learli_app;
     GRANT UPDATE (display_name, level, timezone, updated_at) ON learner_profiles TO learli_app;
     GRANT SELECT ON user_roles TO learli_app;
+    GRANT SELECT ON support_reviewers, support_case_assignments TO learli_app;
+    GRANT SELECT, INSERT ON support_cases, support_case_events TO learli_app;
+    GRANT UPDATE (status, revision, updated_at) ON support_cases TO learli_app;
     GRANT SELECT, INSERT ON user_access TO learli_app;
     GRANT INSERT ON audit_events TO learli_app;
     GRANT SELECT, INSERT, UPDATE ON subjects, tutor_profiles TO learli_app;
     GRANT SELECT, INSERT, UPDATE, DELETE ON tutor_subjects, tutor_availability TO learli_app;
+    GRANT SELECT, INSERT, DELETE ON tutor_availability_exceptions TO learli_app;
+    GRANT SELECT, INSERT, DELETE ON tutor_teaching_languages TO learli_app;
     GRANT EXECUTE ON FUNCTION grant_tutor_role(text) TO learli_app;
   `);
   console.log(

@@ -5,6 +5,7 @@ import { cache } from "react";
 import { levelNames } from "@/features/subjects/catalog";
 import { readPublicTutor } from "@/features/tutors/public";
 import { InitialsAvatar } from "@/features/tutors/tutor-card";
+import { teachingLanguageNames } from "@/features/tutors/teaching-languages";
 
 export const dynamic = "force-dynamic";
 const loadTutor = cache(readPublicTutor);
@@ -71,6 +72,20 @@ export default async function TutorPage({
             </li>
           ))}
         </ul>
+      </section>
+      <section aria-labelledby="languages-title" className="mt-8">
+        <h2 id="languages-title" className="text-section-title">
+          Teaching languages
+        </h2>
+        <p className="mt-4 max-w-prose text-body">
+          {teachingLanguageNames(tutor.teachingLanguages).join(" · ") ||
+            "No teaching languages listed"}
+        </p>
+        {tutor.teachingLanguages.length > 0 && (
+          <p className="mt-2 max-w-prose text-small text-muted-foreground">
+            Declared by the tutor. Learli has not checked language proficiency.
+          </p>
+        )}
       </section>
       <section aria-labelledby="introduction-title" className="mt-12">
         <h2 id="introduction-title" className="text-section-title">

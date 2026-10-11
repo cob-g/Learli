@@ -47,6 +47,10 @@ export default async function AvailabilityPage() {
           Availability
         </Link>
       </nav>
+      <p className="mt-4 text-body">
+        <Link href="/tutor/time-off">Manage time off</Link> for dated periods
+        when you cannot teach.
+      </p>
       <div className="mt-8">
         {!schedule ? (
           <p className="text-body">

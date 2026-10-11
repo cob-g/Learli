@@ -4,6 +4,10 @@ import {
   learnerLevelOptions,
   type CatalogSubject,
 } from "@/features/subjects/catalog";
+import {
+  teachingLanguageLabels,
+  type TeachingLanguageCode,
+} from "./teaching-languages";
 
 /**
  * Subject and level search as a plain GET form, so it works without JavaScript.
@@ -14,13 +18,20 @@ export function TutorFilterForm({
   subjects,
   subject,
   level,
+  languages = [],
+  language,
 }: {
   variant: "finder" | "filters";
   subjects: (CatalogSubject & { slug: string })[];
   subject?: string;
   level?: string;
+  languages?: TeachingLanguageCode[];
+  language?: TeachingLanguageCode;
 }) {
   const finder = variant === "finder";
+  const fieldClass = finder
+    ? "min-w-0 flex-1 space-y-2"
+    : "min-w-0 flex-1 space-y-2 sm:min-w-40 lg:min-w-0";
   return (
     <form
       action="/tutors"
@@ -30,10 +41,10 @@ export function TutorFilterForm({
       className={
         finder
           ? "flex flex-col gap-4 md:flex-row md:items-end"
-          : "flex flex-col gap-4 sm:flex-row sm:items-end lg:flex-col lg:items-stretch"
+          : "flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end lg:flex-col lg:items-stretch"
       }
     >
-      <div className="min-w-0 flex-1 space-y-2">
+      <div className={fieldClass}>
         <label htmlFor={`${variant}-subject`} className="block text-label">
           Subject
         </label>
@@ -55,7 +66,7 @@ export function TutorFilterForm({
           ))}
         </select>
       </div>
-      <div className="min-w-0 flex-1 space-y-2">
+      <div className={fieldClass}>
         <label htmlFor={`${variant}-level`} className="block text-label">
           Level
         </label>
@@ -78,14 +89,41 @@ export function TutorFilterForm({
           Find a tutor
         </button>
       ) : (
-        <div className="flex flex-wrap items-center gap-4">
-          <button className="action action-outline" type="submit">
-            Apply filters
-          </button>
-          <Link className="inline-flex min-h-11 items-center" href="/tutors">
-            Clear filters
-          </Link>
-        </div>
+        <>
+          {(languages.length > 0 || language) && (
+            <div className={fieldClass}>
+              <label htmlFor="filters-language" className="block text-label">
+                Teaching language
+              </label>
+              <select
+                className="field"
+                id="filters-language"
+                name="language"
+                defaultValue={language ?? ""}
+              >
+                <option value="">Any teaching language</option>
+                {language && !languages.includes(language) && (
+                  <option value={language}>
+                    {teachingLanguageLabels[language]} (no tutors listed)
+                  </option>
+                )}
+                {languages.map((code) => (
+                  <option key={code} value={code}>
+                    {teachingLanguageLabels[code]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-4">
+            <button className="action action-outline" type="submit">
+              Apply filters
+            </button>
+            <Link className="inline-flex min-h-11 items-center" href="/tutors">
+              Clear filters
+            </Link>
+          </div>
+        </>
       )}
     </form>
   );

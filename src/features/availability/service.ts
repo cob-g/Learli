@@ -2,10 +2,13 @@ import { asc, eq } from "drizzle-orm";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { auditEvents, tutorAvailability, tutorProfiles } from "@/lib/db/schema";
 import { requireRole } from "@/lib/permissions/access";
+import { recheckIdentity } from "@/lib/permissions/recheck";
 import { RuleError } from "@/lib/rule-error";
 import { expandWeeklyWindows } from "@/lib/time/availability";
 import { tutorCanEdit } from "@/features/tutors/review-rules";
 import { availabilityInput } from "./input";
+import { readTutorTimeOffIntervals } from "@/features/time-off/repository";
+import { subtractTimeOff } from "@/features/time-off/intervals";
 
 /** One SELECT gives a consistent zone/revision/window snapshot, even during saves. */
 export async function readOwnAvailability(
@@ -53,14 +56,29 @@ export async function readOwnAvailabilityIntervals(
   from: Date,
   to: Date,
 ) {
-  const schedule = await readOwnAvailability(runtime, headers);
-  if (!schedule || !schedule.editable)
-    throw new RuleError(409, "Availability is unavailable.");
-  return expandWeeklyWindows({
-    timeZone: schedule.timezone,
-    windows: schedule.windows,
-    from,
-    to,
+  const identity = await requireRole(runtime, headers, "tutor");
+  return runtime.db.transaction(async (tx) => {
+    // Shared lock prevents mixing revisions across weekly/time-off reads.
+    const [profile] = await tx
+      .select()
+      .from(tutorProfiles)
+      .where(eq(tutorProfiles.userId, identity.userId))
+      .for("share");
+    await recheckIdentity(tx, identity, "tutor");
+    if (!profile || !tutorCanEdit(profile.reviewStatus))
+      throw new RuleError(409, "Availability is unavailable.");
+    const windows = await tx
+      .select()
+      .from(tutorAvailability)
+      .where(eq(tutorAvailability.tutorId, profile.id));
+    const open = expandWeeklyWindows({
+      timeZone: profile.timezone,
+      windows,
+      from,
+      to,
+    });
+    const busy = await readTutorTimeOffIntervals(tx, profile.id, from, to);
+    return subtractTimeOff(open, busy);
   });
 }
 
@@ -82,6 +100,7 @@ export async function saveOwnAvailability(
       .from(tutorProfiles)
       .where(eq(tutorProfiles.userId, identity.userId))
       .for("update");
+    await recheckIdentity(tx, identity, "tutor");
     if (!profile)
       throw new RuleError(
         409,

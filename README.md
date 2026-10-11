@@ -163,3 +163,13 @@ as `0007`. Use fresh databases when combining source branches that each had thei
 own `0006`; do not reinterpret or renumber an already-applied source history.
 See [integration evidence](docs/operations/m4-m5-integration.md) for source commits,
 isolated ports, verification and the remaining main-merge checkpoint.
+
+### Five-feature local integration candidate
+
+`npm run test:e2e` now discovers all baseline and booking/time-off/language/support/
+account-session suites, with ordered fixture-mutating projects. Dedicated feature
+configs remain available for focused recovery runs. Run owned `local:setup` before
+checks; do not reuse a source branch database with colliding migration history.
+The combined chain preserves0000–0009, then adds languages0010 and corrected
+support0011. See `docs/operations/five-feature-premerge.md` for exact source and
+migration identity, local-only limits and fresh/upgrade evidence.

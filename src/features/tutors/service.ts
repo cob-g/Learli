@@ -10,13 +10,16 @@ import {
   tutorProfiles,
   tutorAvailability,
   tutorSubjects,
+  tutorTeachingLanguages,
   user,
 } from "@/lib/db/schema";
 import { requireIdentity, requireRole } from "@/lib/permissions/access";
+import { recheckIdentity } from "@/lib/permissions/recheck";
 import { RuleError } from "@/lib/rule-error";
 import { slugify } from "@/features/subjects/slug";
 import { tutorProfileInput } from "./input";
 import { tutorCanEdit } from "./review-rules";
+import { teachingLanguagesSelection } from "./language-query";
 
 /** Readable public address; the random part keeps it unique and unguessable. */
 export function tutorSlug(displayName: string) {
@@ -65,6 +68,7 @@ export async function loadTutorProfile(db: Database, where: SQL) {
       headline: tutorProfiles.headline,
       bio: tutorProfiles.bio,
       teachingBackground: tutorProfiles.teachingBackground,
+      teachingLanguages: teachingLanguagesSelection(),
       timezone: tutorProfiles.timezone,
       reviewStatus: tutorProfiles.reviewStatus,
       createdAt: tutorProfiles.createdAt,
@@ -116,7 +120,8 @@ export async function saveOwnTutorProfile(
   input: unknown,
 ) {
   const identity = await requireRole(runtime, headers, "tutor");
-  const { offerings, ...fields } = tutorProfileInput.parse(input);
+  const { offerings, teachingLanguages, ...fields } =
+    tutorProfileInput.parse(input);
   try {
     return await runtime.db.transaction(async (tx) => {
       const [existing] = await tx
@@ -129,6 +134,7 @@ export async function saveOwnTutorProfile(
         .from(tutorProfiles)
         .where(eq(tutorProfiles.userId, identity.userId))
         .for("update");
+      await recheckIdentity(tx, identity, "tutor");
       if (existing && !tutorCanEdit(existing.reviewStatus))
         throw new RuleError(
           409,
@@ -191,6 +197,19 @@ export async function saveOwnTutorProfile(
           .returning({ id: tutorProfiles.id });
       }
       const tutorId = profileId;
+      // Older clients omit this optional field; preserve their existing set.
+      if (teachingLanguages !== undefined) {
+        await tx
+          .delete(tutorTeachingLanguages)
+          .where(eq(tutorTeachingLanguages.tutorId, tutorId));
+        if (teachingLanguages.length)
+          await tx.insert(tutorTeachingLanguages).values(
+            teachingLanguages.map((languageCode) => ({
+              tutorId,
+              languageCode,
+            })),
+          );
+      }
       await tx
         .insert(tutorSubjects)
         .values(offerings.map((offering) => ({ ...offering, tutorId })));

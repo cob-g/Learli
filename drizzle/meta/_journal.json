@@ -57,6 +57,34 @@
       "when": 1791708548920,
       "tag": "0007_local_learner_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791711700764,
+      "tag": "0008_perpetual_celestials",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791712890655,
+      "tag": "0009_typical_queen_noir",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791714085054,
+      "tag": "0010_integration_teaching_languages",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791714095394,
+      "tag": "0011_integration_support_reporting",
+      "breakpoints": true
     }
   ]
 }

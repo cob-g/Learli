@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
-import { UnavailablePage } from "@/components/shared/unavailable-page";
-
-export const metadata: Metadata = { title: "Contact support" };
+import { SupportEntry } from "@/features/support/entry";
+export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "Contact support",
+  robots: { index: false, follow: false },
+};
 export default function Page() {
-  return (
-    <UnavailablePage
-      title={"Support is not open yet"}
-      message={
-        "Learli is not accepting bookings or support requests through this site yet."
-      }
-    />
-  );
+  return <SupportEntry />;
 }

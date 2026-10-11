@@ -2,6 +2,7 @@
 import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { AuthRuntime } from "@/lib/auth-factory";
+import type { Database } from "@/lib/db/connection";
 import { learnerProfiles } from "@/lib/db/schema/learners";
 import { AccessError, requireIdentity } from "@/lib/permissions/access";
 import { isLoopbackOrigin } from "@/lib/local-mode";
@@ -62,15 +63,21 @@ export async function readMyLearner(
 ) {
   const identity = await requireLearnerActor(runtime, headers);
   if (!z.uuid().safeParse(learnerId).success) throw new AccessError(404);
-  const [profile] = await runtime.db
+  return readAuthorizedLearner(runtime.db, identity.userId, learnerId);
+}
+
+/** Same predicate inside booking transactions, including current account and roles. */
+export async function readAuthorizedLearner(
+  db: Pick<Database, "select">,
+  userId: string,
+  learnerId: string,
+  lock = false,
+) {
+  const query = db
     .select(privateProfile)
     .from(learnerProfiles)
-    .where(
-      and(
-        eq(learnerProfiles.id, learnerId),
-        authorizedProfile(identity.userId),
-      ),
-    );
+    .where(and(eq(learnerProfiles.id, learnerId), authorizedProfile(userId)));
+  const [profile] = await (lock ? query.for("share") : query);
   if (!profile) throw new AccessError(404);
   return profile;
 }

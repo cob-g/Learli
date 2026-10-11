@@ -52,6 +52,7 @@ export default async function TutorProfilePage() {
                 headline: profile.headline,
                 bio: profile.bio,
                 teachingBackground: profile.teachingBackground,
+                teachingLanguages: profile.teachingLanguages,
                 timezone: profile.timezone,
                 offerings: profile.offerings.map((offering) => ({
                   subjectId: offering.subjectId,

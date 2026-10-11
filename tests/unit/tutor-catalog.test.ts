@@ -139,6 +139,7 @@ describe("public tutor addresses and filters", () => {
       headline: "h",
       bio: "b",
       teachingBackground: "t",
+      teachingLanguages: [],
       offerings: [
         {
           subjectSlug: "math",
@@ -251,6 +252,7 @@ describe("guided matching", () => {
     headline: "h",
     bio: "b",
     teachingBackground: "t",
+    teachingLanguages: [],
     offerings: [
       {
         subjectSlug: slug,

@@ -839,6 +839,7 @@ describe("public eligibility", () => {
         headline: "Synthetic algebra tutor",
         bio: "Fictional introduction for an automated test.",
         teachingBackground: "Fictional background for an automated test.",
+        teachingLanguages: [],
         offerings: [
           {
             subjectSlug: "math",

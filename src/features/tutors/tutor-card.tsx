@@ -3,6 +3,7 @@ import { levelNames } from "@/features/subjects/catalog";
 import { learnerLevels } from "@/lib/db/schema/app";
 import { cn } from "@/lib/utils";
 import type { PublicTutor } from "./eligibility";
+import { teachingLanguageNames } from "./teaching-languages";
 
 function initials(name: string) {
   const words = name.trim().split(/\s+/).filter(Boolean);
@@ -77,6 +78,11 @@ export function TutorList({
                 </p>
                 <p className="mt-2 line-clamp-2 max-w-prose text-body wrap-anywhere text-muted-foreground">
                   {tutor.bio}
+                </p>
+                <p className="mt-2 text-small text-muted-foreground">
+                  {tutor.teachingLanguages.length
+                    ? `Teaching languages (tutor-declared): ${teachingLanguageNames(tutor.teachingLanguages).join(" · ")}`
+                    : "No teaching languages listed"}
                 </p>
               </div>
             </div>

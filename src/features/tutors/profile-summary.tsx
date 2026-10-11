@@ -1,5 +1,6 @@
 import { levelNames } from "@/features/subjects/catalog";
 import type { TutorProfile } from "./service";
+import { teachingLanguageNames } from "./teaching-languages";
 
 /** Read-only view of what a tutor wrote. Their text is rendered as text. */
 export function ProfileSummary({
@@ -8,7 +9,11 @@ export function ProfileSummary({
 }: {
   profile: Pick<
     TutorProfile,
-    "headline" | "bio" | "teachingBackground" | "offerings"
+    | "headline"
+    | "bio"
+    | "teachingBackground"
+    | "teachingLanguages"
+    | "offerings"
   >;
   timeZone: string;
 }) {
@@ -30,6 +35,13 @@ export function ProfileSummary({
         </dt>
         <dd className="mt-1 text-prose wrap-break-word whitespace-pre-line">
           {profile.teachingBackground}
+        </dd>
+      </div>
+      <div>
+        <dt className="text-label text-muted-foreground">Teaching languages</dt>
+        <dd className="mt-1 text-body">
+          {teachingLanguageNames(profile.teachingLanguages).join(" · ") ||
+            "No teaching languages listed"}
         </dd>
       </div>
       <div>

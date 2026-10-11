@@ -162,7 +162,8 @@ export function AvailabilityForm({
           <p id="zone-help" className="text-small text-muted-foreground">
             All hours below use this time zone. A time-zone change keeps the
             wall-clock hours and changes the actual instants they represent. It
-            also updates your tutor profile.
+            also updates your tutor profile. Saved time off keeps its actual
+            instants.
           </p>
           <FieldError id="zone-error" message={errors.timezone} />
         </div>

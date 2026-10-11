@@ -57,6 +57,12 @@ export default async function AccountPage() {
         </p>
       )}
       <AccountForm account={account} />
+      <Link
+        className="mt-8 inline-flex min-h-11 items-center"
+        href="/account/sessions"
+      >
+        Manage account sessions
+      </Link>
       <SignOut />
     </div>
   );

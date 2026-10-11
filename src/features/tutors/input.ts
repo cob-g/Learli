@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { learnerLevels } from "@/lib/db/schema/app";
 import { timeZoneSchema } from "@/lib/validation/time-zone";
+import { teachingLanguageCodes } from "./teaching-languages";
 
 const offeringInput = z.strictObject({
   subjectId: z.uuid(),
@@ -22,6 +23,14 @@ export const tutorProfileInput = z
     bio: z.string().trim().min(1).max(1500),
     teachingBackground: z.string().trim().min(1).max(1000),
     timezone: timeZoneSchema,
+    teachingLanguages: z
+      .array(z.enum(teachingLanguageCodes))
+      .max(teachingLanguageCodes.length)
+      .refine((codes) => new Set(codes).size === codes.length)
+      .transform((codes) =>
+        teachingLanguageCodes.filter((code) => codes.includes(code)),
+      )
+      .optional(),
     offerings: z
       .array(offeringInput)
       .min(1)
@@ -49,6 +58,8 @@ const fieldMessages = {
   teachingBackground:
     "Enter your teaching background in 1,000 characters or fewer.",
   timezone: "Choose a time zone.",
+  teachingLanguages:
+    "Choose each teaching language once from the listed options.",
   offerings: "Choose at least one subject and a level you teach it at.",
 } as const;
 export type TutorProfileField = keyof typeof fieldMessages;

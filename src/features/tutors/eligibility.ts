@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { Database } from "@/lib/db/connection";
 import {
   subjects,
@@ -6,8 +6,11 @@ import {
   tutorSubjects,
   user,
   userAccess,
+  userRoles,
   type LearnerLevel,
 } from "@/lib/db/schema";
+import { teachingLanguagesSelection } from "./language-query";
+import type { TeachingLanguageCode } from "./teaching-languages";
 
 /** Everything the public may see about a tutor. Nothing else leaves this module. */
 export type PublicTutor = {
@@ -16,6 +19,7 @@ export type PublicTutor = {
   headline: string;
   bio: string;
   teachingBackground: string;
+  teachingLanguages: TeachingLanguageCode[];
   offerings: {
     subjectSlug: string;
     subjectName: string;
@@ -23,7 +27,11 @@ export type PublicTutor = {
     specialty: string | null;
   }[];
 };
-export type TutorFilters = { subject?: string; level?: LearnerLevel };
+export type TutorFilters = {
+  subject?: string;
+  level?: LearnerLevel;
+  language?: TeachingLanguageCode;
+};
 
 /**
  * The single definition of a publicly eligible tutor (prd.md BR-01, BR-02,
@@ -31,7 +39,7 @@ export type TutorFilters = { subject?: string; level?: LearnerLevel };
  * one offering on an active subject. Directory, tutor page, matching and booking
  * must all read tutors through this module so they can never disagree.
  */
-async function eligibleTutors(db: Database, slug?: string) {
+async function eligibleTutors(db: Pick<Database, "select">, slug?: string) {
   const rows = await db
     .select({
       slug: tutorProfiles.slug,
@@ -39,6 +47,7 @@ async function eligibleTutors(db: Database, slug?: string) {
       headline: tutorProfiles.headline,
       bio: tutorProfiles.bio,
       teachingBackground: tutorProfiles.teachingBackground,
+      teachingLanguages: teachingLanguagesSelection(),
       subjectSlug: subjects.slug,
       subjectName: subjects.name,
       levels: tutorSubjects.levels,
@@ -54,6 +63,7 @@ async function eligibleTutors(db: Database, slug?: string) {
         eq(tutorProfiles.reviewStatus, "approved"),
         eq(userAccess.status, "active"),
         eq(user.emailVerified, true),
+        sql`EXISTS (SELECT 1 FROM ${userRoles} r WHERE r.user_id = ${user.id} AND r.role = 'tutor')`,
         eq(subjects.isActive, true),
         slug === undefined ? undefined : eq(tutorProfiles.slug, slug),
       ),
@@ -76,13 +86,16 @@ async function eligibleTutors(db: Database, slug?: string) {
 
 /** A tutor matches when one offering has the subject and the level together. */
 export function filterTutors(tutors: PublicTutor[], filters: TutorFilters) {
-  if (!filters.subject && !filters.level) return tutors;
-  return tutors.filter((tutor) =>
-    tutor.offerings.some(
-      (offering) =>
-        (!filters.subject || offering.subjectSlug === filters.subject) &&
-        (!filters.level || offering.levels.includes(filters.level)),
-    ),
+  if (!filters.subject && !filters.level && !filters.language) return tutors;
+  return tutors.filter(
+    (tutor) =>
+      (!filters.language ||
+        tutor.teachingLanguages.includes(filters.language)) &&
+      tutor.offerings.some(
+        (offering) =>
+          (!filters.subject || offering.subjectSlug === filters.subject) &&
+          (!filters.level || offering.levels.includes(filters.level)),
+      ),
   );
 }
 
@@ -91,14 +104,17 @@ export function filterTutors(tutors: PublicTutor[], filters: TutorFilters) {
  * catalog; move it into the query before inventory grows.
  */
 export async function listEligibleTutors(
-  db: Database,
+  db: Pick<Database, "select">,
   filters: TutorFilters = {},
 ) {
   return filterTutors(await eligibleTutors(db), filters);
 }
 
 /** One eligible tutor, or null. Ineligible and unknown look the same. */
-export async function findEligibleTutor(db: Database, slug: string) {
+export async function findEligibleTutor(
+  db: Pick<Database, "select">,
+  slug: string,
+) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 80) return null;
   return (await eligibleTutors(db, slug))[0] ?? null;
 }

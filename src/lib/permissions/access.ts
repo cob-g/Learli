@@ -26,7 +26,11 @@ export async function requireIdentity(runtime: AuthRuntime, headers: Headers) {
     .select({ role: userRoles.role })
     .from(userRoles)
     .where(eq(userRoles.userId, session.user.id));
-  return { userId: session.user.id, roles: grants.map((grant) => grant.role) };
+  return {
+    userId: session.user.id,
+    sessionId: session.session.id,
+    roles: grants.map((grant) => grant.role),
+  };
 }
 export type Identity = Awaited<ReturnType<typeof requireIdentity>>;
 export async function requireRole(

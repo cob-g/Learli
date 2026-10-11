@@ -1,0 +1,1307 @@
+{
+  "baseline": "3a055deff54149be48a91b44237d0e28b26f3405",
+  "sources": [
+    {
+      "name": "m4-5-booking-core",
+      "head": "3a055deff54149be48a91b44237d0e28b26f3405",
+      "files": [
+        {
+          "path": "context/architecture.md",
+          "sha256": "a39e5af340238d15ffeaac7cfbe68c76eb99c81fb45c59e028e6b16689fa364a",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "context/architecture.md",
+          "candidateSha256": "ef8b55499c2525402c72a745c3e6cf0f4e606c93b13267c90cfe868b678f5b96"
+        },
+        {
+          "path": "context/prd.md",
+          "sha256": "a97219271b79289a75eb9903ed21561f645b63f883bb6aa28716ba7e8677c1fe",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "context/prd.md",
+          "candidateSha256": "c7a74d499e3549d3fcb47952266ddb2ec266f401f808da8132a9d1a7cbd5a256"
+        },
+        {
+          "path": "context/progress-tracker.md",
+          "sha256": "8cee85fdf375f1310ef27779ddba77ebe6f679ef453a49d0778159cb4e126cc5",
+          "disposition": "reconciled: reconcile-historical-evidence",
+          "candidatePath": "context/progress-tracker.md",
+          "candidateSha256": "f0eda9179d9dfe44f840708ec96119b6e0459096135ed1949f0a3b5ec08117b8"
+        },
+        {
+          "path": "docs/decisions/2026-10-11-local-synthetic-booking.md",
+          "sha256": "fa0b5c1ea532a2c4154a13133b77493e39854fb8307496d0bdc9a6f57d4d5db4",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "docs/decisions/2026-10-11-local-synthetic-booking.md",
+          "candidateSha256": "dbfb8d4996447cecb757cb3dce0e0abf6bf87858baed618f3af583b852a74a10"
+        },
+        {
+          "path": "docs/operations/local-synthetic-booking.md",
+          "sha256": "2fc2988456fa39abdd319e4ddb32d73670e007c94ad7437863249987344845d3",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "docs/operations/local-synthetic-booking.md",
+          "candidateSha256": "de6e063c07872f1af50e95d01ddc8e9f597b606e9fa769425e6353699939a202"
+        },
+        {
+          "path": "docs/operations/tutor-time-off.md",
+          "sha256": "88e25ebb5bd2ad380d0ea2567c5d4b2d98286306643a863802091c786ab96fb2",
+          "disposition": "exact-copy",
+          "candidatePath": "docs/operations/tutor-time-off.md",
+          "candidateSha256": "88e25ebb5bd2ad380d0ea2567c5d4b2d98286306643a863802091c786ab96fb2"
+        },
+        {
+          "path": "drizzle/0008_perpetual_celestials.sql",
+          "sha256": "9976aa48be372ebdb218ebc76dffd302f544855d23ffa1602fe55f4dce28fba4",
+          "disposition": "exact-copy",
+          "candidatePath": "drizzle/0008_perpetual_celestials.sql",
+          "candidateSha256": "9976aa48be372ebdb218ebc76dffd302f544855d23ffa1602fe55f4dce28fba4"
+        },
+        {
+          "path": "drizzle/0009_typical_queen_noir.sql",
+          "sha256": "e433cf938fc50195d8f6c7b15836a611fdcea9e154bbae26a30bf98860baae72",
+          "disposition": "exact-copy",
+          "candidatePath": "drizzle/0009_typical_queen_noir.sql",
+          "candidateSha256": "e433cf938fc50195d8f6c7b15836a611fdcea9e154bbae26a30bf98860baae72"
+        },
+        {
+          "path": "drizzle/meta/0008_snapshot.json",
+          "sha256": "175b7b573f4dc5ed341f866898c427217298c120c0cb04ff6d50ac901927b25a",
+          "disposition": "exact-copy",
+          "candidatePath": "drizzle/meta/0008_snapshot.json",
+          "candidateSha256": "175b7b573f4dc5ed341f866898c427217298c120c0cb04ff6d50ac901927b25a"
+        },
+        {
+          "path": "drizzle/meta/0009_snapshot.json",
+          "sha256": "e1f694cc4eb7c01e74b64c589f02246e26095e576e065428ef81b2e5d59b04db",
+          "disposition": "exact-copy",
+          "candidatePath": "drizzle/meta/0009_snapshot.json",
+          "candidateSha256": "e1f694cc4eb7c01e74b64c589f02246e26095e576e065428ef81b2e5d59b04db"
+        },
+        {
+          "path": "drizzle/meta/_journal.json",
+          "sha256": "7f618bac86e10198d8a1f7beb88aef685914f1145349e8db885a608c3a2ab44c",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "drizzle/meta/_journal.json",
+          "candidateSha256": "c8cadcd69c7d13522311410633ace4915fe988ed71a79526f80a1357ef7f2b75"
+        },
+        {
+          "path": "playwright.config.ts",
+          "sha256": "0559ed2b310e2bb9626ead7e3bcec6f05e51acdfb213f93a7ccd6076a40c7b9b",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "playwright.config.ts",
+          "candidateSha256": "3334e258f56dea1e1337d18d625f37acaac8281ad3b6563a63c106d7bf6342c5",
+          "integrationNote": "All five new suites and baseline run on one candidate; serialized mutable fixtures."
+        },
+        {
+          "path": "playwright.time-off.config.ts",
+          "sha256": "51f0032647375a2b67391eb9ea29c205ef0c45bb285c4c104519185d8c7d85d8",
+          "disposition": "exact-copy",
+          "candidatePath": "playwright.time-off.config.ts",
+          "candidateSha256": "51f0032647375a2b67391eb9ea29c205ef0c45bb285c4c104519185d8c7d85d8"
+        },
+        {
+          "path": "prompts/features/m4-03-tutor-time-off.md",
+          "sha256": "91be510691cce27692b5852b0f4e77011339e225f14db03ac3215cd1b57b524b",
+          "disposition": "exact-copy",
+          "candidatePath": "prompts/features/m4-03-tutor-time-off.md",
+          "candidateSha256": "91be510691cce27692b5852b0f4e77011339e225f14db03ac3215cd1b57b524b"
+        },
+        {
+          "path": "prompts/features/m4-05-atomic-synthetic-booking.md",
+          "sha256": "63d9ee09fbdaf1ef6bab9a256e6837eff278499cb339ee19558e9cc7c0205fbc",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "prompts/features/m4-05-atomic-synthetic-booking.md",
+          "candidateSha256": "ba7deae41cc5987f91054c5dc86f6603efde48a7db95ace2ab01d3fafe51dfce"
+        },
+        {
+          "path": "prompts/recovery/2026-10-11-booking-time-labels.md",
+          "sha256": "eef42c639696941563d330c064c5a6cd863792a281b0c6afbbc084983e3c5388",
+          "disposition": "exact-copy",
+          "candidatePath": "prompts/recovery/2026-10-11-booking-time-labels.md",
+          "candidateSha256": "eef42c639696941563d330c064c5a6cd863792a281b0c6afbbc084983e3c5388"
+        },
+        {
+          "path": "prompts/recovery/2026-10-11-booking-verification.md",
+          "sha256": "1519f21d2b9de04cdc3fca40774fe9a60a0c6fd3c2684045425fc142f5236ad3",
+          "disposition": "exact-copy",
+          "candidatePath": "prompts/recovery/2026-10-11-booking-verification.md",
+          "candidateSha256": "1519f21d2b9de04cdc3fca40774fe9a60a0c6fd3c2684045425fc142f5236ad3"
+        },
+        {
+          "path": "scripts/migrate-local.ts",
+          "sha256": "c1e853665a7f549af513963210b59444764859e9c51daa6bf67d6e89087338ab",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "scripts/migrate-local.ts",
+          "candidateSha256": "e55335babfb0c3b6517cf1ef605905f90f5dc51ade062b63bc6c911a5c870ac5",
+          "integrationNote": "Additive restricted grants across all domains, no ownership grant expansion."
+        },
+        {
+          "path": "src/app/(workspace)/bookings/demo/loading.tsx",
+          "sha256": "c03e7bb1f1eed7ba693afd4e89141478a433a28f54109269b98a9e2f4d8ec194",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(workspace)/bookings/demo/loading.tsx",
+          "candidateSha256": "c03e7bb1f1eed7ba693afd4e89141478a433a28f54109269b98a9e2f4d8ec194"
+        },
+        {
+          "path": "src/app/(workspace)/bookings/demo/page.tsx",
+          "sha256": "d66ae55ef9954cc7c46b670e859ed705480ce8fdc1b7f04660ee268e167faaf0",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(workspace)/bookings/demo/page.tsx",
+          "candidateSha256": "d66ae55ef9954cc7c46b670e859ed705480ce8fdc1b7f04660ee268e167faaf0"
+        },
+        {
+          "path": "src/app/(workspace)/tutor/availability/page.tsx",
+          "sha256": "fe37d15877b4740b138e6fc49dcbfd7acee90edfbb83c3c051a1a377d71a8177",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(workspace)/tutor/availability/page.tsx",
+          "candidateSha256": "fe37d15877b4740b138e6fc49dcbfd7acee90edfbb83c3c051a1a377d71a8177"
+        },
+        {
+          "path": "src/app/(workspace)/tutor/time-off/loading.tsx",
+          "sha256": "eb171cd8a20ad69b4895322c81d7d52e8a60ec0b04909862f797cf4f4c1ac384",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(workspace)/tutor/time-off/loading.tsx",
+          "candidateSha256": "eb171cd8a20ad69b4895322c81d7d52e8a60ec0b04909862f797cf4f4c1ac384"
+        },
+        {
+          "path": "src/app/(workspace)/tutor/time-off/page.tsx",
+          "sha256": "3a261b1a56f0becfafc71b1a6856045e890e44372e88c95d7115254d95572ded",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(workspace)/tutor/time-off/page.tsx",
+          "candidateSha256": "3a261b1a56f0becfafc71b1a6856045e890e44372e88c95d7115254d95572ded"
+        },
+        {
+          "path": "src/app/api/bookings/demo/candidates/route.ts",
+          "sha256": "26efd4bd090676beb4a0bf08d1a03c166447837e647ac262e474979cc768744b",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/api/bookings/demo/candidates/route.ts",
+          "candidateSha256": "26efd4bd090676beb4a0bf08d1a03c166447837e647ac262e474979cc768744b"
+        },
+        {
+          "path": "src/app/api/bookings/demo/route.ts",
+          "sha256": "0bba08da2c7e29fbd19b3d543d0d36c2402bb5ec309745164c14ab779633fb22",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/api/bookings/demo/route.ts",
+          "candidateSha256": "0bba08da2c7e29fbd19b3d543d0d36c2402bb5ec309745164c14ab779633fb22"
+        },
+        {
+          "path": "src/app/api/tutor/time-off/route.ts",
+          "sha256": "ab08be14f744856c1714f53e9d4b6ed9ff2a4eba21b3fec85f209253575fabec",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/api/tutor/time-off/route.ts",
+          "candidateSha256": "ab08be14f744856c1714f53e9d4b6ed9ff2a4eba21b3fec85f209253575fabec"
+        },
+        {
+          "path": "src/features/availability/availability-form.tsx",
+          "sha256": "c9d3a5bc793bf8cbd9af77e899a6fdee3c83506837b2759d03c8759160ae337d",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/availability/availability-form.tsx",
+          "candidateSha256": "c9d3a5bc793bf8cbd9af77e899a6fdee3c83506837b2759d03c8759160ae337d"
+        },
+        {
+          "path": "src/features/availability/service.ts",
+          "sha256": "6f086111177405755dc3175b13925045ec2d2eb7e9839a35914721415cbffce6",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "src/features/availability/service.ts",
+          "candidateSha256": "b657759ee7fe93b465b3d3f477dce7169fec0a027fecf33cd19383c2e9065c1e",
+          "integrationNote": "Preserve time-off effective reads; transaction-local post-lock identity."
+        },
+        {
+          "path": "src/features/bookings/demo-booking-form.tsx",
+          "sha256": "a8dcc8533a5b14f8400ac28d8082f9bb85ff113cad6ec2c9fcf26b3ecc8e59fb",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/bookings/demo-booking-form.tsx",
+          "candidateSha256": "a8dcc8533a5b14f8400ac28d8082f9bb85ff113cad6ec2c9fcf26b3ecc8e59fb"
+        },
+        {
+          "path": "src/features/bookings/demo-policy.ts",
+          "sha256": "8e6b160bce0a7e6b0aa2c07a6ee9fb627e6a5a8cd1a5b5f96e171f29bebb8957",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/bookings/demo-policy.ts",
+          "candidateSha256": "8e6b160bce0a7e6b0aa2c07a6ee9fb627e6a5a8cd1a5b5f96e171f29bebb8957"
+        },
+        {
+          "path": "src/features/bookings/format-time.ts",
+          "sha256": "3f3e7df4425c89f4ee0c77a16b4a7fbed7051d2452bb3aedba9bd6c4c7c13d86",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/bookings/format-time.ts",
+          "candidateSha256": "3f3e7df4425c89f4ee0c77a16b4a7fbed7051d2452bb3aedba9bd6c4c7c13d86"
+        },
+        {
+          "path": "src/features/bookings/handler.ts",
+          "sha256": "5aaf195507e5d1cd17be96be406b08d7ff1072ba50431b30e1091747d49efbd2",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/bookings/handler.ts",
+          "candidateSha256": "5aaf195507e5d1cd17be96be406b08d7ff1072ba50431b30e1091747d49efbd2"
+        },
+        {
+          "path": "src/features/bookings/input.ts",
+          "sha256": "3096277da56d53db88708000cfca2cf0d417cddc5e60bbd8098e21b7f778b050",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/bookings/input.ts",
+          "candidateSha256": "3096277da56d53db88708000cfca2cf0d417cddc5e60bbd8098e21b7f778b050"
+        },
+        {
+          "path": "src/features/bookings/lesson-time.tsx",
+          "sha256": "ecf50ab4dde9c3edc91aadc58bb118a2561038679425ee1d9834f70840d10b60",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/bookings/lesson-time.tsx",
+          "candidateSha256": "ecf50ab4dde9c3edc91aadc58bb118a2561038679425ee1d9834f70840d10b60"
+        },
+        {
+          "path": "src/features/bookings/request-fingerprint.ts",
+          "sha256": "516ed082f7bc34e8686a589e2207cbfe0257d891bd11d12549fcc573f6f63230",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/bookings/request-fingerprint.ts",
+          "candidateSha256": "516ed082f7bc34e8686a589e2207cbfe0257d891bd11d12549fcc573f6f63230"
+        },
+        {
+          "path": "src/features/bookings/service.ts",
+          "sha256": "e0b6d1cd54050bf30ccb6ae16a3eb123a30a8616f5f29a4acc29bf141d416d3e",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "src/features/bookings/service.ts",
+          "candidateSha256": "ebb67777632ca63064b5655acbecee637b3fa354742cda7b0c74f51e5c3d663e",
+          "integrationNote": "Recovery: READ COMMITTED post-wait learner checks, compatible actor quota lock, captured event clock."
+        },
+        {
+          "path": "src/features/learners/service.ts",
+          "sha256": "35c282c4bfaba357ab0451da051aed949a156938669a1a58d987febdaf11e35c",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/learners/service.ts",
+          "candidateSha256": "35c282c4bfaba357ab0451da051aed949a156938669a1a58d987febdaf11e35c"
+        },
+        {
+          "path": "src/features/time-off/display.ts",
+          "sha256": "4c72a0ea2541b0e8c15129c533b4f5f53c942df329c568a9e28b722348e2d26c",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/time-off/display.ts",
+          "candidateSha256": "4c72a0ea2541b0e8c15129c533b4f5f53c942df329c568a9e28b722348e2d26c"
+        },
+        {
+          "path": "src/features/time-off/handler.ts",
+          "sha256": "bdc5fa62d7bd131a5e08f82b216b4757e5f5899a03064cbf212b378fb9edbab3",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/time-off/handler.ts",
+          "candidateSha256": "bdc5fa62d7bd131a5e08f82b216b4757e5f5899a03064cbf212b378fb9edbab3"
+        },
+        {
+          "path": "src/features/time-off/input.ts",
+          "sha256": "7cc5526b2c1b3ed1e0f1341cea6c628859879eb6ff82e23da3015c3843d82cb3",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/time-off/input.ts",
+          "candidateSha256": "7cc5526b2c1b3ed1e0f1341cea6c628859879eb6ff82e23da3015c3843d82cb3"
+        },
+        {
+          "path": "src/features/time-off/intervals.ts",
+          "sha256": "b5f45a007b393c2743b5ccd4d0704696175d515b9ffa82dd8d62220977cd8d1c",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/time-off/intervals.ts",
+          "candidateSha256": "b5f45a007b393c2743b5ccd4d0704696175d515b9ffa82dd8d62220977cd8d1c"
+        },
+        {
+          "path": "src/features/time-off/local-time.ts",
+          "sha256": "cf8468f296ca95901c54ac7c9f66627e5d108cd15f541f0c96372ecd8a3d53e8",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/time-off/local-time.ts",
+          "candidateSha256": "cf8468f296ca95901c54ac7c9f66627e5d108cd15f541f0c96372ecd8a3d53e8"
+        },
+        {
+          "path": "src/features/time-off/repository.ts",
+          "sha256": "210c67fac4660b463ca4ca57228d78f068b90a635d4b8cf9fb1035bbe00f969e",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/time-off/repository.ts",
+          "candidateSha256": "210c67fac4660b463ca4ca57228d78f068b90a635d4b8cf9fb1035bbe00f969e"
+        },
+        {
+          "path": "src/features/time-off/service.ts",
+          "sha256": "47632b895f4db30214c1590378c37c8237cb94bffd106c266e827ac6bead178f",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "src/features/time-off/service.ts",
+          "candidateSha256": "7d91e0926d3565463555dfa3fb1859843bd76c8ba1f1adb5fa20ecc6461ded47",
+          "integrationNote": "Preserve combined conflict guard; fresh identity recheck on transaction connection."
+        },
+        {
+          "path": "src/features/time-off/time-off-form.tsx",
+          "sha256": "dda455a555041a5d141ea6052e047d037fd36f0629edc5786e4d5225d18728da",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/time-off/time-off-form.tsx",
+          "candidateSha256": "dda455a555041a5d141ea6052e047d037fd36f0629edc5786e4d5225d18728da"
+        },
+        {
+          "path": "src/features/tutors/eligibility.ts",
+          "sha256": "7b34baeaaa715725e2eba537cea84c87c241172dac94c37a07d2b110411f7cb6",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "src/features/tutors/eligibility.ts",
+          "candidateSha256": "3721b46a8b5ae2cb8e480d0f861780c965efe8037d33196604e451bc9b4ba8f0",
+          "integrationNote": "Combined optional languages/transaction typing plus trusted tutor role eligibility."
+        },
+        {
+          "path": "src/lib/db/schema/app.ts",
+          "sha256": "95d6657084812f3073c67fa2d97d410734cc9fd0785b0e8a9954bed85bd278c0",
+          "disposition": "exact-copy",
+          "candidatePath": "src/lib/db/schema/app.ts",
+          "candidateSha256": "95d6657084812f3073c67fa2d97d410734cc9fd0785b0e8a9954bed85bd278c0"
+        },
+        {
+          "path": "src/lib/db/schema/bookings.ts",
+          "sha256": "d2ee93da5857b569a4cc3581de4dd290c2d11f7f26d3a08332df1d5d29dd8be1",
+          "disposition": "exact-copy",
+          "candidatePath": "src/lib/db/schema/bookings.ts",
+          "candidateSha256": "d2ee93da5857b569a4cc3581de4dd290c2d11f7f26d3a08332df1d5d29dd8be1"
+        },
+        {
+          "path": "src/lib/db/schema/index.ts",
+          "sha256": "6316c8bf63344b9dd8a8d9aafb056350d6e571176bbdcee564d09da56878078e",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "src/lib/db/schema/index.ts",
+          "candidateSha256": "d63638596d9359386f4e9a68dbd826ffd027afb99f614b8822079b20d5f925c7",
+          "integrationNote": "Combined schema exports."
+        },
+        {
+          "path": "src/lib/db/schema/time-off.ts",
+          "sha256": "053217d0bc193870d701325a5abb797ccf871e1c12152c4404e11ca56dd3fbbf",
+          "disposition": "exact-copy",
+          "candidatePath": "src/lib/db/schema/time-off.ts",
+          "candidateSha256": "053217d0bc193870d701325a5abb797ccf871e1c12152c4404e11ca56dd3fbbf"
+        },
+        {
+          "path": "tests/e2e/bookings.spec.ts",
+          "sha256": "cf96bbfda183375b3876bbdd7b64c370bf6b19a20bd904d7d0a47dd214292427",
+          "disposition": "exact-copy",
+          "candidatePath": "tests/e2e/bookings.spec.ts",
+          "candidateSha256": "cf96bbfda183375b3876bbdd7b64c370bf6b19a20bd904d7d0a47dd214292427"
+        },
+        {
+          "path": "tests/e2e/time-off.spec.ts",
+          "sha256": "664de532aab1a72ac0ac2272b9fca6e7511c87ca17dde13b8b759abe6c9865d1",
+          "disposition": "exact-copy",
+          "candidatePath": "tests/e2e/time-off.spec.ts",
+          "candidateSha256": "664de532aab1a72ac0ac2272b9fca6e7511c87ca17dde13b8b759abe6c9865d1"
+        },
+        {
+          "path": "tests/integration/bookings.test.ts",
+          "sha256": "19603bf7344d9c68265d194282038be814f238c00b6d32a4d8aa6cc208d0e40f",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "tests/integration/bookings.test.ts",
+          "candidateSha256": "975c539c5f69533683d42bee4e44051dcafd93f9feb898416a9ab2090ecc1d38",
+          "integrationNote": "Meaningful integration/queued authorization/quota/capacity/deadlock/clock regressions."
+        },
+        {
+          "path": "tests/integration/time-off.test.ts",
+          "sha256": "3a8be66b55a00e33fc4b97a616faa14f23802eea6acd28b239a5f7c60d99c0da",
+          "disposition": "exact-copy",
+          "candidatePath": "tests/integration/time-off.test.ts",
+          "candidateSha256": "3a8be66b55a00e33fc4b97a616faa14f23802eea6acd28b239a5f7c60d99c0da"
+        },
+        {
+          "path": "tests/unit/booking.test.ts",
+          "sha256": "f2d21f37d8fe1b6e215591b4e0dbc0e676bd1c8fedadda10c4265efc6d7728f3",
+          "disposition": "exact-copy",
+          "candidatePath": "tests/unit/booking.test.ts",
+          "candidateSha256": "f2d21f37d8fe1b6e215591b4e0dbc0e676bd1c8fedadda10c4265efc6d7728f3"
+        },
+        {
+          "path": "tests/unit/time-off.test.ts",
+          "sha256": "90d8838e6924bbd69bddcc0f70a9028cab7a7c67b3a28e47057422cb0cc7a528",
+          "disposition": "exact-copy",
+          "candidatePath": "tests/unit/time-off.test.ts",
+          "candidateSha256": "90d8838e6924bbd69bddcc0f70a9028cab7a7c67b3a28e47057422cb0cc7a528"
+        }
+      ],
+      "pathHashFingerprint": "5bdd785361593f9003ebdeb77149c92cededfd67d6c175252701f2fd2a9af2cf"
+    },
+    {
+      "name": "m4-3-time-off",
+      "head": "3a055deff54149be48a91b44237d0e28b26f3405",
+      "files": [
+        {
+          "path": "context/architecture.md",
+          "sha256": "f1e4f04b5af6b7eba8cd14b206e93ed820266d7adafd6fd8a921a5575923fb13",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "context/architecture.md",
+          "candidateSha256": "ef8b55499c2525402c72a745c3e6cf0f4e606c93b13267c90cfe868b678f5b96"
+        },
+        {
+          "path": "context/progress-tracker.md",
+          "sha256": "b2887c37070f79e50777182806e8664848b593858da0d8f3bd77c083c436752f",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "context/progress-tracker.md",
+          "candidateSha256": "f0eda9179d9dfe44f840708ec96119b6e0459096135ed1949f0a3b5ec08117b8"
+        },
+        {
+          "path": "docs/operations/tutor-time-off.md",
+          "sha256": "2ed22327beb149fa0e3b6b324f22fed5a7fca0be60336c34152875dbfbd48411",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "docs/operations/tutor-time-off.md",
+          "candidateSha256": "88e25ebb5bd2ad380d0ea2567c5d4b2d98286306643a863802091c786ab96fb2"
+        },
+        {
+          "path": "drizzle/0008_tutor_time_off.sql",
+          "sha256": "e433cf938fc50195d8f6c7b15836a611fdcea9e154bbae26a30bf98860baae72",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "drizzle/0009_typical_queen_noir.sql",
+          "candidateSha256": "e433cf938fc50195d8f6c7b15836a611fdcea9e154bbae26a30bf98860baae72"
+        },
+        {
+          "path": "drizzle/meta/0008_snapshot.json",
+          "sha256": "9b543a3564bc07067c4d4695dfa456d30143fb122f0af6d9aba8d9f58da97476",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "drizzle/meta/0009_snapshot.json",
+          "candidateSha256": "e1f694cc4eb7c01e74b64c589f02246e26095e576e065428ef81b2e5d59b04db"
+        },
+        {
+          "path": "drizzle/meta/_journal.json",
+          "sha256": "311af0249c45296d0fad5a4be9d0cd0932a403db7a07d5b80a726311a33a3bcf",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "drizzle/meta/_journal.json",
+          "candidateSha256": "c8cadcd69c7d13522311410633ace4915fe988ed71a79526f80a1357ef7f2b75"
+        },
+        {
+          "path": "playwright.time-off.config.ts",
+          "sha256": "51f0032647375a2b67391eb9ea29c205ef0c45bb285c4c104519185d8c7d85d8",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "playwright.time-off.config.ts",
+          "candidateSha256": "51f0032647375a2b67391eb9ea29c205ef0c45bb285c4c104519185d8c7d85d8"
+        },
+        {
+          "path": "prompts/features/m4-03-tutor-time-off.md",
+          "sha256": "91be510691cce27692b5852b0f4e77011339e225f14db03ac3215cd1b57b524b",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "prompts/features/m4-03-tutor-time-off.md",
+          "candidateSha256": "91be510691cce27692b5852b0f4e77011339e225f14db03ac3215cd1b57b524b"
+        },
+        {
+          "path": "scripts/migrate-local.ts",
+          "sha256": "81c135905358e8df84949c2da19a5f47b0bf949d32fa5a75460ee24b7423269e",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "scripts/migrate-local.ts",
+          "candidateSha256": "e55335babfb0c3b6517cf1ef605905f90f5dc51ade062b63bc6c911a5c870ac5",
+          "integrationNote": "Additive restricted grants across all domains, no ownership grant expansion."
+        },
+        {
+          "path": "src/app/(workspace)/tutor/availability/page.tsx",
+          "sha256": "fe37d15877b4740b138e6fc49dcbfd7acee90edfbb83c3c051a1a377d71a8177",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/app/(workspace)/tutor/availability/page.tsx",
+          "candidateSha256": "fe37d15877b4740b138e6fc49dcbfd7acee90edfbb83c3c051a1a377d71a8177"
+        },
+        {
+          "path": "src/app/(workspace)/tutor/time-off/loading.tsx",
+          "sha256": "eb171cd8a20ad69b4895322c81d7d52e8a60ec0b04909862f797cf4f4c1ac384",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/app/(workspace)/tutor/time-off/loading.tsx",
+          "candidateSha256": "eb171cd8a20ad69b4895322c81d7d52e8a60ec0b04909862f797cf4f4c1ac384"
+        },
+        {
+          "path": "src/app/(workspace)/tutor/time-off/page.tsx",
+          "sha256": "3a261b1a56f0becfafc71b1a6856045e890e44372e88c95d7115254d95572ded",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/app/(workspace)/tutor/time-off/page.tsx",
+          "candidateSha256": "3a261b1a56f0becfafc71b1a6856045e890e44372e88c95d7115254d95572ded"
+        },
+        {
+          "path": "src/app/api/tutor/time-off/route.ts",
+          "sha256": "ab08be14f744856c1714f53e9d4b6ed9ff2a4eba21b3fec85f209253575fabec",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/app/api/tutor/time-off/route.ts",
+          "candidateSha256": "ab08be14f744856c1714f53e9d4b6ed9ff2a4eba21b3fec85f209253575fabec"
+        },
+        {
+          "path": "src/features/availability/availability-form.tsx",
+          "sha256": "c9d3a5bc793bf8cbd9af77e899a6fdee3c83506837b2759d03c8759160ae337d",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/features/availability/availability-form.tsx",
+          "candidateSha256": "c9d3a5bc793bf8cbd9af77e899a6fdee3c83506837b2759d03c8759160ae337d"
+        },
+        {
+          "path": "src/features/availability/service.ts",
+          "sha256": "6f086111177405755dc3175b13925045ec2d2eb7e9839a35914721415cbffce6",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/features/availability/service.ts",
+          "candidateSha256": "b657759ee7fe93b465b3d3f477dce7169fec0a027fecf33cd19383c2e9065c1e",
+          "integrationNote": "Preserve time-off effective reads; transaction-local post-lock identity."
+        },
+        {
+          "path": "src/features/time-off/display.ts",
+          "sha256": "4c72a0ea2541b0e8c15129c533b4f5f53c942df329c568a9e28b722348e2d26c",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/features/time-off/display.ts",
+          "candidateSha256": "4c72a0ea2541b0e8c15129c533b4f5f53c942df329c568a9e28b722348e2d26c"
+        },
+        {
+          "path": "src/features/time-off/handler.ts",
+          "sha256": "bdc5fa62d7bd131a5e08f82b216b4757e5f5899a03064cbf212b378fb9edbab3",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/features/time-off/handler.ts",
+          "candidateSha256": "bdc5fa62d7bd131a5e08f82b216b4757e5f5899a03064cbf212b378fb9edbab3"
+        },
+        {
+          "path": "src/features/time-off/input.ts",
+          "sha256": "7cc5526b2c1b3ed1e0f1341cea6c628859879eb6ff82e23da3015c3843d82cb3",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/features/time-off/input.ts",
+          "candidateSha256": "7cc5526b2c1b3ed1e0f1341cea6c628859879eb6ff82e23da3015c3843d82cb3"
+        },
+        {
+          "path": "src/features/time-off/intervals.ts",
+          "sha256": "b5f45a007b393c2743b5ccd4d0704696175d515b9ffa82dd8d62220977cd8d1c",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/features/time-off/intervals.ts",
+          "candidateSha256": "b5f45a007b393c2743b5ccd4d0704696175d515b9ffa82dd8d62220977cd8d1c"
+        },
+        {
+          "path": "src/features/time-off/local-time.ts",
+          "sha256": "cf8468f296ca95901c54ac7c9f66627e5d108cd15f541f0c96372ecd8a3d53e8",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/features/time-off/local-time.ts",
+          "candidateSha256": "cf8468f296ca95901c54ac7c9f66627e5d108cd15f541f0c96372ecd8a3d53e8"
+        },
+        {
+          "path": "src/features/time-off/repository.ts",
+          "sha256": "210c67fac4660b463ca4ca57228d78f068b90a635d4b8cf9fb1035bbe00f969e",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/features/time-off/repository.ts",
+          "candidateSha256": "210c67fac4660b463ca4ca57228d78f068b90a635d4b8cf9fb1035bbe00f969e"
+        },
+        {
+          "path": "src/features/time-off/service.ts",
+          "sha256": "f1e99dad701a1f488444c1b61cf9b12639cb880698ff0f5e167de9de378f599c",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/features/time-off/service.ts",
+          "candidateSha256": "7d91e0926d3565463555dfa3fb1859843bd76c8ba1f1adb5fa20ecc6461ded47",
+          "integrationNote": "Preserve combined conflict guard; fresh identity recheck on transaction connection."
+        },
+        {
+          "path": "src/features/time-off/time-off-form.tsx",
+          "sha256": "42f8f3b48b5e22d3d3ee5308b91903aff8bfe3a229eeebbbc7c73a46f7a6861e",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/features/time-off/time-off-form.tsx",
+          "candidateSha256": "dda455a555041a5d141ea6052e047d037fd36f0629edc5786e4d5225d18728da"
+        },
+        {
+          "path": "src/lib/db/schema/app.ts",
+          "sha256": "95d6657084812f3073c67fa2d97d410734cc9fd0785b0e8a9954bed85bd278c0",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/lib/db/schema/app.ts",
+          "candidateSha256": "95d6657084812f3073c67fa2d97d410734cc9fd0785b0e8a9954bed85bd278c0"
+        },
+        {
+          "path": "src/lib/db/schema/index.ts",
+          "sha256": "475b3558248fbd07455a10365babdcd174e3c1326758f4d5f2e53a8ac57484d3",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/lib/db/schema/index.ts",
+          "candidateSha256": "d63638596d9359386f4e9a68dbd826ffd027afb99f614b8822079b20d5f925c7",
+          "integrationNote": "Combined schema exports."
+        },
+        {
+          "path": "src/lib/db/schema/time-off.ts",
+          "sha256": "053217d0bc193870d701325a5abb797ccf871e1c12152c4404e11ca56dd3fbbf",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "src/lib/db/schema/time-off.ts",
+          "candidateSha256": "053217d0bc193870d701325a5abb797ccf871e1c12152c4404e11ca56dd3fbbf"
+        },
+        {
+          "path": "tests/e2e/time-off.spec.ts",
+          "sha256": "664de532aab1a72ac0ac2272b9fca6e7511c87ca17dde13b8b759abe6c9865d1",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "tests/e2e/time-off.spec.ts",
+          "candidateSha256": "664de532aab1a72ac0ac2272b9fca6e7511c87ca17dde13b8b759abe6c9865d1"
+        },
+        {
+          "path": "tests/integration/time-off.test.ts",
+          "sha256": "3a8be66b55a00e33fc4b97a616faa14f23802eea6acd28b239a5f7c60d99c0da",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "tests/integration/time-off.test.ts",
+          "candidateSha256": "3a8be66b55a00e33fc4b97a616faa14f23802eea6acd28b239a5f7c60d99c0da"
+        },
+        {
+          "path": "tests/unit/time-off.test.ts",
+          "sha256": "90d8838e6924bbd69bddcc0f70a9028cab7a7c67b3a28e47057422cb0cc7a528",
+          "disposition": "provenance-only: combined booking source owns import",
+          "candidatePath": "tests/unit/time-off.test.ts",
+          "candidateSha256": "90d8838e6924bbd69bddcc0f70a9028cab7a7c67b3a28e47057422cb0cc7a528"
+        }
+      ],
+      "pathHashFingerprint": "b4ad887b08ff9896ddf37b74200dcfc668436e4f1233195967cd900e56e6406d"
+    },
+    {
+      "name": "m3-5-teaching-languages",
+      "head": "3a055deff54149be48a91b44237d0e28b26f3405",
+      "files": [
+        {
+          "path": "context/architecture.md",
+          "sha256": "e715cf41c5521b4b3542e7bfa9fc67221ca7eeafadaf25131b4d82a7e66cde3e",
+          "disposition": "reconciled: manual-shared-reconciliation",
+          "candidatePath": "context/architecture.md",
+          "candidateSha256": "ef8b55499c2525402c72a745c3e6cf0f4e606c93b13267c90cfe868b678f5b96"
+        },
+        {
+          "path": "context/prd.md",
+          "sha256": "c12d1ae5fe61a552785e423ac874f25a2d8fd59ac859f31c0376cb18574c6be5",
+          "disposition": "reconciled: manual-shared-reconciliation",
+          "candidatePath": "context/prd.md",
+          "candidateSha256": "c7a74d499e3549d3fcb47952266ddb2ec266f401f808da8132a9d1a7cbd5a256"
+        },
+        {
+          "path": "context/progress-tracker.md",
+          "sha256": "62f3c08b8a3eb4c1cb1d5149df9ef473fc904c2da753399f37cced95ce41c978",
+          "disposition": "reconciled: reconcile-historical-evidence",
+          "candidatePath": "context/progress-tracker.md",
+          "candidateSha256": "f0eda9179d9dfe44f840708ec96119b6e0459096135ed1949f0a3b5ec08117b8"
+        },
+        {
+          "path": "docs/decisions/2026-10-11-teaching-languages.md",
+          "sha256": "d3846d34b9a0d3f621a9442bd523fd576dfe1d51f80654899592f379c561200e",
+          "disposition": "exact-copy",
+          "candidatePath": "docs/decisions/2026-10-11-teaching-languages.md",
+          "candidateSha256": "d3846d34b9a0d3f621a9442bd523fd576dfe1d51f80654899592f379c561200e"
+        },
+        {
+          "path": "drizzle/0008_tutor_teaching_languages.sql",
+          "sha256": "6787151e0624b65c780ef6a10b0b6db10fa04242fe78813c06fe43bbc524e2ae",
+          "disposition": "regenerate-additive-migration",
+          "candidatePath": "drizzle/0010_integration_teaching_languages.sql",
+          "candidateSha256": "6787151e0624b65c780ef6a10b0b6db10fa04242fe78813c06fe43bbc524e2ae"
+        },
+        {
+          "path": "drizzle/meta/0008_snapshot.json",
+          "sha256": "02f7bb198b780a51da9a48f5e7d225d274264b11971d7c5d616e8a501c531041",
+          "disposition": "regenerate-additive-migration",
+          "candidatePath": "drizzle/meta/0010_snapshot.json",
+          "candidateSha256": "6ae54ca71d683470dd3917c571e54b00a0c903264601c0999590530aea94cebf"
+        },
+        {
+          "path": "drizzle/meta/_journal.json",
+          "sha256": "07f46f90a97fa1effb3ccee17f9c9a757c1de4e659c418f3e43cad82e0584779",
+          "disposition": "regenerate-additive-migration",
+          "candidatePath": "drizzle/meta/_journal.json",
+          "candidateSha256": "c8cadcd69c7d13522311410633ace4915fe988ed71a79526f80a1357ef7f2b75"
+        },
+        {
+          "path": "playwright.languages.config.ts",
+          "sha256": "9b1f20cbbdddf9f1957535e9f209ca0aed6c0f2dc10c4695b2daf0bfc2c27bb4",
+          "disposition": "exact-copy",
+          "candidatePath": "playwright.languages.config.ts",
+          "candidateSha256": "9b1f20cbbdddf9f1957535e9f209ca0aed6c0f2dc10c4695b2daf0bfc2c27bb4"
+        },
+        {
+          "path": "prompts/features/m3-05-teaching-languages.md",
+          "sha256": "9c55dd1130dea0aa01cb17087c5788f9c2d908538d53f0a30eb481505a9c33a3",
+          "disposition": "exact-copy",
+          "candidatePath": "prompts/features/m3-05-teaching-languages.md",
+          "candidateSha256": "9c55dd1130dea0aa01cb17087c5788f9c2d908538d53f0a30eb481505a9c33a3"
+        },
+        {
+          "path": "prompts/recovery/2026-10-11-teaching-language-filters.md",
+          "sha256": "e6ea0053aefb31ceda0d809c37db186471ff1e33f174189e34efee2f2a3ff748",
+          "disposition": "exact-copy",
+          "candidatePath": "prompts/recovery/2026-10-11-teaching-language-filters.md",
+          "candidateSha256": "e6ea0053aefb31ceda0d809c37db186471ff1e33f174189e34efee2f2a3ff748"
+        },
+        {
+          "path": "scripts/migrate-local.ts",
+          "sha256": "97e984bb9764a7712f1d5beaaee145036c5868929701c1e57ea96bf80a29131b",
+          "disposition": "reconciled: manual-shared-reconciliation",
+          "candidatePath": "scripts/migrate-local.ts",
+          "candidateSha256": "e55335babfb0c3b6517cf1ef605905f90f5dc51ade062b63bc6c911a5c870ac5",
+          "integrationNote": "Additive restricted grants across all domains, no ownership grant expansion."
+        },
+        {
+          "path": "src/app/(marketing)/tutors/[slug]/page.tsx",
+          "sha256": "9f3229fa8a4fb4e40602ad4a797efaa70775dc5d353e3be70280c2592691d913",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(marketing)/tutors/[slug]/page.tsx",
+          "candidateSha256": "9f3229fa8a4fb4e40602ad4a797efaa70775dc5d353e3be70280c2592691d913"
+        },
+        {
+          "path": "src/app/(marketing)/tutors/page.tsx",
+          "sha256": "e68c80d03681baea410f04956c44e0612eacc55e09006ffdb0c599c2f6746fb5",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(marketing)/tutors/page.tsx",
+          "candidateSha256": "e68c80d03681baea410f04956c44e0612eacc55e09006ffdb0c599c2f6746fb5"
+        },
+        {
+          "path": "src/app/(workspace)/tutor/profile/page.tsx",
+          "sha256": "449302c80b7b45e0bc312f80bb9f6b77ac39ef10af91543829c8eab90824b8f8",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(workspace)/tutor/profile/page.tsx",
+          "candidateSha256": "449302c80b7b45e0bc312f80bb9f6b77ac39ef10af91543829c8eab90824b8f8"
+        },
+        {
+          "path": "src/features/tutors/eligibility.ts",
+          "sha256": "e6e9378845989c11abff6b07009846346281132ef9a63ced395661a641f3dc3f",
+          "disposition": "reconciled: manual-shared-reconciliation",
+          "candidatePath": "src/features/tutors/eligibility.ts",
+          "candidateSha256": "3721b46a8b5ae2cb8e480d0f861780c965efe8037d33196604e451bc9b4ba8f0",
+          "integrationNote": "Combined optional languages/transaction typing plus trusted tutor role eligibility."
+        },
+        {
+          "path": "src/features/tutors/input.ts",
+          "sha256": "b28ddc8f5963b48245958b9b6d7489ac6daa1477ea2223d3ca02fe65ff57a7b9",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/tutors/input.ts",
+          "candidateSha256": "b28ddc8f5963b48245958b9b6d7489ac6daa1477ea2223d3ca02fe65ff57a7b9"
+        },
+        {
+          "path": "src/features/tutors/language-query.ts",
+          "sha256": "6fe008a8f234202ac7b6f8fb2a634af1dcdff35a172b4944a0c81ca1d97fbcdf",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/tutors/language-query.ts",
+          "candidateSha256": "6fe008a8f234202ac7b6f8fb2a634af1dcdff35a172b4944a0c81ca1d97fbcdf"
+        },
+        {
+          "path": "src/features/tutors/profile-summary.tsx",
+          "sha256": "68a6cdfa052c9cdc527ff4923533370af900561037f9ba858f097c61478d4d32",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/tutors/profile-summary.tsx",
+          "candidateSha256": "68a6cdfa052c9cdc527ff4923533370af900561037f9ba858f097c61478d4d32"
+        },
+        {
+          "path": "src/features/tutors/public.ts",
+          "sha256": "d2b680ec64a1f3182311f32014576e4424fc3490e2e7028dc2054a1a4a3b774d",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/tutors/public.ts",
+          "candidateSha256": "d2b680ec64a1f3182311f32014576e4424fc3490e2e7028dc2054a1a4a3b774d"
+        },
+        {
+          "path": "src/features/tutors/search.ts",
+          "sha256": "3560e0e7fce6630abaace9d6b456b83f5728ad88cc1ba9d70ade1fb37518bb58",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/tutors/search.ts",
+          "candidateSha256": "3560e0e7fce6630abaace9d6b456b83f5728ad88cc1ba9d70ade1fb37518bb58"
+        },
+        {
+          "path": "src/features/tutors/service.ts",
+          "sha256": "1915c89c69396eacf465a7c17155cd6b53e81fa6da6726f83cfcea1d84322178",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "src/features/tutors/service.ts",
+          "candidateSha256": "dd12190cac5094482834a79183774029f540d0b66e585dbd1c7ff9a6a8feed2e",
+          "integrationNote": "Preserve optional declaration semantics; transaction-local post-lock identity."
+        },
+        {
+          "path": "src/features/tutors/teaching-languages.ts",
+          "sha256": "ce6ac39fb5d0854977b509be3e40fa895492a3d91e5017a0d368585fa323fedc",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/tutors/teaching-languages.ts",
+          "candidateSha256": "ce6ac39fb5d0854977b509be3e40fa895492a3d91e5017a0d368585fa323fedc"
+        },
+        {
+          "path": "src/features/tutors/tutor-card.tsx",
+          "sha256": "c47a940ba47cb56ccf6a53bebcf2531e7ea07f0ba86a7061e53216c42a2d1a50",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/tutors/tutor-card.tsx",
+          "candidateSha256": "c47a940ba47cb56ccf6a53bebcf2531e7ea07f0ba86a7061e53216c42a2d1a50"
+        },
+        {
+          "path": "src/features/tutors/tutor-filter-form.tsx",
+          "sha256": "16ad009af6b384a10d34d0465f9834ab7779fce17789d5200655bf8714d35f48",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/tutors/tutor-filter-form.tsx",
+          "candidateSha256": "16ad009af6b384a10d34d0465f9834ab7779fce17789d5200655bf8714d35f48"
+        },
+        {
+          "path": "src/features/tutors/tutor-profile-form.tsx",
+          "sha256": "41a46626fa394b27d62fe74e10da6b3a5a7fe3b9cf6e265b9b739994464167ff",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/tutors/tutor-profile-form.tsx",
+          "candidateSha256": "41a46626fa394b27d62fe74e10da6b3a5a7fe3b9cf6e265b9b739994464167ff"
+        },
+        {
+          "path": "src/lib/db/schema/index.ts",
+          "sha256": "59d32bb890778b5256910dd216e33d2b924830bcaa73beace8e57000768c8e55",
+          "disposition": "reconciled: manual-shared-reconciliation",
+          "candidatePath": "src/lib/db/schema/index.ts",
+          "candidateSha256": "d63638596d9359386f4e9a68dbd826ffd027afb99f614b8822079b20d5f925c7",
+          "integrationNote": "Combined schema exports."
+        },
+        {
+          "path": "src/lib/db/schema/tutor-languages.ts",
+          "sha256": "60922dc6e516a59fb514503b35d08deefd222b6d6157d7b7f0c38bf7f1e2647c",
+          "disposition": "exact-copy",
+          "candidatePath": "src/lib/db/schema/tutor-languages.ts",
+          "candidateSha256": "60922dc6e516a59fb514503b35d08deefd222b6d6157d7b7f0c38bf7f1e2647c"
+        },
+        {
+          "path": "tests/e2e/teaching-languages.spec.ts",
+          "sha256": "87e1532ae7640cb67de4387b19e53cf644331de3ea52531393a10551d32e059e",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "tests/e2e/teaching-languages.spec.ts",
+          "candidateSha256": "91fbb9694e0c65a5b8a6278978f5b6f14afee7ea16b2f82508ae2937552cd582",
+          "integrationNote": "Trusted-role exclusion across discovery consumers/inventory."
+        },
+        {
+          "path": "tests/integration/teaching-languages.test.ts",
+          "sha256": "0a703cbf4055760ad1c99cba3931ad71529b676983ac3de598ed884aacbfe913",
+          "disposition": "exact-copy",
+          "candidatePath": "tests/integration/teaching-languages.test.ts",
+          "candidateSha256": "0a703cbf4055760ad1c99cba3931ad71529b676983ac3de598ed884aacbfe913"
+        },
+        {
+          "path": "tests/integration/tutor-catalog.test.ts",
+          "sha256": "6c40f58eeb67480b1d904f9b1764a485da3715e4c719a1bc9ecb8edb95bbb2b7",
+          "disposition": "exact-copy",
+          "candidatePath": "tests/integration/tutor-catalog.test.ts",
+          "candidateSha256": "6c40f58eeb67480b1d904f9b1764a485da3715e4c719a1bc9ecb8edb95bbb2b7"
+        },
+        {
+          "path": "tests/unit/teaching-languages.test.ts",
+          "sha256": "efdb49ac539c71bb1b74f8a400aae23dc5fba32e749839fa0937672e150a11e7",
+          "disposition": "exact-copy",
+          "candidatePath": "tests/unit/teaching-languages.test.ts",
+          "candidateSha256": "efdb49ac539c71bb1b74f8a400aae23dc5fba32e749839fa0937672e150a11e7"
+        },
+        {
+          "path": "tests/unit/tutor-catalog.test.ts",
+          "sha256": "a3e6ac183aee552be4c0b723fb1498824b800b6fb239d6a8857f13eb1a47553b",
+          "disposition": "exact-copy",
+          "candidatePath": "tests/unit/tutor-catalog.test.ts",
+          "candidateSha256": "a3e6ac183aee552be4c0b723fb1498824b800b6fb239d6a8857f13eb1a47553b"
+        }
+      ],
+      "pathHashFingerprint": "6aaf7ddc0ee76390b704ff11ecdd2b91168ced9c8b324421b7398b8bbb4d7a89"
+    },
+    {
+      "name": "m5-9-support-reporting",
+      "head": "3a055deff54149be48a91b44237d0e28b26f3405",
+      "files": [
+        {
+          "path": "context/architecture.md",
+          "sha256": "21abeaad0965db9a970a34887941706a6fc85ef9441689c56aa4d76bb7337f6d",
+          "disposition": "reconciled: manual-shared-reconciliation",
+          "candidatePath": "context/architecture.md",
+          "candidateSha256": "ef8b55499c2525402c72a745c3e6cf0f4e606c93b13267c90cfe868b678f5b96"
+        },
+        {
+          "path": "context/prd.md",
+          "sha256": "d2f265c8f3810b1e82dcb28b108f3e4cc6ca1286f75e61c905e178350b9dbeb5",
+          "disposition": "reconciled: manual-shared-reconciliation",
+          "candidatePath": "context/prd.md",
+          "candidateSha256": "c7a74d499e3549d3fcb47952266ddb2ec266f401f808da8132a9d1a7cbd5a256"
+        },
+        {
+          "path": "context/progress-tracker.md",
+          "sha256": "0189d84cbf9d932c5e5300687e146dcc0f7b723d8d3f840082d77cf7e0a60bca",
+          "disposition": "reconciled: reconcile-historical-evidence",
+          "candidatePath": "context/progress-tracker.md",
+          "candidateSha256": "f0eda9179d9dfe44f840708ec96119b6e0459096135ed1949f0a3b5ec08117b8"
+        },
+        {
+          "path": "docs/decisions/2026-10-11-local-support-reporting.md",
+          "sha256": "88a0a272517a58ea2672c84ed9ec216cb9fb1e2f3c6895ac530177ccf9b6f2ab",
+          "disposition": "exact-copy",
+          "candidatePath": "docs/decisions/2026-10-11-local-support-reporting.md",
+          "candidateSha256": "88a0a272517a58ea2672c84ed9ec216cb9fb1e2f3c6895ac530177ccf9b6f2ab"
+        },
+        {
+          "path": "docs/operations/local-support-reporting.md",
+          "sha256": "aebd3c08c87177dfbb43dd80ca329042c3244a5ce399b41f7340a69c304501f8",
+          "disposition": "exact-copy",
+          "candidatePath": "docs/operations/local-support-reporting.md",
+          "candidateSha256": "aebd3c08c87177dfbb43dd80ca329042c3244a5ce399b41f7340a69c304501f8"
+        },
+        {
+          "path": "drizzle/0008_local_support_reporting.sql",
+          "sha256": "14281222f873997b485945c7f5e22bd7b97b8e3d7a96186b13614925996f6e9d",
+          "disposition": "regenerate-additive-migration",
+          "candidatePath": "drizzle/0011_integration_support_reporting.sql",
+          "candidateSha256": "7a83a1b9454da502bec4a691d78fb257f85f4ae03157ddc8840afe55f19df127"
+        },
+        {
+          "path": "drizzle/0009_support_event_integrity.sql",
+          "sha256": "bcc8577733ebd7b78902f801fe8dc2bbbe54c39f52cd2108dfad72f3ab10714d",
+          "disposition": "regenerate-additive-migration",
+          "candidatePath": "drizzle/0011_integration_support_reporting.sql",
+          "candidateSha256": "7a83a1b9454da502bec4a691d78fb257f85f4ae03157ddc8840afe55f19df127"
+        },
+        {
+          "path": "drizzle/meta/0008_snapshot.json",
+          "sha256": "03aeb718ece3121e118abe25677acb07aaf559320269d8749699e9617bc36e9c",
+          "disposition": "regenerate-additive-migration",
+          "candidatePath": "drizzle/meta/0011_snapshot.json",
+          "candidateSha256": "1861443117f378f8b373861ee040981df37af58546aab92954485d14d2d4b09a"
+        },
+        {
+          "path": "drizzle/meta/0009_snapshot.json",
+          "sha256": "9165f6fdbb8591aa885d274f1ff95f52d346d2cc700692fe499e070a377e6d39",
+          "disposition": "regenerate-additive-migration",
+          "candidatePath": "drizzle/meta/0011_snapshot.json",
+          "candidateSha256": "1861443117f378f8b373861ee040981df37af58546aab92954485d14d2d4b09a"
+        },
+        {
+          "path": "drizzle/meta/_journal.json",
+          "sha256": "e1a96fe282fed4a0b136a99ae789c92c00324d4e7eaf0b9bd0b07a87c1726b87",
+          "disposition": "regenerate-additive-migration",
+          "candidatePath": "drizzle/meta/_journal.json",
+          "candidateSha256": "c8cadcd69c7d13522311410633ace4915fe988ed71a79526f80a1357ef7f2b75"
+        },
+        {
+          "path": "playwright.support.config.ts",
+          "sha256": "56d4d1716d637581e6bc2ab0e27bbeb2ffb10630299112fab1ff53b49d0bad8b",
+          "disposition": "exact-copy",
+          "candidatePath": "playwright.support.config.ts",
+          "candidateSha256": "56d4d1716d637581e6bc2ab0e27bbeb2ffb10630299112fab1ff53b49d0bad8b"
+        },
+        {
+          "path": "prompts/features/m5-09-local-support-reporting.md",
+          "sha256": "e9ec323c63b9435b0d62a9913900445d44164f7e57f642bb048f2f416e8a302a",
+          "disposition": "exact-copy",
+          "candidatePath": "prompts/features/m5-09-local-support-reporting.md",
+          "candidateSha256": "e9ec323c63b9435b0d62a9913900445d44164f7e57f642bb048f2f416e8a302a"
+        },
+        {
+          "path": "prompts/recovery/2026-10-11-local-support-checks.md",
+          "sha256": "b72cd4e6e28c612838f99faddf405ee7354bb5c129a6de3a66ec04f0c1479551",
+          "disposition": "exact-copy",
+          "candidatePath": "prompts/recovery/2026-10-11-local-support-checks.md",
+          "candidateSha256": "b72cd4e6e28c612838f99faddf405ee7354bb5c129a6de3a66ec04f0c1479551"
+        },
+        {
+          "path": "scripts/local-support.ts",
+          "sha256": "9b52244235904a728a682de4c9a9ade0dfb00347d0657cc84e4c5264be988212",
+          "disposition": "exact-copy",
+          "candidatePath": "scripts/local-support.ts",
+          "candidateSha256": "9b52244235904a728a682de4c9a9ade0dfb00347d0657cc84e4c5264be988212"
+        },
+        {
+          "path": "scripts/migrate-local.ts",
+          "sha256": "86d35bb185cace9960391a3ab38ffabf0344d967b432ebc4bad47b9cf5c0f8d4",
+          "disposition": "reconciled: manual-shared-reconciliation",
+          "candidatePath": "scripts/migrate-local.ts",
+          "candidateSha256": "e55335babfb0c3b6517cf1ef605905f90f5dc51ade062b63bc6c911a5c870ac5",
+          "integrationNote": "Additive restricted grants across all domains, no ownership grant expansion."
+        },
+        {
+          "path": "src/app/(marketing)/contact/page.tsx",
+          "sha256": "c1d48cd27a885e55bf7036242a0450d675ad7715faa2565d24dca48bcad4650d",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(marketing)/contact/page.tsx",
+          "candidateSha256": "c1d48cd27a885e55bf7036242a0450d675ad7715faa2565d24dca48bcad4650d"
+        },
+        {
+          "path": "src/app/(marketing)/report-a-concern/page.tsx",
+          "sha256": "32be0beeab0a04f3227ee349f7dd2abc90a3d4a6327ee940902cac8e2dbdad56",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(marketing)/report-a-concern/page.tsx",
+          "candidateSha256": "32be0beeab0a04f3227ee349f7dd2abc90a3d4a6327ee940902cac8e2dbdad56"
+        },
+        {
+          "path": "src/app/(workspace)/admin/support/[caseId]/page.tsx",
+          "sha256": "2b8a2a4efa94b6eca85b52e6def5bc78facce5a6def713a2f4236c2f4d8004db",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(workspace)/admin/support/[caseId]/page.tsx",
+          "candidateSha256": "2b8a2a4efa94b6eca85b52e6def5bc78facce5a6def713a2f4236c2f4d8004db"
+        },
+        {
+          "path": "src/app/(workspace)/admin/support/loading.tsx",
+          "sha256": "dc793211083082dfdcb6c9e8379ffc5c8eb4bb4e3d1cdd4edca6d4a8a6414e65",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(workspace)/admin/support/loading.tsx",
+          "candidateSha256": "dc793211083082dfdcb6c9e8379ffc5c8eb4bb4e3d1cdd4edca6d4a8a6414e65"
+        },
+        {
+          "path": "src/app/(workspace)/admin/support/page.tsx",
+          "sha256": "4194afa993fd4f5cf5d6b7320aef679581c48ff7e2fc767e86f337dacfe9f23d",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(workspace)/admin/support/page.tsx",
+          "candidateSha256": "4194afa993fd4f5cf5d6b7320aef679581c48ff7e2fc767e86f337dacfe9f23d"
+        },
+        {
+          "path": "src/app/(workspace)/support/[caseId]/page.tsx",
+          "sha256": "8f531623a197b3beb8e5dd0e8465dfde737fbd9d5e26964551331778a359ca4e",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(workspace)/support/[caseId]/page.tsx",
+          "candidateSha256": "8f531623a197b3beb8e5dd0e8465dfde737fbd9d5e26964551331778a359ca4e"
+        },
+        {
+          "path": "src/app/(workspace)/support/loading.tsx",
+          "sha256": "dc793211083082dfdcb6c9e8379ffc5c8eb4bb4e3d1cdd4edca6d4a8a6414e65",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(workspace)/support/loading.tsx",
+          "candidateSha256": "dc793211083082dfdcb6c9e8379ffc5c8eb4bb4e3d1cdd4edca6d4a8a6414e65"
+        },
+        {
+          "path": "src/app/(workspace)/support/page.tsx",
+          "sha256": "fb6da8bf3aa654cc3cbbf84c131bc37ca3982ec92ed1c9495c418a69d7ff9e5b",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(workspace)/support/page.tsx",
+          "candidateSha256": "fb6da8bf3aa654cc3cbbf84c131bc37ca3982ec92ed1c9495c418a69d7ff9e5b"
+        },
+        {
+          "path": "src/app/api/admin/support/[caseId]/route.ts",
+          "sha256": "370868f099b24e9063f8fcff948eef6f9cfe3032d2901e2e7aed6877b15a58b8",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/api/admin/support/[caseId]/route.ts",
+          "candidateSha256": "370868f099b24e9063f8fcff948eef6f9cfe3032d2901e2e7aed6877b15a58b8"
+        },
+        {
+          "path": "src/app/api/admin/support/[caseId]/status/route.ts",
+          "sha256": "9c21584445bb057ffa610612dd27fa08c16a58fb4378aa16c99b5c6535648ed0",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/api/admin/support/[caseId]/status/route.ts",
+          "candidateSha256": "9c21584445bb057ffa610612dd27fa08c16a58fb4378aa16c99b5c6535648ed0"
+        },
+        {
+          "path": "src/app/api/admin/support/route.ts",
+          "sha256": "62c27e0ddaea3b288320f47203a093aad09872762017d71b4441038e6d62af5a",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/api/admin/support/route.ts",
+          "candidateSha256": "62c27e0ddaea3b288320f47203a093aad09872762017d71b4441038e6d62af5a"
+        },
+        {
+          "path": "src/app/api/support/[caseId]/route.ts",
+          "sha256": "75a90fc6a21e33d24a419e4186b9cdb8896ba0cb8eee8a876610cb745ecf157d",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/api/support/[caseId]/route.ts",
+          "candidateSha256": "75a90fc6a21e33d24a419e4186b9cdb8896ba0cb8eee8a876610cb745ecf157d"
+        },
+        {
+          "path": "src/app/api/support/route.ts",
+          "sha256": "d9eb90c4da00365c9cd74856d81b6a464082d3cd323f04a66842f6b1f957e203",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/api/support/route.ts",
+          "candidateSha256": "d9eb90c4da00365c9cd74856d81b6a464082d3cd323f04a66842f6b1f957e203"
+        },
+        {
+          "path": "src/features/admin/admin-shell.tsx",
+          "sha256": "241bf6bc8854b3347d5f3338576f4e07e40088dffdf788386086bba2813ee11d",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/admin/admin-shell.tsx",
+          "candidateSha256": "241bf6bc8854b3347d5f3338576f4e07e40088dffdf788386086bba2813ee11d"
+        },
+        {
+          "path": "src/features/support/case-form.tsx",
+          "sha256": "870a86de3b090676a414eff70f7f757228f15bc5344c88c67ae51732f94c2775",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/support/case-form.tsx",
+          "candidateSha256": "870a86de3b090676a414eff70f7f757228f15bc5344c88c67ae51732f94c2775"
+        },
+        {
+          "path": "src/features/support/entry.tsx",
+          "sha256": "5b7a6c4b651533bab087ba0084c3837e37f777fe381dcd21cb24beb3c699516f",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/support/entry.tsx",
+          "candidateSha256": "5b7a6c4b651533bab087ba0084c3837e37f777fe381dcd21cb24beb3c699516f"
+        },
+        {
+          "path": "src/features/support/fixture-tooling.ts",
+          "sha256": "2cfb2430f9fa77977b93fa8ec1a2574e4769c4b18dd252a6d8402c57044c98ba",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/support/fixture-tooling.ts",
+          "candidateSha256": "2cfb2430f9fa77977b93fa8ec1a2574e4769c4b18dd252a6d8402c57044c98ba"
+        },
+        {
+          "path": "src/features/support/handler.ts",
+          "sha256": "3644e57907849a51262a968f7f4aa9c540bf7a13271c2da28297c473629e3c8a",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/support/handler.ts",
+          "candidateSha256": "3644e57907849a51262a968f7f4aa9c540bf7a13271c2da28297c473629e3c8a"
+        },
+        {
+          "path": "src/features/support/input.ts",
+          "sha256": "ee378ccc2c767e6d12369af2297dfd66a146b25a50ae7b078def87c8334f6d4f",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/support/input.ts",
+          "candidateSha256": "ee378ccc2c767e6d12369af2297dfd66a146b25a50ae7b078def87c8334f6d4f"
+        },
+        {
+          "path": "src/features/support/presentation.tsx",
+          "sha256": "3bbc3a45cfb231ef731fa3aeccdab0eb86811c94672600bdd578cf37c9606705",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/support/presentation.tsx",
+          "candidateSha256": "3bbc3a45cfb231ef731fa3aeccdab0eb86811c94672600bdd578cf37c9606705"
+        },
+        {
+          "path": "src/features/support/service.ts",
+          "sha256": "e61ac78831673045818e00bd19e679872a4ba7a5b6783ed0697ed76465b14254",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "src/features/support/service.ts",
+          "candidateSha256": "e632518474f211eaba4fb5acc40b1f15503904647bba2536c0634b1c1e62ae52",
+          "integrationNote": "Fresh post-wait identity and exact-case predicates on existing transaction connection."
+        },
+        {
+          "path": "src/features/support/status-form.tsx",
+          "sha256": "04f5c4d56f0a0a410360aa2fe607e4c4cacbaa033de33fe31c297481397a01ee",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/support/status-form.tsx",
+          "candidateSha256": "04f5c4d56f0a0a410360aa2fe607e4c4cacbaa033de33fe31c297481397a01ee"
+        },
+        {
+          "path": "src/features/support/title.tsx",
+          "sha256": "2d4ab05da8f04757976009c7aa18071c850df456faa55a4540b6b6e16c5006a4",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/support/title.tsx",
+          "candidateSha256": "2d4ab05da8f04757976009c7aa18071c850df456faa55a4540b6b6e16c5006a4"
+        },
+        {
+          "path": "src/lib/db/schema/index.ts",
+          "sha256": "f70da309c34db1d12547b4eff2c8915bb555ec6f377df93d0e67588c59f4cc58",
+          "disposition": "reconciled: manual-shared-reconciliation",
+          "candidatePath": "src/lib/db/schema/index.ts",
+          "candidateSha256": "d63638596d9359386f4e9a68dbd826ffd027afb99f614b8822079b20d5f925c7",
+          "integrationNote": "Combined schema exports."
+        },
+        {
+          "path": "src/lib/db/schema/support.ts",
+          "sha256": "f1c341d74a42c04e79ddfddff83ec5aa732fd52466b07ccf474d546f4c1ee737",
+          "disposition": "exact-copy",
+          "candidatePath": "src/lib/db/schema/support.ts",
+          "candidateSha256": "f1c341d74a42c04e79ddfddff83ec5aa732fd52466b07ccf474d546f4c1ee737"
+        },
+        {
+          "path": "src/lib/rule-error.ts",
+          "sha256": "782df4b637889cfdd339da2f17e4a1128e3442d5576f05e949181a5fc5ae5a51",
+          "disposition": "exact-copy",
+          "candidatePath": "src/lib/rule-error.ts",
+          "candidateSha256": "782df4b637889cfdd339da2f17e4a1128e3442d5576f05e949181a5fc5ae5a51"
+        },
+        {
+          "path": "tests/e2e/support.spec.ts",
+          "sha256": "082dd24d6ed226d0ed06b29e41dfb1c78ccdc40ba88e4c71ab6a7580aef5025e",
+          "disposition": "exact-copy",
+          "candidatePath": "tests/e2e/support.spec.ts",
+          "candidateSha256": "082dd24d6ed226d0ed06b29e41dfb1c78ccdc40ba88e4c71ab6a7580aef5025e"
+        },
+        {
+          "path": "tests/integration/support-cases.test.ts",
+          "sha256": "811081c6130f5b8281f2816b62e8734f938259eb05ff83977b383ffeea7333db",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "tests/integration/support-cases.test.ts",
+          "candidateSha256": "e0512b7d134e6a16ed2e1fe6c0c6e93c1faf3b886565fa52d1d229d09ff1d43d",
+          "integrationNote": "Queued read/status/create provider-session denial and unchanged history."
+        },
+        {
+          "path": "tests/unit/support.test.ts",
+          "sha256": "677b469565bf07d8f84be7c9fee495c3200016674e60dab314c1425f9299b7f1",
+          "disposition": "exact-copy",
+          "candidatePath": "tests/unit/support.test.ts",
+          "candidateSha256": "677b469565bf07d8f84be7c9fee495c3200016674e60dab314c1425f9299b7f1"
+        }
+      ],
+      "pathHashFingerprint": "f79e1ac752f674f259cfe723fd07f1b93909d8a11b864fbca60af55b9ee89683"
+    },
+    {
+      "name": "m2-9-account-sessions",
+      "head": "3a055deff54149be48a91b44237d0e28b26f3405",
+      "files": [
+        {
+          "path": "context/progress-tracker.md",
+          "sha256": "aef39dcfcb3cf55a5e28d18fca7dba926b78937284375c4276d2c9d3112461b8",
+          "disposition": "reconciled: reconcile-historical-evidence",
+          "candidatePath": "context/progress-tracker.md",
+          "candidateSha256": "f0eda9179d9dfe44f840708ec96119b6e0459096135ed1949f0a3b5ec08117b8"
+        },
+        {
+          "path": "docs/operations/local-account-sessions.md",
+          "sha256": "542ca85e4d17d9d87a412828b9888a54d0d4e8745f111e035d25c46730dcb6bb",
+          "disposition": "exact-copy",
+          "candidatePath": "docs/operations/local-account-sessions.md",
+          "candidateSha256": "542ca85e4d17d9d87a412828b9888a54d0d4e8745f111e035d25c46730dcb6bb"
+        },
+        {
+          "path": "playwright.account-sessions.config.ts",
+          "sha256": "cd7fa73208e62c5ea2c9c0868107d69fdb5b91424ad17b6edd61b03596160950",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "playwright.account-sessions.config.ts",
+          "candidateSha256": "d32fa3c4c9b4599228b2206041e1cb4563217f116b04bc24ca4cbcfaabbf95ea",
+          "integrationNote": "Dedicated config selects sessions only, avoiding duplicated default projects."
+        },
+        {
+          "path": "prompts/features/m2-09-account-sessions.md",
+          "sha256": "9bb78bc87602343ee5bc432670b0f831045c879eae1772a3c87a8ba36c569863",
+          "disposition": "exact-copy",
+          "candidatePath": "prompts/features/m2-09-account-sessions.md",
+          "candidateSha256": "9bb78bc87602343ee5bc432670b0f831045c879eae1772a3c87a8ba36c569863"
+        },
+        {
+          "path": "src/app/(workspace)/account/page.tsx",
+          "sha256": "8b32ca785a1f4613a45a6fbe35824ec5492caf546ebcb9ae53248b926635e26c",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(workspace)/account/page.tsx",
+          "candidateSha256": "8b32ca785a1f4613a45a6fbe35824ec5492caf546ebcb9ae53248b926635e26c"
+        },
+        {
+          "path": "src/app/(workspace)/account/sessions/page.tsx",
+          "sha256": "3566385d5d9cb6019f847731490c6d6afafa7701de03086be1331e7f1935590f",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/(workspace)/account/sessions/page.tsx",
+          "candidateSha256": "3566385d5d9cb6019f847731490c6d6afafa7701de03086be1331e7f1935590f"
+        },
+        {
+          "path": "src/app/api/account/sessions/revoke/route.ts",
+          "sha256": "c4f10599b2680da2283b8abae39d20c336ddb67018e450e021ffc252eef2c352",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/api/account/sessions/revoke/route.ts",
+          "candidateSha256": "c4f10599b2680da2283b8abae39d20c336ddb67018e450e021ffc252eef2c352"
+        },
+        {
+          "path": "src/app/api/account/sessions/route.ts",
+          "sha256": "2b79c88bbcaed7f5fe4496b7a509aa7e470998bcccfd44a542268f55ed6393d4",
+          "disposition": "exact-copy",
+          "candidatePath": "src/app/api/account/sessions/route.ts",
+          "candidateSha256": "2b79c88bbcaed7f5fe4496b7a509aa7e470998bcccfd44a542268f55ed6393d4"
+        },
+        {
+          "path": "src/features/account-sessions/handler.ts",
+          "sha256": "778921143a49358c9a52dcada331f4dc103a238cc545c614bc5527854b6316d4",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/account-sessions/handler.ts",
+          "candidateSha256": "778921143a49358c9a52dcada331f4dc103a238cc545c614bc5527854b6316d4"
+        },
+        {
+          "path": "src/features/account-sessions/model.ts",
+          "sha256": "1769e9aed8149b174fd4e8b6beb865aefdedecee7d17de7bbc31c2d202b84aac",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/account-sessions/model.ts",
+          "candidateSha256": "1769e9aed8149b174fd4e8b6beb865aefdedecee7d17de7bbc31c2d202b84aac"
+        },
+        {
+          "path": "src/features/account-sessions/service.ts",
+          "sha256": "71c87ff9af079884447a51bb9d241693386cf7818760357aa0c608474e3e7f3f",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/account-sessions/service.ts",
+          "candidateSha256": "71c87ff9af079884447a51bb9d241693386cf7818760357aa0c608474e3e7f3f"
+        },
+        {
+          "path": "src/features/account-sessions/session-list.tsx",
+          "sha256": "70b7033d836e46526f32d3592ea5f3ace281a96da6714d077c8cc0554dedc802",
+          "disposition": "exact-copy",
+          "candidatePath": "src/features/account-sessions/session-list.tsx",
+          "candidateSha256": "70b7033d836e46526f32d3592ea5f3ace281a96da6714d077c8cc0554dedc802"
+        },
+        {
+          "path": "tests/e2e/account-sessions.spec.ts",
+          "sha256": "e2953a7968097d6d690079e5ae6245884f68500b85fd91547473a13d4a2a6f82",
+          "disposition": "exact-copy",
+          "candidatePath": "tests/e2e/account-sessions.spec.ts",
+          "candidateSha256": "e2953a7968097d6d690079e5ae6245884f68500b85fd91547473a13d4a2a6f82"
+        },
+        {
+          "path": "tests/integration/account-sessions.test.ts",
+          "sha256": "de4a48009762de4e4b38af75c591c5198cc43c7b71212a1c4f73093ed7527fab",
+          "disposition": "reconciled: exact-copy",
+          "candidatePath": "tests/integration/account-sessions.test.ts",
+          "candidateSha256": "fa963c7152818f911dbb146001211043a6ac862fb4a97c5dc971836d1a8a5374",
+          "integrationNote": "Revoked provider cookie denies booking/support next requests."
+        },
+        {
+          "path": "tests/unit/account-sessions.test.ts",
+          "sha256": "e36df8852a6303b020c020e9fdaeb0232f4e82511f5fbc7e7ab366003060460c",
+          "disposition": "exact-copy",
+          "candidatePath": "tests/unit/account-sessions.test.ts",
+          "candidateSha256": "e36df8852a6303b020c020e9fdaeb0232f4e82511f5fbc7e7ab366003060460c"
+        }
+      ],
+      "pathHashFingerprint": "ab09ba2735a262b4b5f72278697cb90bd3b326e42a117f3533fcdbd0b4839e28"
+    }
+  ],
+  "candidateCodeFingerprint": "b096dd33636548b83ecb7cf15912df49411763fc6ee6d7fa67c0d5d3726f6166",
+  "candidateFingerprintAlgorithm": "SHA256 sorted changed code/config/test/migration path + NUL + SHA256(bytes) + LF",
+  "integrationAdditions": [
+    {
+      "path": "src/lib/permissions/access.ts",
+      "sha256": "a1c8b85b4c3bb542405688d7041f099a75bbdc7c997a8145f453fa3a741efb79"
+    },
+    {
+      "path": "src/lib/permissions/recheck.ts",
+      "sha256": "58f5c299087ddbfc74340d65f1004c0218a32b524a92b50d3b1d0d8dd7c19eb5"
+    }
+  ]
+}

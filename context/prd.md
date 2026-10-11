@@ -449,6 +449,13 @@ Each requirement has an **ID**, **priority**, **status**, a user-visible outcome
 **Acceptance criteria:**
 
 - Tutor can edit own headline/bio, supported subjects/levels, and applicable teaching languages.
+- Local M3.2/M3.5: teaching languages are optional tutor declarations from a
+  bounded code catalogue, with no inference or proficiency verification. Missing
+  declarations do not affect eligibility; omitted profile input preserves them
+  and an explicit empty array clears them. Directory language filters compose
+  with subject/level and use eligible tutors' actual declarations. Catalogue
+  authority is coordinator-delegated, recorded in
+  `docs/decisions/2026-10-11-teaching-languages.md`.
 - Empty or invalid required fields are rejected with clear errors.
 - Display text is safely rendered; unsafe HTML/scripts are not executed.
 - Updating another tutor's profile is forbidden even via direct API calls.
@@ -604,6 +611,14 @@ Each requirement has an **ID**, **priority**, **status**, a user-visible outcome
 
 #### BKG-03 — Correct provisional and confirmed statuses `P0 [GATED]`
 
+**Local development exception, 2026-10-11:** the dispatched coordinator authorized
+a synthetic reservation exercise with 60-minute elapsed duration, 30-minute start
+step, 60-minute notice, 14-day horizon and a 10-minute lifetime. Only
+`demo_reserved`→`demo_expired` exists; UI labels simulation and expiry, never paid
+or confirmed. Actor/key retries preserve the original expired result without
+renewal. This is coordinator-delegated local behavior, not real customer terms,
+guardian consent or commercial approval; see the local synthetic booking decision.
+
 **As a customer**, I know whether I really have a confirmed lesson.
 
 **Acceptance criteria:**
@@ -736,6 +751,17 @@ Each requirement has an **ID**, **priority**, **status**, a user-visible outcome
 - Optional scheduled reminders are included **only if** a reliable, cost-appropriate scheduling method is approved.
 
 #### OPS-05 — Contact, support, and incident reporting `P0 [AGREED]`
+
+Local development slice (2026-10-11, delegated coordinator decision): fictional
+general/account/safety reports at `/contact` and `/report-a-concern`; active
+verified synthetic requester submit/read only; preauthorized case-assigned admin
+reviewer controls open → in_review → closed and closed → in_review reopening.
+Owner fixture tooling alone controls grants/assignment. No runtime self-claim,
+admin bypass, real incident handling, response-time promise, booking reference,
+private learner lookup, notes/replies, email or automatic moderation. All surfaces
+state local demo, not monitored and not an emergency channel. This does not
+satisfy human owner/escalation/consent/legal launch gates. See
+`docs/decisions/2026-10-11-local-support-reporting.md`.
 
 **As a learner, guardian, or tutor**, I have a way to report a booking issue or safety concern.
 

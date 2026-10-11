@@ -12,6 +12,11 @@ import {
 import type { LearnerLevel } from "@/lib/db/schema/app";
 import type { TimeZoneOption } from "@/lib/time/zones";
 import type { TutorProfileField } from "./input";
+import {
+  teachingLanguageCodes,
+  teachingLanguageLabels,
+  type TeachingLanguageCode,
+} from "./teaching-languages";
 
 type Selection = Record<string, { levels: LearnerLevel[]; specialty: string }>;
 type FieldErrors = Partial<Record<TutorProfileField, string>>;
@@ -19,6 +24,7 @@ export type TutorProfileFormValues = {
   headline: string;
   bio: string;
   teachingBackground: string;
+  teachingLanguages: TeachingLanguageCode[];
   timezone: string;
   offerings: {
     subjectId: string;
@@ -116,6 +122,7 @@ export function TutorProfileForm({
           bio: data.get("bio"),
           teachingBackground: data.get("teachingBackground"),
           timezone: data.get("timezone"),
+          teachingLanguages: data.getAll("teachingLanguages"),
           offerings,
         }),
       });
@@ -144,7 +151,13 @@ export function TutorProfileForm({
       });
     } finally {
       setPending(false);
-      requestAnimationFrame(() => noticeRef.current?.focus());
+      requestAnimationFrame(() => {
+        const invalid = document.querySelector<HTMLElement>(
+          '[aria-label="Tutor profile"] [aria-invalid="true"]',
+        );
+        if (invalid) invalid.focus();
+        else noticeRef.current?.focus();
+      });
     }
   }
 
@@ -242,6 +255,41 @@ export function TutorProfileForm({
         </p>
         <FieldError id="timezone-error" message={errors.timezone} />
       </div>
+      <fieldset aria-describedby="languages-help languages-error">
+        <legend className="text-item-title">
+          Teaching languages{" "}
+          <span className="text-caption text-muted-foreground">(optional)</span>
+        </legend>
+        <p
+          id="languages-help"
+          className="mt-2 max-w-prose text-small text-muted-foreground"
+        >
+          Choose the languages you use to teach. These are your declarations;
+          Learli has not checked your proficiency.
+        </p>
+        <div className="mt-2 grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+          {teachingLanguageCodes.map((code) => (
+            <label
+              key={code}
+              className="inline-flex min-h-11 items-center gap-2 text-body"
+            >
+              <input
+                type="checkbox"
+                name="teachingLanguages"
+                value={code}
+                className="size-5"
+                defaultChecked={
+                  initial?.teachingLanguages.includes(code) ?? false
+                }
+                aria-invalid={!!errors.teachingLanguages}
+                aria-describedby="languages-help languages-error"
+              />
+              {teachingLanguageLabels[code]}
+            </label>
+          ))}
+        </div>
+        <FieldError id="languages-error" message={errors.teachingLanguages} />
+      </fieldset>
       <fieldset
         ref={offeringsRef}
         aria-describedby="offerings-help offerings-error"

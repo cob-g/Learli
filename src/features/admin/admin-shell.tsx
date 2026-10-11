@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 const areas = [
   ["tutors", "/admin/tutors", "Tutor review queue"],
   ["subjects", "/admin/subjects", "Subjects"],
+  ["support", "/admin/support", "Assigned support cases"],
 ] as const;
 export type AdminArea = (typeof areas)[number][0];
 
