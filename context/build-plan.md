@@ -541,7 +541,7 @@ Treat `ui-context.md` as the source for design and interaction behavior. The **p
 
 ### Visual guidance
 
-- Use the **lowercase `learli` logo**; capitalize *Learli* in running text. Primary navy `#1E2A78`, teal `#2ECCB0`, neutral `#F7F9FC`, occasional purple only as a proposed initial theme from `ui-context.md`.
+- Use the **lowercase `learli` logo**; capitalize *Learli* in running text. Primary navy `#1E2A78`, teal `#2ECCB0`, neutral `#F7F9FC` as the proposed initial theme from `ui-context.md` (version 1.1 removed the lavender accent).
 - Use theme **CSS variables** and semantic tokens; no feature-level hardcoded colors. Use **navy/white** for primary CTA; avoid low-contrast white text on bright teal.
 - Use **Poppins** as the proposed brand font; do not mix arbitrary font families across pages. Shared Tailwind/shadcn components should be responsive, navigable and accessible.
 - Show real profile, status, timezone and action context before secondary decoration. Keep dashboards compact; no fake performance charts or LMS navigation.

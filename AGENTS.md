@@ -1,3 +1,27 @@
+## Repository-local skills
+
+Skill sources live in `skills/<name>/SKILL.md`. Codex discovers them through
+relative directory symlinks in `.agents/skills/`, and Claude Code through the
+same kind of symlinks in `.claude/skills/`; edit the source files under
+`skills/` so there is only one maintained copy. All project paths in these
+skills are relative to the repository root unless explicitly stated otherwise.
+
+- **architect** — Plan a Learli change and prepare an implementation blueprint. Read [SKILL.md](skills/architect/SKILL.md).
+- **recover** — Diagnose failures and prepare a safe recovery handoff. Read [SKILL.md](skills/recover/SKILL.md).
+- **remember** — Save or restore a concise session handoff. Read [SKILL.md](skills/remember/SKILL.md).
+- **review** — Review implementation against its approved blueprint. Read [SKILL.md](skills/review/SKILL.md).
+
+In Codex, invoke these with `$architect`, `$recover`, `$remember save`,
+`$remember restore`, or `$review`. Slash-command examples inside the skill
+instructions express the same intent; use `$name` for Codex skill mentions.
+In Claude Code, invoke them as `/architect`, `/recover`, `/remember save`,
+`/remember restore`, or `/review`.
+Other agents can read the linked files directly. Load the applicable skill
+before using it, preserve its scope, and do not automatically chain skills.
+These four skills do not supply implementation or test-execution workflows.
+
+---
+
 ## Application Building Context
 
 Read the following files in order before implementing

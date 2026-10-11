@@ -148,6 +148,17 @@ These are **documented selections, not proof of completed deployment or code**.
 - **Recommended next session:** Inspect the real repository, record its URL/branch/commit and current test commands, then begin or verify **M1**. Work on non-commercial foundations while the founder resolves gated policies.
 - **Last known deployment:** **Unknown / not verified**.
 
+### Session — 2026-10-11 (UI context revision)
+
+- **Owner / branch / PR:** Claude Code session for the repository owner · `main` working tree · no commit or PR created.
+- **Goal:** Install the Impeccable design skill and use it to revise `context/ui-context.md` so UI built from it avoids generic "AI slop" defaults.
+- **Changed:** `context/ui-context.md` 1.0 → 1.1 (documentation only). `context/build-plan.md` Visual guidance line (lavender mention removed to match). `.gitignore` (Impeccable ignore block, engine binary, local Claude settings). Added `.claude/skills/impeccable/` and `.claude/agents/impeccable-*.md` (Impeccable 4.5.2, project scope, design hook not enabled).
+- **Verified:** Documentation only. No application code exists, so no typecheck, lint, test, or build was run. Review evidence for the document: an eight-lens Impeccable analysis of 1.0 (131 findings, every quote machine-checked); contrast ratios recomputed by script; a four-angle review of the first 1.1 draft (104 findings, applied in the final text); a blind before/after probe in which builds from 1.0 scored 9 and 2 detector findings and 1/4 specificity, and builds from the first 1.1 draft scored 1 and 1 and 3/4. **Not verified:** the final text was edited after that review, and a last verification pass was stopped early. The CSS and TypeScript snippets in the final text were not recompiled after the last edits. One build from the final text was scanned (3 `cramped-padding` findings; the list-panel padding rule behind two of them was then changed and not re-scanned).
+- **Milestone status:** M0 Documented → unchanged. No software milestone changed.
+- **Blockers / decisions:** 23 open design decisions are listed in `ui-context.md` under Change management. All values remain `[PROPOSED]`. No approved `learli` wordmark or app-icon file is in the repository. Lines in `build-plan.md`, `code-standards.md`, and `project-overview.md` that 1.1 makes stale are listed in the same section and were not edited.
+- **Deployment:** Not deployed.
+- **Next session:** Founder review of the open design decisions in `ui-context.md`, then M1 as planned.
+
 ### Required update format after each meaningful development session
 
 Copy this compact entry for the next session; include only **actual evidence**:
