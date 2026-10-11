@@ -40,7 +40,8 @@ test("local signup, verification, safe return, settings and logout work end to e
   const external: string[] = [];
   page.on("request", (request) => {
     const origin = new URL(request.url()).origin;
-    if (origin !== "http://127.0.0.1:3100") external.push(origin);
+    if (origin !== (process.env.APP_URL ?? "http://127.0.0.1:3100"))
+      external.push(origin);
   });
   await page.goto("/sign-up?next=%2Ftutors%3Fsubject%3Dmath");
   await page
@@ -101,7 +102,7 @@ test("password recovery stays local and produces a usable new login", async ({
 }) => {
   const email = `reset-${randomUUID()}@learli.test`;
   await page.request.post("/api/auth/sign-up/email", {
-    headers: { origin: "http://127.0.0.1:3100" },
+    headers: { origin: process.env.APP_URL ?? "http://127.0.0.1:3100" },
     data: { email, name: "Reset learner", password, callbackURL: "/sign-in" },
   });
   await page.goto((await mail(email, "verification")).url);
@@ -126,7 +127,7 @@ test("password recovery stays local and produces a usable new login", async ({
 test("workspace pages enforce trusted role grants", async ({ page }) => {
   const email = `roles-${randomUUID()}@learli.test`;
   const response = await page.request.post("/api/auth/sign-up/email", {
-    headers: { origin: "http://127.0.0.1:3100" },
+    headers: { origin: process.env.APP_URL ?? "http://127.0.0.1:3100" },
     data: { email, name: "Role learner", password, callbackURL: "/sign-in" },
   });
   const { user } = await response.json();

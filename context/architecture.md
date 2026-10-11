@@ -578,6 +578,23 @@ Use PostgreSQL for **structured records**, not for general-purpose file storage.
 - `id`, `tutor_id`, UTC start/end, unavailable reason/category (non-sensitive), created_at.
 - A tutor can mark exceptions without changing weekly patterns.
 
+**Local M4.1 implementation — 2026-10-11:** weekly windows now use ISO weekdays
+(1–7) and integer local start/end minutes, with explicit overnight ends above
+1440 and a maximum span of 24 hours. `tutor_profiles.timezone` is the shared IANA
+teaching zone; no per-window duplicate zone, effective dates or inactive rows yet.
+`availability_version` and a locked profile row protect atomic whole-schedule
+replacement from stale tabs. Overlapping recurring windows (including Sunday to
+Monday) are rejected by the service; database checks enforce valid day/minute
+bounds, FK ownership and duplicate prevention. This is not booking overlap protection.
+Profile edits cannot change the zone while windows exist; the availability editor
+saves zone and hours together, preserving wall-clock hours with an explicit warning.
+Initial/profile-only zone changes increment the same revision. Pending/rejected
+profiles can prepare hours without becoming public; suspended profiles cannot edit.
+Reads and writes are owner-scoped. `readOwnAvailabilityIntervals` connects stored
+windows to the existing UTC engine; public slots, busy-booking exclusion, time off
+and actual bookings remain later M4 work. The 42-window request limit is a technical
+bound, not a lesson duration or booking policy.
+
 ### 9.5 Bookings and attendance status
 
 **`bookings`**

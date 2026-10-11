@@ -130,3 +130,23 @@ never commit it. Official references:
 [Drizzle adapter](https://better-auth.com/docs/adapters/drizzle),
 [Email/password flows](https://better-auth.com/docs/authentication/email-password),
 [PostgreSQL/Drizzle](https://orm.drizzle.team/docs/get-started/postgresql-new).
+
+### Separate worktree development
+
+Each concurrent session needs its own checkout and local PostgreSQL cluster.
+On a new worktree, choose unused loopback ports before initial setup, for example:
+
+```sh
+LEARLI_DB_PORT=55441 LEARLI_DEV_PORT=3001 LEARLI_TEST_PORT=3101 npm run local:setup
+npm run dev -- --port 3001
+```
+
+Defaults remain 55432/3000/3100. New clusters remember their selected ports in
+private local state, so subsequent `npm run db:start` needs no overrides. Setup
+rejects changes to those stored ports and preserves existing environment files;
+these settings are for a fresh cluster, not moving an existing cluster's port.
+Browser tests use `APP_URL` from that worktree's `.env.test.local`. Credentials,
+mail captures and cluster files stay in its ignored local directories. Never copy
+another worktree's database configuration or run concurrent test suites against
+one database. Weekly availability is managed at `/tutor/availability`; booking
+and public candidate-slot display remain unavailable.
