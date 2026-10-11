@@ -16,7 +16,7 @@ try {
     GRANT SELECT, INSERT ON user_access TO learli_app;
     GRANT INSERT ON audit_events TO learli_app;
     GRANT SELECT, INSERT, UPDATE ON subjects, tutor_profiles TO learli_app;
-    GRANT SELECT, INSERT, UPDATE, DELETE ON tutor_subjects TO learli_app;
+    GRANT SELECT, INSERT, UPDATE, DELETE ON tutor_subjects, tutor_availability TO learli_app;
     GRANT EXECUTE ON FUNCTION grant_tutor_role(text) TO learli_app;
   `);
   console.log(

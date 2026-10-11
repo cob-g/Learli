@@ -17,25 +17,25 @@
 
 ## Current Phase
 
-- **Phase:** **M3 verified locally; M4 (availability, learners, bookings) is next**.
+- **Phase:** **M4 in progress — M4.1 weekly availability verified in its isolated feature worktree; M4.2 engine verified in isolation.**
 - **Product definition:** Documented; core marketplace scope agreed.
-- **Application implementation:** Next.js shell, local PostgreSQL, Better Auth flows, account settings and server role/ownership checks verified on `main` at base `4503177` plus uncommitted M1/M2 changes. Tutor catalog, guardian links and bookings are not implemented.
+- **Application implementation:** M1–M3 and the M4.2 engine are present at base `2803d1f`. M4.1 storage/editor are verified as uncommitted changes on `cob-g/m4-1-tutor-availability`; they are not merged into `main`. Guardian links and bookings are not implemented.
 - **Pilot / production deployment:** **Not verified**.
 - **Live payment processing:** **Blocked pending founder-approved business rules**.
 - **Public onboarding of minors:** **Blocked pending launch-market guardian-consent and safeguarding decisions**.
 
 ## Current Goal
 
-**Keep the verified M2 identity foundation entirely local while preparing the next catalog slice.**
+**M4.1 is locally verified; preserve its isolated worktree for review and integration.**
 
-Local M2 is implemented and verified under the owner's local-only instruction.
-See the M2 session below for exact checks and deferred hosted acceptance. Nothing
-has been committed, pushed or deployed during this implementation.
+The tutor can save weekly hours, explicit overnight ranges and their teaching
+zone with server ownership checks and stale-edit protection. Work remains local,
+uncommitted and unmerged on `cob-g/m4-1-tutor-availability`.
 
-**Next development slice:** Architect M4.1–M4.3: tutor time zone and weekly
-availability. The pure time and slot engine for M4.2 is merged in `src/lib/time/`
-and verified in isolation; build M4.1 to call it. Booking durations, lead
-times and guardian-consent policy are open and gate later M4 packages.
+**Next development slice:** Architect M4.3 time-off exceptions when required;
+learner/guardian and booking work remains gated by the applicable open policies.
+M4.2 has a guarded adapter from persisted weekly windows, but public slot display,
+booking duration/start-step policy and active-booking exclusion remain unimplemented.
 
 ## Completed
 
@@ -74,7 +74,7 @@ times and guardian-consent policy are open and gate later M4 packages.
 - **Requirements readiness:** Founder decisions under **Open Questions** remain unresolved.
 - **Design readiness:** The M1 development shell uses proposed UI tokens and the documented plain-text brand placeholder. Generated shadcn primitives and final brand assets remain gated by `ui-context.md` decision 14 and related open decisions.
 - **Dependency maintenance:** 13 audit findings (4 moderate, 9 high) remain in upstream tooling chains. `--omit=dev` still reports 4 moderate findings because Better Auth declares Drizzle Kit as an optional peer. See README and the recovery handoff; do not represent the audit as clean.
-- **Remote verification:** Changes are local and uncommitted. GitHub CI and Railway have not been run in this session.
+- **Remote verification:** M4.1 changes are local and uncommitted in their feature worktree. GitHub CI and Railway have not been run in this session.
 
 ## Next Up
 
@@ -97,7 +97,7 @@ Resolve open design decisions and dependency advisories alongside this sequence.
 | M1 | Repository + app foundation | **Local foundation verified** | Session evidence below; brand/primitive approval pending, remote CI unrun |
 | M2 | Data, authentication, role controls | **Local scope verified; hosted acceptance deferred** | Local migrations, auth/ownership tests and browser journeys passed; Neon/TLS/Resend and production settings unrun |
 | M3 | Tutor catalog, public discovery, matching | **Verified locally** | Catalog, application, review, public discovery and matching tests passed locally; screening policy, time-based matching (needs M4) and hosting remain |
-| M4 | Availability, guardians/learners, booking integrity | **In progress — M4.2 engine verified in isolation; nothing else started** | Engine unit tests cover time zones and DST. Availability schema and editor, learner links, bookings, ownership and concurrent-booking tests remain |
+| M4 | Availability, guardians/learners, booking integrity | **In progress — M4.1 verified on feature worktree; M4.2 engine + stored-window adapter verified** | Weekly editor/storage, schedule ownership and concurrent-save tests pass. Time off, learner links, bookings and actual concurrent-booking tests remain |
 | M5 | Meeting links, dashboards, notifications, basic support | **Planned / not verified** | E2E role journeys, meeting-link privacy and email tests |
 | M6 | Commerce policy approval | **Blocked** | Founder-approved decision records and provider/jurisdiction assessment |
 | M7 | Payment integration (only if approved) | **Blocked by M6** | Sandbox checkout, verified webhooks, duplicate-event/reconciliation tests |
@@ -301,3 +301,17 @@ Copy this compact entry for the next session; include only **actual evidence**:
 - **Blockers / decisions:** Lesson duration, start-time step, minimum notice and holds remain `[OPEN]`; the engine takes them as arguments. A repeated fall-back hour is offered on both passes as a `[RECOMMENDED]` default. An account already stored with a fixed-offset zone must choose a region zone on its next save.
 - **Deployment:** Not deployed.
 - **Next session:** Architect M4.1 availability schema and tutor editor, calling `expandWeeklyWindows` and `generateSlots`.
+
+
+### Session — 2026-10-11 (M4.1 weekly availability — verified locally)
+
+- **Branch/worktree:** `cob-g/m4-1-tutor-availability`, isolated checkout from `2803d1f`; source/config/test/migration fingerprint `bae1397754099668eff5b30539355cfbe54205ce8cf17835176b98d767497605`. Uncommitted, not pushed, merged or deployed.
+- **Authority:** `ok $build-feature m4.1`; blueprint `prompts/features/m4-01-tutor-availability.md` — **AUTHORIZED — build-feature delegation**. PRD TUT-04; only build-plan M4.1 complete within local development scope.
+- **Changed:** `tutor_availability` and profile revision migration `0006`; owner-scoped private GET/PUT and `/tutor/availability`; seven-day editor, minute-precise/overnight ranges, overlap and stale-edit rejection, atomic save/audit, profile-zone consistency, and guarded persisted-window → UTC engine adapter. New local clusters remember isolated ports; browser tests follow test APP_URL. Architecture §9.4 and README updated.
+- **Review:** Same-agent read-only review, not independent. Final plan alignment PASS, integrity PASS, unintended-change audit PASS; **READY FOR VERIFICATION**, no unresolved findings. Review covers tracked and untracked feature diff from `2803d1f` including scoped repairs.
+- **Recovery:** Fixed nonpersistent custom DB ports before verification. First check found formatting only. First integration run: 45/46 (the existing outage test assumed port 55432); replaced its brittle port substitution with a closed real pool, preserving 503 assertions. First browser run: 28/29 (forced-colors footer contrast); mapped inverse surface to system colors. Screenshot review then found invisible forced-color action borders; added system-color borders and reused existing outline controls. Re-reviewed each repair; no policy or authorization relaxation.
+- **Verification:** `npm run check` PASS (format, lint, typecheck, **234** unit/component tests); `npm run test:integration` PASS **46/46** including nine new availability tests; `npm run build` PASS; final `npm run test:e2e` PASS **29/29**. Final cosmetic-only changes do not invalidate the earlier database result; all code checks/build/browser checks reran after them. `git diff --check` PASS. Impeccable detector on all changed UI/CSS returned `[]`.
+- **Database evidence:** fresh `LEARLI_DB_PORT=55441 LEARLI_DEV_PORT=3001 LEARLI_TEST_PORT=3101 npm run local:setup` PASS on worktree-owned PostgreSQL dev/test databases; no other cluster touched. Plain `npm run db:start` reused 55441; trying a different port failed as intended. Tests cover constraints, ownership/role/verification/suspension denial, forged IDs, atomic rollback, exactly one winner for concurrent schedule edits, profile-zone stale writes and stored DST/overnight UTC intervals. This is schedule-save concurrency, not booking concurrency.
+- **UI evidence:** browser journey/axe/overflow checks at **320, 390, 768, 1024, 1440**; keyboard add/focus/error/remove/save; empty/loading/network/stale states; forced colors + reduced motion at 640×400 (200% equivalent CSS reflow, not a literal browser-zoom test). Narrow, desktop and forced-color screenshots inspected under `test-results/availability-weekly-hours--ffb22-ar-with-accessible-controls-availability/`. Final HTML test report: `playwright-report/index.html` (ignored, local).
+- **Limits:** no time off, learner links, bookings, busy-booking exclusions, public slot display or policy assumptions. Hosted Neon/Resend/Railway, remote CI and production migration **NOT RUN** (local-only scope). Existing dependency advisories remain outside this feature.
+- **Next smallest task:** Architect M4.3 time-off exceptions if needed; before integrating any feature branch, reconcile shared documentation and verify combined code. Booking duration/start-step/notice/holds/guardian consent remain open.

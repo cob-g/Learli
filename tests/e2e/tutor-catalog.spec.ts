@@ -13,7 +13,7 @@ import {
 test.use({ trace: "off", screenshot: "off" });
 test.describe.configure({ mode: "serial" });
 
-const baseURL = "http://127.0.0.1:3100";
+const baseURL = process.env.APP_URL ?? "http://127.0.0.1:3100";
 const password = "Browser-synthetic-passphrase-123";
 const run = randomUUID().slice(0, 8);
 const tutorName = `Zoë Müller-Castañeda ${run}`;

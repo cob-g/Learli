@@ -72,6 +72,20 @@
   --ring: var(--focus-ring-inverse);
 }
 
+/* In high-contrast mode the system replaces surface fills; text and focus must
+   use the same system palette instead of retaining light inverse text. */
+@media (forced-colors: active) {
+  .action {
+    border: 1px solid ButtonText;
+  }
+  [data-surface="inverse"] {
+    --bg-inverse: Canvas;
+    --text-inverse: CanvasText;
+    --text-inverse-muted: CanvasText;
+    --focus-ring-inverse: Highlight;
+  }
+}
+
 /* Element defaults sit in the base layer so a utility can still adjust them */
 @layer base {
   ::selection {

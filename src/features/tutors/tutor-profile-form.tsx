@@ -1,6 +1,7 @@
 "use client";
 
 import { CircleAlert, LoaderCircle } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import {
@@ -236,7 +237,8 @@ export function TutorProfileForm({
           ))}
         </select>
         <p id="timezone-help" className="text-small text-muted-foreground">
-          Choose the time zone you teach from.
+          Choose the time zone you teach from. If you have weekly hours, change
+          this on the <Link href="/tutor/availability">Availability page</Link>.
         </p>
         <FieldError id="timezone-error" message={errors.timezone} />
       </div>

@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   index,
+  integer,
   pgTable,
   primaryKey,
   text,
@@ -128,6 +129,7 @@ export const tutorProfiles = pgTable(
     bio: text("bio").notNull(),
     teachingBackground: text("teaching_background").notNull(),
     timezone: text("timezone").notNull(),
+    availabilityVersion: integer("availability_version").default(0).notNull(),
     reviewStatus: text("review_status")
       .$type<ReviewStatus>()
       .default("pending")
@@ -140,6 +142,10 @@ export const tutorProfiles = pgTable(
       .notNull(),
   },
   (table) => [
+    check(
+      "tutor_availability_version_valid",
+      sql`${table.availabilityVersion} >= 0`,
+    ),
     index("tutor_profiles_review_status_idx").on(table.reviewStatus),
     check(
       "tutor_profiles_review_status_allowed",
@@ -160,6 +166,36 @@ export const tutorProfiles = pgTable(
     check(
       "tutor_profiles_background_length",
       sql`char_length(${table.teachingBackground}) BETWEEN 1 AND 1000`,
+    ),
+  ],
+);
+
+/** Weekly wall-clock windows use the owner's tutor_profiles.timezone. */
+export const tutorAvailability = pgTable(
+  "tutor_availability",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tutorId: uuid("tutor_id")
+      .notNull()
+      .references(() => tutorProfiles.id, { onDelete: "cascade" }),
+    isoWeekday: integer("iso_weekday").notNull(),
+    startMinute: integer("start_minute").notNull(),
+    endMinute: integer("end_minute").notNull(),
+  },
+  (table) => [
+    uniqueIndex("tutor_availability_window_unique").on(
+      table.tutorId,
+      table.isoWeekday,
+      table.startMinute,
+      table.endMinute,
+    ),
+    check(
+      "tutor_availability_weekday_valid",
+      sql`${table.isoWeekday} BETWEEN 1 AND 7`,
+    ),
+    check(
+      "tutor_availability_minutes_valid",
+      sql`${table.startMinute} BETWEEN 0 AND 1439 AND ${table.endMinute} > ${table.startMinute} AND ${table.endMinute} <= ${table.startMinute} + 1440`,
     ),
   ],
 );
@@ -198,6 +234,7 @@ export const auditActions = [
   "tutor_role.self_granted",
   "tutor_profile.submitted",
   "tutor_profile.updated",
+  "tutor_availability.updated",
   "tutor_review.approved",
   "tutor_review.rejected",
   "tutor_review.suspended",
@@ -230,7 +267,7 @@ export const auditEvents = pgTable(
   (table) => [
     check(
       "audit_action_allowed",
-      sql`${table.action} IN ('account.created', 'account.updated', 'fixture.roles_granted', 'tutor_role.self_granted', 'tutor_profile.submitted', 'tutor_profile.updated', 'tutor_review.approved', 'tutor_review.rejected', 'tutor_review.suspended', 'tutor_review.reinstated', 'tutor_review.reopened', 'subject.created', 'subject.activated', 'subject.deactivated')`,
+      sql`${table.action} IN ('account.created', 'account.updated', 'fixture.roles_granted', 'tutor_role.self_granted', 'tutor_profile.submitted', 'tutor_profile.updated', 'tutor_availability.updated', 'tutor_review.approved', 'tutor_review.rejected', 'tutor_review.suspended', 'tutor_review.reinstated', 'tutor_review.reopened', 'subject.created', 'subject.activated', 'subject.deactivated')`,
     ),
   ],
 );
