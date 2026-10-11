@@ -2,7 +2,7 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.9 — Six-feature local main merge
+> **Version:** 1.10 — Six-feature merge and worktree cleanup
 > **Last updated:** 2026-10-11  
 > **Current overall status:** **Six local features verified, independently reviewed and merged into local main**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
@@ -20,7 +20,7 @@
 - **Phase:** **Six-feature integration merged locally; no launch or whole milestone promotion.**
 - **Product definition:** Documented; core marketplace scope agreed.
 - **Application implementation:** Local `main` now includes all six new slices: private booking details/history, student/parent dashboards, tutor dashboard, actual-date profile selection/auth continuation, availability matching and manual local creation-notice capture. Integration commit `1cbfa10` was fast-forwarded from `0c078bf`; all 99 reviewed runtime file hashes match after merge.
-- **Integration worktree:** `cob-g/six-feature-integration` retains committed `1cbfa10`. The six original feature worktrees/branches remain unchanged and preserved; no worktree removal was requested for this merge.
+- **Worktree cleanup:** At the user's subsequent request, the six feature worktrees and integration worktree were removed after source and archive verification. Their seven branches and the older merged `feature/m3-tutor-catalog` branch were deleted. Git and Orca now show only the main checkout and local `main` branch. Private archives preserve source work, verification evidence and stopped synthetic databases.
 - **Verification:** Reviewed locator, fixture-isolation, tutor sign-in and family DST-label repairs are complete. Both independent final reviews have zero remaining findings and recommend READY FOR VERIFICATION. Separate execution passed the initial 578 unit/component cases, 17 affected family cases, static checks, production rebuild, 255 PostgreSQL cases, and fresh/upgrade migration and grant proofs. All 79 browser cases have applicable passing evidence: 78 unchanged cases from the sequential full run plus the corrected combined case 1/1; no single full 79/79 run is claimed. Runtime aggregate `f83f80976a63927e6699865f1113e7cb97980e1e018dd162a3cd7952cd6db402` was verified on local `main` after merge. Historical failures remain recorded below and in `docs/operations/six-feature-premerge.md`.
 - **Pilot / production deployment:** **Not verified**.
 - **Live payment processing:** **Blocked pending founder-approved business rules**.
@@ -30,7 +30,7 @@
 
 **Completed: integrate, verify, commit and merge the six local slices into main.**
 
-Authority is **AUTHORIZED — build-feature delegation**, following the user's explicit local commit/merge request on 2026-10-11. The integration owner prepared and repaired the isolated candidate; the parent accepted it, committed `1cbfa10` and fast-forwarded local `main`. See `prompts/features/m4-09-six-feature-premerge-integration.md`. Both final independent reviews, applicable verification and the exact 123-file audit passed. All four workers in this integration run completed and were released. The main-checkout database was not migrated; migration 0012 and its grants were verified only on the isolated integration databases. Push and deployment remain separate operations. This task does not authorize production changes, external delivery, worktree removal, real-user onboarding or whole milestone completion. The earlier five-feature merge/cleanup is retained as historical evidence below and in `docs/operations/five-feature-premerge.md`.
+Authority is **AUTHORIZED — build-feature delegation**, following the user's explicit local commit/merge request on 2026-10-11. The integration owner prepared and repaired the isolated candidate; the parent accepted it, committed `1cbfa10` and fast-forwarded local `main`. See `prompts/features/m4-09-six-feature-premerge-integration.md`. Both final independent reviews, applicable verification and the exact 123-file audit passed. All four workers in this integration run completed and were released. The user's subsequent cleanup request is also complete: seven worktrees and eight merged local feature branches were removed with verified private archives. The main-checkout database was not migrated; migration 0012 and its grants were verified only on the isolated integration databases. Push and deployment remain separate operations. This task does not authorize production changes, external delivery, real-user onboarding or whole milestone completion. The earlier five-feature merge/cleanup is retained as historical evidence below and in `docs/operations/five-feature-premerge.md`.
 
 ## Completed
 
@@ -79,7 +79,7 @@ Authority is **AUTHORIZED — build-feature delegation**, following the user's e
 - **Requirements readiness:** Founder decisions under **Open Questions** remain unresolved.
 - **Design readiness:** The M1 development shell uses proposed UI tokens and the documented plain-text brand placeholder. Generated shadcn primitives and final brand assets remain gated by `ui-context.md` decision 14 and related open decisions.
 - **Dependency maintenance:** 13 audit findings (4 moderate, 9 high) remain in upstream tooling chains. `--omit=dev` still reports 4 moderate findings because Better Auth declares Drizzle Kit as an optional peer. See README and the recovery handoff; do not represent the audit as clean.
-- **Remote verification:** The five-feature candidate is merged into local main at `a169f61`. Source worktrees and branches are removed; private archives preserve their original state and evidence. Nothing was pushed or deployed. GitHub CI, hosted Neon/Resend and Railway have not been run.
+- **Remote verification:** The six-feature candidate is merged into local main at `1cbfa10`, following the earlier five-feature merge. All feature worktrees and branches are removed; private archives preserve their original state and evidence. Nothing was pushed or deployed. GitHub CI, hosted Neon/Resend and Railway have not been run.
 
 ## Next Up
 
@@ -697,3 +697,10 @@ Copy this compact entry for the next session; include only **actual evidence**:
 - Both independent final review scopes cleared; applicable static, unit/component, PostgreSQL, build, fresh/upgrade, browser and privacy evidence is recorded in `docs/operations/six-feature-premerge.md`.
 - Original six worktrees and the integration worktree are preserved; all four integration/review workers succeeded and were released. No push, deployment, main database migration or worktree cleanup was performed.
 - Remaining operational step before using this revision with an existing local database: apply the reviewed migration and runtime grants through the repository local migration commands. Public-launch and commercial/consent gates remain unchanged.
+
+### Session — 2026-10-11 (six-feature worktree cleanup completed)
+
+- User explicitly requested removal of the feature worktrees and branches after merge. Verified all eight non-main local branch tips were ancestors of `main`, all six frozen source snapshots were unchanged, the integration worktree was clean, and the 99 reviewed runtime file hashes still matched main.
+- Closed the seven workspaces' terminals and safely stopped only their owned PostgreSQL clusters on ports 55471–55477. Archived source files, private local configuration, stopped synthetic databases, handoffs and verification artifacts under ignored `.local/six-feature-cleanup-2026-10-11/`; every archived regular file was checked against its source hash. Reinstallable dependencies, generated build output and Git worktree metadata were excluded.
+- Removed all seven worktrees through Orca and all eight merged local feature branches, including the older `feature/m3-tutor-catalog`. Verified Git and Orca each show only the main checkout; only local `main` remains. Application runtime is unchanged. Main database migration, push and deployment were not performed.
+- Cleanup manifest and receipts: `.local/six-feature-cleanup-2026-10-11/archive-manifest.json`. Readable integration/review reports are retained in its `evidence/` directory; full private archives retain the original evidence paths. This entry supersedes historical worktree-preservation statements above.

@@ -140,8 +140,8 @@ root memory preserve the local handoff; no worker commit/staging/merge occurred.
 ## Local merge completion
 
 Completed at 2026-10-11T22:21:00+08:00 (Asia/Manila). Integration commit
-`1cbfa10c2632e5f22ae2a55be737b77fd4415ce7` is on local `main`. The original six
-feature worktrees and integration worktree remain preserved. All four supervised
+`1cbfa10c2632e5f22ae2a55be737b77fd4415ce7` is on local `main`. At merge time, the original six
+feature worktrees and integration worktree were preserved. All four supervised
 integration/review tasks succeeded and their agent terminals were released.
 
 Only the isolated integration databases received migration 0012 and updated runtime
@@ -149,3 +149,26 @@ grants. The main-checkout database was not migrated; apply the repository local
 migration commands before exercising this revision against an existing local
 database. No push, deployment or production operation was performed. The merge
 does not change the local-simulation or public-launch policy gates.
+
+## Subsequent cleanup
+
+On 2026-10-11, the user explicitly requested cleanup. All seven feature/integration
+worktrees were removed through Orca, together with their seven branches and the
+older merged `feature/m3-tutor-catalog` branch. Git and Orca now show only the main
+checkout, and `main` is the only local branch. All branch tips were verified as
+ancestors of main before deletion; the six frozen source snapshots and all 99
+reviewed runtime hashes were also rechecked.
+
+The seven workspaces' terminals were closed and their owned PostgreSQL clusters
+on ports 55471–55477 were safely stopped. Private archives preserve source work,
+local configuration, stopped synthetic databases, handoffs and test evidence.
+Every archived regular file was verified against its source hash before removal.
+Reinstallable dependencies, generated build output and Git worktree metadata were
+excluded. Archives, manifests and cleanup receipts are in ignored
+`.local/six-feature-cleanup-2026-10-11/`; readable integration and review reports
+are in its `evidence/` directory. Historical worktree-local evidence paths in this
+report can be found inside the corresponding archive.
+
+Application runtime files are unchanged. The main database still needs the
+reviewed migration and grants before using the new features. No push, deployment
+or production operation was performed.
