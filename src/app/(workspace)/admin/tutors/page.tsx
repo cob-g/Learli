@@ -51,8 +51,8 @@ export default async function TutorReviewQueuePage({
     <AdminShell current="tutors">
       <h1 className="text-page-title">Tutor review queue</h1>
       <p className="mt-4 max-w-prose text-body text-muted-foreground">
-        Local test data only. The tutor screening process is not decided, so an
-        approval here records a status and nothing more.
+        Local test data only. The tutor screening process is not decided.
+        Approving an application lists the tutor publicly.
       </p>
       <form method="get" className="mt-8 flex flex-wrap items-end gap-4">
         <div className="space-y-2">

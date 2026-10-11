@@ -1,0 +1,107 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { cache } from "react";
+import { levelNames } from "@/features/subjects/catalog";
+import { readPublicTutor } from "@/features/tutors/public";
+import { InitialsAvatar } from "@/features/tutors/tutor-card";
+
+export const dynamic = "force-dynamic";
+const loadTutor = cache(readPublicTutor);
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const tutor = await loadTutor((await params).slug);
+  // Only public tutor fields reach metadata; an unknown tutor gets none.
+  return tutor
+    ? { title: tutor.displayName, description: tutor.headline }
+    : { title: "Tutor" };
+}
+
+export default async function TutorPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const tutor = await loadTutor((await params).slug);
+  if (tutor === null) notFound();
+  if (tutor === undefined)
+    return (
+      <div className="page-shell page-space">
+        <h1 className="text-page-title">Tutor</h1>
+        <p role="alert" className="mt-8 max-w-prose text-body">
+          We couldn&apos;t load this tutor. Try again, or contact support if
+          this keeps happening.
+        </p>
+        <Link className="mt-2 inline-flex min-h-11 items-center" href="/tutors">
+          Browse all tutors
+        </Link>
+      </div>
+    );
+  return (
+    <div className="page-shell page-space">
+      <div className="flex items-start gap-4">
+        <InitialsAvatar name={tutor.displayName} large />
+        <div className="min-w-0">
+          <h1 className="text-page-title wrap-anywhere">{tutor.displayName}</h1>
+          <p className="mt-2 max-w-prose text-body wrap-anywhere">
+            {tutor.headline}
+          </p>
+        </div>
+      </div>
+      <section aria-labelledby="subjects-title" className="mt-8">
+        <h2 id="subjects-title" className="text-section-title">
+          Subjects and levels
+        </h2>
+        <ul className="mt-4 space-y-2">
+          {tutor.offerings.map((offering) => (
+            <li key={offering.subjectSlug}>
+              <p className="text-body">{offering.subjectName}</p>
+              <p className="text-small text-muted-foreground">
+                {levelNames(offering.levels).join(" · ")}
+              </p>
+              {offering.specialty && (
+                <p className="text-small wrap-anywhere text-muted-foreground">
+                  Specialty: {offering.specialty}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section aria-labelledby="introduction-title" className="mt-12">
+        <h2 id="introduction-title" className="text-section-title">
+          Introduction
+        </h2>
+        <p className="mt-4 max-w-prose text-prose wrap-anywhere whitespace-pre-line">
+          {tutor.bio}
+        </p>
+      </section>
+      <section aria-labelledby="background-title" className="mt-12">
+        <h2 id="background-title" className="text-section-title">
+          Teaching background
+        </h2>
+        <p className="mt-2 max-w-prose text-small text-muted-foreground">
+          Written by the tutor. Learli has not checked these details.
+        </p>
+        <p className="mt-4 max-w-prose text-prose wrap-anywhere whitespace-pre-line">
+          {tutor.teachingBackground}
+        </p>
+      </section>
+      <section aria-labelledby="booking-title" className="mt-12">
+        <h2 id="booking-title" className="text-section-title">
+          Booking
+        </h2>
+        <p className="mt-4 max-w-prose text-body">
+          Booking is not available on Learli yet.
+        </p>
+        <Link className="mt-2 inline-flex min-h-11 items-center" href="/tutors">
+          Browse all tutors
+        </Link>
+      </section>
+    </div>
+  );
+}

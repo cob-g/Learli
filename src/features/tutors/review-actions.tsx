@@ -21,8 +21,7 @@ const copy: Record<
   approve: {
     button: "Approve application",
     title: "Approve this application?",
-    body: (name) =>
-      `${name} will be marked as approved. Tutor listings are not available yet, so nothing becomes public.`,
+    body: (name) => `${name} will be approved and listed publicly on Learli.`,
     dismiss: "Keep pending",
     done: "Application approved.",
     destructive: false,
@@ -40,7 +39,7 @@ const copy: Record<
     button: "Suspend tutor",
     title: "Suspend this tutor?",
     body: (name) =>
-      `${name} will be marked as suspended and will no longer be able to edit this profile.`,
+      `${name} will be removed from public listings and will no longer be able to edit this profile.`,
     dismiss: "Keep approved",
     done: "Tutor suspended.",
     destructive: true,
@@ -48,7 +47,7 @@ const copy: Record<
   reinstate: {
     button: "Reinstate tutor",
     title: "Reinstate this tutor?",
-    body: (name) => `${name} will be marked as approved again.`,
+    body: (name) => `${name} will be approved and listed publicly again.`,
     dismiss: "Keep suspended",
     done: "Tutor reinstated.",
     destructive: false,

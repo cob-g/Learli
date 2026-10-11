@@ -17,6 +17,9 @@ import {
   describeTutorProfileIssues,
   tutorProfileInput,
 } from "@/features/tutors/input";
+import { matchLimit, resolveMatch } from "@/features/matching/match";
+import { filterTutors } from "@/features/tutors/eligibility";
+import { tutorSlug } from "@/features/tutors/service";
 import {
   reviewActionsFrom,
   tutorCanEdit,
@@ -116,6 +119,47 @@ describe("review rules", () => {
   });
 });
 
+describe("public tutor addresses and filters", () => {
+  it("builds a readable, unique slug that never carries an identifier", () => {
+    expect(tutorSlug("Zoë Müller-Castañeda")).toMatch(
+      /^zoe-muller-castaneda-[a-f0-9]{8}$/,
+    );
+    expect(tutorSlug("日本語")).toMatch(/^tutor-[a-f0-9]{8}$/);
+    expect(tutorSlug("x".repeat(100)).length).toBeLessThanOrEqual(49);
+    expect(tutorSlug("Same Name")).not.toBe(tutorSlug("Same Name"));
+  });
+
+  it("matches a subject and level only inside one offering", () => {
+    const tutor = {
+      slug: "t",
+      displayName: "T",
+      headline: "h",
+      bio: "b",
+      teachingBackground: "t",
+      offerings: [
+        {
+          subjectSlug: "math",
+          subjectName: "Math",
+          levels: ["elementary" as const],
+          specialty: null,
+        },
+        {
+          subjectSlug: "sat",
+          subjectName: "SAT",
+          levels: ["high_school" as const],
+          specialty: null,
+        },
+      ],
+    };
+    const count = (filters: Parameters<typeof filterTutors>[1]) =>
+      filterTutors([tutor], filters).length;
+    expect(count({})).toBe(1);
+    expect(count({ subject: "math", level: "elementary" })).toBe(1);
+    expect(count({ subject: "math", level: "high_school" })).toBe(0);
+    expect(count({ subject: "unknown" })).toBe(0);
+  });
+});
+
 describe("subject catalog helpers", () => {
   it("labels every stored category and level, so none can drift", () => {
     expect(subjectCategoryOptions.map(([value]) => value)).toEqual([
@@ -185,5 +229,87 @@ describe("time zone labels", () => {
     expect(new Set(options.map((option) => option.value)).size).toBe(
       options.length,
     );
+  });
+});
+
+describe("guided matching", () => {
+  const subject = (
+    slug: string,
+    category: "academic_core" | "specialized" = "academic_core",
+  ) => ({ id: slug, slug, name: slug.toUpperCase(), category, isActive: true });
+  const subjects = [subject("math"), subject("robotics", "specialized")];
+  const tutor = (
+    name: string,
+    slug: string,
+    level: "elementary" | "high_school",
+  ) => ({
+    slug: name,
+    displayName: name,
+    headline: "h",
+    bio: "b",
+    teachingBackground: "t",
+    offerings: [
+      {
+        subjectSlug: slug,
+        subjectName: slug,
+        levels: [level],
+        specialty: null,
+      },
+    ],
+  });
+  const tutors = [
+    ...Array.from({ length: 7 }, (_, index) =>
+      tutor(`math-${index}`, "math", "high_school"),
+    ),
+    tutor("robot", "robotics", "elementary"),
+  ];
+
+  it("asks for a level first and flags only an answer that was actually wrong", () => {
+    expect(resolveMatch({}, subjects, tutors)).toEqual({ step: "level" });
+    expect(resolveMatch({ level: "phd" }, subjects, tutors)).toMatchObject({
+      step: "level",
+      error: "Choose a level",
+    });
+    expect(
+      resolveMatch({ level: "high_school", change: "level" }, subjects, tutors),
+    ).toEqual({ step: "level", level: "high_school" });
+  });
+
+  it("offers a specialized subject only where a tutor teaches it at that level", () => {
+    const at = (level: string) => {
+      const result = resolveMatch({ level }, subjects, tutors);
+      return result.step === "subject"
+        ? result.choices.map((choice) => choice.slug)
+        : [];
+    };
+    expect(at("elementary")).toEqual(["math", "robotics"]);
+    expect(at("high_school")).toEqual(["math"]);
+    expect(
+      resolveMatch(
+        { level: "high_school", subject: "robotics" },
+        subjects,
+        tutors,
+      ),
+    ).toMatchObject({ step: "subject", error: "Choose a subject" });
+  });
+
+  it("returns a small real set, the true total, and never pads a short one", () => {
+    const many = resolveMatch(
+      { level: "high_school", subject: "math" },
+      subjects,
+      tutors,
+    );
+    expect(many).toMatchObject({ step: "results", total: 7 });
+    expect(many.step === "results" && many.tutors.length).toBe(matchLimit);
+    expect(
+      resolveMatch(
+        { level: "elementary", subject: "robotics" },
+        subjects,
+        tutors,
+      ),
+    ).toMatchObject({ total: 1, tutors: [{ displayName: "robot" }] });
+    expect(
+      resolveMatch({ level: "elementary", subject: "math" }, subjects, tutors),
+    ).toMatchObject({ step: "results", total: 0, tutors: [] });
   });
 });

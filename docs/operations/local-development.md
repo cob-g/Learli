@@ -63,7 +63,11 @@ provide a deployable real-user enrollment flow or a production email adapter.
 - The runtime role can read and write tutor profiles, offerings and subjects but
   cannot delete profiles or subjects, read audit history, or write `user_roles`
   directly.
-- Approving here is a local status change. It is not a screening process.
+- Approving lists the tutor on `/tutors`, `/subjects`, the home page and their
+  own `/tutors/[slug]` page; suspending removes them at once. It is a local
+  status change, not a screening process. Migration `0005` adds the public slug.
+- Browser tests start by clearing tutor profiles in `learli_test` and run the
+  zero-inventory checks before the spec that lists a tutor.
 
 ## Schema and verification
 

@@ -157,13 +157,15 @@ hosted provider or approval for real-user onboarding.
 ### Local M3.1–M3.3 implementation note — 2026-10-11
 
 `subjects`, `tutor_profiles` and `tutor_subjects` now exist as reviewed local
-migrations, following §9.2 with these recorded differences: no `slug`,
-`teaching_languages` or `meeting_provider_preference` column yet (they belong to
-public profiles and later work); `teaching_background` added per build-plan M3.2;
+migrations, following §9.2 with these recorded differences: no
+`teaching_languages` or `meeting_provider_preference` column yet; `slug` was
+added with the public pages and is set once at creation; `teaching_background` added per build-plan M3.2;
 `tutor_profiles.user_id` is `ON DELETE RESTRICT`; `audit_events` gained
 `target_subject_id` and tutor/subject actions. `listEligibleTutors` in
-`src/features/tutors/eligibility.ts` is the single public-eligibility query for
-later directory, matching and booking work. By owner decision an approved tutor's
+`src/features/tutors/eligibility.ts` is the single public-eligibility query. The
+public directory, tutor page, subjects page and home page read tutors only
+through it, and guided matching (`src/features/matching/match.ts`) applies the
+directory's own filter to the same result; booking must do the same. By owner decision an approved tutor's
 edit needs no re-review and a rejected tutor may submit again
 (`docs/decisions/2026-10-11-tutor-profile-edits.md`). A verified account obtains
 the `tutor` role itself from `/become-a-tutor`; the runtime grants it only through

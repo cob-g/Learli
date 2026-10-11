@@ -13,7 +13,10 @@ import {
   handleSubjectCreateRequest,
   handleSubjectStateRequest,
 } from "@/features/subjects/handler";
-import { listEligibleTutors } from "@/features/tutors/eligibility";
+import {
+  findEligibleTutor,
+  listEligibleTutors,
+} from "@/features/tutors/eligibility";
 import {
   handleTutorApplicationStart,
   handleTutorProfileRequest,
@@ -467,7 +470,7 @@ describe("tutor application", () => {
     ).rejects.toMatchObject({ code: "23514" });
     await expect(
       owner.query(
-        "INSERT INTO tutor_profiles (user_id, headline, bio, teaching_background, timezone) VALUES ($1, 'h', 'b', 't', 'UTC')",
+        "INSERT INTO tutor_profiles (user_id, slug, headline, bio, teaching_background, timezone) VALUES ($1, 'second-profile', 'h', 'b', 't', 'UTC')",
         [tutor.id],
       ),
     ).rejects.toMatchObject({ code: "23505" });
@@ -826,20 +829,73 @@ describe("public eligibility", () => {
         .where(eq(subjects.id, catalog[slug]));
 
     const eligible = await listEligibleTutors(world.runtime.db);
+    const slug = (await profileOf(listed)).slug;
+    expect(slug).toMatch(/^listed-tutor-[a-f0-9]{8}$/);
+    // Exactly the public fields: no account id, email, time zone or status.
     expect(eligible).toEqual([
       {
-        profileId: listed.profileId,
+        slug,
         displayName: "Listed tutor",
         headline: "Synthetic algebra tutor",
+        bio: "Fictional introduction for an automated test.",
+        teachingBackground: "Fictional background for an automated test.",
         offerings: [
           {
-            subjectId: catalog.math,
+            subjectSlug: "math",
             subjectName: "Math",
             levels: ["high_school"],
+            specialty: null,
           },
         ],
       },
     ]);
-    expect(JSON.stringify(eligible)).not.toContain("@");
+    const exposed = JSON.stringify(eligible);
+    for (const secret of ["@", listed.id, "Asia/Manila", "approved"])
+      expect(exposed).not.toContain(secret);
+    // A direct address reaches only an eligible tutor.
+    expect(await findEligibleTutor(world.runtime.db, slug)).toEqual(
+      eligible[0],
+    );
+    for (const hidden of [blocked, unverified, orphaned])
+      expect(
+        await findEligibleTutor(
+          world.runtime.db,
+          (await profileOf(hidden)).slug,
+        ),
+      ).toBeNull();
+    for (const bad of ["missing-tutor", "Not A Slug", "'; DROP TABLE x;--"])
+      expect(await findEligibleTutor(world.runtime.db, bad)).toBeNull();
+  });
+
+  it("filters by subject and level within the same offering", async () => {
+    const math = await tutorWithApplication("approved", "Aaa math tutor");
+    const english = await tutorWithApplication("approved", "Bbb english tutor");
+    await saveProfile(
+      english,
+      application({
+        offerings: [
+          { subjectId: catalog.english, levels: ["elementary"] },
+          { subjectId: catalog.science, levels: ["college_support"] },
+        ],
+      }),
+    );
+    const names = async (filters: Parameters<typeof listEligibleTutors>[1]) =>
+      (await listEligibleTutors(world.runtime.db, filters)).map(
+        (tutor) => tutor.displayName,
+      );
+    expect(await names({})).toEqual(["Aaa math tutor", "Bbb english tutor"]);
+    expect(await names({ subject: "math" })).toEqual(["Aaa math tutor"]);
+    expect(await names({ level: "elementary" })).toEqual(["Bbb english tutor"]);
+    expect(
+      await names({ subject: "science", level: "college_support" }),
+    ).toEqual(["Bbb english tutor"]);
+    // English at elementary and Science at college do not make English at college.
+    expect(
+      await names({ subject: "english", level: "college_support" }),
+    ).toEqual([]);
+    expect(await names({ subject: "act" })).toEqual([]);
+    expect((await profileOf(math)).slug).not.toBe(
+      (await profileOf(english)).slug,
+    );
   });
 });

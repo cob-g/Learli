@@ -279,6 +279,10 @@
   .action:disabled {
     @apply cursor-not-allowed border border-control bg-subtle text-muted-foreground;
   }
+  /* The one primary action inside a navy field. */
+  .action-inverse {
+    @apply bg-inverse-action text-foreground hover:bg-inverse-action-hover;
+  }
   .action-destructive {
     @apply bg-destructive text-on-inverse;
   }

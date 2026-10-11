@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  globalSetup: "./tests/e2e/global-setup.ts",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
@@ -52,6 +53,8 @@ export default defineConfig({
     {
       name: "catalog",
       testMatch: "tutor-catalog.spec.ts",
+      // This spec lists a tutor publicly; zero-inventory checks must finish first.
+      dependencies: ["desktop", "phone", "narrow"],
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1440, height: 900 },

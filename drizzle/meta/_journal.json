@@ -36,6 +36,13 @@
       "when": 1791701107318,
       "tag": "0004_grant_tutor_role",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791701435981,
+      "tag": "0005_tutor_profile_slug",
+      "breakpoints": true
     }
   ]
 }

@@ -4,7 +4,7 @@
 > **Document:** `progress-tracker.md`
 > **Version:** 1.2 — Verified local identity foundation
 > **Last updated:** 2026-10-11  
-> **Current overall status:** **M3.1–M3.3 local tutor catalog verified; M1 and M2 verified locally; hosted integration deferred**
+> **Current overall status:** **M3 verified locally (catalog, applications, review, public directory, matching on level and subject); hosted integration deferred**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -17,7 +17,7 @@
 
 ## Current Phase
 
-- **Phase:** **M3 — M3.1–M3.3 (catalog, tutor application, review gate) verified locally; M3.4–M3.8 not started**.
+- **Phase:** **M3 verified locally; M4 (availability, learners, bookings) is next**.
 - **Product definition:** Documented; core marketplace scope agreed.
 - **Application implementation:** Next.js shell, local PostgreSQL, Better Auth flows, account settings and server role/ownership checks verified on `main` at base `4503177` plus uncommitted M1/M2 changes. Tutor catalog, guardian links and bookings are not implemented.
 - **Pilot / production deployment:** **Not verified**.
@@ -32,10 +32,10 @@ Local M2 is implemented and verified under the owner's local-only instruction.
 See the M2 session below for exact checks and deferred hosted acceptance. Nothing
 has been committed, pushed or deployed during this implementation.
 
-**Next development slice:** Architect M3.4–M3.5: public subjects, tutor directory
-and profile pages reading only through `listEligibleTutors`, plus the tutor
-application entry. The tutor application entry on `/become-a-tutor` is already built. Actual tutor screening policy remains open. Hosted Neon/TLS and Resend verification wait
-until external integration is requested.
+**Next development slice:** Architect M4.1–M4.3: tutor time zone and weekly
+availability. A parallel session reports the pure time and slot library (M4.2)
+on branch `feature/time-utils`; reconcile with it first. Booking durations, lead
+times and guardian-consent policy are open and gate later M4 packages.
 
 ## Completed
 
@@ -80,7 +80,7 @@ until external integration is requested.
 
 Prioritized, small tasks; **these are planned, not completed**.
 
-1. **P0 — Remaining M3 discovery (M3.4–M3.8).** Directory/filtering and rule-based matching based on actual local records; honest empty states and no fabricated production inventory.
+1. **Done locally — M3.** Directory/filtering and rule-based matching based on actual local records; honest empty states and no fabricated production inventory.
 3. **P0 — M4, availability and bookings.** IANA time zones, authorized learner relationships, approved booking policies and database-level overlap protection with concurrency tests.
 4. **P0 — M5, lesson coordination and safety.** Participant-only meeting links, role dashboards, transactional notifications, support/reporting and scoped admin operations.
 5. **Deferred — Hosted M2/operations acceptance.** Neon connection/TLS, provider email, production session settings and remote CI require a later externally enabled phase. Keep all current runtime work local.
@@ -96,7 +96,7 @@ Resolve open design decisions and dependency advisories alongside this sequence.
 | M0 | Business scope and technical documentation | **Documented; M0.1/M0.6 local evidence recorded** | Repository and context inspected; approval ownership and open decisions remain |
 | M1 | Repository + app foundation | **Local foundation verified** | Session evidence below; brand/primitive approval pending, remote CI unrun |
 | M2 | Data, authentication, role controls | **Local scope verified; hosted acceptance deferred** | Local migrations, auth/ownership tests and browser journeys passed; Neon/TLS/Resend and production settings unrun |
-| M3 | Tutor catalog, public discovery, matching | **M3.1–M3.3 verified locally; M3.4–M3.8 planned** | Catalog, application and review tests passed locally; public pages, filters, matching and screening policy remain |
+| M3 | Tutor catalog, public discovery, matching | **Verified locally** | Catalog, application, review, public discovery and matching tests passed locally; screening policy, time-based matching (needs M4) and hosting remain |
 | M4 | Availability, guardians/learners, booking integrity | **Planned / not verified** | Time-zone/DST, ownership, concurrent-booking tests |
 | M5 | Meeting links, dashboards, notifications, basic support | **Planned / not verified** | E2E role journeys, meeting-link privacy and email tests |
 | M6 | Commerce policy approval | **Blocked** | Founder-approved decision records and provider/jurisdiction assessment |
@@ -266,3 +266,25 @@ Copy this compact entry for the next session; include only **actual evidence**:
 - **Not built:** account-type choice at sign-up; public subjects, directory, profile and matching pages; rate limiting. Remote CI not run.
 - **Open:** tutor screening policy. Any verified account can now hold the tutor role, which reaches only its own application.
 - **Next session:** Architect the public directory and tutor profile pages (rest of M3.4, M3.5) on `listEligibleTutors`.
+
+### Session — 2026-10-11 (M3.4–M3.5 public tutor discovery — verified)
+
+- **Owner / branch:** Claude Code for the repository owner · branch `feature/m3-tutor-catalog`; earlier work committed as `9dca651` at the owner's request (not pushed); this slice is uncommitted on top of it. No deployment.
+- **Authority:** "commit and proceed next piece". Blueprint `prompts/features/m3-04-public-tutor-discovery.md` — **AUTHORIZED — build-feature delegation**.
+- **PRD:** PUB-01, PUB-02, PUB-03, PUB-04, TUT-03, MATCH-02; QA-01, QA-02.
+- **Changed:** Migration `0005_tutor_profile_slug` (hand-edited backfill); eligibility module now returns the public tutor shape with subject and level filters and a by-slug lookup; `/tutors` with filters, result line, pagination and three empty states; `/tutors/[slug]`; `/subjects`; home page finder and up to three tutors; admin and tutor wording corrected because approval now publishes; browser tests start from zero inventory and order the zero-inventory checks first.
+- **Review:** Same-agent read-only inspection against the blueprint: plan alignment PASS, unintended-change audit PASS, no confirmed finding. Not independent.
+- **Verification (final code):** `npm run check` PASS (**64** unit/component); `npm run test:integration` PASS **37/37** (public shape has only allowed fields, ineligible tutors unreachable by slug, subject and level filter within one offering); `npm run build` PASS; `npm run test:e2e` PASS **26/26** including signed-out directory, filters, empty states, subjects links, home finder, public profile, no email or time zone in public HTML, 404 after suspension, axe and overflow at 1440, 390 and 320. Screenshots inspected. Detector `[]`.
+- **Recovery:** One browser assertion read the URL before navigation finished; changed to wait for the URL. No application change.
+- **Limits:** Filters sit above results below `lg` instead of in a sheet; no days, language or text search; no time column or booking (M4); filtering is in memory; pages remain `noindex`. By owner decision an approved tutor's edits are public without review. Remote CI not run.
+- **Next session:** Architect M3.6 guided matching.
+
+### Session — 2026-10-11 (M3.6 guided matching — verified)
+
+- **Owner / branch:** Claude Code for the repository owner · branch `feature/m3-tutor-catalog` · not pushed, not deployed.
+- **Authority:** "go the next piece now", with no commit until M3 was finished. Blueprint `prompts/features/m3-06-guided-matching.md` — **AUTHORIZED — build-feature delegation**. PRD MATCH-01, MATCH-02.
+- **Changed:** `src/features/matching/match.ts` and `/get-matched`: two questions (level, then subject) as GET forms with answers in the query string, a results sentence stating the rule, up to five tutors by name, and a no-match state. The "when" question is not asked because availability does not exist until M4.
+- **Review:** Same-agent read-only inspection: plan alignment PASS, unintended-change audit PASS, no confirmed finding. Not independent.
+- **Verification (final code):** `npm run check` PASS (**67** unit/component); `npm run test:integration` PASS **37/37**; `npm run build` PASS; `npm run test:e2e` PASS **26/26** including both questions, Back, results, no-match and invalid-answer states, axe and overflow at 1440, 390 and 320. Results screenshot inspected. Detector `[]`.
+- **Limits:** A match does not mean the tutor has an open time; no time or day preference; no ranking beyond name. Remote CI not run.
+- **Next session:** Architect M4.1–M4.3 after reconciling with `feature/time-utils`.

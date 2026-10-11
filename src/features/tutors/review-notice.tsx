@@ -15,7 +15,7 @@ const notices: Record<ReviewStatus | "none", { title: string; body: string }> =
     },
     approved: {
       title: "Your application is approved",
-      body: "Tutor listings and booking are not available on Learli yet.",
+      body: "Your profile is listed on Learli. Booking is not available yet.",
     },
     rejected: {
       title: "Your application was not approved",
@@ -31,9 +31,12 @@ const notices: Record<ReviewStatus | "none", { title: string; body: string }> =
 export function ReviewNotice({
   status,
   editHref,
+  publicHref,
 }: {
   status: ReviewStatus | null;
   editHref?: string;
+  /** The tutor's public page, once approved. */
+  publicHref?: string;
 }) {
   const { title, body } = notices[status ?? "none"];
   const approved = status === "approved";
@@ -65,6 +68,14 @@ export function ReviewNotice({
           {editHref && (
             <Link className="inline-flex min-h-11 items-center" href={editHref}>
               Edit profile
+            </Link>
+          )}
+          {approved && publicHref && (
+            <Link
+              className="inline-flex min-h-11 items-center"
+              href={publicHref}
+            >
+              View public profile
             </Link>
           )}
           <Link className="inline-flex min-h-11 items-center" href="/contact">

@@ -21,6 +21,7 @@ export const subjectStateInput = z.strictObject({ isActive: z.boolean() });
 
 const columns = {
   id: subjects.id,
+  slug: subjects.slug,
   name: subjects.name,
   category: subjects.category,
   isActive: subjects.isActive,

@@ -37,7 +37,10 @@ export default async function TutorProfilePage() {
     <div className="page-shell page-space">
       <h1 className="text-page-title">Tutor profile</h1>
       <div className="mt-8">
-        <ReviewNotice status={profile?.reviewStatus ?? null} />
+        <ReviewNotice
+          status={profile?.reviewStatus ?? null}
+          publicHref={profile ? `/tutors/${profile.slug}` : undefined}
+        />
       </div>
       <div className="mt-8">
         {editable ? (

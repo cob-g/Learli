@@ -32,6 +32,7 @@ export default async function TutorWorkspacePage() {
         <ReviewNotice
           status={data.profile?.reviewStatus ?? null}
           editHref="/tutor/profile"
+          publicHref={data.profile ? `/tutors/${data.profile.slug}` : undefined}
         />
       </div>
       <p className="mt-8 max-w-prose text-body text-muted-foreground">

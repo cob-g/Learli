@@ -107,6 +107,7 @@ try {
         .insert(tutorProfiles)
         .values({
           userId: tutor.userId,
+          slug: `test-tutor-${randomBytes(4).toString("hex")}`,
           headline: "Synthetic math tutor for local testing",
           bio: "Fictional profile created by the local fixture script. Not a real tutor.",
           teachingBackground: "Fictional background for local testing only.",

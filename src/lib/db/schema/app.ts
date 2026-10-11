@@ -122,6 +122,8 @@ export const tutorProfiles = pgTable(
       .notNull()
       .unique()
       .references(() => user.id, { onDelete: "restrict" }),
+    // Public address of the profile. Set once; never an account identifier.
+    slug: text("slug").notNull().unique(),
     headline: text("headline").notNull(),
     bio: text("bio").notNull(),
     teachingBackground: text("teaching_background").notNull(),
@@ -142,6 +144,10 @@ export const tutorProfiles = pgTable(
     check(
       "tutor_profiles_review_status_allowed",
       sql`${table.reviewStatus} IN ('pending', 'approved', 'rejected', 'suspended')`,
+    ),
+    check(
+      "tutor_profiles_slug_format",
+      sql`${table.slug} ~ '^[a-z0-9]+(-[a-z0-9]+)*$'`,
     ),
     check(
       "tutor_profiles_headline_length",

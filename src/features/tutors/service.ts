@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { and, asc, eq, inArray, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import type { AuthRuntime } from "@/lib/auth-factory";
@@ -12,8 +13,14 @@ import {
 } from "@/lib/db/schema";
 import { requireIdentity, requireRole } from "@/lib/permissions/access";
 import { RuleError } from "@/lib/rule-error";
+import { slugify } from "@/features/subjects/slug";
 import { tutorProfileInput } from "./input";
 import { tutorCanEdit } from "./review-rules";
+
+/** Readable public address; the random part keeps it unique and unguessable. */
+export function tutorSlug(displayName: string) {
+  return `${slugify(displayName).slice(0, 40).replace(/-+$/, "") || "tutor"}-${randomBytes(4).toString("hex")}`;
+}
 
 export const startApplicationInput = z.strictObject({});
 
@@ -52,6 +59,7 @@ export async function loadTutorProfile(db: Database, where: SQL) {
     .select({
       id: tutorProfiles.id,
       userId: tutorProfiles.userId,
+      slug: tutorProfiles.slug,
       displayName: user.name,
       headline: tutorProfiles.headline,
       bio: tutorProfiles.bio,
@@ -147,9 +155,17 @@ export async function saveOwnTutorProfile(
           .delete(tutorSubjects)
           .where(eq(tutorSubjects.tutorId, profileId));
       } else {
+        const [owner] = await tx
+          .select({ name: user.name })
+          .from(user)
+          .where(eq(user.id, identity.userId));
         [{ id: profileId }] = await tx
           .insert(tutorProfiles)
-          .values({ ...fields, userId: identity.userId })
+          .values({
+            ...fields,
+            userId: identity.userId,
+            slug: tutorSlug(owner?.name ?? ""),
+          })
           .returning({ id: tutorProfiles.id });
       }
       const tutorId = profileId;

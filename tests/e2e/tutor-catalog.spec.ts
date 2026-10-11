@@ -295,12 +295,150 @@ test("a tutor applies, an admin decides, and each sees the stored result", async
   ).toBeVisible();
   await expectAccessible(tutor);
 
+  // Signed out, the approved tutor is now discoverable everywhere.
+  const visitor = await (await browser.newContext({ baseURL })).newPage();
+  for (const [width, height] of [
+    [1440, 900],
+    [390, 844],
+    [320, 720],
+  ]) {
+    await visitor.setViewportSize({ width, height });
+    await visitor.goto("/tutors");
+    await expect(visitor.getByRole("status")).toHaveText("1 tutor");
+    await expectAccessible(visitor);
+    await visitor.screenshot({
+      path: info.outputPath(`directory-${width}.png`),
+      fullPage: true,
+    });
+  }
+  await visitor.setViewportSize({ width: 1440, height: 900 });
+  await visitor.getByLabel("Subject").selectOption("math");
+  await visitor.getByLabel("Level").selectOption("high_school");
+  await visitor.getByRole("button", { name: "Apply filters" }).click();
+  await expect(visitor).toHaveURL("/tutors?subject=math&level=high_school");
+  await expect(visitor.getByRole("heading", { name: tutorName })).toBeVisible();
+  await visitor
+    .getByRole("link", { name: "Remove filter: High School" })
+    .click();
+  await expect(visitor).toHaveURL("/tutors?subject=math");
+  await visitor.goto("/tutors?subject=science");
+  await expect(
+    visitor.getByRole("heading", {
+      name: "No tutors teach Science on Learli right now",
+    }),
+  ).toBeVisible();
+  await visitor.goto("/tutors?subject=math&level=college_support");
+  await expect(
+    visitor.getByRole("heading", { name: "No tutors match these filters" }),
+  ).toBeVisible();
+  await visitor.getByRole("link", { name: "Clear filters" }).first().click();
+  await expect(visitor).toHaveURL("/tutors");
+
+  // Guided matching reaches the same tutor by the same rule.
+  for (const [width, height] of [
+    [1440, 900],
+    [390, 844],
+    [320, 720],
+  ]) {
+    await visitor.setViewportSize({ width, height });
+    await visitor.goto("/get-matched");
+    await expect(visitor.getByText("Question 1 of 2")).toBeVisible();
+    await expectAccessible(visitor);
+  }
+  await visitor.setViewportSize({ width: 1440, height: 900 });
+  await visitor.getByLabel("High School").check();
+  await visitor.getByRole("button", { name: "Continue" }).click();
+  await expect(visitor).toHaveURL("/get-matched?level=high_school");
+  await expect(visitor.getByText("Question 2 of 2")).toBeVisible();
+  await expectAccessible(visitor);
+  await visitor.getByRole("link", { name: "Back", exact: true }).click();
+  await expect(visitor.getByLabel("High School")).toBeChecked();
+  await visitor.getByRole("button", { name: "Continue" }).click();
+  await visitor.getByLabel("Math", { exact: true }).check();
+  await visitor.getByRole("button", { name: "Show matching tutors" }).click();
+  await expect(visitor).toHaveURL(
+    "/get-matched?level=high_school&subject=math",
+  );
+  await expect(visitor.getByRole("status")).toHaveText(
+    "1 tutor teaches Math at High School",
+  );
+  await expect(visitor.getByRole("heading", { name: tutorName })).toBeVisible();
+  await expectAccessible(visitor);
+  await visitor.screenshot({
+    path: info.outputPath("match-results-1440.png"),
+    fullPage: true,
+  });
+  await visitor.goto("/get-matched?level=college_support&subject=math");
+  await expect(
+    visitor.getByRole("heading", { name: "No tutors match your answers" }),
+  ).toBeVisible();
+  await expect(visitor.getByText("College Support · Math")).toBeVisible();
+  await visitor.getByRole("link", { name: "Change answers" }).click();
+  await expect(visitor.getByText("Question 1 of 2")).toBeVisible();
+  await visitor.goto("/get-matched?level=phd");
+  await expect(visitor.getByRole("main").getByRole("alert")).toHaveText(
+    "Choose a level",
+  );
+
+  await visitor.goto("/subjects");
+  await visitor.getByRole("link", { name: "Math, High School" }).click();
+  await expect(visitor).toHaveURL("/tutors?subject=math&level=high_school");
+  await expect(
+    visitor.getByRole("link", { name: "Science, High School" }),
+  ).toHaveCount(0);
+
+  await visitor.goto("/");
+  await expect(
+    visitor.getByRole("heading", { name: "Tutors on Learli" }),
+  ).toBeVisible();
+  await expectAccessible(visitor);
+  await visitor.screenshot({
+    path: info.outputPath("home-1440.png"),
+    fullPage: true,
+  });
+  await visitor.getByRole("search").getByLabel("Subject").selectOption("math");
+  await visitor.getByRole("button", { name: "Find a tutor" }).click();
+  await expect(visitor).toHaveURL(/\/tutors\?subject=math/);
+  await visitor
+    .getByRole("link", { name: `View profile: ${tutorName}` })
+    .click();
+  await expect(visitor.getByRole("heading", { level: 1 })).toHaveText(
+    tutorName,
+  );
+  const profileUrl = visitor.url();
+  await expect(visitor.getByText("Specialty: Algebra")).toBeVisible();
+  await expect(
+    visitor.getByText("Learli has not checked these details"),
+  ).toBeVisible();
+  await expect(
+    visitor.getByText("Booking is not available on Learli yet."),
+  ).toBeVisible();
+  // Public HTML carries no sign-in address or time zone.
+  const html = await visitor.content();
+  expect(html).not.toContain("@learli.test");
+  expect(html).not.toContain("Manila");
+  await visitor.setViewportSize({ width: 390, height: 844 });
+  await expectAccessible(visitor);
+  await visitor.screenshot({
+    path: info.outputPath("public-profile-390.png"),
+    fullPage: true,
+  });
+  await tutor.getByRole("link", { name: "View public profile" }).click();
+  await expect(tutor).toHaveURL(profileUrl);
+
   await admin.getByRole("button", { name: "Suspend tutor" }).click();
   await admin
     .getByRole("dialog", { name: "Suspend this tutor?" })
     .getByRole("button", { name: "Suspend tutor" })
     .click();
   await expect(admin.getByRole("status")).toHaveText("Tutor suspended.");
+  // Suspension removes the tutor from every public page at once.
+  expect((await visitor.goto(profileUrl))?.status()).toBe(404);
+  await visitor.goto("/tutors");
+  await expect(
+    visitor.getByRole("heading", { name: "No tutors are listed right now" }),
+  ).toBeVisible();
+  await expect(visitor.getByRole("search")).toHaveCount(0);
   await tutor.goto("/tutor/profile");
   await expect(
     tutor.getByRole("heading", { name: "Your tutor profile is suspended" }),
