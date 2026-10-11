@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.8 — Six-feature local premerge integration
+> **Version:** 1.9 — Six-feature local main merge
 > **Last updated:** 2026-10-11  
-> **Current overall status:** **Six-feature candidate locally verified and independently reviewed; parent commit/merge next**
+> **Current overall status:** **Six local features verified, independently reviewed and merged into local main**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -17,20 +17,20 @@
 
 ## Current Phase
 
-- **Phase:** **Local six-feature premerge integration; no launch or whole milestone promotion.**
+- **Phase:** **Six-feature integration merged locally; no launch or whole milestone promotion.**
 - **Product definition:** Documented; core marketplace scope agreed.
-- **Application implementation:** Local main includes the previous foundation plus demo booking with guarded time off, optional teaching languages, exact-case support and own-session management. Separate independent review and all combined checks passed; the fast-forward merge preserved that exact runtime code.
-- **Assigned worktree:** `cob-g/six-feature-integration` combines six frozen local slices on clean initial `0c078bf`: private booking details/history, family dashboards, tutor dashboard, actual-date profile/auth continuation, availability matching and manual local creation-notice capture. All changes remain uncommitted here; source branches/worktrees remain unchanged.
-- **Current own checkout:** Authorized locator/fixture/DST-label repairs and the explicit tutor fixture sign-in are complete. Final same-agent Review recommends READY FOR VERIFICATION; separate Verify passed initial full check578cases, affected family17cases, repaired static checks/build,255 PostgreSQL cases and real fresh13/baseline12-to13 migration/grant proofs. Browser acceptance covers all79 default-discovered cases:78PASS in full sequential run plus corrected combined case1/1PASS; no single79/79 full-pass claim. Runtime99 aggregate `f83f80976a63927e6699865f1113e7cb97980e1e018dd162a3cd7952cd6db402` is frozen; both final independent reviews are accepted by parent msg_3addf9d89cee for that exact runtime, with plan/integrity/unintended-change PASS, READY FOR VERIFICATION and0outstanding findings. Parent final file audit/commit/merge remain next. Historical failures/source-worker evidence below remain separate.
+- **Application implementation:** Local `main` now includes all six new slices: private booking details/history, student/parent dashboards, tutor dashboard, actual-date profile selection/auth continuation, availability matching and manual local creation-notice capture. Integration commit `1cbfa10` was fast-forwarded from `0c078bf`; all 99 reviewed runtime file hashes match after merge.
+- **Integration worktree:** `cob-g/six-feature-integration` retains committed `1cbfa10`. The six original feature worktrees/branches remain unchanged and preserved; no worktree removal was requested for this merge.
+- **Verification:** Reviewed locator, fixture-isolation, tutor sign-in and family DST-label repairs are complete. Both independent final reviews have zero remaining findings and recommend READY FOR VERIFICATION. Separate execution passed the initial 578 unit/component cases, 17 affected family cases, static checks, production rebuild, 255 PostgreSQL cases, and fresh/upgrade migration and grant proofs. All 79 browser cases have applicable passing evidence: 78 unchanged cases from the sequential full run plus the corrected combined case 1/1; no single full 79/79 run is claimed. Runtime aggregate `f83f80976a63927e6699865f1113e7cb97980e1e018dd162a3cd7952cd6db402` was verified on local `main` after merge. Historical failures remain recorded below and in `docs/operations/six-feature-premerge.md`.
 - **Pilot / production deployment:** **Not verified**.
 - **Live payment processing:** **Blocked pending founder-approved business rules**.
 - **Public onboarding of minors:** **Blocked pending launch-market guardian-consent and safeguarding decisions**.
 
 ## Current Goal
 
-**Integrate and verify the six completed local slices as a safe premerge candidate.**
+**Completed: integrate, verify, commit and merge the six local slices into main.**
 
-Authority is **AUTHORIZED — build-feature delegation**, following the user's explicit local commit/merge request on 2026-10-11. The integration owner prepares and repairs this isolated candidate; the parent alone accepts, commits and merges. See `prompts/features/m4-09-six-feature-premerge-integration.md`. Both final independent reviews and applicable verification are accepted; runtime remains frozen for parent final file audit and local commit/merge. This task does not authorize production changes, external delivery, worktree removal, real-user onboarding or whole milestone completion. The earlier five-feature merge/cleanup is retained as historical evidence below and in `docs/operations/five-feature-premerge.md`.
+Authority is **AUTHORIZED — build-feature delegation**, following the user's explicit local commit/merge request on 2026-10-11. The integration owner prepared and repaired the isolated candidate; the parent accepted it, committed `1cbfa10` and fast-forwarded local `main`. See `prompts/features/m4-09-six-feature-premerge-integration.md`. Both final independent reviews, applicable verification and the exact 123-file audit passed. All four workers in this integration run completed and were released. The main-checkout database was not migrated; migration 0012 and its grants were verified only on the isolated integration databases. Push and deployment remain separate operations. This task does not authorize production changes, external delivery, worktree removal, real-user onboarding or whole milestone completion. The earlier five-feature merge/cleanup is retained as historical evidence below and in `docs/operations/five-feature-premerge.md`.
 
 ## Completed
 
@@ -690,3 +690,10 @@ Copy this compact entry for the next session; include only **actual evidence**:
 - Final runtime execution checkpoint: production rebuild PASS (`.local/build-repaired.log`); second default browser78PASS/1FAIL (`.local/browser-repaired.log`), failing only the combined tutor fixture's missing explicit sign-in with autoSignIn:false. Parent msg_c6ea196e1741 authorized that exact test-only correction; repaired final static checks PASS and combined-only `npm run test:e2e -- --project=six-feature-integration --no-deps --workers=1` PASS1/1 (`.local/browser-combined-final.log`). All79 discovered cases have applicable successful coverage (unchanged78 plus corrected1), as explicitly authorized; full default command itself did not pass79/79. F1/B1, F2/B2 and F3 are repaired; final99 runtime aggregate `f83f80976a63927e6699865f1113e7cb97980e1e018dd162a3cd7952cd6db402`, exact one-file last delta `.local/signin-delta.json`. Same-agent scoped Review READY FOR VERIFICATION; independent final-runtime follow-ups remain pending. No backend/service/query/config/PG/migration drift or repeated broad database run for UI/test-only changes.
 
 - Final independent acceptance: parent msg_3addf9d89cee accepts definitive backend `.local/independent-backend-review.md` and original broad flows `.local/independent-flows-review.md` plus final focused `.local/independent-flows-followup-review.md` at exact99-path f83f runtime. Plan/integrity/unintended-change PASS; READY FOR VERIFICATION;0outstanding findings. Separate Verify accepted: initial check578, affected family17, PG255, static/rebuild, fresh13/real baseline12→13/grants, all79 applicable browser cases (78unchanged +1corrected),16 inspected screenshots, final privacy0hits/123changed/68src/38assets/2976patterns. Both first failures remain evidence, not accepted failures. Final artifact formatting/diff and exact source/provider preservation audits passed; `.local/final-manifest.json`/`.local/final-runtime-fingerprint.json`, `.local/integration-report.md` and ignored `memory.md` record handoff. All123 changed nonignored paths remain uncommitted; worker neither stages nor commits/merges. Parent alone audits/accepts/commits/merges; no whole milestone/production/real-user readiness claim.
+
+### 2026-10-11T22:21:00+08:00 — Six-feature local merge completed
+
+- Explicit user commit/merge request fulfilled: `0c078bf` → `1cbfa10c2632e5f22ae2a55be737b77fd4415ce7` on local `main` by fast-forward. The parent staged only the 123 accepted manifest paths and verified the committed index and merged runtime hashes.
+- Both independent final review scopes cleared; applicable static, unit/component, PostgreSQL, build, fresh/upgrade, browser and privacy evidence is recorded in `docs/operations/six-feature-premerge.md`.
+- Original six worktrees and the integration worktree are preserved; all four integration/review workers succeeded and were released. No push, deployment, main database migration or worktree cleanup was performed.
+- Remaining operational step before using this revision with an existing local database: apply the reviewed migration and runtime grants through the repository local migration commands. Public-launch and commercial/consent gates remain unchanged.

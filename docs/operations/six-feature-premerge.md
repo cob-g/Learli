@@ -5,9 +5,11 @@
 `prompts/features/m4-09-six-feature-premerge-integration.md` is
 **AUTHORIZED — build-feature delegation**, based on the actual integration task
 and user's local commit/merge request. Parent alone accepts, commits and merges.
-Current candidate remains uncommitted. Authorized repairs and applicable local
-verification are complete. Parent accepted both final independent reviews for
-the exact frozen runtime; final file audit, acceptance/commit/merge are parent-owned.
+Parent committed the accepted 123-file candidate as
+`1cbfa10c2632e5f22ae2a55be737b77fd4415ce7` and fast-forwarded local `main` from
+`0c078bf`. Authorized repairs, applicable local verification and both independent
+final reviews are complete. All 99 runtime file hashes match the reviewed
+candidate after merge.
 
 ## Scope and provenance
 
@@ -129,7 +131,21 @@ remain open. Final manifests `.local/final-manifest.json` and
 `.local/final-runtime-fingerprint.json` cover every changed tracked/untracked
 nonignored path and the separate runtime subset. Aggregate algorithm is sorted
 relative UTF-8 path + NUL + lowercase SHA256(bytes) + LF, then SHA256 concatenation.
-Both independent reviews cover the final runtime; parent validates those manifests
-and accepts the candidate before its local commit/merge. Factual final documents
+Both independent reviews cover the final runtime; the parent validated the exact
+manifest and staged bytes, committed the candidate and verified the merged
+runtime identity. Factual final documents
 were completed after review without runtime drift. Ignored sanitized report and
 root memory preserve the local handoff; no worker commit/staging/merge occurred.
+
+## Local merge completion
+
+Completed at 2026-10-11T22:21:00+08:00 (Asia/Manila). Integration commit
+`1cbfa10c2632e5f22ae2a55be737b77fd4415ce7` is on local `main`. The original six
+feature worktrees and integration worktree remain preserved. All four supervised
+integration/review tasks succeeded and their agent terminals were released.
+
+Only the isolated integration databases received migration 0012 and updated runtime
+grants. The main-checkout database was not migrated; apply the repository local
+migration commands before exercising this revision against an existing local
+database. No push, deployment or production operation was performed. The merge
+does not change the local-simulation or public-launch policy gates.
