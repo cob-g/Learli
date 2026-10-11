@@ -279,4 +279,13 @@
   .action:disabled {
     @apply cursor-not-allowed border border-control bg-subtle text-muted-foreground;
   }
+  .action-destructive {
+    @apply bg-destructive text-on-inverse;
+  }
+  .confirm-dialog {
+    @apply inset-x-4 m-auto w-auto max-w-md rounded-overlay border border-border bg-surface p-6 text-foreground shadow-modal;
+  }
+  .confirm-dialog::backdrop {
+    background: var(--scrim);
+  }
 }

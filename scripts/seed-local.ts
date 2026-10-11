@@ -3,7 +3,15 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { eq } from "drizzle-orm";
 import { createLocalAuth } from "../src/lib/auth-factory";
 import { createDatabase } from "../src/lib/db/connection";
-import { user, userRoles, auditEvents, type Role } from "../src/lib/db/schema";
+import {
+  user,
+  userRoles,
+  auditEvents,
+  subjects,
+  tutorProfiles,
+  tutorSubjects,
+  type Role,
+} from "../src/lib/db/schema";
 
 process.loadEnvFile(".env.local");
 if (process.env.APP_ENV !== "development")
@@ -87,6 +95,37 @@ try {
         });
     });
   }
+  // One fictional pending application so the review queue has something to show.
+  const tutor = saved.find((item) => item.roles.join() === "tutor");
+  const [math] = await owner.db
+    .select({ id: subjects.id })
+    .from(subjects)
+    .where(eq(subjects.slug, "math"));
+  if (tutor && math)
+    await owner.db.transaction(async (tx) => {
+      const [profile] = await tx
+        .insert(tutorProfiles)
+        .values({
+          userId: tutor.userId,
+          headline: "Synthetic math tutor for local testing",
+          bio: "Fictional profile created by the local fixture script. Not a real tutor.",
+          teachingBackground: "Fictional background for local testing only.",
+          timezone: "Asia/Manila",
+        })
+        .onConflictDoNothing()
+        .returning({ id: tutorProfiles.id });
+      if (!profile) return;
+      await tx.insert(tutorSubjects).values({
+        tutorId: profile.id,
+        subjectId: math.id,
+        levels: ["middle_school", "high_school"],
+        specialty: "Algebra",
+      });
+      await tx.insert(auditEvents).values({
+        targetUserId: tutor.userId,
+        action: "tutor_profile.submitted",
+      });
+    });
   const rows = saved
     .map(
       (fixture) =>

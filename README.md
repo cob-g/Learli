@@ -85,7 +85,12 @@ applying it. Local scripts reject remote DB targets; no destructive reset exists
 
 - `/tutors`, matching, subjects and booking-related navigation remain truthful
   unavailable states. No invented tutor inventory, prices, ratings or lessons.
-- Role pages now enforce access but contain no learner/booking/tutor-management
+- Local M3.1–M3.3 and the M3.4 entry: any verified account can start a tutor
+  application from `/become-a-tutor`, which grants the `tutor` role only. A tutor
+  submits and edits one application at `/tutor/profile`; an `admin` reviews it at `/admin/tutors`
+  and manages the catalog at `/admin/subjects`. Approval records a status only.
+  The tutor screening policy is undecided and no profile is public yet.
+- Student and parent pages enforce access but contain no learner or booking
   features. Parent/learner relationship authorization belongs to M4.
 - `/api/health` is uncached process liveness, not a database/email readiness claim.
 - Pages remain excluded from indexing. Local auth is rejected in staging/production.

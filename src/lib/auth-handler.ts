@@ -30,7 +30,7 @@ const allowedPostFields: Record<string, string[]> = {
   "reset-password": ["token", "newPassword"],
   "send-verification-email": ["email", "callbackURL"],
 };
-export async function readSmallJson(request: Request) {
+export async function readSmallJson(request: Request, limit = 8192) {
   if (
     !request.headers.get("content-type")?.startsWith("application/json") ||
     !request.body
@@ -43,7 +43,7 @@ export async function readSmallJson(request: Request) {
     const { done, value } = await reader.read();
     if (done) break;
     size += value.byteLength;
-    if (size > 8192) {
+    if (size > limit) {
       await reader.cancel();
       throw new Error("Invalid request");
     }

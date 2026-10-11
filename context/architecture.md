@@ -154,6 +154,23 @@ off for staging/production. See `docs/decisions/2026-10-11-local-m2.md` (reposit
 root) and the M2 blueprint. This is a local development exception, not a change of
 hosted provider or approval for real-user onboarding.
 
+### Local M3.1–M3.3 implementation note — 2026-10-11
+
+`subjects`, `tutor_profiles` and `tutor_subjects` now exist as reviewed local
+migrations, following §9.2 with these recorded differences: no `slug`,
+`teaching_languages` or `meeting_provider_preference` column yet (they belong to
+public profiles and later work); `teaching_background` added per build-plan M3.2;
+`tutor_profiles.user_id` is `ON DELETE RESTRICT`; `audit_events` gained
+`target_subject_id` and tutor/subject actions. `listEligibleTutors` in
+`src/features/tutors/eligibility.ts` is the single public-eligibility query for
+later directory, matching and booking work. By owner decision an approved tutor's
+edit needs no re-review and a rejected tutor may submit again
+(`docs/decisions/2026-10-11-tutor-profile-edits.md`). A verified account obtains
+the `tutor` role itself from `/become-a-tutor`; the runtime grants it only through
+the `grant_tutor_role` function, which can add no other role
+(`docs/decisions/2026-10-11-tutor-role-self-service.md`). Tutor screening policy
+remains undecided. See `prompts/features/m3-01-tutor-catalog-foundation.md`.
+
 ### Why Next.js, not Laravel?
 
 Next.js lets the first Learli team build the site, data fetching, forms, protected actions, and API routes with TypeScript in **one repository**. A separate Laravel backend is unnecessary for this particular MVP.

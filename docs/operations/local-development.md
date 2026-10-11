@@ -47,6 +47,24 @@ APP_URL, matching auth origin, a secret and the dedicated database. Staging and
 production modes reject it. Default `dev`/`start` bind loopback. This does not
 provide a deployable real-user enrollment flow or a production email adapter.
 
+## Tutor applications and subjects (M3.1–M3.3)
+
+- Migrations `0001_tutor_catalog` and `0002_launch_subjects` add the catalog and
+  tutor tables and insert the eight agreed launch subjects. Apply them with
+  `npm run db:migrate` and `npm run db:migrate:test`.
+- `npm run db:seed` also gives the tutor fixture one fictional pending
+  application. Sign in as the tutor fixture to edit it at `/tutor/profile`, or as
+  the admin fixture to review it at `/admin/tutors`. The multi-role fixture has no
+  application, which shows the not-yet-submitted state.
+- New signups start with no role. Any signed-in, verified account can press
+  "Start tutor application" on `/become-a-tutor`, which grants the `tutor` role
+  through the `grant_tutor_role` database function (migration `0004`). That
+  function can add no other role; `admin` still comes only from fixture setup.
+- The runtime role can read and write tutor profiles, offerings and subjects but
+  cannot delete profiles or subjects, read audit history, or write `user_roles`
+  directly.
+- Approving here is a local status change. It is not a screening process.
+
 ## Schema and verification
 
 ```sh

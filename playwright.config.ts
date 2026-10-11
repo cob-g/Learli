@@ -49,6 +49,16 @@ export default defineConfig({
         screenshot: "off",
       },
     },
+    {
+      name: "catalog",
+      testMatch: "tutor-catalog.spec.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+        trace: "off",
+        screenshot: "off",
+      },
+    },
   ],
   webServer: {
     command: "npm run start -- --hostname 127.0.0.1 --port 3100",

@@ -4,7 +4,7 @@
 > **Document:** `progress-tracker.md`
 > **Version:** 1.2 — Verified local identity foundation
 > **Last updated:** 2026-10-11  
-> **Current overall status:** **M2 local identity verified; hosted integration deferred; M1 verified**
+> **Current overall status:** **M3.1–M3.3 local tutor catalog verified; M1 and M2 verified locally; hosted integration deferred**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -17,7 +17,7 @@
 
 ## Current Phase
 
-- **Phase:** **M2 — Local data, identity and authorization verified**.
+- **Phase:** **M3 — M3.1–M3.3 (catalog, tutor application, review gate) verified locally; M3.4–M3.8 not started**.
 - **Product definition:** Documented; core marketplace scope agreed.
 - **Application implementation:** Next.js shell, local PostgreSQL, Better Auth flows, account settings and server role/ownership checks verified on `main` at base `4503177` plus uncommitted M1/M2 changes. Tutor catalog, guardian links and bookings are not implemented.
 - **Pilot / production deployment:** **Not verified**.
@@ -32,9 +32,9 @@ Local M2 is implemented and verified under the owner's local-only instruction.
 See the M2 session below for exact checks and deferred hosted acceptance. Nothing
 has been committed, pushed or deployed during this implementation.
 
-**Next development slice:** Architect M3.1–M3.3: subject catalog, synthetic tutor
-profiles and publication eligibility, continuing local-only development. Actual
-tutor screening policy remains open. Hosted Neon/TLS and Resend verification wait
+**Next development slice:** Architect M3.4–M3.5: public subjects, tutor directory
+and profile pages reading only through `listEligibleTutors`, plus the tutor
+application entry. The tutor application entry on `/become-a-tutor` is already built. Actual tutor screening policy remains open. Hosted Neon/TLS and Resend verification wait
 until external integration is requested.
 
 ## Completed
@@ -66,6 +66,7 @@ until external integration is requested.
 - [x] **M2 local identity:** Registration, verification through local capture, sign-in/out, password recovery, session revocation, persistent rate limits, trusted multi-role grants, account status and ownership guards. New signups have no roles.
 - [x] **M2 local account UI:** Safe return paths, private account settings and guarded role shells; accessible native forms tested at desktop, phone and 320px widths. No learner relationship or tutor eligibility claim.
 - [x] **M2 verification:** 37 unit/component, 15 real PostgreSQL integration and 22 browser tests passed; lint/typecheck/format and production build passed. Details in the M2 session.
+- [x] **M3.1–M3.3 local tutor catalog:** `subjects`, `tutor_profiles`, `tutor_subjects` migrations with the eight launch subjects; tutor application form for trusted `tutor` accounts; audited admin review transitions and subject add/activate/deactivate; one public-eligibility query with no public consumer yet. 62 unit/component, 32 PostgreSQL integration and 25 browser tests passed. Details in the M3 session.
 - **Hosted services deferred:** Neon and Resend packages remain installed but unconnected; Railway and remote CI unrun. Local capture is not email delivery. Marketplace functionality and real-user onboarding remain future work.
 
 ## In Progress
@@ -79,8 +80,7 @@ until external integration is requested.
 
 Prioritized, small tasks; **these are planned, not completed**.
 
-1. **P0 — M3.1–M3.3, local tutor catalog.** Model subjects, synthetic tutor profiles and publication gates; preserve unresolved real screening policy.
-2. **P0 — Remaining M3 discovery.** Directory/filtering and rule-based matching based on actual local records; honest empty states and no fabricated production inventory.
+1. **P0 — Remaining M3 discovery (M3.4–M3.8).** Directory/filtering and rule-based matching based on actual local records; honest empty states and no fabricated production inventory.
 3. **P0 — M4, availability and bookings.** IANA time zones, authorized learner relationships, approved booking policies and database-level overlap protection with concurrency tests.
 4. **P0 — M5, lesson coordination and safety.** Participant-only meeting links, role dashboards, transactional notifications, support/reporting and scoped admin operations.
 5. **Deferred — Hosted M2/operations acceptance.** Neon connection/TLS, provider email, production session settings and remote CI require a later externally enabled phase. Keep all current runtime work local.
@@ -96,7 +96,7 @@ Resolve open design decisions and dependency advisories alongside this sequence.
 | M0 | Business scope and technical documentation | **Documented; M0.1/M0.6 local evidence recorded** | Repository and context inspected; approval ownership and open decisions remain |
 | M1 | Repository + app foundation | **Local foundation verified** | Session evidence below; brand/primitive approval pending, remote CI unrun |
 | M2 | Data, authentication, role controls | **Local scope verified; hosted acceptance deferred** | Local migrations, auth/ownership tests and browser journeys passed; Neon/TLS/Resend and production settings unrun |
-| M3 | Tutor catalog, public discovery, matching | **Planned / not verified** | Public browsing QA, filtering tests, tutor-publication checks |
+| M3 | Tutor catalog, public discovery, matching | **M3.1–M3.3 verified locally; M3.4–M3.8 planned** | Catalog, application and review tests passed locally; public pages, filters, matching and screening policy remain |
 | M4 | Availability, guardians/learners, booking integrity | **Planned / not verified** | Time-zone/DST, ownership, concurrent-booking tests |
 | M5 | Meeting links, dashboards, notifications, basic support | **Planned / not verified** | E2E role journeys, meeting-link privacy and email tests |
 | M6 | Commerce policy approval | **Blocked** | Founder-approved decision records and provider/jurisdiction assessment |
@@ -232,3 +232,37 @@ Copy this compact entry for the next session; include only **actual evidence**:
 - **Remaining acceptance:** Hosted Neon/TLS/pooling behavior, Resend delivery, production secure-cookie behavior, remote CI and deployment are **NOT RUN** under local-only scope. Guardian relationships/tutor eligibility belong to subsequent milestones; auth does not establish their policy. The existing **13 dependency advisories (4 moderate/9 high)** remain; audit is not clean. No real-minor onboarding, payment or release approval.
 - **Next smallest task:** Architect M3.1–M3.3 using local synthetic data, preserving open screening and product decisions.
 - **Scope distinction:** Local PostgreSQL replaces hosted Neon only for this authorized development phase. No Neon/Railway/Resend operation, real-user data, message send, push or deployment was performed. Updated the architecture, build plan and local-only decision record accordingly.
+
+### Session — 2026-10-11 (M3.1–M3.3 local tutor catalog — verified)
+
+- **Owner / branch / PR:** Claude Code for the repository owner · `main` working tree at base `d22a061` (clean before this slice) · no commit, push, PR or deployment.
+- **Authority:** `/build-feature M3.1–M3.3 tutor catalog.` Blueprint `prompts/features/m3-01-tutor-catalog-foundation.md` — **AUTHORIZED — build-feature delegation**; not separate human approval of the blueprint. Local-only constraint from `docs/decisions/2026-10-11-local-m2.md` kept.
+- **PRD:** TUT-01, TUT-02, TUT-03, ADM-01, ADM-02 (create specialized, activate, deactivate; rename not built), AUTH-03; QA-02 and QA-03 at the service level.
+- **Changed:** Migrations `0001_tutor_catalog` and `0002_launch_subjects`; runtime grants; `src/features/subjects`, `src/features/tutors`, `src/features/admin`; API routes for own tutor profile, admin review and admin subjects; pages `/tutor`, `/tutor/profile`, `/admin`, `/admin/tutors`, `/admin/tutors/[profileId]`, `/admin/subjects`; shared confirm dialog, mutation boundary, rule error, time-zone labels; the account service now imports the extracted time-zone check; `readSmallJson` takes an optional size limit; seed adds one fictional pending application. Applied to the local dev and test databases only.
+- **Review:** Same-agent read-only inspection of the full diff against the blueprint. Plan alignment **PASS**, unintended-change audit **PASS**, **READY FOR VERIFICATION — local scope**. One minor finding (a browser assertion accepting two status codes) fixed and re-inspected. Not an independent review; no release clearance.
+- **Verification (final code state):** `npm run check` PASS (format, lint, typecheck, **62** unit/component tests). `npm run test:integration` PASS **32/32** on real PostgreSQL, 17 new: submit and edit, forged status/owner/id rejected, anonymous/role-less/unverified/suspended/cross-origin denied, tutor A cannot change tutor B, inactive or unknown subject rejected, read-only when rejected or suspended, database constraints and runtime privileges, every legal and illegal review transition, admin-only review, no self-review, one winner of two simultaneous decisions, queue and detail expose no account data, catalog add/duplicate/toggle with audit, non-admin denial, eligibility exclusions. `npm run build` PASS. `npm run test:e2e` PASS **25/25**, 3 new, with axe and no-overflow checks at 1440, 390 and 320 and keyboard Escape/focus return on the dialog. Screenshots of the form, queue, detail and dialog inspected. UI guardrail greps returned only existing token definitions; detector returned `[]`; no database code and zero secret-value matches in client assets (the one `BETTER_AUTH_SECRET` name match is the Better Auth client library's own environment lookup, present since M2); `git diff --check` clean.
+- **Recovery:** First browser run failed 1 of 25: the assertion expected focus on Math, while the form correctly focuses the first checkbox (English). Assertion corrected; no application change. Inspection also found the integration test left two subjects deactivated in the shared test database; it now restores them.
+- **Not built / not verified:** Public subjects, directory, profile and matching pages; the self-serve application entry; teaching languages and public slug; review reasons; subject rename; sortable admin columns and admin mobile menu; rate limits on these endpoints; anything hosted. Remote CI not run. The 13 dependency advisories are unchanged; no dependency added.
+- **Blockers / decisions:** Tutor screening policy (founder plus safety/legal). Before M3.4: re-review after an approved tutor edits; how an account obtains the tutor role; whether a rejected tutor may reapply.
+- **Coordination:** A parallel session reports building M4.2 time utilities on branch `feature/time-utils` in a separate worktree, including a stricter `isValidTimeZone`. After that merges, `src/lib/validation/time-zone.ts` can be replaced by it; both branches add a note to `context/architecture.md`.
+- **Deployment:** Not deployed.
+- **Next session:** Decide the three M3.4 questions, then architect M3.4–M3.5.
+
+### Session — 2026-10-11 (tutor edit and reapply decisions)
+
+- **Owner / branch:** Claude Code for the repository owner · `main` working tree at base `d22a061` · no commit, push or deployment.
+- **Decisions recorded:** `docs/decisions/2026-10-11-tutor-profile-edits.md`. An approved tutor's edits need no re-review. A rejected tutor may reapply on their own.
+- **Changed:** The first was already the behavior. For the second, saving a rejected profile now returns it to pending and is audited as a submission; the rejected notice, the reject dialog wording and the form's button label follow. Suspended profiles stay read-only. No schema change. PRD TUT-02, architecture note and blueprint updated.
+- **Verified (final code):** `npm run check` PASS (62 unit/component tests); `npm run test:integration` PASS 33/33, including the new rejected-tutor resubmission case; `npm run build` PASS; `npm run test:e2e` PASS 25/25. Same-agent inspection of the change only; no independent review.
+- **Still open:** how an account obtains the tutor role; tutor screening policy. No moderation of approved tutors' edits and no reapply limit exist.
+
+### Session — 2026-10-11 (M3.4 first slice: tutor application entry — verified)
+
+- **Owner / branch:** Claude Code for the repository owner · `main` working tree at base `d22a061` · no commit, push or deployment.
+- **Authority:** Owner agreed to the recommended design. Blueprint `prompts/features/m3-04-tutor-application-entry.md` — **AUTHORIZED — build-feature delegation**. Decision record `docs/decisions/2026-10-11-tutor-role-self-service.md`.
+- **Changed:** Migrations `0003_tutor_role_audit` (audit action) and `0004_grant_tutor_role` (a `SECURITY DEFINER` function that adds only the `tutor` role); execute grant for the runtime role; `startTutorApplication` service and `POST /api/tutor/application`; `/become-a-tutor` now explains applying and has the "Start tutor application" button. Applied to local dev and test databases.
+- **Review:** Same-agent read-only inspection against the blueprint: plan alignment PASS, unintended-change audit PASS, no confirmed finding. Not independent.
+- **Verification (final code):** `npm run check` PASS (62 unit/component); `npm run test:integration` PASS **36/36**, 3 new (one audited grant, idempotent, cannot be public without approval; signed-out, suspended, cross-origin and forged bodies refused; runtime still cannot write `user_roles` and the function can add only `tutor`); `npm run build` PASS; `npm run test:e2e` PASS **26/26**, 1 new with axe and overflow checks at three widths. Detector `[]`; `git diff --check` clean.
+- **Not built:** account-type choice at sign-up; public subjects, directory, profile and matching pages; rate limiting. Remote CI not run.
+- **Open:** tutor screening policy. Any verified account can now hold the tutor role, which reaches only its own application.
+- **Next session:** Architect the public directory and tutor profile pages (rest of M3.4, M3.5) on `listEligibleTutors`.

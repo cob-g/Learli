@@ -8,6 +8,34 @@
       "when": 1791693968818,
       "tag": "0000_local_identity_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791699743957,
+      "tag": "0001_tutor_catalog",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791699747009,
+      "tag": "0002_launch_subjects",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791701106999,
+      "tag": "0003_tutor_role_audit",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791701107318,
+      "tag": "0004_grant_tutor_role",
+      "breakpoints": true
     }
   ]
 }

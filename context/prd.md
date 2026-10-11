@@ -453,6 +453,7 @@ Each requirement has an **ID**, **priority**, **status**, a user-visible outcome
 - Display text is safely rendered; unsafe HTML/scripts are not executed.
 - Updating another tutor's profile is forbidden even via direct API calls.
 - The profile reflects review/publication rules chosen for the launch market.
+- Owner decision 2026-10-11: an approved tutor's edit needs no re-review, and a rejected tutor may edit and submit again, which returns the application to pending (`docs/decisions/2026-10-11-tutor-profile-edits.md`).
 
 #### TUT-03 — Supported subjects and specialization `P0 [AGREED]`
 

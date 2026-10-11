@@ -7,21 +7,11 @@ import {
   requireOwnership,
   AccessError,
 } from "@/lib/permissions/access";
+import { timeZoneSchema } from "@/lib/validation/time-zone";
 
 export const accountInput = z.strictObject({
   name: z.string().trim().min(1).max(100),
-  timezone: z
-    .string()
-    .max(100)
-    .refine((value) => {
-      try {
-        if (!/^[A-Za-z_]+(?:\/[A-Za-z0-9_+.-]+)*$/.test(value)) return false;
-        new Intl.DateTimeFormat("en", { timeZone: value });
-        return true;
-      } catch {
-        return false;
-      }
-    }),
+  timezone: timeZoneSchema,
 });
 export async function readAccount(
   runtime: AuthRuntime,

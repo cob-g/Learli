@@ -236,6 +236,8 @@ M6 begins **as early as possible in parallel**; postponing decisions until all e
 **Source:** `PRD.md` §§6–7 (`PUB`, `TUT`, `MATCH`); `architecture.md` §§6–7, 9.2; `ui-context.md` §Layout Patterns.  
 **PRD:** `PUB-01`–`PUB-04`; `PUB-05` is gated for public paid launch; `TUT-01`–`TUT-03`, `TUT-06` as relevant; `MATCH-01`, `MATCH-02`, with live-slot accuracy completed in M4.
 
+**Local status (2026-10-11):** M3.1–M3.3 are implemented and verified locally with synthetic data only: catalog table and launch subjects, admin add/activate/deactivate, tutor application form, a self-service "Start tutor application" entry on `/become-a-tutor` that grants only the `tutor` role (first slice of M3.4), audited admin review transitions, and one eligibility query. The boxes below stay unchecked because the real screening policy is `[OPEN]`, the rest of M3.4 is not built, and nothing is hosted. See `prompts/features/m3-01-tutor-catalog-foundation.md`.
+
 ### Work packages
 
 - [ ] **M3.1 — Model the subject catalog.** Categories: Math/Science/English, supported exam prep, homework/study skills, and tutor-backed specialized topics. Explicit active/disabled states; no universal subject database or formal international curricula engine.
