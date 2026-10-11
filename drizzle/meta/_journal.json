@@ -43,6 +43,13 @@
       "when": 1791701435981,
       "tag": "0005_tutor_profile_slug",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791707361243,
+      "tag": "0006_local_learner_profiles",
+      "breakpoints": true
     }
   ]
 }

@@ -502,9 +502,12 @@ describe("server permissions, validation and database boundaries", () => {
         )
       ).status,
     ).toBe(503);
+    const unavailableUrl = new URL(process.env.DATABASE_URL!);
+    // This local test deliberately targets a closed port, independent of the cluster port.
+    unavailableUrl.port = "1";
     const unavailable = createLocalAuth({
       ...process.env,
-      DATABASE_URL: process.env.DATABASE_URL!.replace(":55432/", ":55433/"),
+      DATABASE_URL: unavailableUrl.toString(),
     });
     try {
       const response = await handleAuthRequest(

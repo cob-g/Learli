@@ -1189,3 +1189,19 @@ These references support the proposed integrations but **do not replace testing 
 - [Neon Object Storage overview](https://neon.com/blog/building-neon-object-storage) — **future option, not a V1 dependency**
 
 **Document precedence:** This Learli architecture updates/supersedes the earlier CalcStream concept *only where our latest discussions explicitly changed the business*: brand, marketplace-only scope, simplified dashboards, launch categories, technical stack, hosting, and removal of assignments/LMS features. Pricing, payment flow, legal compliance details, and other open choices still require approval.
+
+### Local M4.4 implementation note — 2026-10-11
+
+The local synthetic slice adds `learner_profiles` and `guardian_learner_links`
+under `src/lib/db/schema/learners.ts`. Display name, level and IANA time zone are
+the only editable learner details. Fixture provenance, status, ownership and
+relationships are owner-tooling controlled; runtime grants allow only SELECT and
+column-limited profile UPDATE. A composite foreign key prevents guardian links
+to self-managed profiles; self profiles require a unique user and College Support.
+The server checks current account status, verification, trusted roles, active
+profile and authorized link or exact self ownership on reads and writes. No admin
+bypass exists. `scripts/seed-local-learners.ts` provisions synthetic records only
+for identities owned by the existing private fixture manifest and preserves edits
+and revoked links on rerun. Browser creation/linking is absent. This local
+technical model is not an approved real-world age, consent or guardian policy;
+real onboarding and booking remain gated. See `prompts/features/m4-04-learner-profiles.md`.

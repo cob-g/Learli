@@ -12,6 +12,8 @@ try {
     GRANT USAGE ON SCHEMA public TO learli_app;
     REVOKE ALL ON ALL TABLES IN SCHEMA public FROM learli_app;
     GRANT SELECT, INSERT, UPDATE, DELETE ON "user", "session", "account", "verification", "rate_limit" TO learli_app;
+    GRANT SELECT ON learner_profiles, guardian_learner_links TO learli_app;
+    GRANT UPDATE (display_name, level, timezone, updated_at) ON learner_profiles TO learli_app;
     GRANT SELECT ON user_roles TO learli_app;
     GRANT SELECT, INSERT ON user_access TO learli_app;
     GRANT INSERT ON audit_events TO learli_app;
