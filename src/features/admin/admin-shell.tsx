@@ -6,6 +6,7 @@ const areas = [
   ["tutors", "/admin/tutors", "Tutor review queue"],
   ["subjects", "/admin/subjects", "Subjects"],
   ["support", "/admin/support", "Assigned support cases"],
+  ["accounts", "/admin/accounts", "Authorized local accounts"],
 ] as const;
 export type AdminArea = (typeof areas)[number][0];
 

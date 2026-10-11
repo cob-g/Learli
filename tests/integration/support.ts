@@ -77,6 +77,11 @@ export async function createAccount(
   roles: Role[] = [],
   name = "Synthetic person",
 ) {
+  // Trusted synthetic provisioning must not inherit another suite's auth
+  // attempts. Feature throttle assertions use real requests after provisioning.
+  await world.owner.pool.query(
+    "UPDATE rate_limit SET count = 0 WHERE key LIKE '%/sign-up/email%' OR key LIKE '%/sign-in/email%'",
+  );
   const email = `test-${randomUUID()}@learli.test`;
   const signUp = await handleAuthRequest(
     world.runtime,
@@ -84,6 +89,8 @@ export async function createAccount(
       body: { email, name, password, callbackURL: "/account" },
     }),
   );
+  if (signUp.status !== 200)
+    throw new Error(`Synthetic registration failed (HTTP ${signUp.status}).`);
   const id = ((await signUp.json()) as { user: { id: string } }).user.id;
   await handleAuthRequest(
     world.runtime,

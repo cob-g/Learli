@@ -216,6 +216,11 @@ M6 begins **as early as possible in parallel**; postponing decisions until all e
 - [ ] **M2.7 — Safe validation and audit primitives.** Validate untrusted inputs (Zod or equivalent), use consistent safe errors and redact secrets, credentials and child information from logs. Add minimal auditable record patterns for sensitive actions.
 - [ ] **M2.8 — Test fixtures and factories.** Seed **fictional** tutors/learners only into isolated dev/test; never present fixtures as genuine tutors on public production pages.
 - [ ] **M2.9 — Secure auth UX.** Sign-up/sign-in/verification/reset screens using approved visual tokens; accessible error/loading/success states and safe post-auth return URLs.
+  - **2026-10-11 delegated local password subset:** signed-in active verified owner
+    change flow, forced other-session revocation, replacement-cookie forwarding,
+    narrow HTTP provider boundary and accessible account form. Blueprint
+    `prompts/features/m2-09-secure-signed-in-password-change.md`; executed evidence
+    belongs in the tracker. No hosted/whole-milestone promotion.
 
 ### M2 exit criteria
 
@@ -311,6 +316,14 @@ M6 begins **as early as possible in parallel**; postponing decisions until all e
 - [ ] **M5.5 — Tutor workspace.** Own profile, subjects, timezone, availability, next lessons, booked learners with minimum necessary details, safe meeting-link entry and personal booking history.
   - **2026-10-11 local slice:** authorized tutor dashboard consumes participant-scoped synthetic booking reads for next future simulation, agenda/history, minimal learner label/level and actual subject/time/demo status/expiry. Retains profile review, availability/time-off/profile/account routes. Uses native GET refresh with an accessible enhanced pending status; no meeting entry/join, money, attendance, cancellation or teaching metrics. This local slice does not complete M5.5's launch scope or authorize live lessons; verification evidence is in progress tracker and its canonical blueprint.
 - [ ] **M5.6 — Essential admin workspace.** Limited tutor eligibility actions, subject catalog, booking/support lookup and account safety restrictions. Require audit for sensitive actions. **No tutor KPI scoring or curriculum enforcement.**
+  - **2026-10-11 local account slice:** owner-provisioned exact staff-to-target grants
+    support scoped synthetic account summaries and audited access suspend/restore,
+    independent of support assignments. Existing sessions, tutor review and booking
+    history persist; no blanket runtime account-status UPDATE. See
+    `prompts/features/m5-06-scoped-account-restrictions.md` and progress tracker for
+    executed evidence. This does not complete M5.6 or approve real safety/appeals
+    policy, production access actions or launch.
+
 - [ ] **M5.7 — Transactional email integration.** Better Auth emails and event-based booking/changes via Resend, with safe recipient resolution and sensible retry/error handling. **Queue/delivery strategy should match actual hosting limits**; do not add Redis or an always-on worker by default.
 - [ ] **M5.8 — Respect transaction boundaries.** Send booking notices **after the booking DB transition commits**. Failed email delivery must not undo a valid booking or create a false confirmation. Scheduled reminders are optional and require a justified reliable scheduler.
 
@@ -768,3 +781,27 @@ neither commits nor merges. See
 `docs/operations/six-feature-premerge.md` and current progress-tracker evidence.
 This records local subsets without checking off entire M2/M3/M4/M5 launch packages
 or changing real-user/commercial/consent/provider/production gates.
+
+### Local M5.1/M5.2/M5.11 meeting-link work — 2026-10-11
+
+Agent1 implements the delegated local-only per-reservation private test-link slice.
+Existing validator, simulation TTL and participant boundaries remain governing.
+This does not check off full M5 or authorize real external lessons. Verification
+status belongs to progress-tracker and the own-checkout ignored worker report.
+
+### Local M5.6/M5.9 booking-linked support — 2026-10-11
+
+The Agent2 isolated candidate adds optional immutable simulated-booking report
+association and exact-case minimum investigation context under delegated wave
+authority. Requester participation remains current; assigned reviewers also need
+current admin/support capability. No learner/contact/meeting/notification projection,
+case replies or real incident operations. Blueprint
+`prompts/features/m5-06-booking-linked-support.md`; actual review/verification
+status belongs in the tracker and ignored worker report. Root inserts the separate
+booking-detail CTA and reconciles shared files. Full M5.6/M5.9 boxes remain open
+for real operations and policy gates; this note does not grant release readiness.
+
+
+## Four-feature local assembly —2026-10-11
+
+The authorized local wave combines M2 signed-in password changes, M5 local reservation links, booking-linked synthetic support and exact-target local restrictions. Its frozen import contract is prompts/features/m5-06-four-feature-coordination-wave.md. Source results are historical isolated evidence; combined checks and root independent reviews are distinct gates. No milestone completion, commit, merge or launch authorization follows from this wave.

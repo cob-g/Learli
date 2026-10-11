@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.11 — Main local databases migrated
-> **Last updated:** 2026-10-11  
-> **Current overall status:** **Six local features verified, independently reviewed and merged into local main**
+> **Version:** 1.14 — Four-feature wave independently reviewed and verified locally
+> **Last updated:** 2026-10-12\
+> **Current overall status:** **Four-feature wave independently reviewed and verified locally; uncommitted and unmerged**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -15,7 +15,32 @@
 
 ---
 
-## Current Phase
+## Current targeted recovery — 2026-10-12
+
+- Authority: AUTHORIZED — build-feature delegation; root activated after both independent reviews settled on the unchanged91-file prior candidate. Exactly F1 (Important pre-signin private bootstrap retention) and F2 (Minor missing three-field summary). Canonical recovery section retains every earlier failure.
+- Implemented: private/public-auth document boundary replaces a prior private document before auth children render; private bfcache reload rechecks current server authority. Password form adds focusable linked summary while preserving first-invalid focus and inline associations. Added strict original pre-signin assertion, revoked/expired failed-auth and Back-before-reauth cases and actual summary keyboard/phone/corrected submission coverage. Original evidence destinations are preserved.
+- Current same-agent read-only Review: PASS, READY FOR VERIFICATION after scoped lifetime/test-synchronization re-reviews; no remaining confirmed scoped source finding. Separate Verify: full `npm run check` PASS601cases/29files plus format/lint/typecheck; production build PASS; focused10 browser PASS and one full default101/101 browser PASS (79baseline+16slice+6combined). New strict pre-signin/failed-auth/Back-before-reauth and three-error summary checks pass. Final handoff privacy PASS11public/authresponses,102artifact/clientfiles,174localnoticeHTML,9storedlinks and5audit/notice tables, including new report/memory/manifests. Exact logs/commands/manifests under `.local/four-feature/recovery-final/`.
+- Evidence preservation: all546original integration/review artifacts remain exact hash matches. Prior337 realPG/fresh/upgrade/grant evidence remains historical and applicable at215unchanged relevant source hashes and8proof/log hashes; no DB/domain/provider/schema/dependency change or unrelated PG/migration rerun. Exact prior memory preserved before intentional current handoff supersession.
+- Final coordinator acceptance — 2026-10-12: independent scoped re-review resolved F1/F2 with zero remaining confirmed findings; plan, system, unintended-change and documentation audits PASS. Root matched the exact reviewed candidate/runtime and prior/new evidence hashes to the separately passed verification. Report: `.local/four-feature/recovery-final/independent-review.md`. All nine supervised workers succeeded and were released; worktrees and evidence remain preserved. Final coordinator changes update status documentation only. No commit, merge, push, deployment, main database migration or launch clearance.
+
+## Prior integration — 2026-10-11 (historical before final recovery)
+
+- **Authority:** **AUTHORIZED — build-feature delegation**, actual user local execution request and coordinator dispatch; no commit/merge/push/deploy.
+- **Candidate:** owned `cob-g/m5-four-feature-integration` on baseline `024dd4d7ce885da7ca391aefeaf4096fc75fc91e`. All four accepted frozen source manifests/reports and105 source file hashes checked before import, in password → meeting links → support → restrictions order. Sources are immutable; earlier worker results below are historical isolated evidence.
+- **Implemented seams:** account password entry, one trusted test helper, booking meeting section and authorized report action, admin navigation, schema/runtime grants, serialized browser project dependencies, canonical docs. Migration0000–0012 bytes remain unchanged; additive0013 meeting links →0014 booking support →0015 restrictions with cumulative snapshots/journal. No runtime blanket account-status UPDATE.
+- **Migration evidence:** fresh16-migration command completed; actual0012 populated upgrade preserved all24 baseline tables (19 populated), original constraints/triggers and all values. Corrected non-mutating proof passed16 hashes/32 snapshot tables,13 privilege assertions and4 actual42501 denials. Original failed evidence assertion is retained and diagnosed in the recovery prompt; it was an ACL substring-check defect.
+- **Current stage:** same-agent read-only Review PASS; separate final Verification PASS: `npm run check`600 unit/component plus format/lint/typecheck; fullrealPG337; productionbuild; one full defaultbrowser99/99 (79baseline+16source+4combined). Actual suspension/restoration, password replacement-cookie/old-session denial, real TTL/revocation/reassignment and joint privacy all passed. Root’s two independent exact-candidate reviews remain pending; no merge readiness claim.
+- **Recover evidence:** original ACL/schema-name evidence assertion errors, new test-call/copy/denial/heading mismatches and undiscovered support4 cases are retained. Actual browser retention findings led to native report entry and only successful sign-out/sign-in full document replacement, with before/after same-browser observations. Pre-signin revoked-session redirect can still retain the previous authorized bootstrap payload until successful sign-in; this is explicitly disclosed for independent review. Generated reports’ private fixture values are sanitized; strict final privacy scan passes6publicresponses,175log/report/clientfiles,168localnoticeHTML and5audit/notice tables for7storedprivate links.
+- **Evidence:** tracked `docs/operations/four-feature-premerge.md`; ignored `.local/four-feature/integration-report.md`, `review.md`, `source-provenance.json`, command logs and final SHA256 manifests. Source sessions and earlier baseline progress below are historical evidence, not a claim that this candidate was merged.
+
+## Next Up
+
+1. **Owner:** review the completed local candidate on `cob-g/m5-four-feature-integration`; commit and merge when requested.
+2. **Evidence:** current check/build and 101 browser cases pass; historical 337 PostgreSQL and migration/grant proofs apply to unchanged backend source. The initial full reviews and final scoped re-review remain preserved with the failure/recovery history.
+3. **Later operations:** main database migration, cleanup, push/deployment and real-user launch retain their applicable separate scope. Commercial, guardian/consent, safeguarding and production gates remain open.
+
+## Prior baseline phase — historical verified status
+
 
 - **Phase:** **Six-feature integration merged locally; no launch or whole milestone promotion.**
 - **Product definition:** Documented; core marketplace scope agreed.
@@ -27,7 +52,7 @@
 - **Live payment processing:** **Blocked pending founder-approved business rules**.
 - **Public onboarding of minors:** **Blocked pending launch-market guardian-consent and safeguarding decisions**.
 
-## Current Goal
+## Prior baseline goal — completed
 
 **Completed: integrate, verify, commit and merge the six local slices, clean up worktrees, and migrate the main local databases.**
 
@@ -77,12 +102,16 @@ Authority is **AUTHORIZED — build-feature delegation**, following the user's e
 
 ## In Progress
 
+- **Own four-feature worker candidate — M2.9 password changes:** locally verified
+  and uncommitted on `cob-g/m2-account-password-change`; the session below records
+  exact scope/evidence. Root still owns independent review, shared reconciliation
+  and combined restriction UI interaction checks. No merge or launch claim.
 - **Requirements readiness:** Founder decisions under **Open Questions** remain unresolved.
 - **Design readiness:** The M1 development shell uses proposed UI tokens and the documented plain-text brand placeholder. Generated shadcn primitives and final brand assets remain gated by `ui-context.md` decision 14 and related open decisions.
 - **Dependency maintenance:** 13 audit findings (4 moderate, 9 high) remain in upstream tooling chains. `--omit=dev` still reports 4 moderate findings because Better Auth declares Drizzle Kit as an optional peer. See README and the recovery handoff; do not represent the audit as clean.
 - **Remote verification:** The six-feature candidate is merged into local main at `1cbfa10`, following the earlier five-feature merge. All feature worktrees and branches are removed; private archives preserve their original state and evidence. Nothing was pushed or deployed. GitHub CI, hosted Neon/Resend and Railway have not been run.
 
-## Next Up
+## Prior baseline next steps — historical
 
 Prioritized, small tasks; **these are planned, not completed**.
 
@@ -155,6 +184,89 @@ These are **documented selections, not proof of completed deployment or code**.
 | Legal/safeguarding details for operating markets and child learners | **Open / launch-gated** | Basic protections remain mandatory; no real minor onboarding until approved controls are in place |
 
 ## Session Notes
+
+### Session — 2026-10-11 (M2.9 signed-in password change — verified local candidate)
+
+- Own clean-start branch `cob-g/m2-account-password-change` at
+  `024dd4d7ce885da7ca391aefeaf4096fc75fc91e`; delegated four-feature build request.
+  Blueprint `prompts/features/m2-09-secure-signed-in-password-change.md`.
+- Authority: **AUTHORIZED — build-feature delegation**, actual 2026-10-11 user
+  execution/spawn request; AUTH-02/03/04 and NFR-05. No separate human blueprint
+  approval, remote service, live mail, commit/push/merge or real-user launch.
+- Added narrow own-password input/service/HTTP projection/route and account form:
+  forced other-session revocation, every replacement/failure Set-Cookie preserved,
+  provider tokens stripped, current active verified owner recheck, explicit
+  installed-age freshness, nonblocking global provider capacity/account locks,
+  persisted HTTP throttling and truthful partial-provider uncertainty recovery.
+  No schema, grants, dependency or raw auth allowlist changes.
+- Pinned Node24.20.0/npm11.19.0 install and own local setup exited0; dev/test
+  isolation at55484 with app3044/test3144 confirmed without credentials.
+- Installed-source freshness correction documented through Recover/Architect;
+  root confirmed local freshness scope in `msg_8518c5123dd4`.
+- Review: same-agent read-only plan/integrity/unintended-change PASS after scoped
+  repairs, recommendation READY FOR VERIFICATION. No tests ran during Review;
+  this is not independent review. Record: `.local/four-feature/review.md`.
+- Separate Verification: final `npm run check` passes formatting/lint/types and
+  591 unit/component cases; full `npm run test:integration` passes267/267 across
+  16 files (12 new). Backend/helper hash equality preserves that database result
+  through later UI-only repairs. `npm run build` passes. Final default
+  `npm run test:e2e -- --workers=1` passes83/83 in one sequential run (79 baseline,
+  four new); focused new project passes4/4. Browser axe, focus/keyboard, native
+  no-JS safety, 320/390/768/1024/1440px reflow and sanitized empty-field captures
+  pass; nine own UI captures inspected. Logs/manifests in `.local/four-feature/`.
+- Real PostgreSQL evidence includes actual old/new password/session rotation,
+  persisted spoof-resistant throttle, concurrent same/distinct-account requests,
+  delayed current-identity recheck and injected replacement-session failure after
+  the provider changed the hash/deleted sessions. It reports uncertainty and
+  actual recovery, not a rollback claim.
+- Retained failures/repairs: hydration lint, provider X-Retry-After metadata,
+  inherited unchecked/throttled synthetic registration helper, unchanged
+  availability focus failure, new alert locator ambiguity and no-JS explanation.
+  The unchanged availability case then passed focused1/1 and final full default.
+  Root approved shared fixture-only isolation and froze support.ts SHA256
+  `fa97be735924a154d9d20459f7f0b734382dd1076cd8c24e53afd5ff2c1260f6`.
+  Recovery record: `prompts/recovery/2026-10-11-password-change.md`.
+- Privacy scan passes source/client assets/logs/text artifacts against current
+  owned credentials/tokens/hashes plus known synthetic passwords; no trace
+  archives. Failed source-context excerpts were sanitized, retaining assertions.
+  Fresh/0012 upgrade/new-grant proof is not applicable: no schema/grant change.
+- Root owns independent review, shared-file reconciliation and combined
+  restriction UI interaction tests. In-flight authorized work may finish after
+  later revocation; locks coordinate this boundary, not password reset. Inherited
+  dependency advisories remain; hosted operations and public policy gates remain.
+
+### Session — 2026-10-11 (M5.6 scoped account restrictions — verified locally)
+
+- Agent 3, branch `cob-g/m5-account-restrictions`, baseline `024dd4d`;
+  AUTHORIZED — build-feature delegation for actual four-feature execution request.
+  Blueprint `prompts/features/m5-06-scoped-account-restrictions.md`; local decision
+  `docs/decisions/2026-10-11-local-account-restrictions.md`.
+- Implemented provisioned synthetic target registry, exact owner-only staff grants
+  independent of support, narrow audited access function, minimal private admin
+  list/detail and API, bounded reasons, confirmation/pending/retry/conflict/error
+  states. Session records, tutor review and reservations remain independent.
+- Same-agent read-only Review: no confirmed findings, READY FOR VERIFICATION;
+  root independent review remains pending. Fresh owned schema and actual 0012
+  upgrade applied 14 migrations, preserving all 24 baseline table row hashes and
+  least-privilege grants. Development fixture tooling authorizes/revokes exact
+  pairs and refuses reauthorization of revoked pairs.
+- Verification observed: `npm run check` exit0 (582 unit cases/25 files, lint and
+  typecheck); `npm run test:integration` exit0 (273 cases/16 files, including 18 new
+  real PostgreSQL cases); `npm run build` exit0. Earlier formatting and synthetic
+  fixture/assertion failures are retained in the recovery note/private logs.
+  Final default `npm run test:e2e -- --workers=1` exit0: 83 cases (79 baseline,
+  four new) with 320/phone/desktop axe and overflow, keyboard/focus/native reads,
+  real read/mutation waits, conflict/retry, forced colors/reduced motion and 200%
+  text checks. Pending closure cannot cancel a submitted action; repetition is
+  blocked. Safe synthetic screenshots visually inspected. Final logs:
+  `.local/four-feature/check-8.log`, `integration-4.log`, `build-4.log`,
+  `e2e-3.log`, `migration-proof.json`; all-code hashes recorded in report.
+- Private evidence under `.local/four-feature/`; no commits, external mail,
+  provider visits, remote migrations, merge or public-launch readiness claim.
+  Local secrets absent from candidate/client assets in observed privacy scan.
+  Next: root independent reviews, shared migration/schema/grant/nav/docs/test
+  reconciliation in an integration DB and combined suspension/password checks.
+  This is a partial local M5.6 slice; real policy and launch gates remain open.
 
 ### Session — 2026-10-11 (M5.7–M5.8 local notification slice — verified locally)
 
@@ -713,3 +825,180 @@ Copy this compact entry for the next session; include only **actual evidence**:
 - Executed `npm run db:migrate` and `npm run db:migrate:test`, both exit 0, applying committed 0006–0012 and current restricted runtime grants. Both databases now have all 13 journal hashes matching committed SQL and 24 public tables with columns matching snapshot 0012.
 - Verification passed on both databases: every baseline row count/hash preserved, added tutor availability version defaults to zero, booking overlap exclusion validated, three supplemental booking/notification triggers enabled, no fabricated notification backfill. Twelve actual runtime permission probes per database passed, including expected 42501 denials; probes were rolled back. Runtime role flags and internal function execution remain restricted.
 - No seed/reset, application-code change, production/remote database operation, push or deployment. The existing main local databases are now ready for the merged schema. This supersedes historical pending-main-migration statements above; a backup restore was not needed or exercised.
+
+### Session — 2026-10-11 (private reservation meeting links, implementing)
+
+- Own branch cob-g/m5-private-meeting-links, clean baseline024dd4d; Agent1 actual
+  four-feature dispatch. AUTHORIZED — build-feature delegation, not human review.
+- Blueprint prompts/features/m5-01-local-reservation-meeting-links.md; local
+  decision recorded in PRD/architecture before behavior relies on it.
+- Private schema/service/endpoint/detail-section implementation beginning. Checks
+  NOT RUN; DB55481/dev3041/test3141 allocated exclusively. Root reconciles shared
+  patches and independently reviews. Real-use/production policy gates unchanged.
+
+- Implementation now includes separate private link/audit tables, local0013 revision
+  trigger, current-auth SQL service, dedicated GET/PUT boundary and detail section.
+  Added meaningful race/privacy/permission PostgreSQL and browser cases. Checks
+  still NOT RUN; entering same-agent read-only Review before separate Verify.
+
+### Session — 2026-10-11 (private reservation meeting links, verified local candidate)
+
+- Agent1 owns branch `cob-g/m5-private-meeting-links`, baseline `024dd4d7ce885da7ca391aefeaf4096fc75fc91e`.
+  Blueprint `prompts/features/m5-01-local-reservation-meeting-links.md`, authority
+  **AUTHORIZED — build-feature delegation** for the actual four-feature execution
+  request dated2026-10-11. No separate human blueprint approval.
+- Delivered separate per-reservation private URL storage, monotonic revision guard
+  and append-only safe edit history. Existing validator unchanged. Eligible assigned
+  tutor saves/replaces; current eligible student/guardian/tutor reads require live
+  local simulation, current trusted roles/session/account/relationship and DB-time
+  TTL. Native external action performs a fresh authorized no-store redirect; tests
+  never navigate to Zoom/Meet. General booking DTOs/notifications/metadata/audit/logs
+  contain no URL/passcode. No admin/support bypass or booking-state/TTL mutation.
+- Review: same-agent FULL read-only inspection and formatting-only scoped re-review,
+  plan alignment/integrity/unintended-change PASS, READY FOR VERIFICATION, no
+  confirmed findings. Independent review and combined reconciliation remain root-owned.
+- Separate Verify PASS: pinned npm ci; `npm run check`581 unit/component cases25files,
+  `npm run test:integration`284 real PostgreSQL cases16files, `npm run build`, default
+  `npm run test:e2e -- --workers=1`83 cases18files, all exit0. New coverage includes
+  permission revocation, suspended/unverified accounts, wrong/multi-role staff,
+  stale/conflicting requests, concurrent identical retries, both replacement orders,
+  post-lock expiry/role/session/suspension denial and safe retained history.
+- Migration PASS: fresh owned dev14migrations/26tables; actual test0012→0013
+  upgrade preserves all prior values24tables,12populated/23rows including identity,
+  booking, learner, support and queued notification facts. Runtime link deletion/
+  retarget and history UPDATE/DELETE denied; guard execution denied and invalid
+  revision rejected. Both owned DBs migrated; synthetic development seed PASS.
+- UI:320/390/768/1024/1440 axe/no-overflow, keyboard/focus, reduced-motion/reflow,
+  pending/error/conflict and native no-JS read/action checks PASS. Missing-link
+  screenshots320/390/1440 inspected; no credential/private-URL captures. UI detector
+  exit0/no findings. Literal hardware zoom/screen-reader and other browser engines
+  NOT RUN; reduced-width reflow and semantic/axe coverage are the observed evidence.
+- Privacy scan:26changed paths at scan time,11source files/38client assets,270actual
+  private patterns and17logs checked,0hits; stored URLs were excluded from metadata,
+  unrelated responses and general DTOs by executed cases. No live mail/provider or
+  remote/production operation. Inherited dependency advisories were not repaired.
+- Failed attempts retained: initial check stopped at formatting3new/generated files,
+  repaired and re-reviewed; direct Playwright --list without guarded environment
+  refused DB configuration, corrected using npm test wrapper and found all83cases.
+  Recovery `prompts/recovery/2026-10-11-meeting-link-verification.md`; ignored logs,
+  schema evidence, source hashes and manifest in `.local/four-feature/report.md`.
+- Uncommitted local candidate only; root owns shared schema/grants/journal/Playwright/
+  detail-page/context reconciliation, Agent2 support CTA insertion, independent
+  review and combined cross-feature checks. Real guardian/legal/commercial/incident/
+  provider/production policy gates remain OPEN. No full-M5 or launch-readiness claim.
+
+### Session — 2026-10-11 (Agent2 booking-linked support — implementation starting)
+
+- Clean baseline024dd4d7ce885da7ca391aefeaf4096fc75fc91e, own branch
+  cob-g/m5-booking-support; AUTHORIZED — build-feature delegation for explicit wave
+  execution. Blueprint `prompts/features/m5-06-booking-linked-support.md`.
+- Saved delegated local decision and governing PRD/architecture notes. Application
+  implementation and all verification NOT RUN at this checkpoint. Own allocated
+  DB55482/dev3042/test3142 only; no main/peer or external operations authorized.
+- Next: immutable association/audit and current participant/case-scoped projection,
+  then same-agent read-only Review and separate executed Verify. Root owns combined
+  reconciliation/independent review. Real-user/public/whole-milestone gates unchanged.
+
+### Session — 2026-10-11 (Agent2 booking-linked support — Verify checkpoint)
+
+- Implemented optional immutable booking association, current participant-authorized
+  submission/retries, requester/exact-reviewer minimal live context and atomic
+  reviewer-read audit. Added linked support form/detail and separate root-insertable
+  BookingSupportAction; Agent1-owned booking detail remains untouched.
+- Same-agent read-only Review: plan alignment/integrity/unintended-change PASS,
+  no confirmed findings, READY FOR VERIFICATION; not independent review.
+- Executed `npm run check` PASS579 unit/component cases24files, full
+  `npm run test:integration` PASS275 PostgreSQL cases16files; production
+  `NEXT_TELEMETRY_DISABLED=1 npm run build` PASS. Own assigned DB55482 only.
+- Fresh0013 dev migration PASS; actual test0012→0013 upgrade preserves original
+  values across24baseline tables,14migrations;11restricted privilege assertions
+  PASS. Logs/proof in ignored `.local/four-feature/`. Initial check stopped on new
+  generated JSON formatting only; targeted repair passed with failure retained.
+- Default browser discovery82cases18files; execution in progress. UI detector
+  returned no findings. Browser QA/privacy/final handoff not yet complete. Root
+  owns combined schema/grant/project/docs reconciliation and independent review.
+
+### Session — 2026-10-11 (Agent2 booking-linked support — scoped Verify repair)
+
+- First default browser execution: 81 PASS, one new case FAIL due to an alert
+  locator also matching Next.js's route announcer; all 79 baseline cases passed.
+  Recover diagnosed that assertion and the existing native form GET privacy gap.
+  Coordinator explicitly confirmed the form privacy repair in scope.
+- Implemented POST fallback, hydration-gated saving and truthful no-JavaScript
+  disclosure; scoped the alert assertion and added a real native-navigation URL
+  privacy case. Read-only repair Review PASS, no confirmed findings.
+- Repeated `npm run check` PASS579 cases and production build PASS after repair.
+  PostgreSQL/schema paths unchanged from the passed275-case suite and upgrade
+  proof. Complete default browser rerun in progress; not yet a browser pass.
+
+### Session — 2026-10-11 (Agent2 booking-linked support — verified local candidate)
+
+- AUTHORIZED — build-feature delegation; own branch cob-g/m5-booking-support,
+  unchanged HEAD024dd4d7. Optional immutable booking association and minimum live
+  requester/exact-reviewer investigation context implemented; successful reviewer
+  projections audit atomically. Current requester participation remains mandatory.
+  Immutable creation-event provenance blocks late association even after legitimate
+  old-case writes. Separate BookingSupportAction supplied; shared detail untouched.
+- Same-agent read-only Review: full owned-slice alignment/integrity/unintended-change
+  PASS, no confirmed findings, READY FOR VERIFICATION. Scoped repair re-reviews PASS;
+  this is not independent review or release authorization.
+- Final `npm run check` PASS579 cases24files, full `npm run test:integration`
+  PASS275 PostgreSQL cases16files including20 new permission/race/provenance cases,
+  production build PASS. Final default `npm run test:e2e -- --workers=1` PASS83
+  cases18files, preserving all79baseline cases; focused new four-case suite PASS.
+  Phone/desktop/320px, keyboard, forced-colors/reduced-motion/reflow and axe checks
+  passed. Safe synthetic390/1440 screenshots inspected.
+- Fresh own development0013 schema and actual test0012→0013 upgrade PASS; all24
+  baseline table row values preserved, both databases match14SQL hashes/26tables.
+  Eleven least-privilege assertions PASS. All13 historical migrations and pinned
+  runtime/dependency manifests unchanged. Actual secret/private fixture production
+  client scans and UI detector returned no findings. Own loopback55482 only.
+- Retained initial formatting/alert-locator failures, hydration contrast/disclosure
+  failures and completed-view assertion race with scoped Recover handoffs. Final
+  form uses POST, hydration-gated saving and ordinary server JavaScript explanation;
+  no native mutation capability claimed. Recovery logs remain in ignored evidence.
+- Complete uncommitted candidate, evidence/source manifest in
+  `.local/four-feature/report.md`; local ignored memory handoff saved separately.
+  Root owns shared migration/grant/project/docs reconciliation, booking-detail CTA
+  insertion, independent review and combined verification. No commit/merge/deploy,
+  main/peer operation, real mail/provider visit or launch claim. Real policy and
+  whole M5.6/M5.9 launch gates remain OPEN.
+
+### Session — 2026-10-12 (final recovery first Verify checkpoint)
+
+- Read-only same-agent Review initially identified the restore listener's component
+  lifetime; canonical Recover diagnosed and separate implementation made it
+  document-scoped. Re-review READY FOR VERIFICATION, no remaining source finding.
+- First `npm run check`: format/lint/typecheck PASS,600unit/component PASS and the
+  one new summary component case FAIL due to racing scheduled first-invalid focus.
+  Recover directs waiting for that focus before summary-link keyboard interactions;
+  assertions remain intact. Failed log retained under recovery-final/check.log.
+- Separate test-only synchronization implemented; new full check/build/browser
+  outcomes pending. Historical337 realPG/fresh/upgrade/grant evidence confirmed
+  applicable by215unchanged relevant source hashes and8unchanged proof/log hashes.
+  No PG rerun or unrelated migration proof claimed. Root re-review remains pending.
+
+### Session — 2026-10-12 (final targeted recovery verified locally)
+
+- F1/F2 implemented under AUTHORIZED — build-feature delegation. Same-agent
+  read-only Review PASS/READY FOR VERIFICATION; scoped re-reviews retain the
+  source-listener and first-component-focus failure history.
+- Separate Verify: `npm run check` PASS601cases/29files plus format/lint/typecheck;
+  `NEXT_TELEMETRY_DISABLED=1 npm run build` PASS; focused account/combined10PASS;
+  complete default browser101/101PASS in22files. Actual revoked/expired sessions
+  clear the public auth document before sign-in, after failed sign-in and on Back
+  without successful auth. Original post-signin/404/Back and all79baseline cases
+  remain. Current-cookie rotation/old-session denials and no-JS reads still pass.
+- F2 actual three-error summary, named keyboard links, first-invalid/summary focus,
+  inline associations, corrected submission and cleared credential controls PASS.
+  Axe/overflow checks at320/390/768/1024/1440; safe320/390/1440summary captures
+  visually inspected. No hardware screen-reader/OS clipboard/other-engine proof.
+- Initial strict privacy PASS11public/authresponses,86newartifact/clientfiles,
+ 174localnoticeHTML,9storedlinks and5audit/notice tables. Final handoff scan PASS102newartifact/clientfiles including report/memory/
+  manifests; exact output is in own recovery report.
+- Exact215source/8proof-log hashes preserve applicability of historical337realPG
+  and fresh/upgrade/grant evidence; not rerun or relabeled fresh. All546prior
+  integration artifacts unchanged. Prior memory hash preserved separately.
+- New local report/runtime/candidate manifests under recovery-final; root owns
+  independent scoped re-review/acceptance/refreeze. No commit/merge/push/deploy,
+  production/provider action, reset or worktree removal. Real policy gates remain.

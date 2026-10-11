@@ -1,4 +1,6 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { BookingSupportAction } from "@/features/support-bookings/presentation";
 import { levelNames } from "@/features/subjects/catalog";
 import { LessonTime } from "./lesson-time";
 import { BookingReadStatus } from "./read-status";
@@ -36,9 +38,11 @@ export function BookingUnavailable({
 export function BookingDetailView({
   booking,
   scope,
+  meetingSection,
 }: {
   booking: BookingDetail;
   scope: BookingReadScope;
+  meetingSection?: ReactNode;
 }) {
   return (
     <div className="page-shell page-space">
@@ -83,6 +87,7 @@ export function BookingDetailView({
             </dd>
           </div>
         </dl>
+        {meetingSection}
         <section className="mt-8 border-t border-border pt-6">
           <h2 className="text-section-title">Saved booking history</h2>
           <p className="mt-2 text-small text-muted-foreground">
@@ -122,6 +127,7 @@ export function BookingDetailView({
         <Link className="inline-flex min-h-11 items-center" href="/account">
           Change account time zone
         </Link>
+        <BookingSupportAction bookingId={booking.id} />
       </nav>
     </div>
   );

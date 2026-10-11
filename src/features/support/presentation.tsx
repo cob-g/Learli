@@ -4,6 +4,7 @@ import { categoryLabels, statusLabels, type CaseStatus } from "./input";
 import type { CaseDetail, CaseList } from "./service";
 import { CaseTitle } from "./title";
 import { StatusForm } from "./status-form";
+import { SupportBookingSection } from "@/features/support-bookings/presentation";
 
 export function DemoNotice() {
   return (
@@ -121,6 +122,7 @@ export function CaseView({
           {detail.body}
         </p>
       </div>
+      {detail.booking && <SupportBookingSection booking={detail.booking} />}
       {reviewer && (
         <StatusForm
           caseId={detail.id}

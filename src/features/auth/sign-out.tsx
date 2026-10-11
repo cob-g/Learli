@@ -1,9 +1,7 @@
 "use client";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 export function SignOut() {
-  const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
   async function signOut() {
@@ -13,8 +11,9 @@ export function SignOut() {
       const result = await authClient.signOut();
       if (result.error) setError(true);
       else {
-        router.replace("/sign-in");
-        router.refresh();
+        // A fresh document clears private bootstrap data and router caches
+        // before another account can sign in on this browser.
+        window.location.replace("/sign-in");
       }
     } catch {
       setError(true);

@@ -7,12 +7,17 @@ import {
   supportCaseEvents as events,
   userAccess,
   supportReviewers,
+  supportCaseBookings,
 } from "@/lib/db/schema";
 import { isLoopbackOrigin } from "@/lib/local-mode";
 import { AccessError, requireIdentity } from "@/lib/permissions/access";
 import { recheckIdentity } from "@/lib/permissions/recheck";
 import { RuleError } from "@/lib/rule-error";
 import { caseInput, pageInput, statusInput, transitions } from "./input";
+import {
+  queryBookingForReport,
+  queryCaseBooking,
+} from "@/features/support-bookings/query";
 
 export type CaseScope = "requester" | "reviewer";
 type Database = AuthRuntime["db"];
@@ -134,7 +139,8 @@ export async function readCase(
       .from(events)
       .where(eq(events.caseId, row.id))
       .orderBy(events.revision);
-    return { ...row, history };
+    const booking = await queryCaseBooking(tx, identity, row.id, scope);
+    return { ...row, history, ...(booking === undefined ? {} : { booking }) };
   });
 }
 export type CaseDetail = Awaited<ReturnType<typeof readCase>>;
@@ -173,15 +179,22 @@ export async function createCase(
         ),
       );
     if (existing) {
+      const [association] = await tx
+        .select({ bookingId: supportCaseBookings.bookingId })
+        .from(supportCaseBookings)
+        .where(eq(supportCaseBookings.caseId, existing.id));
       if (
         existing.category !== values.category ||
         existing.subject !== values.subject ||
-        existing.body !== values.body
+        existing.body !== values.body ||
+        association?.bookingId !== values.bookingId
       )
         throw new RuleError(
           409,
           "This request was already saved with different fields. Start a new report.",
         );
+      if (values.bookingId)
+        await queryBookingForReport(tx, identity, values.bookingId);
       return { id: existing.id };
     }
     const recent = await tx
@@ -199,9 +212,12 @@ export async function createCase(
         429,
         "The local report limit was reached. Wait a few minutes and try again.",
       );
+    if (values.bookingId)
+      await queryBookingForReport(tx, identity, values.bookingId);
+    const { bookingId, ...reportValues } = values;
     const [created] = await tx
       .insert(cases)
-      .values({ ...values, requesterUserId: identity.userId })
+      .values({ ...reportValues, requesterUserId: identity.userId })
       .returning({ id: cases.id });
     await tx.insert(events).values({
       caseId: created.id,
@@ -210,6 +226,10 @@ export async function createCase(
       nextStatus: "open",
       revision: 0,
     });
+    if (bookingId)
+      await tx
+        .insert(supportCaseBookings)
+        .values({ caseId: created.id, bookingId });
     return created;
   });
 }

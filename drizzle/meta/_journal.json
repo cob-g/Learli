@@ -92,6 +92,27 @@
       "when": 1791718134538,
       "tag": "0012_local_booking_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791718134539,
+      "tag": "0013_thankful_typhoid_mary",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791718134540,
+      "tag": "0014_booking_support",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1791718134541,
+      "tag": "0015_account_restrictions",
+      "breakpoints": true
     }
   ]
 }

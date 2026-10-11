@@ -1221,3 +1221,37 @@ Core HTML is fully awaited rather than hidden behind automatic streaming loading
 boundaries. Native GET works without JavaScript; hydrated filter transitions show
 pending text while retaining current content, and Back restores learner selection.
 These are local synthetic coordination capabilities, not real launch approval.
+
+### Local private test meeting-link section — 2026-10-11
+
+The delegated M5.1/M5.2/M5.11 slice resolves decision21 only for synthetic local
+reservations: one explicit private URL per reservation. Booking details reserve
+one section before saved history, using existing fields/actions/tokens. Missing,
+expired, denied, loading, error and stale-conflict text remain distinct. The
+assigned eligible tutor edits with explicit revision/reload; the native action
+says Open test link on the validated provider, names its new tab and rechecks
+current permission/DB-time expiry before redirecting. No provider preview occurs.
+JavaScript-disabled reads and native opening remain available; editing controls
+are disabled with explicit enable-JavaScript guidance. Real meeting settings,
+guardian oversight and confirmed-lesson UX remain subject to launch policies.
+
+
+## Combined local booking and account controls —2026-10-11
+
+The authorized booking detail places the existing local meeting section with a report action in its private navigation. Account settings includes the source password form; admin navigation includes exact-target local restrictions. Plain server text remains available without JavaScript; stateful mutations require hydration and retain accessible feedback. Combined checks include320px, phone and desktop. No new visual tokens or policy wording are introduced.
+
+The private booking report action performs native document navigation so prior authorized booking RSC data is cleared before the support page renders. Stateful controls retain the existing hydration behavior.
+
+Successful sign-out uses a full document replacement to the sign-in page, clearing private bootstrap data before a different actor can sign in. Failure retains the existing accessible error/pending behavior.
+
+Successful sign-in also replaces the full document using the existing validated return path, so a revoked/expired session cannot carry prior private bootstrap data into a different actor’s account. Other auth-mode navigation remains unchanged.
+
+### Four-feature final password-summary recovery — 2026-10-12
+
+The signed-in password form renders a visible focusable alert summary when three
+fields fail, with specific error links focusing their named inputs. First-invalid
+focus and each inline aria association remain. Summary/errors clear on validated
+resubmission; credential values are absent from summary/status/diagnostics and
+cleared before actual requests and safe captures. Public auth entry from a prior
+private document displays brief loading status until a fresh document replaces
+it, preserving return intent and existing no-JS server navigation.

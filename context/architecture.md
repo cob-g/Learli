@@ -798,6 +798,22 @@ Use Better Auth for:
 
 Social login, passkeys, and complex organization membership are **not necessary for V1**.
 
+**Local signed-in password boundary — 2026-10-11:** delegated M2.9 uses only
+`POST /api/account/password`, exact bounded password/confirmation fields and
+current active verified owner identity. The internal Better Auth HTTP handler
+retains sensitive-session/origin checks and database-backed five-per-minute
+change-password throttling; the raw auth allowlist remains unchanged. Server
+checks the current session's creation time against installed `freshAge` before
+dispatch, because 1.7.7 sensitive-session middleware checks validity, not age.
+Server forces other-session revocation, forwards all Set-Cookie headers and strips
+provider tokens/body. A nonblocking account-keyed transaction advisory lock plus
+current identity recheck rejects overlapping wrapper changes, without auth-row
+locks or new grants/schema. Provider operations remain provider-owned and may
+partially fail; uncertainty is disclosed with existing reset/sign-in recovery.
+One nonblocking global provider-capacity slot precedes the account lock to keep
+distinct concurrent wrappers from saturating the shared five-connection pool.
+See `docs/decisions/2026-10-11-signed-in-password-change.md`.
+
 ### 10.2 Recommended integration pattern
 
 - Mount Better Auth at `src/app/api/auth/[...all]/route.ts`.
@@ -817,6 +833,17 @@ Official integration instructions: [Better Auth Next.js](https://better-auth.com
 **Booking detail view:** user is the eligible learner, authorized guardian, assigned tutor, or authorized support admin.
 
 ### 10.4 Roles and minor accounts
+
+Local M5.6 delegated account restrictions (2026-10-11) add an owner-only fixture
+target registry, exact staff-to-target grants and append-only transition/capability
+history. Runtime changes existing user_access only through a narrow SECURITY
+DEFINER function with pg_catalog search path and schema-qualified tables; no
+blanket runtime account-status UPDATE. Target-first locks serialize revision and
+status; current provider session/admin/account/grant and non-admin/self exclusions
+are rechecked after waits. Owner tooling follows the same order. Scoped reads use
+one final authorization snapshot and disclose only target name/status/revision and
+minimal history. Existing session records and all tutor/learner/booking state stay
+intact. See the local-account-restrictions decision; real policies remain gated.
 
 - Do not equate “knows the child's name” with “is the child's guardian.”
 - For minor users, require an appropriate parent/guardian relationship and the consent/notice workflow mandated by launch jurisdictions.
@@ -1380,3 +1407,51 @@ identical. The authoritative selected learner keys the form for Back restoration
 Actual dates come from the parent-authorized shared `public-availability-v1` query using the existing DST engine, tutor time off, and unexpired local simulated reservations. The public read neither materializes expiry nor changes booking state. Matching rechecks the shared directory eligibility and requests <=100 complete eligible tutors in <=5 batches of <=20, then filters whole viewer-local intervals within a common start-time window, orders by earliest matching time/name, and pages five genuine matches. Overflow or a failed batch produces a retry state, never partial or fabricated matches. Profile links use the shared canonical helper and carry only visitor filters and the selected public UTC interval. Every subsequent booking still revalidates.
 
 The existing 60-minute/30-minute-step/60-minute-notice/14-day-start-horizon/10-minute-reservation-TTL values remain local simulation inputs. Live duration, pricing, trial, cancellation/rescheduling, consent and safeguarding policy remain OPEN. No schema or booking mutation change is part of this matching feature. Final executed evidence belongs to the progress tracker and worker handoff.
+
+### Local private reservation meeting-link boundary — 2026-10-11
+
+Separate booking_meeting_links storage and append-only booking_meeting_link_events
+carry the current URL and safe actor/revision/request/time history respectively.
+URLs never join general booking projections. READ COMMITTED mutations acquire
+tutor-first then booking locks; final fresh SQL rechecks current identity,
+assignment, approved active verified tutor, learner relation and DB-time TTL.
+Reads use one current-auth statement. Dedicated endpoint alone returns private
+link state or an authorized no-store external redirect; no provider calls.
+Runtime grants are column-limited and cannot delete links or edit audit history.
+Per-reservation model/access is delegated for local simulation only; real policy
+remains OPEN. See the local reservation meeting-link decision and blueprint.
+
+### Local support booking association — delegated 2026-10-11
+
+M5.6/M5.9 adds optional immutable `support_case_bookings` and append-only
+`support_booking_access_events`. Association insertion is limited to the case
+creation transaction; restricted runtime grants and immutable triggers prevent
+retargeting/deletion. Support submission authorizes current participant access
+after serialization waits. Final case-context SQL rechecks viewer session/account,
+case owner or exact admin/capability/assignment, and requester current participant
+relationship. Successful reviewer context and minimal read audit share one SQL
+statement; missing participant access yields generic unavailability without learner
+or meeting data. Existing case share locks serialize fixture reassignment. Read
+projection uses database time for effective expiry and never mutates booking state.
+See `docs/decisions/2026-10-11-booking-linked-support.md`. Local only; real safety,
+consent, retention, commercial and production gates remain OPEN.
+
+
+## Four-feature integration migration chain —2026-10-11
+
+The local combined candidate preserves immutable0000–0012 and applies0013 meeting links,0014 booking-linked support, then0015 scoped account restrictions. Each custom SQL migration retains accepted source bytes; snapshots are cumulative. Runtime grants remain explicit; account-status mutation is exposed only through the exact scoped SECURITY DEFINER function. Meeting URLs remain participant-only and excluded from support/notifications/lists/audit/metadata. This is local synthetic coordination, not live meeting provisioning or production access governance.
+
+The observed prior private bootstrap retention across browser actor changes is handled at successful sign-out/sign-in by full document replacement. Existing validated return paths and server current-session/account/record authority checks remain intact; no authorization is delegated to the browser.
+
+### Four-feature final recovery — document lifetime (2026-10-12)
+
+After accepted independent finding F1, private-workspace documents are marked
+with a nonpersistent client boolean. A client transition into the public auth
+route group replaces that document at the current URL before rendering auth
+children, clearing the earlier inline private bootstrap without waiting for a
+successful sign-in. A private bfcache restoration reloads for current server
+authorization. This is document housekeeping, not identity or permission state;
+all guarded reads/writes and validated return/booking paths remain unchanged.
+Fresh public SSR and no-JS navigation remain ordinary server responses. Existing
+successful sign-out/sign-in replacements remain. Recovery/runtime evidence is
+separate from historical verification, under .local/four-feature/recovery-final/.

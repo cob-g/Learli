@@ -418,6 +418,15 @@ Each requirement has an **ID**, **priority**, **status**, a user-visible outcome
 - Changing my profile never edits another user's records.
 - Do not add unnecessary profile fields simply because a library offers them.
 
+**2026-10-11 delegated local password slice:** an active verified synthetic owner
+can change their own password using the current password and matching new
+12–128-character values. Better Auth sensitive-session and HTTP throttle checks
+remain active; other sessions are always revoked and a replacement cookie is
+forwarded without tokens in Learli JSON. Invalid, stale, suspended and foreign
+requests are denied; overlapping changes conflict and uncertain provider failure
+offers existing sign-in/reset recovery. See
+`docs/decisions/2026-10-11-signed-in-password-change.md`. Real-user launch stays gated.
+
 #### AUTH-05 — Return to intended booking after authentication `P1 [RECOMMENDED]`
 
 **As a visitor**, I do not lose my chosen tutor/subject after login.
@@ -833,6 +842,16 @@ satisfy human owner/escalation/consent/legal launch gates. See
 - Manual support operations cannot silently bypass booking constraints or payment status rules.
 
 #### ADM-04 — Account safety actions `P0 [AGREED]`
+
+Local-only M5.6 slice authorized 2026-10-11: owner-provisioned exact staff-to-target
+grants permit active verified synthetic admins to suspend/restore provisioned
+non-admin accounts, excluding self. This authority is independent of support
+assignments. Bounded local reason codes, atomic status/revision/history and exact
+retry identity preserve audit and reject stale edits. Sessions/bookings remain
+stored; current guards deny restricted requests, and restoration does not
+reapprove tutors or revive reservations. No all-user search or real incident/
+appeals policy. See `docs/decisions/2026-10-11-local-account-restrictions.md`;
+executed evidence belongs to the progress tracker, not this authorization note.
 
 **As an admin**, I can restrict unsafe or ineligible accounts under approved procedures.
 
@@ -1306,3 +1325,28 @@ The roadmap is **not authorization** to build these during MVP.
 ### Final product instruction
 
 > **Build the smallest safe marketplace that connects a real learner to a real eligible tutor for a legitimately bookable 1:1 session. Keep Learli out of the classroom, keep minors' data private, and never guess an unresolved business rule.**
+
+### Local MEET-01/02/03 reservation slice — 2026-10-11
+
+AUTHORIZED — build-feature delegation for Agent1 of the four-feature wave. One
+explicit tutor-edited private test link per local reservation; approved active
+verified assigned tutor and currently eligible learner/guardian reads require
+live demo_reserved with DB-time TTL. No support/admin bypass or provider visit.
+General DTOs/notifications/public metadata/logs omit URLs. Stale edits conflict;
+retries do not duplicate safe revision audit. Opening rechecks current permission.
+See docs/decisions/2026-10-11-local-reservation-meeting-links.md. This is synthetic
+local testing, not confirmed lessons or real-use safety/policy approval.
+
+### Local booking-linked support — delegated 2026-10-11
+
+ADM-03/OPS-05 local extension: new fictional reports optionally link immutably to
+a currently participant-authorized simulated reservation. Submission/retries check
+current participation and save case/link/creation event atomically. Live detail
+requires requester participation; reviewers additionally require current exact
+assignment, support capability and active verified admin identity. Losing booking
+permission removes live context but retains the case with generic unavailability.
+Only subject, tutor display name, original schedule in viewer zone, effective
+simulation state and stored status events appear; learner/contact/meeting/notice
+data are excluded. Successful reviewer projections receive minimal audit. See
+`docs/decisions/2026-10-11-booking-linked-support.md`; real incident/launch gates
+remain OPEN. This is authorized scope, not executed verification.

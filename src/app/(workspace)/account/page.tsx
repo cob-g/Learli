@@ -6,6 +6,7 @@ import { getAuthRuntime } from "@/lib/auth";
 import { AccessError } from "@/lib/permissions/access";
 import { readAccount } from "@/features/account/service";
 import { AccountForm } from "@/features/account/account-form";
+import { PasswordForm } from "@/features/account-password/password-form";
 import { SignOut } from "@/features/auth/sign-out";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 export const dynamic = "force-dynamic";
@@ -57,6 +58,7 @@ export default async function AccountPage() {
         </p>
       )}
       <AccountForm account={account} />
+      <PasswordForm />
       <Link
         className="mt-8 inline-flex min-h-11 items-center"
         href="/account/sessions"

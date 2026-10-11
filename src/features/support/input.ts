@@ -33,6 +33,7 @@ export const caseInput = z.strictObject({
   }),
   subject: safeText(120, "a subject"),
   body: safeText(2000, "a fictional description"),
+  bookingId: z.uuid().optional(),
 });
 export const statusInput = z.strictObject({
   revision: z.number().int().min(0).max(2147483646),

@@ -1,0 +1,241 @@
+"use client";
+
+import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import type { MeetingSectionState, PrivateMeetingState } from "./model";
+
+const subscribe = () => () => {};
+const clientReady = () => true;
+const serverReady = () => false;
+
+export function BookingMeetingSection({
+  bookingId,
+  initial,
+}: {
+  bookingId: string;
+  initial: MeetingSectionState;
+}) {
+  const endpoint = `/api/bookings/${encodeURIComponent(bookingId)}/meeting-link`;
+  const [meeting, setMeeting] = useState(initial);
+  const [url, setUrl] = useState(
+    initial.state === "present" && initial.canEdit ? initial.url : "",
+  );
+  const [pending, setPending] = useState(false);
+  const [message, setMessage] = useState("");
+  const [conflicted, setConflicted] = useState(false);
+  const requestId = useRef<string | null>(null);
+  const interactive = useSyncExternalStore(subscribe, clientReady, serverReady);
+  const canEdit =
+    (meeting.state === "present" || meeting.state === "missing") &&
+    meeting.canEdit;
+
+  async function reload() {
+    setPending(true);
+    setMessage("Loading meeting link…");
+    try {
+      const response = await fetch(endpoint, { cache: "no-store" });
+      if (!response.ok) {
+        setMeeting({
+          state:
+            response.status === 404 ||
+            response.status === 401 ||
+            response.status === 403
+              ? "unavailable"
+              : "error",
+        });
+        setMessage("The meeting link could not be loaded.");
+        return false;
+      }
+      const current: PrivateMeetingState = await response.json();
+      setMeeting(current);
+      setUrl(current.state === "present" && current.canEdit ? current.url : "");
+      setConflicted(false);
+      requestId.current = null;
+      setMessage("Meeting link refreshed.");
+      return true;
+    } catch {
+      setMeeting({ state: "error" });
+      setMessage("The meeting link could not be loaded. Try again.");
+      return false;
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (
+      !canEdit ||
+      pending ||
+      conflicted ||
+      (meeting.state !== "present" && meeting.state !== "missing")
+    )
+      return;
+    requestId.current ??= crypto.randomUUID();
+    setPending(true);
+    setMessage("Saving test meeting link…");
+    try {
+      const response = await fetch(endpoint, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          url,
+          expectedRevision: meeting.revision,
+          requestId: requestId.current,
+        }),
+      });
+      if (!response.ok) {
+        if (response.status === 409) {
+          setConflicted(true);
+          setMessage(
+            "The meeting link changed. Reload it before saving again. Reloading replaces your entered link.",
+          );
+        } else if ([401, 403, 404].includes(response.status)) {
+          setMeeting({ state: "unavailable" });
+          setUrl("");
+          setMessage(
+            "The meeting link is no longer available on this account.",
+          );
+        } else
+          setMessage(
+            response.status === 400
+              ? "Enter a supported HTTPS Zoom or Google Meet test link."
+              : "The save could not be confirmed. Retry with the same entered link or reload.",
+          );
+        return;
+      }
+      if (await reload())
+        setMessage("Test meeting link saved. No meeting was arranged.");
+    } catch {
+      setMessage(
+        "The save could not be confirmed. Retry with the same entered link or reload.",
+      );
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <section
+      className="mt-8 border-t border-border pt-6"
+      aria-labelledby="meeting-heading"
+      aria-busy={pending}
+    >
+      <h2 id="meeting-heading" className="text-section-title">
+        Test meeting link
+      </h2>
+      <p className="mt-2 max-w-prose text-small text-muted-foreground">
+        Local simulation only. A tutor-supplied test link opens externally on
+        Zoom or Google Meet. Learli does not host calls, arrange a lesson, check
+        meeting settings or verify attendance.
+      </p>
+      {meeting.state === "present" && (
+        <div className="mt-4">
+          <a
+            className="inline-flex min-h-11 items-center"
+            href={`${endpoint}?open=1`}
+            target="_blank"
+            rel="noopener noreferrer"
+            referrerPolicy="no-referrer"
+          >
+            Open test link on{" "}
+            {meeting.provider === "zoom" ? "Zoom" : "Google Meet"} (new tab)
+          </a>
+          <p className="mt-2 text-small text-muted-foreground">
+            Access is rechecked when opened. A link already shared outside
+            Learli cannot be recalled.
+          </p>
+        </div>
+      )}
+      {meeting.state === "missing" && (
+        <p className="mt-4 text-body">
+          No test meeting link has been provided.
+        </p>
+      )}
+      {meeting.state === "expired" && (
+        <p className="mt-4 text-body">
+          This simulation has expired. Its test meeting link is unavailable.
+        </p>
+      )}
+      {meeting.state === "unavailable" && (
+        <p className="mt-4 text-body">
+          The test meeting link is unavailable on this account.
+        </p>
+      )}
+      {meeting.state === "error" && (
+        <p className="mt-4 text-body">
+          Test meeting links could not be loaded. Try again.
+        </p>
+      )}
+      {canEdit && (
+        <form
+          method="post"
+          action={endpoint}
+          onSubmit={save}
+          className="mt-6 max-w-prose space-y-4"
+        >
+          <div>
+            <label className="text-label" htmlFor="test-meeting-url">
+              Zoom or Google Meet test link
+            </label>
+            <input
+              id="test-meeting-url"
+              name="url"
+              type="url"
+              required
+              maxLength={2048}
+              value={url}
+              disabled={pending || !interactive}
+              onChange={(event) => {
+                setUrl(event.target.value);
+                requestId.current = null;
+              }}
+              aria-describedby="meeting-format meeting-message"
+              className="field mt-2"
+              autoComplete="off"
+            />
+            <p
+              id="meeting-format"
+              className="mt-2 text-small text-muted-foreground"
+            >
+              Use a supported HTTPS joining link. It is private to this
+              reservation. Revision{" "}
+              {meeting.state === "present" ? meeting.revision : 0}.
+            </p>
+          </div>
+          <button
+            className="action action-primary"
+            type="submit"
+            disabled={pending || conflicted || !interactive}
+          >
+            {pending
+              ? "Saving…"
+              : meeting.state === "present"
+                ? "Replace test meeting link"
+                : "Save test meeting link"}
+          </button>
+          <noscript>
+            <p className="text-body">
+              Enable JavaScript to save or replace a test meeting link.
+            </p>
+          </noscript>
+        </form>
+      )}
+      <p
+        id="meeting-message"
+        role="status"
+        aria-live="polite"
+        className="mt-4 text-body"
+      >
+        {message}
+      </p>
+      <button
+        type="button"
+        className="action action-outline mt-4"
+        disabled={pending || !interactive}
+        onClick={() => void reload()}
+      >
+        Reload meeting link
+      </button>
+    </section>
+  );
+}

@@ -5,6 +5,16 @@ export const metadata: Metadata = {
   title: "Report a concern",
   robots: { index: false, follow: false },
 };
-export default function Page() {
-  return <SupportEntry concern />;
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ bookingId?: string | string[] }>;
+}) {
+  const { bookingId } = await searchParams;
+  return (
+    <SupportEntry
+      concern
+      bookingId={Array.isArray(bookingId) ? "invalid" : bookingId}
+    />
+  );
 }

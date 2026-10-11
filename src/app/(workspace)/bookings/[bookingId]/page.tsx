@@ -7,6 +7,9 @@ import {
   BookingUnavailable,
 } from "@/features/bookings/read-presentation";
 import { bookingReadScope } from "@/features/bookings/read-input";
+import { readPrivateMeetingLink } from "@/features/booking-meeting-links/service";
+import { BookingMeetingSection } from "@/features/booking-meeting-links/meeting-section";
+import type { MeetingSectionState } from "@/features/booking-meeting-links/model";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Booking details",
@@ -32,5 +35,28 @@ export default async function Page({
     return (
       <BookingUnavailable scope={scope.success ? scope.data : undefined} />
     );
-  return <BookingDetailView booking={detail} scope={scope.data} />;
+  const meeting = await loadPrivatePage(
+    path,
+    async (runtime, headers): Promise<MeetingSectionState> => {
+      try {
+        return await readPrivateMeetingLink(runtime, headers, bookingId);
+      } catch (error) {
+        if (error instanceof AccessError && error.status !== 503)
+          return { state: "unavailable" };
+        return { state: "error" };
+      }
+    },
+  );
+  return (
+    <BookingDetailView
+      booking={detail}
+      scope={scope.data}
+      meetingSection={
+        <BookingMeetingSection
+          bookingId={bookingId}
+          initial={meeting ?? { state: "error" }}
+        />
+      }
+    />
+  );
 }

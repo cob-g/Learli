@@ -52,8 +52,9 @@ export function AuthForm({
             true,
           );
         else {
-          router.replace(returnTo);
-          router.refresh();
+          // Clear prior private bootstrap data when reauthenticating as a
+          // different account; returnTo retains the existing path validation.
+          window.location.replace(returnTo);
         }
       } else if (mode === "sign-up") {
         const result = await authClient.signUp.email({
