@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.17 — Independent review repairs verified locally
+> **Version:** 1.18 — Three-feature merge, main migration and cleanup complete
 > **Last updated:** 2026-10-12\
-> **Current overall status:** **Three-feature review repairs verified locally; coordinator independent re-review/acceptance pending**
+> **Current overall status:** **Reviewed three-feature wave merged locally; main databases migrated; completed worktrees and branches removed**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -14,6 +14,33 @@
 **Status legend:** `Documented` = specified only · `Planned` = not verified as started · `In progress` = active work with evidence · `Blocked` = waiting on an explicit decision/dependency · `Done` = verified and linked to evidence.
 
 ---
+
+## Three-feature merge, main migration and cleanup — completed, 2026-10-12
+
+- User-authorized feature commit `3cea4920a65cd274e2d949e7fd70ce383ed16790`
+  fast-forwarded into local `main`. All 62 accepted hashes matched before commit
+  and after merge. Independent final re-review closed F1/M1 with zero findings;
+  exact-state 657 unit/component, 117 browser and applicable 389 PostgreSQL
+  evidence remain preserved. Fresh merged-main production build passed.
+- Both main-owned local databases on port 55432 were backed up and migrated from
+  0012 through 0016 using repository commands. Each has 17 matching migration
+  hashes and 32 tables; existing values in all 24 baseline table projections,
+  historical booking protections and runtime restrictions were verified.
+  All 29 runtime permission probes passed in each database and were rolled back.
+- One independent cleanup auditor used observed GPT-6.1 Sol / High effort,
+  completed task `task_9aeca3ccd100` in run `run_832881cdc267`, and was released.
+  No unaccounted source work or active feature owner was found. Nine owned
+  temporary PostgreSQL clusters were stopped; nine complete private worktree
+  archives passed hash, mode, inventory and symlink checks before removal.
+- Removed all nine completed source/integration worktrees and their nine merged
+  local `cob-g/` branches. Only the main checkout and local `main` branch remain.
+  Main PostgreSQL is preserved and running. No seed/reset, push, deployment,
+  external mail or production operation occurred. Historical pending-operation
+  statements below are superseded by this completed closeout.
+- Durable record: [three-feature closeout](../docs/operations/three-feature-closeout.md).
+  Private backups, audit, archives and execution receipts:
+  `.local/three-feature-closeout-2026-10-12/`. Original source freezes and
+  independent-review reports remain in the main checkout's ignored evidence.
 
 ## Independent three-feature review repairs — verified locally, 2026-10-12
 
@@ -175,9 +202,17 @@
 
 ## Next Up
 
-1. **Completed:** the user authorized commit and merge on 2026-10-12. Exact reviewed 94-file candidate committed as `dcf2c55b0a38a233529e6aeea0ecce65bb63ff66` and fast-forwarded into local `main`. All 94 accepted file hashes match after merge; working tree was clean. Existing check/build/101 browser and applicable historical 337 PostgreSQL/migration evidence remain unchanged.
-2. **Current local wave:** all three accepted/frozen sources are integrated and locally verified in the owned candidate. Independent auth and marketplace reviews are complete; root authorized the two Minor existing-contract repairs (F1 email-field validation accessibility and M1 stale tracker wording). Scoped same-agent Review and separate local Verify passed; coordinator independent re-review, candidate acceptance and any separately authorized commit/merge decision are next. Original slices: directory actual-date availability filters (M3.5/M4.11), provider-supported local verified email changes (M2.9/AUTH-04), and safe specialized-subject name maintenance (M3.1/M5.6/ADM-02). Sources and isolated service ownership remain preserved.
-3. **Deferred operations:** main local database remains at migrations0000–0012; new0013–0015 remain pending there. Existing worktrees/databases/evidence are preserved. The user's wording leaves main migration and old-worktree cleanup afterward. No push/deployment, real-user launch, or next-wave commit/merge is authorized by this step. New workers migrate only their own isolated databases.
+1. **Completed:** the prior four-feature wave and latest three-feature wave are
+   committed and merged into local `main` (`dcf2c55`, then `3cea492`). Matching
+   independent review and verification evidence remain preserved; the merged-main
+   production build passed.
+2. **Completed operations:** both main local databases are migrated through 0016
+   with verified backups/data preservation/runtime grants. All nine completed
+   worktrees and their merged branches were removed after private archival.
+3. **Next work:** select the next bounded PRD/build-plan package or address the
+   existing dependency advisories. No new wave has been spawned. Hosted-service,
+   commercial, consent, safeguarding and public-launch gates remain; push and
+   deployment were not performed.
 
 ## Four-feature merge — 2026-10-12
 
