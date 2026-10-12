@@ -47,7 +47,7 @@ async function main() {
 }
 main().catch(() => {
   console.error(
-    "Local notice capture stopped safely. Use --limit=1..25, optional --event=<creation-event-uuid> and --test only for the owned test environment; details omitted.",
+    "Local notice capture stopped safely. Use --limit=1..25, optional --event=<committed-event-uuid> and --test only for the owned test environment; details omitted.",
   );
   process.exitCode = 1;
 });

@@ -139,11 +139,14 @@ export async function verifyRuntimeGrants(client: PoolClient) {
       WHERE d.classid='pg_proc'::regclass AND d.objid=p.oid AND d.deptype='e')`);
   const permitted = new Set([
     "grant_tutor_role(text)",
+    "submit_private_review(text,text,uuid,integer,uuid,integer,text)",
+    "moderate_private_review(text,text,uuid,integer,uuid,text)",
     "change_local_account_access(text,text,text,integer,text,text,uuid)",
-    "preserve_demo_booking()",
+    "create_local_learner(text,text,uuid,text,text,text,text)",
+    "change_local_support_assignment(text,text,uuid,integer,text,text,uuid)",
   ]);
   if (
-    functions.rows.length !== 9 ||
+    functions.rows.length !== 24 ||
     functions.rows.some(
       (row) =>
         !row.safe ||

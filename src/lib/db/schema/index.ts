@@ -9,3 +9,6 @@ export * from "./booking-notifications";
 export * from "./booking-meeting-links";
 export * from "./support-bookings";
 export * from "./account-restrictions";
+export * from "./learner-creation";
+export * from "./support-dispatch";
+export * from "./private-reviews";

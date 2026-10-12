@@ -1,3 +1,8 @@
+import {
+  demoStateLabels,
+  demoLiveState,
+  type DemoBookingState,
+} from "@/features/bookings/lifecycle-model";
 import Link from "next/link";
 import { Hourglass, TimerOff } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -10,7 +15,7 @@ import {
 export type TutorAgendaBooking = {
   id: string;
   detailHref: string;
-  state: "demo_reserved" | "demo_expired";
+  state: DemoBookingState;
   learnerLabel: string;
   learnerLevel: string;
   subject: string;
@@ -27,7 +32,7 @@ export function nextTutorSimulation(
   return bookings
     .filter(
       (booking) =>
-        booking.state === "demo_reserved" &&
+        demoLiveState(booking.state) &&
         new Date(booking.time.startAtUtc).getTime() > now,
     )
     .toSorted(
@@ -38,12 +43,12 @@ export function nextTutorSimulation(
 }
 
 function SimulationStatus({ state }: { state: TutorAgendaBooking["state"] }) {
-  const expired = state === "demo_expired";
+  const expired = !demoLiveState(state);
   const Icon = expired ? TimerOff : Hourglass;
   return (
     <span className="inline-flex min-h-7 items-center gap-1 rounded-tag border border-control bg-subtle px-2 text-label">
       <Icon size={16} aria-hidden="true" className="shrink-0 text-primary" />
-      {expired ? "Simulation expired" : "Simulated reservation"}
+      {demoStateLabels[state]}
     </span>
   );
 }
@@ -76,7 +81,9 @@ function Expiry({ booking }: { booking: TutorAgendaBooking }) {
       <p className="text-small text-muted-foreground">
         {booking.state === "demo_expired"
           ? "Simulation expired at"
-          : "Simulation expires at"}
+          : demoLiveState(booking.state)
+            ? "Simulation expires at"
+            : "Original simulation deadline"}
       </p>
       <LessonTime value={booking.expiry} />
     </div>

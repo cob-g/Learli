@@ -1,3 +1,7 @@
+import {
+  demoStateLabels,
+  demoLiveState,
+} from "@/features/bookings/lifecycle-model";
 import { LessonTime } from "@/features/bookings/lesson-time";
 import { Hourglass, TimerOff } from "lucide-react";
 import type { SupportBookingContext } from "./model";
@@ -54,14 +58,12 @@ export function SupportBookingSection({
           </dl>
           <div className="mt-4">
             <span className="inline-flex items-center gap-1 rounded-tag border border-control bg-subtle px-2 py-1 text-label">
-              {booking.state === "demo_expired" ? (
+              {!demoLiveState(booking.state) ? (
                 <TimerOff className="size-4" aria-hidden="true" />
               ) : (
                 <Hourglass className="size-4" aria-hidden="true" />
               )}
-              {booking.state === "demo_expired"
-                ? "Simulation expired"
-                : "Simulated reservation"}
+              {demoStateLabels[booking.state]}
             </span>
           </div>
           <h3 className="mt-8 text-item-title">Saved simulation history</h3>

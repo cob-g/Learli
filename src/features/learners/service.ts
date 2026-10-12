@@ -5,9 +5,9 @@ import type { AuthRuntime } from "@/lib/auth-factory";
 import type { Database } from "@/lib/db/connection";
 import { learnerProfiles } from "@/lib/db/schema/learners";
 import { AccessError, requireIdentity } from "@/lib/permissions/access";
-import { isLoopbackOrigin } from "@/lib/local-mode";
+import { isLoopbackOrigin, syntheticEmail } from "@/lib/local-mode";
 import { RuleError } from "@/lib/rule-error";
-import { learnerInput } from "./input";
+import { learnerInput, createLearnerInput } from "./input";
 
 async function requireLearnerActor(runtime: AuthRuntime, headers: Headers) {
   if (
@@ -110,4 +110,84 @@ export async function updateMyLearner(
     .returning(privateProfile);
   if (!updated) throw new AccessError(404);
   return updated;
+}
+
+/** Synthetic creation context only; existing GET/PATCH contract stays unchanged. */
+export async function readLearnerCreationContext(
+  runtime: AuthRuntime,
+  headers: Headers,
+) {
+  const identity = await requireLearnerActor(runtime, headers);
+  const current = await runtime.auth.api.getSession({ headers });
+  if (!current || !syntheticEmail(current.user.email))
+    throw new AccessError(403);
+  const learners = await listMyLearners(runtime, headers);
+  return {
+    timezone: current.user.timezone,
+    modes: [
+      ...(identity.roles.includes("parent") ? ["guardian" as const] : []),
+      ...(identity.roles.includes("student") &&
+      !learners.some((profile) => profile.management === "self")
+        ? ["self" as const]
+        : []),
+    ],
+  };
+}
+
+export async function createMyLearner(
+  runtime: AuthRuntime,
+  headers: Headers,
+  input: unknown,
+) {
+  const identity = await requireLearnerActor(runtime, headers);
+  const current = await runtime.auth.api.getSession({ headers });
+  if (!current || !syntheticEmail(current.user.email))
+    throw new AccessError(403);
+  const values = createLearnerInput.parse(input);
+  if (
+    !identity.roles.includes(
+      values.management === "guardian" ? "parent" : "student",
+    )
+  )
+    throw new AccessError(403);
+  if (values.management === "self" && values.level !== "college_support")
+    throw new RuleError(
+      400,
+      "This local profile uses College Support. Keep that level and try again.",
+    );
+  return runtime.db.transaction(
+    async (tx) => {
+      const result = await tx.execute<{
+        outcome: string;
+        learner_id: string | null;
+      }>(sql`
+      SELECT * FROM public.create_local_learner(${identity.userId}, ${identity.sessionId},
+        ${values.requestId}::uuid, ${values.management}, ${values.displayName}, ${values.level}, ${values.timezone})
+    `);
+      const row = result.rows[0];
+      if (row?.outcome === "forbidden") throw new AccessError(403);
+      if (row?.outcome === "conflict")
+        throw new RuleError(
+          409,
+          "This request already used different fields. Return to your learners and start a new profile.",
+        );
+      if (row?.outcome === "exists")
+        throw new RuleError(
+          409,
+          "Your local self-managed profile already exists. Return to your learners to edit it.",
+        );
+      if (row?.outcome === "capacity")
+        throw new RuleError(
+          409,
+          "This account has reached the local demonstration creation limit. Return to your learners.",
+        );
+      if (row?.outcome === "invalid")
+        throw new RuleError(400, "Check the learner fields and try again.");
+      if (!row?.learner_id || !["created", "replayed"].includes(row.outcome))
+        throw new AccessError(503);
+      // A replay does not restore inactive profiles or revoked links. Same minimal DTO.
+      return readAuthorizedLearner(tx, identity.userId, row.learner_id);
+    },
+    { isolationLevel: "read committed" },
+  );
 }

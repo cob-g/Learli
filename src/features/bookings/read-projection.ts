@@ -1,3 +1,8 @@
+import {
+  effectiveDemoState,
+  type DemoBookingState,
+  type DemoLifecycleEvent,
+} from "./lifecycle-model";
 import type { LearnerLevel } from "@/lib/db/schema/app";
 import { formatLessonTime } from "./format-time";
 import type { BookingDetail } from "./read-model";
@@ -5,6 +10,9 @@ import type { BookingDetail } from "./read-model";
 // Internal SQL projection; this is not the consumer read contract.
 export type StoredBookingRead = {
   id: string;
+  logicalBookingId?: string;
+  revision?: number;
+  currentHeadId?: string;
   tutorName: string;
   tutorSlug: string;
   subjectName: string;
@@ -12,11 +20,15 @@ export type StoredBookingRead = {
   learnerId: string;
   learnerName: string;
   learnerLevel: LearnerLevel;
-  state: "demo_reserved" | "demo_expired";
+  state: DemoBookingState;
   start: string;
   end: string;
   expires: string;
-  events: { id: string; event: "demo_reserved" | "demo_expired"; at: string }[];
+  events: {
+    id: string;
+    event: "demo_reserved" | "demo_expired" | DemoLifecycleEvent;
+    at: string;
+  }[];
 };
 
 export function projectBookingRead(
@@ -27,6 +39,9 @@ export function projectBookingRead(
   const expires = new Date(row.expires);
   return {
     id: row.id,
+    logicalBookingId: row.logicalBookingId ?? row.id,
+    revision: row.revision ?? 0,
+    currentHeadId: row.currentHeadId ?? row.id,
     source: "local_simulation",
     tutor: { displayName: row.tutorName, slug: row.tutorSlug },
     subject: { name: row.subjectName, slug: row.subjectSlug },
@@ -35,10 +50,7 @@ export function projectBookingRead(
       displayName: row.learnerName,
       level: row.learnerLevel,
     },
-    state:
-      row.state === "demo_expired" || expires <= snapshot
-        ? "demo_expired"
-        : "demo_reserved",
+    state: effectiveDemoState(row.state, expires, snapshot),
     persistedState: row.state,
     snapshotAtUtc: snapshot.toISOString(),
     expiresAtUtc: expires.toISOString(),

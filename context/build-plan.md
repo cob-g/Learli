@@ -4,11 +4,11 @@
 > **Document:** `build-plan.md` — implementation sequencing and verification plan  
 > **Version:** 1.0  
 > **Prepared:** 2026-10-11  
-> **Status:** **Planning only.** No application implementation, repository, deployed service, CI results, or database migration has been verified by creating this document.  
-> **Starting point:** Product and technical documentation prepared; MVP implementation not yet verified.  
+> **Status:** **Execution roadmap with partial local implementation.** Original plan checkboxes express full acceptance; current local evidence is recorded in progress-tracker and operation reports. Do not count unchecked boxes as proof that code is absent.\
+> **Current baseline:** main `0494f6b` contains reviewed local marketplace flows and staging database tooling; the local completion wave is in progress. Hosted acceptance and real-user policies remain gated.\
 > **Primary goal:** Build the smallest safe, useful **one-on-one tutoring marketplace and booking intermediary**—**not** an LMS.
 
-**Read alongside:** [`PROJECT-OVERVIEW.md`](./PROJECT-OVERVIEW.md) · [`PRD.md`](./PRD.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](./AGENTS.md) · [`CODE-STANDARDS.md`](./CODE-STANDARDS.md) · [`PROGRESS-TRACKER.md`](./PROGRESS-TRACKER.md) · [`ui-context.md`](./ui-context.md).
+**Read alongside:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`progress-tracker.md`](./progress-tracker.md) · [`ui-context.md`](./ui-context.md).
 
 ---
 
@@ -877,3 +877,15 @@ Emulated viewports, Playwright engines and local timings do not replace physical
 target devices, target connections, hosted acceptance or complete M8.9 approval.
 See `prompts/features/m8-09-cross-browser-acceptance.md` and
 `prompts/features/m8-09-performance-baseline.md`.
+
+
+### Local completion wave — authorized scope, 2026-10-12
+
+The user requested remaining local features before deployment and explicitly
+held payments. Six tasks cover M4.5/9/10 booking lifecycle/cancellation/reschedule,
+M4.4 synthetic onboarding, M5.6/9 case-scoped support assignment, M5.7/8 local
+change notices, M5.10 private synthetic reviews and M6/PUB-05 draft policy
+surfaces. Notices/reviews consume the booking provider after acceptance.
+Parent: `prompts/features/m4-10-local-completion-wave.md`. All six Sol High builders completed their owned local slices in isolated worktrees. Root integrated them and observed independent scoped reviews with zero confirmed findings, check 974 PASS, PostgreSQL 575 PASS (affected cleanup rerun 57 PASS), build PASS, Chromium 140 PASS and actual 22-migration backup/restore PASS. Exact evidence and limitations are in the progress tracker. The uncommitted candidate remains on cob-g/m4-local-completion-integration; main code/database and launch milestone acceptance are unchanged.
+No full milestone checkbox, production policy, payment or deployment approval
+follows from this local wave. Historical summaries above retain their original scope; this local completion entry supersedes their local gaps only for the six bounded slices.

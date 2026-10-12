@@ -8,7 +8,7 @@ import type { Database } from "@/lib/db/connection";
 import * as schema from "@/lib/db/schema";
 import { isLoopbackOrigin } from "@/lib/local-mode";
 import { captureBookingNotice } from "./local-capture";
-import type { ReservationNotice } from "./template";
+import type { BookingNotice } from "./template";
 
 export type LocalNoticeRuntime = {
   pool: Pool;
@@ -32,7 +32,8 @@ export type NoticeResolver = (
   db: Pick<Database, "select" | "execute">,
   eventId: string,
   recipientUserId: string,
-) => Promise<ReservationNotice | null>;
+  kind: string,
+) => Promise<BookingNotice | null>;
 
 function requireLocalDispatch(runtime: LocalNoticeRuntime) {
   if (
@@ -55,6 +56,7 @@ export async function drainBookingNotices(
   runtime: LocalNoticeRuntime,
   input: DispatchOptions,
   resolveNotice: NoticeResolver,
+  lifecycle = false,
 ): Promise<DispatchResult> {
   requireLocalDispatch(runtime);
   const options = dispatchInput.parse(input);
@@ -66,7 +68,9 @@ export async function drainBookingNotices(
   };
   const client = await runtime.pool.connect();
   const db = drizzle(client, { schema });
-  const deliveries = schema.bookingNotificationDeliveries;
+  const deliveries = lifecycle
+    ? schema.bookingLifecycleNotificationDeliveries
+    : schema.bookingNotificationDeliveries;
   try {
     // Snapshot at most one bounded page. A failed row is attempted once per call.
     const candidates = await db
@@ -112,6 +116,7 @@ export async function drainBookingNotices(
           db,
           row.eventId,
           row.recipientUserId,
+          row.kind,
         );
         let state: "captured" | "suppressed" | "pending" = notice
           ? "captured"

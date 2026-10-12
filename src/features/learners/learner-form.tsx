@@ -1,10 +1,14 @@
 "use client";
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
 import type { TimeZoneOption } from "@/lib/time/zones";
 import type { PrivateLearner } from "./service";
+
+const subscribeHydration = () => () => {};
+const clientReady = () => true;
+const serverReady = () => false;
 
 export function LearnerForm({
   profile,
@@ -14,6 +18,11 @@ export function LearnerForm({
   zones: TimeZoneOption[];
 }) {
   const router = useRouter();
+  const ready = useSyncExternalStore(
+    subscribeHydration,
+    clientReady,
+    serverReady,
+  );
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState("");
   const [failed, setFailed] = useState(false);
@@ -22,6 +31,7 @@ export function LearnerForm({
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!ready || pending) return;
     const form = event.currentTarget;
     const data = new FormData(form);
     setPending(true);
@@ -73,9 +83,17 @@ export function LearnerForm({
     <form
       className="mt-8 max-w-xl space-y-4"
       onSubmit={save}
+      method="post"
+      action={`/api/learners/${profile.id}`}
       aria-busy={pending}
       noValidate
     >
+      <noscript>
+        <p className="text-body">
+          JavaScript is required to edit a local demonstration profile. You can
+          still view your learners.
+        </p>
+      </noscript>
       <p className="text-small text-muted-foreground">
         All fields are required.
       </p>
@@ -87,6 +105,7 @@ export function LearnerForm({
           className="field"
           id="displayName"
           name="displayName"
+          disabled={!ready}
           defaultValue={profile.displayName}
           maxLength={80}
           required
@@ -110,6 +129,7 @@ export function LearnerForm({
           className="field"
           id="level"
           name="level"
+          disabled={!ready}
           defaultValue={profile.level}
           aria-invalid={!!fields.level}
           aria-describedby={fields.level ? "level-error" : undefined}
@@ -139,6 +159,7 @@ export function LearnerForm({
           className="field"
           id="timezone"
           name="timezone"
+          disabled={!ready}
           defaultValue={profile.timezone}
           aria-invalid={!!fields.timezone}
           aria-describedby={fields.timezone ? "timezone-error" : undefined}
@@ -173,7 +194,7 @@ export function LearnerForm({
       <button
         type="submit"
         className="action action-primary"
-        disabled={pending}
+        disabled={!ready || pending}
       >
         {pending && (
           <LoaderCircle

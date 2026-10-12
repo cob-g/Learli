@@ -27,6 +27,21 @@ export type Identity = {
   migrationRole: string;
   targetHash: string;
 };
+/** Recognize the reviewed public table declarations, not arbitrary SQL. */
+export function expectedTables(statements: readonly string[]) {
+  const names = new Set<string>();
+  for (const original of statements) {
+    const statement = original.replace(/^(?:\s|--[^\n]*(?:\n|$))*/, "");
+    if (!/^CREATE TABLE\b/.test(statement)) continue;
+    const match = statement.match(
+      /^CREATE TABLE (?:public\.)?(?:"([a-z_]+)"|([a-z_]+))\s*\(/,
+    );
+    const name = match?.[1] ?? match?.[2];
+    if (!name || names.has(name)) throw new MigrationFault("candidate_invalid");
+    names.add(name);
+  }
+  return [...names].sort();
+}
 const hashSchema = z.string().regex(/^[a-f0-9]{64}$/);
 export const planSchema = z
   .object({
@@ -119,14 +134,11 @@ async function inspectOnClient(
     SELECT c.relname AS name FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
     WHERE n.nspname='public' AND c.relkind IN ('r','p') ORDER BY c.relname`)
   ).rows.map((row) => row.name);
-  const expected = candidate.entries
-    .slice(0, history.length)
-    .flatMap((entry) =>
-      [
-        ...entry.statements.join("\n").matchAll(/CREATE TABLE "([a-z_]+)"/g),
-      ].map((match) => match[1]),
-    )
-    .sort();
+  const expected = expectedTables(
+    candidate.entries
+      .slice(0, history.length)
+      .flatMap((entry) => entry.statements),
+  );
   if (JSON.stringify(tables) !== JSON.stringify(expected))
     throw new MigrationFault("schema_unrecognized");
   const extra = await client.query<{ count: string }>(`

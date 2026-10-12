@@ -1,4 +1,4 @@
-# Local M2 development
+# Local development
 
 Prerequisites: Node 24.20.0, npm 11.19.0 and PostgreSQL 17 command-line binaries
 (`initdb`, `pg_ctl`) on PATH. On this machine PostgreSQL 17.11 is already installed.
@@ -26,8 +26,8 @@ The test wrapper always loads `.env.test.local`; test helpers additionally rejec
 
 ## Local accounts and messages
 
-- `npm run db:seed` creates the fixed synthetic student, parent, tutor, admin and
-  multi-role accounts. It is idempotent and refuses to elevate an existing account
+- `npm run db:seed` creates the fixed synthetic student, parent, tutor, admin,
+  support-reviewer, support-escalation and multi-role accounts. It is idempotent and refuses to elevate an existing account
   that does not match its private fixture manifest.
 - `npm run fixtures:open` opens their private HTML credential sheet. Never reuse
   those passwords outside local Learli. Fixture verification is trusted setup;
@@ -39,13 +39,40 @@ The test wrapper always loads `.env.test.local`; test helpers additionally rejec
   never a public route; nothing is sent externally. Tests use a separate mailbox.
 - Private files are mode 0600 under mode 0700 directories. Treat them as secrets;
   do not publish `.local`, `.env.local`, `.env.test.local`, or auth traces.
-- Account settings update only your display name/timezone. Role workspaces are
-  guarded shells; guardian links, tutor eligibility and bookings are later work.
+- Account settings and role workspaces expose the implemented local account,
+  tutor, learner, booking and support flows. All identities and learner records
+  used here must be fictional; trusted fixture roles are not real eligibility
+  or guardian-consent evidence.
 
 Local auth requires `AUTH_MODE=local`, development/test APP_ENV, a loopback HTTP
 APP_URL, matching auth origin, a secret and the dedicated database. Staging and
 production modes reject it. Default `dev`/`start` bind loopback. This does not
 provide a deployable real-user enrollment flow or a production email adapter.
+
+## Try the local coordination flows
+
+1. Use the private fixture sheet to sign in as the parent or student. At
+   `/learners/new`, create a fictional profile; the student manages only their own
+   College Support profile. Existing fixture provisioning is optional; see
+   [Local learners](local-learners.md).
+2. Approve a fictional tutor through the admin catalog and add actual subject,
+   level and availability choices through that tutor's workspace. Select a dated
+   available slot from its public profile, then reserve it. A selected time is
+   retained if a learner must be created first.
+3. Open the saved booking details to reschedule or cancel the simulation. A move
+   preserves the original expiry and history. A tutor-supplied private test
+   meeting link becomes unavailable on the retired booking and is never copied
+   to its replacement. See [Synthetic bookings](local-synthetic-booking.md).
+4. Submit a fictional support report, then provision the exact dispatcher and
+   reviewer choices using [Local support assignment](local-support-assignment.md).
+   The seed's two additional admin fixtures provide distinct reviewers; seeded
+   admin roles alone grant no case access or dispatcher capability.
+5. Browse `/privacy`, `/terms` and `/cancellations` for draft preparation pages.
+   They are not agreed legal terms, consent forms or payment policies.
+
+Creation, changes and fixture outcomes are local simulations. Captured notices
+stay in private files; [notification tooling](local-booking-notifications.md)
+does not send email. Payment and real-user launch decisions remain deferred.
 
 ## Tutor applications and subjects (M3.1–M3.3)
 

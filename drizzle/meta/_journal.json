@@ -120,6 +120,41 @@
       "when": 1791754075410,
       "tag": "0016_specialized_subject_names",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791754075411,
+      "tag": "0017_local_booking_lifecycle",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791754075412,
+      "tag": "0018_local_learner_onboarding",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791754075413,
+      "tag": "0019_local_support_assignment",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791792499886,
+      "tag": "0020_private_synthetic_reviews",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1791792786473,
+      "tag": "0021_local_lifecycle_notices",
+      "breakpoints": true
     }
   ]
 }

@@ -217,13 +217,13 @@ afterAll(async () => {
     run("pg_ctl", ["-D", data, "-m", "fast", "-w", "stop"]);
 }, 30000);
 describe("real PostgreSQL controlled staging migration primitives", () => {
-  it("applies fresh17 chain, restricted grants/probes and a no-op migration rerun", async () => {
+  it("applies the reviewed fresh chain, restricted grants/probes and a no-op migration rerun", async () => {
     const w = await world(),
       plan = await inspectTarget(w.owner, candidate, w.identity);
     expect(plan.state).toBe("empty");
-    expect(plan.pending).toHaveLength(17);
+    expect(plan.pending).toHaveLength(22);
     const result = await apply(w, plan);
-    expect(result.status).toBe("PASS");
+    expect(result.status, `${result.category}/${result.stage}`).toBe("PASS");
     expect(result.migrations).toBe("committed");
     expect(result.runtime).toBe("pass");
     expect(w.owner.closed && w.runtime.closed).toBe(true);
@@ -262,7 +262,7 @@ describe("real PostgreSQL controlled staging migration primitives", () => {
     const before = await originalRows(w.owner);
     const plan = await inspectTarget(w.owner, candidate, w.identity);
     expect(plan.state).toBe("populated");
-    expect(plan.pending).toHaveLength(1);
+    expect(plan.pending).toHaveLength(candidate.entries.length - 16);
     const denied = await apply(w, plan, { recovery: undefined });
     expect(denied.category).toBe("recovery_required");
     const upgraded = {
@@ -456,7 +456,7 @@ describe("real PostgreSQL controlled staging migration primitives", () => {
     try {
       await check.withClient(async (client) => {
         await client.query(runtimeGrantsSql);
-        expect((await verifyRuntimeGrants(client)).functionChecks).toBe(9);
+        expect((await verifyRuntimeGrants(client)).functionChecks).toBe(24);
         await client.query("GRANT UPDATE ON user_roles TO learli_app");
         await expect(verifyRuntimeGrants(client)).rejects.toThrow(
           "grant_mismatch",
@@ -472,6 +472,9 @@ describe("real PostgreSQL controlled staging migration primitives", () => {
     "weakened-state",
     "changed-function",
     "missing-overlap",
+    "wrong-lifecycle-deferral",
+    "missing-logical-uniqueness",
+    "weakened-logical-revision",
   ])("rejects already-migrated protection drift %s", async (mode) => {
     const w = await world("drift"),
       plan = await inspectTarget(w.owner, candidate, w.identity);
@@ -507,6 +510,24 @@ describe("real PostgreSQL controlled staging migration primitives", () => {
           await client.query(
             "ALTER TABLE public.bookings DROP CONSTRAINT bookings_tutor_no_overlap",
           );
+        if (mode === "wrong-lifecycle-deferral") {
+          await client.query(
+            "DROP TRIGGER require_booking_lifecycle_event ON public.bookings",
+          );
+          await client.query(
+            "CREATE CONSTRAINT TRIGGER require_booking_lifecycle_event AFTER UPDATE ON public.bookings DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE FUNCTION public.require_booking_lifecycle_event()",
+          );
+        }
+        if (mode === "missing-logical-uniqueness")
+          await client.query("DROP INDEX public.bookings_logical_live_unique");
+        if (mode === "weakened-logical-revision") {
+          await client.query(
+            "ALTER TABLE public.bookings DROP CONSTRAINT bookings_revision_valid",
+          );
+          await client.query(
+            "ALTER TABLE public.bookings ADD CONSTRAINT bookings_revision_valid CHECK ((revision>=0 AND revision=0 AND replaces_booking_id IS NULL AND logical_booking_id=id) OR revision>0 AND replaces_booking_id IS NOT NULL OR logical_booking_id<>id)",
+          );
+        }
       });
       await expect(inspectTarget(owner, candidate, w.identity)).rejects.toThrow(
         "protection_mismatch",
@@ -712,7 +733,7 @@ describe("real PostgreSQL controlled staging migration primitives", () => {
           await client.query(
             `REVOKE GRANT OPTION FOR ${privilege} ON ${target} FROM learli_app`,
           );
-          expect((await verifyRuntimeGrants(client)).functionChecks).toBe(9);
+          expect((await verifyRuntimeGrants(client)).functionChecks).toBe(24);
         });
       } finally {
         await owner.close();

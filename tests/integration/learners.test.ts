@@ -168,7 +168,7 @@ describe("local learner ownership against PostgreSQL", () => {
         body: { ...input, learnerId: otherId },
       }),
     );
-    expect(create.status).toBe(405);
+    expect(create.status).toBe(400);
   });
   it("denies anonymous, wrong-role, and admin bypasses", async () => {
     expect((await request(undefined, learnerId)).status).toBe(401);

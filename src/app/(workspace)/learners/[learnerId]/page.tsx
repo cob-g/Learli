@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { LearnerLink } from "@/features/learners/learner-link";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { readMyLearner } from "@/features/learners/service";
 import { LearnerForm } from "@/features/learners/learner-form";
@@ -29,9 +29,11 @@ export default async function LearnerPage({
     );
   return (
     <div className="page-shell page-space">
-      <Link className="inline-flex min-h-11 items-center" href="/learners">
-        Your learners
-      </Link>
+      <LearnerLink
+        className="inline-flex min-h-11 items-center"
+        href="/learners"
+        label="Your learners"
+      />
       <h1 className="mt-4 text-page-title">Edit learner profile</h1>
       <p className="mt-4 max-w-prose text-body wrap-anywhere">
         Profile for {profile.displayName}

@@ -3,13 +3,26 @@ import { privateJson, sameLocalOrigin } from "@/lib/auth-handler";
 import { AccessError } from "@/lib/permissions/access";
 import { handleJsonMutation } from "@/lib/mutation-handler";
 import { describeLearnerIssues } from "./input";
-import { listMyLearners, readMyLearner, updateMyLearner } from "./service";
+import {
+  createMyLearner,
+  listMyLearners,
+  readMyLearner,
+  updateMyLearner,
+} from "./service";
 
 export async function handleLearnerRequest(
   runtime: AuthRuntime | null,
   request: Request,
   learnerId?: string,
 ) {
+  if (request.method === "POST" && !learnerId) {
+    return handleJsonMutation(
+      runtime,
+      request,
+      { method: "POST", invalid: describeLearnerIssues },
+      (active, input) => createMyLearner(active, request.headers, input),
+    );
+  }
   if (request.method === "PATCH" && learnerId) {
     return handleJsonMutation(
       runtime,

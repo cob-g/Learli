@@ -1305,3 +1305,26 @@ Multi-selects/listboxes receive no marker. Disabled select fields use existing
 subtle/muted/border tokens. Forced-colors mode restores native painting/marker
 and clears background images; global focus and native HTML behavior remain.
 The earlier marker-less draft was not accepted/frozen and is superseded.
+
+### Local completion demonstration surfaces — 2026-10-12
+
+The authorized local-completion wave adds a bounded exception to the pending
+commercial booking controls above: synthetic participants may reschedule or
+cancel a local simulation, with labels explicitly saying simulation and without
+payment, attendance or real-lesson claims. Rescheduling keeps the original
+expiry and shows preserved history; inactive meeting sections say unavailable.
+The first three days of candidate times appear initially; a native disclosure
+exposes the remaining dated choices. Existing tokens, time columns and semantic
+status treatments remain unchanged.
+
+Learner creation is minimal and fictional. Empty learner/booking/dashboard states
+link to creation; a valid public selected time survives this detour and a native
+success link returns to it. Core private learner and support reads are awaited
+server HTML. Mutation forms remain disabled before hydration with POST/no-script
+guidance, while native navigation clears the previous private document.
+
+Exact-case support dispatch has a separate minimal queue and native reviewer/
+action controls; it never exposes report body or private learner/meeting data.
+The footer links Privacy draft, Terms draft and Cancellations draft, with visibly
+unfinished preparation content and no consent or acceptance controls. These
+local additions do not establish customer policy or production readiness.

@@ -10,9 +10,11 @@ const serverReady = () => false;
 export function BookingMeetingSection({
   bookingId,
   initial,
+  inactive = false,
 }: {
   bookingId: string;
   initial: MeetingSectionState;
+  inactive?: boolean;
 }) {
   const endpoint = `/api/bookings/${encodeURIComponent(bookingId)}/meeting-link`;
   const [meeting, setMeeting] = useState(initial);
@@ -153,7 +155,9 @@ export function BookingMeetingSection({
       )}
       {meeting.state === "expired" && (
         <p className="mt-4 text-body">
-          This simulation has expired. Its test meeting link is unavailable.
+          {inactive
+            ? "This simulation is no longer active. Its test meeting link is unavailable."
+            : "This simulation has expired. Its test meeting link is unavailable."}
         </p>
       )}
       {meeting.state === "unavailable" && (

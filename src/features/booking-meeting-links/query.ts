@@ -31,7 +31,7 @@ export async function queryPrivateMeeting(
         AND u.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$'
     ), permitted AS (
       SELECT b.id, a.now,
-        b.state='demo_reserved' AND b.expires_at > a.now AS live,
+        b.state IN('demo_reserved','demo_confirmed') AND b.expires_at > a.now AS live,
         tp.user_id=a.id AND EXISTS (
           SELECT 1 FROM user_roles r WHERE r.user_id=a.id AND r.role='tutor'
         ) AS can_edit

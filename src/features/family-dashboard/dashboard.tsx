@@ -1,3 +1,7 @@
+import {
+  demoStateLabels,
+  demoLiveState,
+} from "@/features/bookings/lifecycle-model";
 import Link from "next/link";
 import { Check, TimerOff, TriangleAlert } from "lucide-react";
 import {
@@ -32,14 +36,14 @@ export type DashboardData = {
 };
 
 export function StatusBadge({ state }: { state: ReservationView["state"] }) {
-  const expired = state === "demo_expired";
+  const expired = !demoLiveState(state);
   const Icon = expired ? TimerOff : TriangleAlert;
   return (
     <span
       className={`inline-flex min-h-7 items-center gap-1 rounded-tag border px-2 text-label ${expired ? "border-control bg-subtle text-muted-foreground" : "border-warning bg-warning-soft text-warning"}`}
     >
       <Icon className="size-4 shrink-0" aria-hidden="true" />
-      {expired ? "Simulation expired" : "Simulated reservation"}
+      {demoStateLabels[state]}
     </span>
   );
 }
@@ -119,7 +123,9 @@ function Expiry({ row }: { row: ReservationView }) {
       <summary className="min-h-11 cursor-pointer py-2 text-small text-primary underline">
         {row.state === "demo_expired"
           ? "Simulation expired at"
-          : "Simulation expires at"}
+          : demoLiveState(row.state)
+            ? "Simulation expires at"
+            : "Original simulation deadline"}
       </summary>
       <LessonTime value={row.expiry} />
     </details>
@@ -293,9 +299,14 @@ export function FamilyDashboard({ data }: { data: DashboardData }) {
           <section className="mt-8">
             <h2 className="text-item-title">No authorized learner available</h2>
             <p className="mt-2 max-w-prose text-body">
-              This account has no eligible local learner profile. Profile
-              creation is not available here.
+              This account has no eligible local learner profile. Create a
+              fictional profile to try the local booking flow.
             </p>
+            <div className="mt-4">
+              <DashboardLink href="/learners/new">
+                Create a local learner
+              </DashboardLink>
+            </div>
           </section>
         ) : (
           <>

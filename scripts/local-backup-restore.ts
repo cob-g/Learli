@@ -502,7 +502,7 @@ async function probes(owner: Client, appConfig: ClientConfig) {
     );
     const duplicate = (
       await owner.query<{ sql: string }>(
-        `SELECT 'INSERT INTO bookings SELECT (jsonb_populate_record(NULL::bookings, to_jsonb(b) || jsonb_build_object(''id'',gen_random_uuid(),''idempotency_key'',gen_random_uuid()))).* FROM bookings b WHERE id=' || quote_literal(id::text) AS sql FROM bookings WHERE state='demo_reserved' LIMIT 1`,
+        `SELECT 'INSERT INTO bookings SELECT (jsonb_populate_record(NULL::bookings, to_jsonb(b) || jsonb_build_object(''id'',gen_random_uuid(),''idempotency_key'',gen_random_uuid(),''logical_booking_id'',NULL,''replaces_booking_id'',NULL,''revision'',0))).* FROM bookings b WHERE id=' || quote_literal(id::text) AS sql FROM bookings WHERE state='demo_reserved' LIMIT 1`,
       )
     ).rows[0];
     if (!duplicate) fail("populated-booking-required");

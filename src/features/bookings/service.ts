@@ -1,5 +1,5 @@
 // Node-only domain service, shared by routes and isolated real PostgreSQL tests.
-import { and, eq, gt, lt, lte, sql } from "drizzle-orm";
+import { and, eq, gt, lt, lte, sql, inArray, ne } from "drizzle-orm";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import type { Database } from "@/lib/db/connection";
 import { pgErrorCode } from "@/lib/db/errors";
@@ -39,7 +39,10 @@ const unavailable = () =>
     "That time is no longer available. Please choose another.",
   );
 
-async function requireBookingActor(runtime: AuthRuntime, headers: Headers) {
+export async function requireBookingActor(
+  runtime: AuthRuntime,
+  headers: Headers,
+) {
   if (
     !["development", "test"].includes(runtime.environment) ||
     !isLoopbackOrigin(runtime.origin)
@@ -59,7 +62,7 @@ async function requireBookingActor(runtime: AuthRuntime, headers: Headers) {
 }
 
 /** Tutor/actor locks serialize reservations; post-wait statements use fresh snapshots. */
-async function reservationTransaction<T>(
+export async function reservationTransaction<T>(
   runtime: AuthRuntime,
   run: (tx: Transaction) => Promise<T>,
 ) {
@@ -79,7 +82,7 @@ async function reservationTransaction<T>(
   throw new Error("Transaction retry limit reached.");
 }
 
-async function databaseNow(tx: Transaction) {
+export async function databaseNow(tx: Transaction) {
   // transaction_timestamp freezes before a waited lock; the current clock must not.
   const result = await tx.execute<{ milliseconds: number }>(
     sql`SELECT floor(extract(epoch FROM clock_timestamp()) * 1000)::float8 AS milliseconds`,
@@ -100,7 +103,7 @@ async function lockTutor(tx: Transaction, slug: string) {
 }
 
 /** Caller holds the tutor row before every reservation state change. */
-async function expireTutorReservations(
+export async function expireTutorReservations(
   tx: Transaction,
   tutorId: string,
   now: Date,
@@ -111,7 +114,7 @@ async function expireTutorReservations(
     .where(
       and(
         eq(bookings.tutorId, tutorId),
-        eq(bookings.state, "demo_reserved"),
+        inArray(bookings.state, ["demo_reserved", "demo_confirmed"]),
         lte(bookings.expiresAt, now),
       ),
     )
@@ -126,7 +129,7 @@ async function expireTutorReservations(
     );
 }
 
-async function authorizedLearner(
+export async function authorizedLearner(
   tx: Transaction,
   actor: Awaited<ReturnType<typeof requireBookingActor>>,
   choice: { learnerId: string; tutorSlug: string; subjectSlug: string },
@@ -169,7 +172,7 @@ async function authorizedLearner(
   return readAuthorizedLearner(tx, actor.userId, choice.learnerId);
 }
 
-async function eligibleContext(
+export async function eligibleContext(
   tx: Transaction,
   choice: { tutorSlug: string; subjectSlug: string },
   level: LearnerLevel,
@@ -195,10 +198,11 @@ async function eligibleContext(
   return { tutor, subject };
 }
 
-async function candidateIntervals(
+export async function candidateIntervals(
   tx: Transaction,
   tutor: { id: string; timezone: string },
   now: Date,
+  excludingBookingId?: string,
 ) {
   const { from, to, busyTo } = demoCandidateRange(now);
   const windows = await tx
@@ -215,7 +219,8 @@ async function candidateIntervals(
     .where(
       and(
         eq(bookings.tutorId, tutor.id),
-        eq(bookings.state, "demo_reserved"),
+        excludingBookingId ? ne(bookings.id, excludingBookingId) : undefined,
+        inArray(bookings.state, ["demo_reserved", "demo_confirmed"]),
         gt(bookings.expiresAt, now),
         lt(bookings.startAtUtc, busyTo),
         gt(bookings.endAtUtc, from),

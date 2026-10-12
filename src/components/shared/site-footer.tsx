@@ -15,7 +15,7 @@ export function SiteFooter() {
         </div>
         <nav
           aria-label="Footer navigation"
-          className="flex flex-wrap gap-x-6 gap-y-2"
+          className="flex max-w-prose flex-wrap gap-x-6 gap-y-2"
         >
           <Link className="nav-link" href="/how-it-works">
             How it works
@@ -28,6 +28,15 @@ export function SiteFooter() {
           </Link>
           <Link className="nav-link" href="/report-a-concern">
             Report a concern
+          </Link>
+          <Link className="nav-link" href="/privacy">
+            Privacy draft
+          </Link>
+          <Link className="nav-link" href="/terms">
+            Terms draft
+          </Link>
+          <Link className="nav-link" href="/cancellations">
+            Cancellations draft
           </Link>
         </nav>
       </div>

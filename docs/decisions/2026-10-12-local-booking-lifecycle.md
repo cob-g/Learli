@@ -1,0 +1,13 @@
+# Local synthetic booking lifecycle
+
+2026-10-12. AUTHORIZED — build-feature delegation; Task A contract frozen by coordinator via Orca ask. Local loopback development/test with .test identities only.
+
+Immutable physical reservations share a stable logical root. A move retires the old reservation and inserts a revision with identical tutor/learner/subject/original creator and unchanged original ten-minute deadline. Original schedules, request fingerprints, keys and history stay retained. New physical create keys are internal UUIDs; family actor/request fingerprints in immutable lifecycle events govern mutation retries. Old-ID retries return saved results only after fresh current authorization.
+
+Authorized family cancellation requires current session/role/learner relationship, future live head and TTL, but remains possible after tutor/subject eligibility loss. Rescheduling also rechecks tutor, subject, offering, actual availability and existing demo notice/horizon under tutor-first locks. Failed moves roll back retirement and preserve the original reservation. Links are never copied; retirement immediately blocks old-link access.
+
+All states retain demo_ prefixes. Reserved and owner-fixture confirmed states use the original unchanged deadline; application runtime cannot promote confirmation/completion or renew lifetime. Owner-only historical completion after end_at exists solely for private synthetic review testing, with no clock override or attendance/payment claim. Terminal cancelled/replaced/completed states survive elapsed TTL. This does not decide real cancellation, no-show, refund, confirmation, guardian/consent or launch terms.
+
+Append-only lifecycle events provide committed event UUID, logical booking ID, physical original/replacement IDs, actor, request/fingerprint and time for notice/review consumers. URLs, contact details and free-text reasons are absent. Root owns final shared migration metadata, staging-verifier and governing-document reconciliation.
+
+Coordinator final source refinement: new/updated0017 trigger row types and relations are explicitly public-qualified, with pg_catalog/public fixed search_path and invoker identity preserved. This closes potential TEMP shadowing when prepared staging grants allow temporary objects; local app TEMP is still denied. Drizzle metadata reflects SQL-enforced logical/predecessor references, unique predecessor/live head, revision shape and event checks. Child original0017 migration stamp remains unchanged; owned function amendment and fresh/populated v2 proof are distinct evidence. Root owns final integration journal/snapshots/provider acceptance.

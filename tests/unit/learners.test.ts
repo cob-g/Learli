@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { learnerInput } from "@/features/learners/input";
+import { createLearnerInput, learnerInput } from "@/features/learners/input";
 const valid = {
   displayName: "Synthetic learner",
   level: "elementary",
@@ -54,4 +54,24 @@ describe("minimal learner input", () => {
       );
     },
   );
+});
+
+describe("local create request", () => {
+  it("requires actor-scoped retry ID and allows only local modes", () => {
+    const input = {
+      ...valid,
+      requestId: "5f977368-34a0-4bfe-a306-51b1b8959a36",
+      management: "guardian",
+    };
+    expect(createLearnerInput.safeParse(input).success).toBe(true);
+    for (const change of [
+      { requestId: "" },
+      { management: "admin" },
+      { learnerId: "forged" },
+      { guardianUserId: "forged" },
+    ])
+      expect(
+        createLearnerInput.safeParse({ ...input, ...change }).success,
+      ).toBe(false);
+  });
 });

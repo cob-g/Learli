@@ -1385,3 +1385,19 @@ show retry/narrow/clear guidance with no partial result count or false empty
 state. Results preserve directory name/slug order and exact20-per-page totals
 within that capacity. Existing local_simulation gate and14-day/60-minute demo
 semantics remain advisory; no production booking or commercial policy approval.
+
+
+### Local completion-wave scope — 2026-10-12
+
+AUTHORIZED — build-feature delegation for the current local completion wave.
+BKG-03/05/06 now have a verified local subset with visibly simulated cancellation/rescheduling and owner-only
+historical outcome fixtures under the frozen child contract; no live confirmation,
+payment or attendance. FAM-01/02 now have minimal self-service synthetic creation
+for existing verified local parent/student role holders, with no real consent or
+arbitrary guardian link. OPS-05/ADM-03 now have case-scoped local dispatcher
+assignment/reassignment, with closed cases requiring existing reopen first.
+OPS-04 and OPS-06 depend on the accepted lifecycle contract; reviews remain
+private synthetic demonstrations, never public ratings. PUB-05 now has noindex
+draft/preparation surfaces, not finalized legal terms. PAY work stays deferred
+by the user's explicit instruction. See the local-completion-wave decision and
+parent blueprint. The isolated candidate passed local integration verification. It remains uncommitted and no full requirement, main-branch migration or launch acceptance is claimed.

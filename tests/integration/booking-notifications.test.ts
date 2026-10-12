@@ -42,7 +42,29 @@ beforeAll(async () => {
     .where(eq(subjects.slug, "math"));
   subjectId = subject.id;
 });
-afterEach(() => vi.restoreAllMocks());
+const changedEmails = new Map<string, string>();
+async function rememberSyntheticEmail(id: string) {
+  const row = (
+    await world.owner.pool.query('SELECT email FROM "user" WHERE id=$1', [id])
+  ).rows[0];
+  if (!row?.email.endsWith(".test"))
+    throw new Error(
+      "Owned synthetic email required before negative fixture mutation.",
+    );
+  changedEmails.set(id, row.email);
+}
+afterEach(async () => {
+  try {
+    for (const [id, email] of changedEmails)
+      await world.owner.pool.query('UPDATE "user" SET email=$2 WHERE id=$1', [
+        id,
+        email,
+      ]);
+  } finally {
+    changedEmails.clear();
+    vi.restoreAllMocks();
+  }
+});
 afterAll(() => closeWorld(world));
 
 async function identity(
@@ -503,11 +525,13 @@ describe("committed local reservation notice capture against PostgreSQL", () => 
         .update(guardianLearnerLinks)
         .set({ status: "revoked" })
         .where(eq(guardianLearnerLinks.learnerId, data.learner.id));
-    if (condition === "real-email")
+    if (condition === "real-email") {
+      await rememberSyntheticEmail(data.creatorId);
       await world.owner.db
         .update(user)
         .set({ email: `synthetic-${randomUUID()}@example.com` })
         .where(eq(user.id, data.creatorId));
+    }
     await dispatch(data.eventId);
     expect(
       (await rows(data.eventId)).find(

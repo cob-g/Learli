@@ -37,7 +37,7 @@ export async function queryParticipantBookings(
             SELECT 1 FROM guardian_learner_links g
             WHERE g.guardian_user_id = a.id AND g.learner_id = l.id
               AND g.status = 'authorized' AND g.source = 'local_fixture')`;
-  const active = sql`b.state = 'demo_reserved' AND b.expires_at > a.now AND b.end_at_utc > a.now`;
+  const active = sql`b.state IN ('demo_reserved','demo_confirmed') AND b.expires_at > a.now AND b.end_at_utc > a.now`;
   const filter =
     input.filter === "active"
       ? active
@@ -59,11 +59,11 @@ export async function queryParticipantBookings(
     ), permitted AS (
       SELECT b.id, b.start_at_utc, ${active} AS active,
         jsonb_build_object(
-          'id', b.id, 'tutorName', tu.name, 'tutorSlug', tp.slug,
+          'id', b.id, 'logicalBookingId', b.logical_booking_id, 'revision', b.revision, 'currentHeadId', (SELECT head.id FROM bookings head WHERE head.logical_booking_id=b.logical_booking_id ORDER BY head.revision DESC LIMIT 1), 'tutorName', tu.name, 'tutorSlug', tp.slug,
           'subjectName', sub.name, 'subjectSlug', sub.slug,
           'learnerId', l.id, 'learnerName', l.display_name, 'learnerLevel', l.level,
           'state', b.state, 'start', b.start_at_utc, 'end', b.end_at_utc,
-          'expires', b.expires_at, 'events', ${bookingId ? sql`COALESCE((SELECT jsonb_agg(jsonb_build_object('id', e.id, 'event', e.event, 'at', e.created_at) ORDER BY e.created_at ASC, e.id ASC) FROM booking_events e WHERE e.booking_id = b.id), '[]'::jsonb)` : sql`'[]'::jsonb`}
+          'expires', b.expires_at, 'events', ${bookingId ? sql`COALESCE((SELECT jsonb_agg(jsonb_build_object('id', e.id, 'event', e.event, 'at', e.created_at) ORDER BY e.created_at ASC, CASE e.event WHEN 'demo_reserved' THEN 0 WHEN 'demo_confirmed' THEN 1 WHEN 'demo_completed' THEN 2 ELSE 3 END ASC, e.id ASC) FROM (SELECT e.id,e.event,e.created_at FROM booking_events e JOIN bookings eb ON eb.id=e.booking_id WHERE eb.logical_booking_id=b.logical_booking_id UNION ALL SELECT le.id,le.event,le.created_at FROM booking_lifecycle_events le WHERE le.logical_booking_id=b.logical_booking_id) e), '[]'::jsonb)` : sql`'[]'::jsonb`}
         ) AS item
       FROM actor a JOIN bookings b ON b.source = 'local_simulation'
       JOIN learner_profiles l ON l.id = b.learner_id

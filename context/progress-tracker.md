@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.26 — Staging database foundation merged and cleaned up
+> **Version:** 1.28 — Local completion candidate verified
 > **Last updated:** 2026-10-12\
-> **Current overall status:** **Staging database code preparation independently reviewed, locally verified and merged into main; wave cleanup complete; hosted/provider and real-user launch gates stay open**
+> **Current overall status:** **Six local feature slices verified in the uncommitted integration candidate; payments deferred; main application/database unchanged**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -14,6 +14,150 @@
 **Status legend:** `Documented` = specified only · `Planned` = not verified as started · `In progress` = active work with evidence · `Blocked` = waiting on an explicit decision/dependency · `Done` = verified and linked to evidence.
 
 ---
+
+## Local completion wave — verified candidate, 2026-10-12
+
+All six requested local slices are **Done within their bounded synthetic/local scope** on `cob-g/m4-local-completion-integration`, baseline/HEAD `0494f6b4cd1044ebebb89f0d41b1b706cb851352`. Implementation remains uncommitted in `/Users/cob/orca/workspaces/learli/m4-local-completion-integration`. This tracker is also mirrored in main as an orchestration handoff; it does **not** mean main contains the candidate code or migrations.
+
+| Task | Delivered local behavior | Outcome |
+| --- | --- | --- |
+| A | Immutable booking lifecycle, cancellation/rescheduling, current authority, original deadline/history/link retirement; owner-only historical outcome fixtures | Done locally |
+| B | Committed lifecycle notices, current recipients, stale suppression, stable capture retries and no replacement-created duplicate | Done locally; capture only |
+| C | Minimal authorized parent/self College Support learner creation and selected-booking continuation | Done locally; no real guardian/age proof |
+| D | Exact-case support assignment/reassignment/escalation with narrow dispatcher/reviewer scope and audit | Done locally |
+| E | Completed-fixture private reviews, exact moderator grants, private decisions/reconsideration and usable owner history tooling | Done locally; never public |
+| F | Accessible noindex privacy/terms/cancellation preparation pages and footer links | Done locally; policies remain drafts |
+
+Six GPT-6.1 Sol High builders ran in separate worktrees/branches; at most three active workers and two heavy checks. Provider A was frozen before B/E import. Root reconciled all source, shared navigation, grants, test registration, cumulative snapshots and final migrations 0017–0021. All 22 migrations applied only to integration-owned development/test DB 55819. Historical 0000–0016 SQL/snapshots and first 17 journal entries plus pinned packages/runtime are unchanged. Final schema has 44 public tables, 24 custom functions and 21 custom triggers; restore compares 45 tables including its migration ledger. Main DB 55432 was not touched.
+
+Independent read-only ACDF, final UI/docs and final B/E server/database reviews each reported **0 Critical / 0 Important / 0 Minor**, recommendation **READY FOR VERIFICATION** for their recorded scopes. Their source manifests and reports are in integration `.local/local-completion-wave/`. A later test-only negative-email cleanup received a separate root same-agent scoped review; it is not misrepresented as independent review.
+
+Executed final evidence (all under that integration directory):
+
+- `npm run check`: **PASS**, format/lint/typecheck and **974 unit/component tests in 55 files** (`root-check-5.log`).
+- Real PostgreSQL full suite: **575/575 PASS in 33 files** (`root-pg-2.log`), including atomicity/concurrency/current-authority denials and actual fresh/populated forward migration/grant/protection checks. After a test-isolation cleanup, both affected notice suites reran **57/57 PASS** (`root-notice-cleanup-pg-1.log`); runtime/SQL remained unchanged.
+- Production build: **PASS** (`root-build-2.log`); later edits are test cleanup and factual documentation only.
+- Default Chromium suite: **140/140 PASS** (`root-browser-3.log`, 4.4 minutes), with actual 320/390/1440 layouts, keyboard/axe, no-JS safety, privacy/revocation and full learner→selection→reservation→reschedule→cancel→notice flow. Private-review tests use real booking/admin navigation and reconsideration. Root visually inspected final 320 creation-return and 320/1440 moderator screenshots; child responsive evidence is retained too.
+- Fresh actual backup/restore: **PASS** (`root-restore-5.log`), exact rows/schema/grants/sequences/roles, 22 migration stamps, constraint/permission probes and unsafe-target refusals. Original failed attempts are retained. No existing cluster was replaced; test-owned restored clusters were stopped and their private evidence preserved.
+- Final production-client scan: **59 files / 30 actual configured or fixture-private patterns / 0 matches** (`root-client-privacy-2.json`). Dev seed and exact fixture inspection passed; new support/admin identities receive no automatic review capability or exact review grant (`root-seed-proof.json`).
+
+Recovery evidence remains in `prompts/recovery/2026-10-12-local-completion-integration.md`: supported migration inventory/protection updates, exact source-versus-test fixture corrections, owned private-directory permissions, distinct logical-root overlap probe, and negative-email fixture cleanup. The last issue was a pre-existing notice test leaving a synthetic account at an invalid email domain; the restore guard correctly refused it. Exact owned test addresses now restore after every affected test, retaining denial assertions and the restore safeguard. No failed attempt was relabelled a pass.
+
+All nine supervised tasks (six builders, three independent review tasks) settled successfully and their agent terminals were released; no reclaimable worker remains. Source worktrees/branches and private evidence are retained. No current-wave commit, merge, push, worktree/branch deletion or deployment occurred.
+
+**Next action:** review/authorize the candidate commit and merge as a separate operation; afterward deliberately migrate the main local database and remove only proven merged, idle worktrees/branches if requested. Payments remain explicitly deferred; no manual paid flag, checkout, charge/refund or external email was added. Hosted/provider acceptance, real guardian/eligibility/review/legal/commercial decisions and launch authorization remain open. New-wave physical-device, hardware screen-reader and non-Chromium acceptance were not run; 13 inherited dependency advisories (9 high / 4 moderate) remain unchanged. This result does not complete every M0–M8 launch checkbox.
+
+### Historical dispatch and intermediate checkpoints
+
+The following entries preserve earlier evidence and are superseded by the verified candidate above.
+
+## Local completion wave — dispatched, 2026-10-12
+
+- User authorized remaining local features before deployment and explicitly
+  deferred payments. Parent blueprint: `prompts/features/m4-10-local-completion-wave.md`,
+  **AUTHORIZED — build-feature delegation**; bounded scope/decisions in
+  `docs/decisions/2026-10-12-local-completion-wave.md`.
+- Baseline main `0494f6b`; integration `cob-g/m4-local-completion-integration`.
+  Orca run `run_844502b13426` records six implementation tasks. Three initial
+  workers are ready with observed turn starts and requested/effective GPT-6.1 Sol
+  High: booking lifecycle/cancel/reschedule; synthetic learner onboarding;
+  scoped support assignment. Local lifecycle notices and private reviews depend
+  on accepted booking source; draft policy pages use a later available slot.
+- At most three active workers and two heavy verification jobs. Isolated
+  DB55811–55816/app3081–3086/browser3181–3186; integration55819/3089/3189;
+  disposable staging test ports55711–55716/55719. Main55432 remains excluded.
+- Child implementation/review/verification is pending; no successful new checks
+  or feature-completion claim at this dispatch checkpoint. Root will reconcile
+  shared migrations/grants/docs and independently review the combined candidate.
+  No current-wave commit/merge/push/cleanup, external mail, cloud operation,
+  real-user onboarding, payment or release is authorized by this local build.
+
+### Integration compatibility checkpoint
+
+- Root updated staging protection inspection to reduce function replacements and
+  trigger drop/recreate statements in migration order, and compare deferred
+  constraint-trigger semantics explicitly. Historical SQL remains unchanged.
+- Focused `vitest run tests/unit/staging-migrations.test.ts`: **20 PASS**. Initial
+  run was19/20 because a new test expected10 historical triggers; direct SQL
+  inspection confirmed9, and only that assertion was corrected. Private log and
+  recovery note are in integration `.local/local-completion-wave/`.
+- Root replaced the stale no-learner booking message with a local creation CTA
+  and added a saved-result details link. Validated public selection is carried
+  to the creation route; its return link awaits accepted onboarding source.
+  This partial navigation change is **NOT YET VERIFIED** end to end.
+- This is preparatory compatibility work, not combined migration acceptance. New
+  booking constraints, grant inventory, final SQL and actual-PG drift checks
+  still await accepted feature sources and independent review.
+
+- Root added two development-only admin fixture identities for distinct support
+  reviewer/escalation choices; no reviewer/dispatcher/case capability is auto-granted.
+  Existing manifest ownership safeguards remain. Owned seed/repeat verification
+  is pending after integration assembly; main fixtures were not changed.
+
+### Accepted provider A-v1 — scoped only
+
+- Root verified all29 business-provider hashes against A-v1, read its lifecycle
+  contract and observed21 PostgreSQL cases plus populated17→18 migration proof.
+  Imported this bounded bundle/journal into integration and generated the0017
+  schema snapshot offline without applying generated SQL or any database change.
+- Root added strict current booking state/overlap/logical chain/index checks and
+  deferred audit-trigger checks to staging inspection, with actual-PG tamper cases
+  authored. Focused staging unit checks now **21 PASS**. Final function/migration
+  inventories must be reconciled again as later accepted feature migrations land.
+- Combined learner→selected booking→reschedule→cancel browser journey authored;
+  **NOT RUN** until onboarding source and root continuation link are assembled.
+- C reports own learner PG29 PASS/build PASS/forward proof PASS, but browser5 PASS
+  and1 FAIL due an inherited automatic loading boundary hiding no-JS content.
+  Root authorized fully awaited learner HTML; repair/reverification pending.
+  D reports own assignment PG24 PASS after a SQL alias repair; migration harness
+  and final browser/build verification continue. A broader PG has shared staging
+  failures and a cloned-fixture logical-ID compatibility repair pending. These
+  are isolated reports, not combined feature completion.
+
+### Verification and provider checkpoint — later 2026-10-12
+
+- A-v1 is superseded pending final provider freeze. Root requested supported
+  Drizzle constraint metadata and fixed-search-path, qualified lifecycle trigger
+  references before consumer import. No dependent worker has consumed v1. Only
+  the new unreleased0017 changes; historical SQL stays immutable. A must prove
+  fresh/forward behavior and distinguish its amended child database from a true
+  clean migration result. Root integration has not applied0017 yet.
+- C observed final static formatting/lint/types PASS,900 unit/component PASS with
+  one known shared staging-count failure, production build2 PASS, scoped actual
+  PostgreSQL29 PASS and forward/grant proof. Browser2 was5 PASS/1 FAIL from a new
+  delayed-navigation handler teardown race; its no-JavaScript list/detail/create
+  privacy checks passed. Test-only repair/rerun is in progress, not acceptance.
+- D observed actual PostgreSQL66 PASS, build2 PASS, and browser3 was9 PASS/1 FAIL.
+  The remaining test tried to inspect an old browser document while a full
+  navigation was held. Recovery now tests an exact delayed GET, actual grant
+  revocation and fresh denied HTML/API, preserving private-content checks.
+  Root accepted that test correction; no runtime permission rule was weakened.
+- Two heavy slots remain serialized by leases (A/C currently; D queued). F is
+  ready for the next settled/released worker slot; B/E wait for A final source.
+  The private review demo contract is now recorded in the wave decision document.
+  Combined Review, migration, full suites and final source freeze remain pending.
+
+### Accepted onboarding and verifier checkpoint
+
+- C final frozen25-file/one-deletion source was independently hash-checked,
+  accepted and imported as0018 (SQL bytes preserved). Worker completion matched
+  the active dispatch and its terminal was released. Its final browser6 PASS,
+  PG29 PASS/build PASS and exact limitations remain in the frozen report.
+- Root added the validated return from creation to a public selected booking
+  time and no-learner family-dashboard CTA. Focused formatter/ESLint PASS;
+  the combined browser journey remains NOT RUN.
+- A-v2 business provider accepted after all29 hashes, PG41 and fresh/forward
+  source-bound SQL proof. New trigger qualification and supported schema metadata
+  replace v1; final owned UI handoff is still pending. Root generated cumulative
+  A/C snapshots offline, copying only metadata, never generated SQL.
+- Root staged A/C migration verification: first two cases exposed a quoted-only
+  table parser, stale pending-count assertion and historical direct EXECUTE
+  expectation. Targeted reconciliation preserved strict inventory/protection/
+  grant checks. Final focused26 unit checks and full40 actual PostgreSQL staging
+  verifier cases PASS. Original failures remain in the recovery document/logs.
+- F draft-policy worker started in its own worktree with observed GPT-6.1 Sol
+  High. D browser10 PASS; final supported constraint metadata/copy alignment is
+  packaging. B/E still wait for A final source and task settlement.
 
 ## Staging database foundation — merged and cleaned up, 2026-10-12
 
@@ -398,18 +542,17 @@
 
 ## Next Up
 
-1. **Staging foundation closeout complete:** reviewed feature `55885fd` is merged
-   into local main with all 36 candidate hashes preserved. All three wave
-   worktrees and branches are archived and removed; only main remains.
-2. **Evidence retained:** use `.local/staging-database-wave/merge-closeout/` for
-   former worktree paths. The existing 895 unit/component, 452 PostgreSQL and
-   production-build passes apply to unchanged source. No new migration is required;
-   main's database is preserved. Remote push and deployment have not run.
-3. **Next gate:** prepare a named Neon target/operator, isolation, budget and
-   recovery packet before specifically authorized provider rehearsal. Thirteen
-   inherited dependency findings, hosted operations, physical-device/connection
-   evidence and commercial/guardian/consent/legal/safeguarding/public-launch
-   decisions remain open. No new agents are queued.
+1. **Current user-selected wave:** complete the six local work packages in
+   `prompts/features/m4-10-local-completion-wave.md`, with payments deferred.
+   A/C/D implement first; B/E wait for the accepted booking contract; F uses
+   the next safe slot. This supersedes the earlier staging-deployment priority.
+2. **Integration:** reconcile shared schema/journal/grants/projections and preserve
+   historical migrations. Root owns independent review and combined local
+   verification, with source-bound evidence and explicit remaining policy gates.
+3. **Later:** named staging target and operator/budget/recovery packet, actual
+   provider acceptance and deployment remain separate. Existing13 dependency
+   findings and real-user commercial/guardian/consent/legal/safeguarding/device/
+   public-launch decisions stay open. No payment implementation task is queued.
 
 ## Four-feature merge — 2026-10-12
 
@@ -510,10 +653,10 @@ Resolve open design decisions and dependency advisories alongside this sequence.
 | M2 | Data, authentication, role controls | **Local scope verified; hosted acceptance deferred** | Local migrations/auth/ownership and provider-supported own-session list/revoke verified in combined tests; Neon/TLS/Resend and production settings unrun |
 | M3 | Tutor catalog, public discovery, matching | **Verified locally; real screening/hosting gated** | Catalog/application/review/discovery, actual-date availability matching and optional declared teaching-language editing/filtering have local synthetic evidence; this is not full launch acceptance |
 | M4 | Availability, guardians/learners, booking integrity | **Local synthetic scheduling/booking verified; real acceptance gated** | Weekly availability, DST/time engine, fixture guardians/self learners, dated time off and simulated booking/expiry/history pass real PostgreSQL conflict/concurrency and both race orders; real onboarding/commercial booking policy remain |
-| M5 | Meeting links, dashboards, notifications, basic support | **Partial local slices verified; whole milestone open** | M5.1 validator/M5.9 synthetic support plus local family/tutor simulation dashboards and manual creation-notice capture have evidence; private meeting storage/access, real confirmation/provider delivery and human incident response remain |
+| M5 | Meeting links, dashboards, notifications, basic support | **Partial local slices verified; whole milestone open** | Private per-reservation test-link storage/access, family/tutor dashboards, manual creation-notice capture, booking-linked support and scoped account restrictions are verified locally. New assignment/notices/private reviews are in progress; real confirmation/provider delivery and human incident response remain |
 | M6 | Commerce policy approval | **Blocked** | Founder-approved decision records and provider/jurisdiction assessment |
 | M7 | Payment integration (only if approved) | **Blocked by M6** | Sandbox checkout, verified webhooks, duplicate-event/reconciliation tests |
-| M8 | Pilot, operational readiness, public launch | **Planned; launch-gated** | QA evidence, safeguarding/legal signoff, backups, email domain, explicit release approval |
+| M8 | Pilot, operational readiness, public launch | **Local readiness tooling verified; hosted/launch-gated** | Local backup/restore, cross-browser/performance/diagnostics and staging database preparation have scoped evidence; actual provider/remote CI/device acceptance, email domain, human/legal signoff and release approval remain |
 
 **Scheduling rule:** These are ordered work packages, **not promised dates or claimed completion percentages**. Update when the team validates actual progress.
 
@@ -1498,3 +1641,33 @@ production/external delivery/cleanup operation.
   for the final combined candidate, including later performance imports outside
   this worker's full-check snapshot. This bounded repair does not complete M8 or
   authorize launch; public/paid/safeguarding policies remain gated.
+
+### Local completion integration checkpoint — 2026-10-12 15:28 Asia/Manila
+
+A/C/D/F frozen owned source packages accepted and imported into the isolated integration checkout; all source hashes verified. A booking lifecycle41 PG/11 affected browser/build passed, C onboarding29 PG/6 browser/build passed, D support66 PG/10 browser/build passed, F draft policies899 unit/component/5 browser/build passed. A/C/D report the known inherited migration-count failure honestly; combined check is still pending. Same-agent child Review recommendations are READY FOR VERIFICATION, not independent combined acceptance.
+
+Root preserved A SQL bytes, reconciled D as0019 after A0017/C0018, generated cumulative supported snapshots through0019 offline and retained all historical0000–0016 files. Runtime grants remain narrowly scoped; staging verifier now expects exact16 functions/15 triggers and20 migrations. Root merged learner-to-selected-booking navigation, added combined journey coverage, registered support/policy/integration browsers, and adapted forward proof to apply every new migration after baseline17. Combined checks and migration execution are pending for this new source. B notices and E private reviews now run in separate Sol6.1/High workers against the exact accepted A source bundle. Payments, live delivery, commercial/guardian/legal policy and deployment remain gated; no commit/merge/push authorized for this wave.
+
+### Local completion verification checkpoint — 2026-10-12 15:45 Asia/Manila
+
+The isolated A/C/D/F candidate passed root `check` (955 tests/52 files), full
+PostgreSQL integration (521 tests/31 files), production build, focused policy5 and
+support3 browser cases, and the new combined learner→selected slot→booking→move→
+cancel/private-history journey1 after a test-only navigation observation repair.
+Initial check formatting failure and browser failure are preserved. Both owned
+integration databases now have20 reviewed migrations; main database untouched.
+Restore3 passed exact records/catalogs/ACLs/sequences/roles and negative probes
+with39 tables including the migration ledger. Restore1 rejected private-directory
+mode; restore2 identified an obsolete overlap fixture copying logical identity.
+Repairs preserve source data and guards; see canonical integration recovery.
+
+Independent ACDF review is still active. Notices and private reviews are being
+implemented in B/E on Sol6.1 High with separate databases and heavy leases1/2.
+Final all-six review/check/build/PG/browser/restore and privacy coverage remain
+pending. Updated local learner/booking/development guides and UI exception explain
+implemented local behavior without declaring real policies or launch complete.
+
+
+### Local completion integration checkpoint — 2026-10-12 16:07 PHT
+
+B returned heavy slot1 after scoped real PostgreSQL109/109, build, static checks,18 focused units and6 Chromium cases passed; E returned slot2 after final5 Chromium cases passed plus25 final review PG/48 provider-plus-review PG, populated forward preservation and build3. Their inherited full-check17-versus19 journal-count failure remains explicitly root-owned; no worker claimed the full check passed. Final exact source manifests/settlement are being packaged. Root is adding booking-detail Add/View private synthetic review navigation, scoped admin reviews navigation, a distinct manifest-owned admin fixture without automatic moderator grants, and cross-feature notice assertions. These new root changes are authored, not yet verified. Combined22 migration/24function/21trigger/44public-table expectations await actual final PG confirmation. Payments, production and real users remain gated.

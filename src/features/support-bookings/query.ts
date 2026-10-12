@@ -1,3 +1,4 @@
+import type { DemoBookingState } from "@/features/bookings/lifecycle-model";
 // Node-only. Shared current permission predicate, with no private learner projection.
 import { sql, type SQL } from "drizzle-orm";
 import type { Database } from "@/lib/db/connection";
@@ -11,7 +12,7 @@ type Executor = Pick<Database, "execute">;
 type Stored = {
   tutorName: string;
   subjectName: string;
-  state: "demo_reserved" | "demo_expired";
+  state: DemoBookingState;
   start: string;
   end: string;
   events: { event: "demo_reserved" | "demo_expired"; at: string }[];
@@ -33,7 +34,7 @@ function participant(id: SQL) {
 }
 const joins = sql`JOIN learner_profiles l ON l.id=b.learner_id JOIN tutor_profiles tp ON tp.id=b.tutor_id JOIN "user" tu ON tu.id=tp.user_id JOIN subjects sub ON sub.id=b.subject_id`;
 const projection = sql`jsonb_build_object('tutorName',tu.name,'subjectName',sub.name,'start',b.start_at_utc,'end',b.end_at_utc,
-  'state',CASE WHEN b.state='demo_expired' OR b.expires_at<=statement_timestamp() THEN 'demo_expired' ELSE 'demo_reserved' END,
+  'state',CASE WHEN b.state IN('demo_reserved','demo_confirmed') AND b.expires_at<=statement_timestamp() THEN 'demo_expired' ELSE b.state END,
   'events',COALESCE((SELECT jsonb_agg(jsonb_build_object('event',e.event,'at',e.created_at) ORDER BY e.created_at,e.id) FROM booking_events e WHERE e.booking_id=b.id),'[]'::jsonb))`;
 function project(item: Stored, timezone: string): SupportBookingContext {
   if (!isValidTimeZone(timezone)) throw new AccessError(503);

@@ -13,7 +13,7 @@ import {
 import { user } from "./auth";
 import type { LearnerLevel } from "./app";
 
-// Only trusted local tooling provisions records. No real onboarding policy is implied.
+// Trusted fixtures and narrow local synthetic creation only; no real onboarding policy.
 export const learnerProfiles = pgTable(
   "learner_profiles",
   {

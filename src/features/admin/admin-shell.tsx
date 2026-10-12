@@ -6,6 +6,7 @@ const areas = [
   ["tutors", "/admin/tutors", "Tutor review queue"],
   ["subjects", "/admin/subjects", "Subjects"],
   ["support", "/admin/support", "Assigned support cases"],
+  ["reviews", "/admin/reviews", "Private synthetic reviews"],
   ["accounts", "/admin/accounts", "Authorized local accounts"],
 ] as const;
 export type AdminArea = (typeof areas)[number][0];
@@ -29,6 +30,7 @@ export function AdminShell({
             <li key={area}>
               <Link
                 href={href}
+                prefetch={false}
                 aria-current={current === area ? "page" : undefined}
                 className={cn(
                   "flex min-h-11 items-center rounded-control border px-3 no-underline hover:bg-surface",

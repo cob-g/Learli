@@ -212,8 +212,8 @@ describe("owned synthetic backup and real restoration", () => {
       }
       const result = await drill({ runId, restorePort: port });
       expect(result.status).toBe("PASS");
-      expect(result.tables).toBe(33);
-      expect(result.migrations).toBe(17);
+      expect(result.tables).toBe(45);
+      expect(result.migrations).toBe(22);
       expect(result.exactRowsSchemaGrantsSequencesRoles).toBe(true);
       expect(result.proof.overlapConstraint).toBe(true);
       expect(result.proof.runtimeDenials).toBe(5);

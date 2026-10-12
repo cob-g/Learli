@@ -131,6 +131,9 @@ export async function readCase(
     const history = await tx
       .select({
         action: events.action,
+        // Drizzle removes Column qualifiers in a single-table selection, including
+        // nested SQL; pin the outer identifiers so this remains a correlation.
+        dispatcher: sql<boolean>`EXISTS (SELECT 1 FROM support_assignment_events d WHERE d.case_id="support_case_events"."case_id" AND d.revision="support_case_events"."revision")`,
         previousStatus: events.previousStatus,
         nextStatus: events.nextStatus,
         revision: events.revision,

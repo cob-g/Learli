@@ -1,50 +1,51 @@
 # Local synthetic booking exercise
 
-This flow is available only with local Better Auth, loopback development/test,
-synthetic `.test` accounts and fixture-owned learners. Open `/bookings/demo` after
-signing in as an authorized parent or fixture College Support learner; choose the
-learner, tutor, subject, display zone, and an actual server-generated time.
+Use local Better Auth, loopback development/test, synthetic `.test` accounts and
+fictional learner profiles only. Open `/bookings/demo` as an authorized parent
+or independent College Support learner, or choose a dated slot from a tutor's
+public profile. The server rechecks the exact learner, tutor, subject and time.
+Creating a missing fictional learner retains a valid public time selection.
 
-The response is a **simulated reservation**, with an explicit expiry. It is never
-a confirmed/paid lesson. There are no meeting links, notifications or commercial
-cancellation controls. Current server demo policy is in
-`src/features/bookings/demo-policy.ts`; real terms stay OPEN.
+A saved result is a **simulated reservation**, never a paid or real confirmed
+lesson. The local defaults remain60minute duration,30minute step,60minute notice,
+14day horizon and an original10minute expiry. These are demonstration settings,
+not approved customer booking or cancellation terms.
 
-Each create request carries a UUID retry key. The server stores an actor-scoped
-semantic fingerprint and rejects changed payloads on that key. The form retains
-the exact attempted payload after an unknown network/server result, so retry
-recovers the same logical reservation. Expired same-key retries never renew it.
-Starting another simulation gets a new key and still obeys overlap protection.
+Open **View booking details**. Before the scheduled start, an eligible current
+family participant can cancel or choose a different eligible time. Cancellation
+remains available if the tutor or offering later becomes ineligible; a move must
+revalidate all current slot and tutor/subject constraints. The server serializes
+competing changes and rechecks current authorization after lock waits.
 
-Expiry is materialized inside an authorized read/create transaction under the
-tutor profile lock. Candidate queries also exclude elapsed rows independently.
-Thus an abandoned test cannot block the next valid operation indefinitely; no
-worker or clock-dependent database index is required. History is retained as
-`demo_expired` with a minimal event. Runtime can neither delete history nor edit
-the original learner/tutor/subject, UTC time, key, expiry or fingerprint. A database
-trigger refuses early expiry and reactivation.
+Rescheduling creates an immutable replacement row with the same logical booking
+ID and original expiry. It keeps the old schedule in history, does not renew the
+deadline, and rolls back fully if the replacement conflicts. Actor/request UUIDs
+and canonical payload identity make retries safe; a differing request cannot
+silently overwrite a saved action. Browser uncertainty requires current reload
+or the recorded retry path, never an assumed success.
 
-The generated booking migration has reviewed supplemental `btree_gist`, tutor
-interval exclusion and immutable-field trigger statements that Drizzle snapshots
-cannot express. Preserve these when integrating migration histories. Use forward
-migrations; do not rewrite this branch's applied migration. Rollback means disable
-the local route/use the reviewed baseline in a separate checkout; preserve the
-owned cluster and synthetic history. Existing isolated browser fixture cleanup is
-test-only and never a production retention process.
+The states are explicitly synthetic: reserved, expired, cancelled, replaced and
+owner-controlled confirmed/completed fixtures. Terminal outcomes are not later
+relabeled expired. Runtime users cannot confirm or complete a fixture, claim
+attendance, renew expiry or edit original ownership/schedule fields. Ended
+historical fixture completion belongs to guarded owner tooling only.
 
-Private artifacts, environment files, captures, PostgreSQL data and local memory
-are ignored. The source exercise owned DB55451/development3011/browser3111. The integrated
-premerge candidate exclusively owns DB55461/development3021/browser3121.
-No other checkout credentials or database are used. The coordinator-verified
-time-off source was imported at fingerprint
-`b4ad887b08ff9896ddf37b74200dcfc668436e4f1233195967cd900e56e6406d`.
-Combined next migration `0009_typical_queen_noir.sql` retains its schema exactly;
-booking0008 remains unchanged. Addition rejects overlap with an unexpired
-simulated reservation under the shared tutor lock and preserves booking history.
+A tutor may supply a validated private Zoom/Meet test link for authorized
+participants. Cancellation, replacement and other inactive states make the old
+link unavailable immediately; a replacement never inherits it. Learli does not
+arrange the meeting or verify attendance. Notification capture, when invoked,
+uses private local files and never sends email; see
+[Local booking notifications](local-booking-notifications.md).
 
-Premerge authorization recovery uses READ COMMITTED fresh post-wait checks,
-tutor-first conflict locking and actor serialization for the technical quota.
-Provider-resolved sessions are rechecked on the transaction connection; role,
-access, guardian-link and support capability grants remain restricted. Creation
-and expiry events use the captured current database clock. See
-`five-feature-premerge.md` for candidate evidence and the original failures.
+Expiry and booking changes preserve audit history. PostgreSQL exclusion and
+logical-head constraints protect overlapping active bookings; narrow runtime
+grants and immutable-field/event triggers preserve original rows. Supplemental
+constraints/functions/triggers exceed what Drizzle snapshots represent, so apply
+the reviewed SQL chain rather than regenerating or replacing old migrations.
+Rollback means disabling the affected local surface while retaining records,
+not dropping history or resetting another checkout's database.
+
+Each worktree owns its own ports, environment, PostgreSQL data and test artifacts.
+Do not copy credentials, run tests against another worktree, or enter real learner
+information. Commercial cancellation/refund/no-show policies, payment handling,
+guardian verification and public launch remain separately gated.

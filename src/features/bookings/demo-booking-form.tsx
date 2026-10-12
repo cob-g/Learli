@@ -10,8 +10,12 @@ import type {
 } from "./service";
 import type { DemoBookingInput } from "./input";
 import { LessonTime } from "./lesson-time";
+import { demoStateLabels } from "./lifecycle-model";
 import { demoBookingPolicy } from "./demo-policy";
 import type { PublicBookingSelection } from "./selection";
+import { bookingSelectionHref } from "./selection";
+import { bookingDetailPath } from "./read-model";
+import { BookingReadLink } from "./read-controls";
 import type { LessonTimeValue } from "./lesson-time";
 
 export function DemoBookingForm({
@@ -202,9 +206,20 @@ export function DemoBookingForm({
       <section className="mt-8 max-w-prose">
         <h2 className="text-item-title">No authorized learner available</h2>
         <p className="mt-2 text-body">
-          This account has no authorized fixture learner. Local owner tooling
-          provisions learner relationships.
+          Create a fictional learner profile for this local demonstration. Real
+          learner onboarding and guardian verification remain unavailable.
         </p>
+        <div className="mt-4">
+          <BookingReadLink
+            href={
+              prefill
+                ? `/learners/new?next=${encodeURIComponent(bookingSelectionHref(prefill))}`
+                : "/learners/new"
+            }
+            label="Create a local learner"
+            pendingLabel="Opening learner creation…"
+          />
+        </div>
       </section>
     );
   if (!options.tutors.length)
@@ -465,7 +480,9 @@ export function DemoBookingForm({
             )}
             {result.state === "demo_reserved"
               ? "Simulated reservation saved"
-              : "Simulated reservation expired"}
+              : result.state === "demo_expired"
+                ? "Simulated reservation expired"
+                : demoStateLabels[result.state]}
           </h2>
           <p className="text-body">
             {learner?.displayName} · {tutor?.displayName} ·{" "}
@@ -476,13 +493,25 @@ export function DemoBookingForm({
           </p>
           <LessonTime value={result.time} />
           <p className="text-body">
-            {result.state === "demo_reserved" ? "Expires at" : "Expired at"}
+            {result.state === "demo_reserved"
+              ? "Expires at"
+              : result.state === "demo_expired"
+                ? "Expired at"
+                : "Original simulation deadline"}
           </p>
           <LessonTime value={result.expires} />
           <p className="text-body">
             This result is for local testing only. No lesson or payment has been
             confirmed.
           </p>
+          <BookingReadLink
+            href={bookingDetailPath(
+              result.id,
+              learner?.management === "guardian" ? "guardian" : "student",
+            )}
+            label="View booking details"
+            pendingLabel="Loading booking details…"
+          />
           <button
             className="action action-outline"
             type="button"

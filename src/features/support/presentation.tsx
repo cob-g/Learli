@@ -139,9 +139,13 @@ export function CaseView({
                 {event.action === "created"
                   ? "Fictional report saved"
                   : event.action === "assigned"
-                    ? "Reviewer assigned by local tooling"
+                    ? event.dispatcher
+                      ? "Reviewer assigned by local dispatcher"
+                      : "Reviewer assigned by local tooling"
                     : event.action === "reassigned"
-                      ? "Reviewer reassigned by local tooling"
+                      ? event.dispatcher
+                        ? "Reviewer reassigned by local dispatcher"
+                        : "Reviewer reassigned by local tooling"
                       : `Status changed from ${statusLabels[event.previousStatus!]} to ${statusLabels[event.nextStatus!]}`}
               </p>
               <time

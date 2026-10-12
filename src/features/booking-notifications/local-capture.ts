@@ -2,18 +2,24 @@
 import { createHash, randomUUID } from "node:crypto";
 import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { noticeKinds, type BookingNoticeKind } from "./kinds";
 import { z } from "zod";
 import {
   noticeKind,
   renderReservationNotice,
-  type ReservationNotice,
+  type BookingNotice,
 } from "./template";
 
-export function bookingNoticeKey(eventId: string, recipientUserId: string) {
+export function bookingNoticeKey(
+  eventId: string,
+  recipientUserId: string,
+  kind: BookingNoticeKind = noticeKind,
+) {
+  z.enum(noticeKinds).parse(kind);
   z.uuid().parse(eventId);
   z.string().min(1).max(200).parse(recipientUserId);
   return createHash("sha256")
-    .update(JSON.stringify([eventId, recipientUserId, noticeKind]))
+    .update(JSON.stringify([eventId, recipientUserId, kind]))
     .digest("hex");
 }
 
@@ -35,11 +41,15 @@ export async function captureBookingNotice(options: {
   origin: string;
   eventId: string;
   recipientUserId: string;
-  notice: ReservationNotice;
+  notice: BookingNotice;
 }) {
   const html = renderReservationNotice(options.origin, options.notice);
   const directory = bookingNoticeMailbox(options.environment);
-  const key = bookingNoticeKey(options.eventId, options.recipientUserId);
+  const key = bookingNoticeKey(
+    options.eventId,
+    options.recipientUserId,
+    "kind" in options.notice ? options.notice.kind : noticeKind,
+  );
   await mkdir(directory, { recursive: true, mode: 0o700 });
   const temporary = path.join(directory, `.${key}-${randomUUID()}.tmp`);
   try {

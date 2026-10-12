@@ -669,11 +669,15 @@ describe("scoped local account restriction boundary against real PostgreSQL", ()
       .where(eq(tutorProfiles.id, f.profile.id));
     const oldCreated = new Date(Date.now() - 1_200_000);
     const oldExpiry = new Date(Date.now() - 600_000);
+    const expiredId = randomUUID();
     const [expired] = await world.owner.db
       .insert(bookings)
       .values({
         ...before[0],
-        id: randomUUID(),
+        id: expiredId,
+        logicalBookingId: expiredId,
+        revision: 0,
+        replacesBookingId: null,
         idempotencyKey: randomUUID(),
         startAtUtc: new Date(before[0].startAtUtc.getTime() + 86_400_000),
         endAtUtc: new Date(before[0].endAtUtc.getTime() + 86_400_000),

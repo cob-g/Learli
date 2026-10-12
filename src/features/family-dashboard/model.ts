@@ -1,3 +1,4 @@
+import type { DemoBookingState } from "@/features/bookings/lifecycle-model";
 import { z } from "zod";
 import { formatLessonTime } from "@/features/bookings/format-time";
 import type { LessonTimeValue } from "@/features/bookings/lesson-time";
@@ -19,7 +20,7 @@ export type ReservationInput = {
   startAtUtc: string;
   endAtUtc: string;
   expiresAt: string;
-  state: "demo_reserved" | "demo_expired";
+  state: DemoBookingState;
 };
 export type ReservationView = ReservationInput & {
   when: LessonTimeValue;

@@ -1,5 +1,5 @@
 // Node-only read service, also used directly by isolated PostgreSQL tests.
-import { and, asc, eq, gt, inArray, lt, sql } from "drizzle-orm";
+import { and, asc, gt, inArray, lt, sql } from "drizzle-orm";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import {
   bookings,
@@ -174,7 +174,7 @@ async function readCandidates(
         .where(
           and(
             inArray(bookings.tutorId, ids),
-            eq(bookings.state, "demo_reserved"),
+            inArray(bookings.state, ["demo_reserved", "demo_confirmed"]),
             gt(bookings.expiresAt, now),
             lt(bookings.startAtUtc, range.busyTo),
             gt(bookings.endAtUtc, range.from),

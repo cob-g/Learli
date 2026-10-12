@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { LearnerLink } from "@/features/learners/learner-link";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { listMyLearners } from "@/features/learners/service";
 import { levelNames } from "@/features/subjects/catalog";
@@ -39,13 +40,12 @@ export default async function LearnersPage() {
                   {levelNames([learner.level]).join()}
                 </p>
               </div>
-              <Link
+              <LearnerLink
                 className="action action-outline shrink-0"
                 href={`/learners/${learner.id}`}
-                aria-label={`Edit profile for ${learner.displayName}`}
-              >
-                Edit profile
-              </Link>
+                ariaLabel={`Edit profile for ${learner.displayName}`}
+                label="Edit profile"
+              />
             </li>
           ))}
         </ul>
@@ -53,12 +53,20 @@ export default async function LearnersPage() {
         <section className="mt-8 max-w-prose">
           <h2 className="text-item-title">No learner profiles available</h2>
           <p className="mt-2 text-body">
-            This account has no authorized local learner profiles. Profile
-            creation is not available here.
+            This account has no authorized local learner profiles. Create a
+            fictional profile for the local demonstration.
           </p>
         </section>
       )}
-      <Link className="mt-8 inline-flex min-h-11 items-center" href="/account">
+      <LearnerLink
+        className="action action-primary mt-8"
+        href="/learners/new"
+        label="Create a local learner"
+      />
+      <Link
+        className="ms-4 mt-8 inline-flex min-h-11 items-center"
+        href="/account"
+      >
         Account settings
       </Link>
     </div>

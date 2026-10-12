@@ -1,8 +1,12 @@
 "use client";
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { statusLabels, transitions, type CaseStatus } from "./input";
+
+const subscribeToHydration = () => () => {};
+const hydratedSnapshot = () => true;
+const serverSnapshot = () => false;
 
 export function StatusForm({
   caseId,
@@ -14,6 +18,11 @@ export function StatusForm({
   revision: number;
 }) {
   const router = useRouter();
+  const hydrated = useSyncExternalStore(
+    subscribeToHydration,
+    hydratedSnapshot,
+    serverSnapshot,
+  );
   const busy = useRef(false);
   const notice = useRef<HTMLParagraphElement>(null);
   const [pending, setPending] = useState(false);
@@ -21,7 +30,7 @@ export function StatusForm({
   const [failed, setFailed] = useState(false);
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy.current) return;
+    if (busy.current || !hydrated) return;
     busy.current = true;
     setPending(true);
     setMessage("");
@@ -58,7 +67,12 @@ export function StatusForm({
   return (
     <section className="mt-12 max-w-xl">
       <h2 className="text-section-title">Change local status</h2>
-      <form className="mt-4 space-y-4" onSubmit={save} aria-busy={pending}>
+      <form
+        method="post"
+        className="mt-4 space-y-4"
+        onSubmit={save}
+        aria-busy={pending}
+      >
         <div className="space-y-2">
           <label htmlFor="status" className="block text-label">
             Next status
@@ -93,7 +107,11 @@ export function StatusForm({
           </p>
         )}
         <div className="flex flex-wrap gap-4">
-          <button className="action action-primary" aria-disabled={pending}>
+          <button
+            className="action action-primary transition-none"
+            disabled={!hydrated}
+            aria-disabled={!hydrated || pending}
+          >
             {pending && (
               <LoaderCircle
                 className="size-4 motion-safe:animate-spin"
@@ -111,6 +129,12 @@ export function StatusForm({
           </button>
         </div>
       </form>
+      <noscript>
+        <p className="mt-4 text-body">
+          Enable JavaScript to change local case status. Case details and
+          history remain readable.
+        </p>
+      </noscript>
     </section>
   );
 }

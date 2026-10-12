@@ -1,3 +1,6 @@
+import { LifecycleHeading } from "./lifecycle-heading";
+import { demoStateLabels } from "./lifecycle-model";
+import { DemoCancelControl } from "./lifecycle-controls";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BookingSupportAction } from "@/features/support-bookings/presentation";
@@ -39,14 +42,16 @@ export function BookingDetailView({
   booking,
   scope,
   meetingSection,
+  reviewSection,
 }: {
   booking: BookingDetail;
   scope: BookingReadScope;
   meetingSection?: ReactNode;
+  reviewSection?: ReactNode;
 }) {
   return (
     <div className="page-shell page-space">
-      <h1 className="text-page-title">Booking details</h1>
+      <LifecycleHeading booking={booking} />
       <p className="mt-4 text-body text-muted-foreground">
         Local simulated booking. No payment or meeting is arranged.
       </p>
@@ -80,7 +85,11 @@ export function BookingDetailView({
           </div>
           <div>
             <dt className="text-label text-muted-foreground">
-              Simulation expiry
+              {["demo_cancelled", "demo_replaced", "demo_completed"].includes(
+                booking.state,
+              )
+                ? "Original simulation deadline"
+                : "Simulation expiry"}
             </dt>
             <dd className="mt-2">
               <LessonTime value={booking.expires} />
@@ -88,6 +97,16 @@ export function BookingDetailView({
           </div>
         </dl>
         {meetingSection}
+        {reviewSection}
+        <DemoCancelControl booking={booking} scope={scope} />
+        {booking.currentHeadId && booking.currentHeadId !== booking.id && (
+          <a
+            className="mt-4 inline-flex min-h-11 items-center text-action"
+            href={bookingDetailPath(booking.currentHeadId, scope)}
+          >
+            View current simulation
+          </a>
+        )}
         <section className="mt-8 border-t border-border pt-6">
           <h2 className="text-section-title">Saved booking history</h2>
           <p className="mt-2 text-small text-muted-foreground">
@@ -101,7 +120,11 @@ export function BookingDetailView({
                   <h3 className="mb-2 text-item-title">
                     {event.event === "demo_reserved"
                       ? "Simulated reservation saved"
-                      : "Simulation expiry saved"}
+                      : event.event === "demo_expired"
+                        ? "Simulation expiry saved"
+                        : event.event === "demo_rescheduled"
+                          ? "Simulation rescheduled"
+                          : demoStateLabels[event.event]}
                   </h3>
                   <LessonTime value={event.time} />
                 </li>

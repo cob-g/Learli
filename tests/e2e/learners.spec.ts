@@ -213,7 +213,7 @@ test("self learner needs no guardian and foreign records stay private", async ({
         data: { learnerId: parent.ids[0] },
       })
     ).status(),
-  ).toBe(405);
+  ).toBe(400);
   const anonymous = await browser.newContext({ baseURL });
   const visitor = await anonymous.newPage();
   await visitor.goto(`/learners/${self.ids[0]}`);
@@ -263,4 +263,272 @@ test("empty profiles, wrong-role and suspended access are honest", async ({
     parent.page.getByRole("heading", { name: "Learner profiles unavailable" }),
   ).toBeVisible();
   await Promise.all([parent.context.close(), tutor.context.close()]);
+});
+
+test("local parent creation keeps retry identity after commit uncertainty and is private across navigation", async ({
+  browser,
+}, info) => {
+  const parent = await actor(browser, "parent");
+  const page = parent.page;
+  await page.goto("/learners");
+  let finishNavigation: () => void = () => {};
+  const navigationGate = new Promise<void>((resolve) => {
+    finishNavigation = resolve;
+  });
+  await page.route("**/learners/new**", async (route) => {
+    const response = await route.fetch();
+    await navigationGate;
+    await route.fulfill({ response });
+  });
+  try {
+    await page
+      .getByRole("link", { name: "Create a local learner", exact: true })
+      .click();
+    await expect(
+      page.getByText("Loading learner profiles…", { exact: true }),
+    ).toBeVisible();
+    finishNavigation();
+    await expect(page).toHaveTitle("Create a local learner | Learli");
+  } finally {
+    finishNavigation();
+    await page.unrouteAll({ behavior: "wait" });
+  }
+  await expect(
+    page.getByText(/does not verify real consent, age or guardian identity/),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Create local learner", exact: true })
+    .click();
+  await expect(page.getByLabel("Display name", { exact: true })).toBeFocused();
+  await expect(
+    page.getByText("Choose a level.", { exact: true }),
+  ).toBeVisible();
+  const privateName =
+    "Synthetic onboarding Álex With A Long Display Name For Local Testing";
+  await page.getByLabel("Display name", { exact: true }).fill(privateName);
+  await page.getByLabel("Level", { exact: true }).selectOption("high_school");
+  for (const [width, height] of [
+    [390, 844],
+    [320, 720],
+    [1440, 900],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await accessible(page);
+    await page.screenshot({
+      path: info.outputPath(`creation-${width}.png`),
+      fullPage: true,
+    });
+    expect(page.url()).not.toContain("displayName");
+  }
+  let intercept = true;
+  let release: () => void = () => {};
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/learners", async (route) => {
+    if (!intercept) {
+      await route.continue();
+      return;
+    }
+    intercept = false;
+    const response = await route.fetch();
+    expect(response.status()).toBe(200);
+    await gate;
+    await route.abort();
+  });
+  const button = page.getByRole("button", {
+    name: "Retry this request",
+    exact: true,
+  });
+  await button.focus();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("button", { name: "Creating local learner…", exact: true }),
+  ).toHaveAttribute("aria-disabled", "true");
+  await page.keyboard.press("Enter");
+  await page.screenshot({
+    path: info.outputPath("creation-pending.png"),
+    fullPage: true,
+  });
+  release();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "could not confirm creation" }),
+  ).toBeFocused();
+  await expect(page.getByLabel("Display name", { exact: true })).toHaveValue(
+    privateName,
+  );
+  await page
+    .getByRole("button", { name: "Retry this request", exact: true })
+    .click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Local learner created" }),
+  ).toBeFocused();
+  const rows = await owner.pool.query(
+    "SELECT e.learner_id FROM learner_creation_events e WHERE e.actor_user_id=$1",
+    [parent.id],
+  );
+  expect(rows.rowCount).toBe(1);
+  const id = rows.rows[0].learner_id as string;
+  await page
+    .getByRole("link", { name: "Edit local profile", exact: true })
+    .click();
+  await expect(page.getByLabel("Display name", { exact: true })).toHaveValue(
+    privateName,
+  );
+  await page.getByRole("link", { name: "Your learners", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: privateName, exact: true }),
+  ).toBeVisible();
+  const publicResponse = await parent.context.request.get("/tutors");
+  expect(await publicResponse.text()).not.toContain(privateName);
+  const privateResponse = await parent.context.request.get("/learners/new");
+  expect(privateResponse.headers()["cache-control"]).toContain("no-store");
+  const html = await privateResponse.text();
+  expect(html.match(/<title>[^<]+<\/title>/)?.[0]).not.toContain(privateName);
+  expect(html).toContain("noindex");
+  await page.goto("/sign-in");
+  await expect(page).toHaveURL(/\/sign-in/);
+  expect(await page.content()).not.toContain(privateName);
+  await page.goto("/learners");
+  await expect(
+    page.getByRole("heading", { name: privateName, exact: true }),
+  ).toBeVisible();
+  const signedOut = await parent.context.request.post("/api/auth/sign-out", {
+    headers: { origin: baseURL },
+    data: {},
+  });
+  expect(signedOut.status()).toBe(200);
+  await page.reload();
+  await expect(page).toHaveURL(/\/sign-in/);
+  expect(await page.content()).not.toContain(privateName);
+  await page.goBack();
+  await expect(page.getByText(privateName, { exact: true })).toHaveCount(0);
+  const visitor = await browser.newContext({ baseURL });
+  expect((await visitor.request.get(`/api/learners/${id}`)).status()).toBe(401);
+  await Promise.all([parent.context.close(), visitor.close()]);
+});
+
+test("local own College Support creation is singular and session loss denies mutation", async ({
+  browser,
+}) => {
+  const self = await actor(browser, "student");
+  const page = self.page;
+  await page.goto("/learners/new");
+  await expect(page.getByLabel("Level", { exact: true })).toHaveValue(
+    "college_support",
+  );
+  await expect(page.getByRole("checkbox")).toHaveCount(0);
+  await page
+    .getByLabel("Display name", { exact: true })
+    .fill("Synthetic own college");
+  await page
+    .getByRole("button", { name: "Create local learner", exact: true })
+    .click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Local learner created" }),
+  ).toBeVisible();
+  expect(
+    (
+      await owner.pool.query(
+        "SELECT 1 FROM guardian_learner_links WHERE guardian_user_id=$1",
+        [self.id],
+      )
+    ).rowCount,
+  ).toBe(0);
+  await page.goto("/learners/new");
+  await expect(
+    page.getByRole("heading", {
+      name: "Your local profile already exists",
+      exact: true,
+    }),
+  ).toBeVisible();
+  const parent = await actor(browser, "parent");
+  await parent.page.goto("/learners/new");
+  await parent.page
+    .getByLabel("Display name", { exact: true })
+    .fill("Synthetic stale session");
+  await parent.page
+    .getByLabel("Level", { exact: true })
+    .selectOption("elementary");
+  await owner.pool.query('DELETE FROM "session" WHERE user_id=$1', [parent.id]);
+  await parent.page
+    .getByRole("button", { name: "Create local learner", exact: true })
+    .click();
+  await expect(
+    parent.page
+      .getByRole("alert")
+      .filter({ hasText: "Learner could not be created" }),
+  ).toBeFocused();
+  expect(
+    (
+      await owner.pool.query(
+        "SELECT 1 FROM learner_creation_events WHERE actor_user_id=$1",
+        [parent.id],
+      )
+    ).rowCount,
+  ).toBe(0);
+  await Promise.all([self.context.close(), parent.context.close()]);
+});
+
+test("unhydrated create form cannot submit private fields as a URL", async ({
+  browser,
+}) => {
+  const parent = await actor(browser, "parent", 1);
+  const context = await browser.newContext({
+    baseURL,
+    javaScriptEnabled: false,
+    storageState: await parent.context.storageState(),
+  });
+  const page = await context.newPage();
+  await page.goto("/learners");
+  await expect(
+    page.getByRole("heading", {
+      name: "Synthetic private learner 0",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("link", {
+      name: "Edit profile for Synthetic private learner 0",
+      exact: true,
+    })
+    .click();
+  await expect(page.getByLabel("Display name", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Display name", { exact: true })).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Save profile", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByText(
+      /JavaScript is required to edit a local demonstration profile/,
+    ),
+  ).toBeVisible();
+  expect(await page.locator("form").getAttribute("method")).toBe("post");
+  await page.keyboard.press("Enter");
+  expect(page.url()).not.toContain("displayName");
+  await page.getByRole("link", { name: "Your learners", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Create a local learner", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      /JavaScript is required to create a local demonstration profile/,
+    ),
+  ).toBeVisible();
+  await expect(page.getByLabel("Display name", { exact: true })).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Create local learner", exact: true }),
+  ).toBeDisabled();
+  expect(await page.locator("form").getAttribute("method")).toBe("post");
+  await page.keyboard.press("Enter");
+  expect(page.url()).toBe(`${baseURL}/learners/new`);
+  expect(
+    (
+      await owner.pool.query(
+        "SELECT 1 FROM learner_creation_events WHERE actor_user_id=$1",
+        [parent.id],
+      )
+    ).rowCount,
+  ).toBe(0);
+  await Promise.all([context.close(), parent.context.close()]);
 });

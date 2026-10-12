@@ -2,15 +2,20 @@
 export const runtimeGrantsSql = `
     REVOKE ALL ON SCHEMA public FROM PUBLIC;
     GRANT USAGE ON SCHEMA public TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.submit_private_review(text,text,uuid,integer,uuid,integer,text), public.moderate_private_review(text,text,uuid,integer,uuid,text) TO learli_app;
     REVOKE ALL ON ALL TABLES IN SCHEMA public FROM learli_app;
     GRANT SELECT, INSERT, UPDATE, DELETE ON "user", "session", "account", "verification", "rate_limit" TO learli_app;
+    GRANT SELECT ON private_booking_reviews, private_review_events, review_moderators, review_moderator_grants TO learli_app;
     GRANT SELECT ON learner_profiles, guardian_learner_links TO learli_app;
     GRANT SELECT, INSERT ON bookings TO learli_app;
     GRANT SELECT, INSERT ON booking_meeting_links, booking_meeting_link_events TO learli_app;
     GRANT UPDATE (provider, url, revision, request_id, updated_by_user_id, updated_at) ON booking_meeting_links TO learli_app;
     GRANT UPDATE (state) ON bookings TO learli_app;
+    GRANT SELECT, INSERT ON booking_lifecycle_events TO learli_app;
     GRANT INSERT ON booking_events TO learli_app;
     GRANT SELECT (id, booking_id, event, created_at) ON booking_events TO learli_app;
+    GRANT SELECT ON booking_lifecycle_notification_deliveries TO learli_app;
+    GRANT UPDATE (state, attempts, last_attempt_at, closed_at, failure_code, suppressed_reason) ON booking_lifecycle_notification_deliveries TO learli_app;
     GRANT SELECT ON booking_notification_deliveries TO learli_app;
     GRANT UPDATE (state, attempts, last_attempt_at, closed_at, failure_code, suppressed_reason) ON booking_notification_deliveries TO learli_app;
     GRANT UPDATE (display_name, level, timezone, updated_at) ON learner_profiles TO learli_app;
@@ -31,4 +36,7 @@ export const runtimeGrantsSql = `
     GRANT EXECUTE ON FUNCTION grant_tutor_role(text) TO learli_app;
     GRANT SELECT ON account_restriction_targets, account_restriction_grants, account_restriction_events TO learli_app;
     GRANT EXECUTE ON FUNCTION public.change_local_account_access(text,text,text,integer,text,text,uuid) TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.create_local_learner(text,text,uuid,text,text,text,text) TO learli_app;
+    GRANT SELECT ON support_dispatch_grants, support_reviewer_choices, support_assignment_events TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.change_local_support_assignment(text,text,uuid,integer,text,text,uuid) TO learli_app;
   `;

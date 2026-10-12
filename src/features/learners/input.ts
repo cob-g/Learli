@@ -22,3 +22,10 @@ export function describeLearnerIssues(error: z.ZodError) {
   }
   return { message: "Check the learner fields and try again.", fields };
 }
+
+export const createLearnerInput = learnerInput.extend({
+  requestId: z.uuid({ error: "Reload the form to start a new request." }),
+  management: z.enum(["guardian", "self"], {
+    error: "Choose a local profile type.",
+  }),
+});

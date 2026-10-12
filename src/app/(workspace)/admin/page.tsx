@@ -28,8 +28,9 @@ export default async function AdminWorkspacePage() {
       <h1 className="text-page-title">Admin workspace</h1>
       <p className="mt-4 text-body">Signed in as {account.email}</p>
       <p className="mt-4 max-w-prose text-body text-muted-foreground">
-        Review tutor applications and manage the subject catalog. Booking
-        lookup, account lookup and the support queue are not available yet.
+        Review local tutor applications and manage the subject catalog. Support
+        cases, account controls and private synthetic reviews require separately
+        granted access to each relevant record.
       </p>
       <Link className="mt-4 inline-flex min-h-11 items-center" href="/account">
         Account settings

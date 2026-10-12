@@ -1,4 +1,5 @@
-// Explicit trusted fixture CLI; no capability/assignment endpoint exists.
+// Explicit trusted fixture CLI; browser assignment never grants capabilities.
+import { provisionFixtureDispatch } from "../src/features/support/dispatch-tooling";
 import { readFileSync } from "node:fs";
 import { z } from "zod";
 import { createDatabase } from "../src/lib/db/connection";
@@ -19,9 +20,25 @@ try {
   const [action, label, caseId, ...extra] = process.argv.slice(2);
   if (
     extra.length ||
-    !["authorize", "assign", "revoke"].includes(action) ||
+    ![
+      "authorize",
+      "assign",
+      "revoke",
+      "dispatch",
+      "revoke-dispatch",
+      "choose",
+      "revoke-choice",
+    ].includes(action) ||
     !label ||
-    (action === "assign" ? !caseId : !!caseId)
+    ([
+      "assign",
+      "dispatch",
+      "revoke-dispatch",
+      "choose",
+      "revoke-choice",
+    ].includes(action)
+      ? !caseId
+      : !!caseId)
   )
     throw new Error();
   const manifest = z
@@ -50,13 +67,24 @@ try {
     await authorizeFixtureReviewer(owner, fixture.userId);
   else if (action === "revoke")
     await revokeFixtureReviewer(owner, fixture.userId);
-  else await assignFixtureCase(owner, caseId, fixture.userId);
+  else if (action === "assign")
+    await assignFixtureCase(owner, caseId, fixture.userId);
+  else
+    await provisionFixtureDispatch(
+      owner,
+      caseId,
+      fixture.userId,
+      ["dispatch", "revoke-dispatch"].includes(action)
+        ? "dispatcher"
+        : "reviewer_choice",
+      action.startsWith("revoke-") ? "revoked" : "authorized",
+    );
   console.log(
     "Local support fixture operation complete. Case text and credentials omitted.",
   );
 } catch {
   console.error(
-    "Support tooling stopped safely. Use authorize|revoke <admin-fixture-label> or assign <admin-fixture-label> <case-uuid>; only owned synthetic admin fixtures are accepted.",
+    "Support tooling stopped safely. Use authorize|revoke <admin-fixture-label> or assign|dispatch|revoke-dispatch|choose|revoke-choice <admin-fixture-label> <case-uuid>; only owned synthetic admin fixtures are accepted.",
   );
   process.exitCode = 1;
 } finally {

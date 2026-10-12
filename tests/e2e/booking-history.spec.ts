@@ -247,7 +247,9 @@ test("guardian history/details are current, local, accessible and truthful at de
     ),
   ).toBeVisible();
   await expect(
-    actor.page.getByText("1:30 AM GMT-4 – 1:30 AM GMT-5", { exact: true }),
+    actor.page
+      .locator("dl")
+      .getByText("1:30 AM GMT-4 – 1:30 AM GMT-5", { exact: true }),
   ).toBeVisible();
   for (const width of [320, 1440]) {
     await actor.page.setViewportSize({

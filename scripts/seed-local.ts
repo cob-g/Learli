@@ -39,6 +39,9 @@ try {
     { label: "parent", roles: ["parent"] },
     { label: "tutor", roles: ["tutor"] },
     { label: "admin", roles: ["admin"] },
+    { label: "support-reviewer", roles: ["admin"] },
+    { label: "support-escalation", roles: ["admin"] },
+    { label: "review-moderator", roles: ["admin"] },
     { label: "multi", roles: ["parent", "tutor"] },
   ];
   for (const definition of definitions) {
