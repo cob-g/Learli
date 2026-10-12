@@ -1545,7 +1545,7 @@ statuses, recorded in the progress tracker. No launch/business policy changes.
 
 ### Local completion-wave architecture boundary — 2026-10-12
 
-Authorized local extensions are implemented in the isolated integration candidate under
+Authorized local extensions were implemented in the integration candidate and merged into local main as `185cb94` under
 `prompts/features/m4-10-local-completion-wave.md` and
 `docs/decisions/2026-10-12-local-completion-wave.md`. Booking mutations preserve
 original records using logical IDs and immutable replacement history; no runtime
@@ -1553,4 +1553,4 @@ confirmation/completion or TTL renewal. Minimal learner creation and exact-case
 support assignment use narrow database functions with fresh current authorization
 and fixed search paths instead of broad protected-table write grants. Existing
 local-only runtime, staging operator separation, historical 0000–0016 SQL, private
-links and no-money/no-real-user boundaries remain. The candidate adds a separate lifecycle delivery queue with real lifecycle-event foreign keys, captured locally only. Private synthetic reviews use one immutable submission per logical booking, current family authority and exact separately provisioned moderator scope; local approval never publishes. The combined local candidate passed the scoped independent reviews and required local verification; exact evidence belongs to the tracker. Candidate code/migrations remain uncommitted and are not yet on main.
+links and no-money/no-real-user boundaries remain. The candidate adds a separate lifecycle delivery queue with real lifecycle-event foreign keys, captured locally only. Private synthetic reviews use one immutable submission per logical booking, current family authority and exact separately provisioned moderator scope; local approval never publishes. The combined local candidate passed the scoped independent reviews and required local verification; exact evidence belongs to the tracker. The exact verified code and migration files are now committed on local main; applying the new migrations to main’s local databases remains a separate pending operation.

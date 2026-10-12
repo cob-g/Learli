@@ -173,3 +173,7 @@ report a recoverable partial outcome; retry must reuse the same fixture and
 refuse changed input. This makes fictional review preparation usable, without
 claiming a lesson occurred or granting admin roles. Concrete child blueprint and
 operations instructions own the final CLI contract; implementation is pending.
+
+## Commit and merge closeout — 2026-10-12
+
+After local verification, the user explicitly instructed “okay commit and merge.” This supersedes the earlier no-commit/no-merge boundary for the accepted local candidate only. Feature commit `185cb94ead1a1101227d23f8c0f359725600ffcb` was fast-forwarded into local main, with all 165 candidate paths verified against the frozen source manifest before and after merge. Existing local verification evidence is retained for that exact feature source. Main database migration, worktree/branch cleanup, remote push, deployment and provider operations were not performed. Payments remain deferred and real-user launch decisions remain open. See the latest merge entry in `context/progress-tracker.md`.

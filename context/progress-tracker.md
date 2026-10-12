@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.28 — Local completion candidate verified
+> **Version:** 1.29 — Local completion wave merged
 > **Last updated:** 2026-10-12\
-> **Current overall status:** **Six local feature slices verified in the uncommitted integration candidate; payments deferred; main application/database unchanged**
+> **Current overall status:** **Six verified local feature slices committed and merged into local main; main database migration pending; payments deferred**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -14,6 +14,16 @@
 **Status legend:** `Documented` = specified only · `Planned` = not verified as started · `In progress` = active work with evidence · `Blocked` = waiting on an explicit decision/dependency · `Done` = verified and linked to evidence.
 
 ---
+
+## Local completion wave — committed and merged, 2026-10-12
+
+The user explicitly authorized “okay commit and merge.” Feature commit `185cb94ead1a1101227d23f8c0f359725600ffcb` was fast-forwarded into local `main` from `0494f6b4cd1044ebebb89f0d41b1b706cb851352`. All 165 changed paths matched the frozen `final-source-manifest.json` before staging, in the committed index, and after the merge. The three root handoff mirrors were byte-identical to the committed files and preserved; the temporary merge stash was removed only after verifying that preservation.
+
+The verification results recorded below remain applicable to the exact merged feature source: 974 unit/component tests, 575 PostgreSQL tests plus the affected 57-test cleanup rerun, 140 Chromium tests, production build, client privacy scan and actual backup/restore. These are retained results, not newly rerun suites. This closeout changes only factual Markdown status; it does not change runtime behavior, migrations, dependencies or launch gates.
+
+Main now contains the feature code and migration files 0017–0021. Main's local database on port 55432 was not migrated during this operation. Source worktrees/branches and private review/test evidence remain retained; all nine workers were already settled and released. No remote push, deployment, provider action, external email or payment operation occurred.
+
+**Next action:** deliberately migrate main's local development/test databases using the reviewed scripts and target/backup checks when requested; then remove only accounted-for, idle worktrees/branches under cleanup authorization. Payments remain deferred. The following verified-candidate section is the historical pre-merge evidence snapshot and is superseded by this entry for Git status and authorization.
 
 ## Local completion wave — verified candidate, 2026-10-12
 
