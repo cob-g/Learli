@@ -120,6 +120,19 @@ applying it. Local scripts reject remote DB targets; no destructive reset exists
   `new-york` is a provisional CLI setting, not final design approval.
 - No payment, cloud provisioning, deployment or external message sends.
 
+## Staging database preparation
+
+The separate `npm run staging:database -- <operation>` operator tool supports
+`inspect-config`, read-only `inspect`, `plan` and explicitly selected `apply`.
+It requires private configuration and an exact approved Neon staging target;
+ordinary application requests and local tools keep their existing local guards.
+See [staging database operations](docs/operations/staging-database.md) for input
+formats, role separation, plan binding and recovery requirements.
+
+This wave prepares and locally verifies the tool. A named, authorized provider
+rehearsal must establish actual Neon compatibility; hosted auth, email and release
+remain separate gates. The full hosted deployment preflight remains blocked.
+
 ## Dependency maintenance
 
 Rechecked 2026-10-12: **13 audit findings (4 moderate, 9 high)** remain in two

@@ -26,6 +26,36 @@ adapter/auth/email implementation and applicable launch decisions. A public
 shell still requires separate deployment authorization and accurate content.
 Do not bypass the local guards to make a hosted smoke test look complete.
 
+## Separate staging database preparation
+
+The M8.3 code-preparation wave adds separate operator tooling described in
+[staging database operations](staging-database.md). Its explicit private JSON
+configuration uses `STAGING_DATABASE_URL` for the restricted runtime role and
+`STAGING_DATABASE_URL_DIRECT` for the migration owner. It requires an exact target
+attestation and verified TLS. It does not alter the application adapter or local
+setup/seed/restore guards, enable hosted auth, or run migrations on startup.
+
+Configuration-only inspection performs no network I/O. Target inspection and
+planning require named-resource operation authority; applying a plan additionally
+requires its exact hash and applicable recovery evidence. Code preparation and
+local tests are distinct from an observed Neon rehearsal. The current wave's
+review and verification status is in the progress tracker; this procedure does
+not imply that either has passed. `--mode hosted` remains exit 2/BLOCKED because
+the authenticated hosted marketplace and release gates are still incomplete.
+
+The default integration suite also starts disposable local PostgreSQL clusters
+for staging TLS/migration tests. CI uses Ubuntu 24.04 with explicit `PG_BIN` and
+PostgreSQL 17.11 tools (`17.11-1.pgdg24.04+2`) from the signed PostgreSQL APT
+repository, plus OpenSSL. The two suites run sequentially and use the same owned
+`LEARLI_STAGING_TEST_PORT=55703`; the existing Docker database remains separate.
+The [runner image inventory](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md)
+lists PostgreSQL 16, so relying on its default tools would be insufficient.
+Repository setup follows [PostgreSQL's Ubuntu instructions](https://www.postgresql.org/download/linux/ubuntu/);
+the pinned package versions were checked in the official noble-pgdg index on
+2026-10-12. Remote CI execution is still required to establish hosted-runner
+results; local passes do not establish that result. Update server/client pins
+together deliberately when maintaining this workflow.
+
 ## Install, build and local smoke
 
 Read `.nvmrc` and `package.json` at the release candidate. At this baseline their

@@ -12,6 +12,17 @@ readiness wave; no separate human blueprint approval. Blueprint:
 Baseline: `5634e44fd71e8851400e004de6bbe3554e65eae1`. Node 24.20.0/npm 11.19.0,
 `.node-version`, `.nvmrc`, packageManager and exact dependencies remain unchanged.
 
+## Staging foundation recheck — 2026-10-12
+
+The staging code-preparation integration re-ran `npm audit --json --ignore-scripts`
+at 04:15 UTC using the unchanged dependency pins and lockfile. Exit 1: **13 findings,
+9 high and 4 moderate**, matching the two underlying advisories below. No dependency
+fix, suppression or exposure waiver was applied. Private command/source receipts
+are under `.local/staging-database-wave/audit.*` in the integration checkout.
+The package script added by this wave is separate from the historical manifest
+hash below; the lockfile remains unchanged. This recheck does not repeat or replace
+the earlier registry compatibility investigation.
+
 ## Current findings and exposure
 
 The audit's 13 rows include propagated dependency findings; they represent two

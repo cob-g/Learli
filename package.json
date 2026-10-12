@@ -36,7 +36,8 @@
     "db:restore:drill": "tsx scripts/local-backup-restore.ts drill",
     "deployment:preflight": "node --import tsx scripts/deployment-preflight.ts",
     "test:e2e:cross-browser": "node scripts/with-test-env.mjs node_modules/.bin/playwright test --config playwright.cross-browser.config.ts",
-    "performance:baseline": "node scripts/with-test-env.mjs node scripts/performance-baseline.mjs"
+    "performance:baseline": "node scripts/with-test-env.mjs node scripts/performance-baseline.mjs",
+    "staging:database": "tsx scripts/staging-database.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.7",

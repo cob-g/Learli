@@ -71,6 +71,7 @@ async function storedBooking({
   expired = false,
   materialized = false,
   start = new Date(Date.now() + (10 + fixtureIndex++) * 86400000),
+  assignedTutor = profileId,
   id = randomUUID(),
   booker,
 }: {
@@ -78,6 +79,7 @@ async function storedBooking({
   expired?: boolean;
   materialized?: boolean;
   start?: Date;
+  assignedTutor?: string;
   id?: string;
   booker?: string;
 } = {}) {
@@ -87,7 +89,7 @@ async function storedBooking({
     .values({
       id,
       source: "local_simulation",
-      tutorId: profileId,
+      tutorId: assignedTutor,
       learnerId: learner,
       bookedByUserId: booker ?? (learner === selfId ? self.id : parent.id),
       subjectId,
@@ -438,7 +440,27 @@ describe("real PostgreSQL participant reads", () => {
     );
   });
   it("ignores booking/learner timezone and uses current viewer preference with DST offsets", async () => {
+    // This fixed repeated-hour interval must never share a tutor with ordinary
+    // explicit or relative fixture slots, regardless of the current run date.
+    const dstTutor = await createAccount(world, ["tutor"]);
+    await world.owner.db
+      .update(user)
+      .set({ timezone: "Asia/Manila" })
+      .where(eq(user.id, dstTutor.id));
+    const [dstProfile] = await world.owner.db
+      .insert(tutorProfiles)
+      .values({
+        userId: dstTutor.id,
+        slug: `dst-history-${randomUUID()}`,
+        headline: "Synthetic DST tutor",
+        bio: "Synthetic DST isolation fixture.",
+        teachingBackground: "Synthetic fixture.",
+        timezone: "Asia/Manila",
+        reviewStatus: "approved",
+      })
+      .returning();
     const row = await storedBooking({
+      assignedTutor: dstProfile.id,
       expired: true,
       start: new Date("2026-11-01T05:30Z"),
     });
@@ -453,10 +475,13 @@ describe("real PostgreSQL participant reads", () => {
     expect(parentDetail.time.time).toContain("GMT-5");
     const tutorDetail = await readParticipantBooking(
       world.runtime,
-      tutor.headers,
+      dstTutor.headers,
       row.id,
       "tutor",
     );
+    await expect(
+      readParticipantBooking(world.runtime, tutor.headers, row.id, "tutor"),
+    ).rejects.toThrow();
     expect(tutorDetail.viewerTimezone).toBe("Asia/Manila");
     expect(tutorDetail.time.zone).toContain("GMT+8");
     expect(JSON.stringify(tutorDetail)).not.toContain("America/New_York");

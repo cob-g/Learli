@@ -1525,3 +1525,19 @@ normalization and process-liveness health are unchanged. This is limited local
 failure visibility, not distributed monitoring, accurate counting or whole
 NFR-10/production observability. See docs/operations/safe-diagnostics.md; execution
 evidence is recorded separately in the tracker.
+
+
+### Staging database preparation scope — 2026-10-12
+
+Authorized M8.3/M2.1/M2.2 code preparation now provides a locally verified separate
+staging-only database configuration/connection and controlled migration-tooling
+path. It retains the existing `pg`/Drizzle node-postgres driver, verified TLS, explicit target binding
+and distinct runtime/migration identities. Local connection validation, synthetic
+application auth/mail and local-only fixture/restore tooling remain restricted.
+No hosted auth/data route is enabled merely by adding these operator tools.
+
+See `docs/decisions/2026-10-12-staging-database-preparation.md` and
+`prompts/features/m8-03-staging-database-foundation.md`. This is code-preparation
+authority only; the specific Neon target and operation approval remain absent.
+Implementation, local verification and real-provider acceptance are separate
+statuses, recorded in the progress tracker. No launch/business policy changes.

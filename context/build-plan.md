@@ -461,6 +461,13 @@ M6 is **blocked at baseline**, but founders can resolve decisions while engineer
     No deployment or complete M8.3/launch promotion follows from this package.
 - [ ] **M8.2 — Deploy one Next.js Node service to Railway.** Attach the generated HTTPS Railway subdomain for development or an approved pilot; verify routes, server actions and DB connections work in the target runtime.
 - [ ] **M8.3 — Separate environments and data.** Development/staging/test credentials and Neon databases must be isolated from real-user production. No synthetic tutor profiles or fake reviews in the public production catalog.
+  - **2026-10-12 staging database code preparation locally verified:** authorized blueprint
+    `prompts/features/m8-03-staging-database-foundation.md` provides a separate
+    target/TLS/credential boundary and deliberate migration tools (M2.1/M2.2,
+    M8.4). Local guards and existing migration history remain. Code preparation
+    does not complete provider verification, deploy the app, enable hosted auth
+    or authorize cloud operations; actual evidence belongs in the tracker.
+
 - [ ] **M8.4 — Apply reviewed migrations intentionally.** Version migration SQL, review destructive changes, back up where appropriate, validate migration order and provide rollback/restoration steps. Never run migrations against production without the required authorization.
 - [ ] **M8.5 — Confirm domain and Resend readiness.** A Railway-generated URL is sufficient for initial development; **Resend production sending requires domain verification** and correct DNS/authentication. A branded public domain may be chosen separately; do not claim free public email delivery without a verified sender.
 - [ ] **M8.6 — Verify observability and reasonable usage controls.** Safe server logs, failure tracking, access to Railway/Neon/Resend usage/cost information and alerts/manual reviews appropriate for a small team. No hard promise of a fixed $5 all-in Railway bill.

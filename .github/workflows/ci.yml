@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     services:
       postgres:
@@ -30,6 +30,8 @@ jobs:
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       APP_ENV: test
+      PG_BIN: /usr/lib/postgresql/17/bin
+      LEARLI_STAGING_TEST_PORT: "55703"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -39,6 +41,22 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm install --global npm@11.19.0
+      - name: Install pinned PostgreSQL tools for owned staging test clusters
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl --fail --silent --show-error \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+            --output /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          printf '%s\n' \
+            'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main' \
+            | sudo tee /etc/apt/sources.list.d/learli-pgdg.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            postgresql-17=17.11-1.pgdg24.04+2 \
+            postgresql-client-17=17.11-1.pgdg24.04+2 openssl
+          "$PG_BIN/initdb" --version
+          "$PG_BIN/pg_ctl" --version
+          openssl version
       - run: npm ci
       - run: node scripts/ci-db.mjs
         env:

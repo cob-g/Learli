@@ -201,6 +201,34 @@ not establish an active task. Keep these facts separate in cleanup reports.
 Local simulation, local mail capture, clean builds, and merged code never establish
 real-user readiness. Consult current canonical decisions for remaining launch gates.
 
+## Staging foundation follow-ups — 2026-10-12
+
+The staging wave exposed a clock-sensitive test collision: generated same-tutor
+slots overlapped a fixed November DST fixture only after the current time crossed
+a boundary. The database correctly rejected the overlap. A first date-skip repair
+still left explicit intervals vulnerable on other run dates. Give fixed-date cases
+their own tutor/profile, preserve the actual DST and ownership assertions, and
+verify the affected file plus the combined suite. Keep both the original failure
+and the superseded repair in the evidence.
+
+Disposable PostgreSQL tests need owned data paths and configurable test-only
+ports. Check host tools as well as Docker services: a CI service supplies a server,
+not necessarily `initdb` and `pg_ctl` on the runner. Register required PostgreSQL
+server tools/OpenSSL explicitly and keep remote CI results distinct from local
+checks and workflow syntax validation.
+
+CLI fixtures must own every private ancestor required by the real guard. A
+recursive mkdir does not repair permissions on an existing checkout directory;
+use an owned synthetic root and preserve the real denial instead of chmodding
+shared state. Reset mock response queues when testing early failures.
+
+Passing suites do not replace independent privilege review. Effective PostgreSQL
+permissions include parameter ACLs, actual session defaults and grant options,
+not only role flags and base table access. Test direct/PUBLIC rights and existing
+connections after permission drift with real isolated PostgreSQL. Preserve the
+initial passing candidate and the review findings; never promote them together
+as final acceptance before scoped repairs and verification.
+
 ## 7. Prompt for a new orchestrator
 
 Copy this into the new session, then state the actual task and its authorization:

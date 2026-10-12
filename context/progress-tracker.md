@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.23 — Readiness wave cleanup complete
+> **Version:** 1.25 — Staging database foundation locally verified
 > **Last updated:** 2026-10-12\
-> **Current overall status:** **Six-package readiness wave merged and all seven completed worktrees/local branches archived and removed; only main remains; hosted and real-user launch gates stay open**
+> **Current overall status:** **Staging database code preparation independently reviewed and locally verified in an unmerged integration branch; hosted/provider and real-user launch gates stay open**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -14,6 +14,90 @@
 **Status legend:** `Documented` = specified only · `Planned` = not verified as started · `In progress` = active work with evidence · `Blocked` = waiting on an explicit decision/dependency · `Done` = verified and linked to evidence.
 
 ---
+
+## Staging database foundation — local preparation complete, 2026-10-12
+
+- Current code is uncommitted/unmerged in
+  `/Users/cob/orca/workspaces/learli/m8-staging-database-foundation`, branch
+  `cob-g/m8-staging-database-foundation`, based on main `0d7f2dd`. Main application
+  code/database and remote state were not changed. This is the M8.3 preparation
+  subset, not full M8/environment/provider or launch completion.
+- Delivered explicit target/TLS/role boundary, private configuration inspection,
+  read-only inspection, hash-bound plans and serialized deliberate migration
+  tooling, preserving 17 SQL migrations, journal/snapshots and exact runtime grants.
+  No new migration, dependency or hosted application route was introduced.
+- Independent full candidate-v3 review found F1 parameter/session-state and F2
+  grant-option gaps despite its earlier green checks. Root repaired them and
+  added 22 actual-PG cases. A separate independent follow-up reviewed all 12 changed
+  paths plus 23 unchanged files, closed F1/F2, and reported zero new/remaining
+  confirmed findings with plan alignment/unintended-change audit PASS.
+- Separate final verification on exact 35-file candidate-v4: **895 unit/component
+  tests + format/lint/typecheck, 452 PostgreSQL tests, production build PASS**.
+  Full PG includes 25 TLS + 37 migration + 390 inherited cases. 37 immutable migration/
+  lock/runtime-pin files and original grant SQL match baseline. Scoped privacy
+  PASS 0 matches/98 files/11 actual owned-secret patterns. Hosted preflight remains
+  expected BLOCKED; remote CI and actual Neon successful CLI/provider checks
+  **NOT RUN**. Browser/UI checks were not rerun for this operator-only slice.
+- Two builders used `$build-feature`; two independent review workers used
+  `$review`, all observed GPT-6.1 Sol / High. All four workers in
+  `run_3c007079ec29` succeeded and were released; three wave worktrees/branches
+  remain preserved. Main's database 55432 and other projects were not test targets.
+- [Wave report](../docs/operations/staging-database-wave.md) records source-bound
+  evidence, failures, recovery and limits. Private manifests/snapshots/reports:
+  `.local/staging-database-wave/` in root/integration. Final documentation-only
+  status updates have a separate applicability bridge; no new runtime pass is
+  claimed for later prose. Earlier checkpoints below remain historical.
+- Remaining: local commit/merge when requested; then a concrete named Neon
+  target/operator/isolation/budget/recovery packet and explicit provider-operation
+  authorization. Existing 13 advisories (9 high/4 moderate), hosted auth/email/
+  deployment and business/guardian/consent/legal/safeguarding/device/release gates
+  remain open. No commit/merge/push/provider operation or current-wave cleanup.
+
+## Staging database foundation — start and recovery checkpoints, 2026-10-12
+
+- User requested execution of the prepared current wave. Blueprint:
+  [M8.3 staging database foundation](../prompts/features/m8-03-staging-database-foundation.md),
+  **AUTHORIZED — build-feature delegation** for code preparation and local checks.
+- Two supervised builders started from main `0d7f2dd`, each in its own worktree
+  and branch: `m8-staging-connection` and `m8-staging-migrations`. Orca receipts
+  confirm requested and effective GPT-6.1 Sol / High and observed turn starts.
+  Run `run_3c007079ec29`; third independent reviewer starts after candidate freeze.
+- Connection owner supplies a frozen target/configuration/TLS interface before
+  migration tooling consumes it. Root owns integration, shared configuration,
+  final context, source acceptance and combined verification. Builders must use
+  `$build-feature`; reviewer uses read-only `$review`.
+- Owned ports: connection DB 55601/TLS 55701/dev 3071/test 3171;
+  migrations DB 55602/disposable 55702/dev 3072/test 3172. At most two heavy jobs;
+  shared-database suites and generated build/type outputs are serialized.
+- Combined implementation/review/verification are **IN PROGRESS / PENDING**.
+  No cloud target, external connection, deployment, main DB migration, commit,
+  merge or push is authorized or performed by this launch. Local-only safeguards
+  and the existing 13-advisory report remain; real-user policy gates stay open.
+- Integration checkpoint: accepted callback-only connection API/source v1;
+  pinned install and owned DB 55603 setup PASS. Root added shared operator script,
+  separate staging documentation and CI PostgreSQL 17.11/OpenSSL prerequisites.
+  CI YAML formatting and install-shell syntax PASS; remote CI NOT RUN. Fresh audit
+  remains 13 findings (9 high / 4 moderate); no dependency/lock change or waiver.
+  Builder reports show connection checks/TLS/PG/build passing, while migration
+  verification continues. These are isolated builder results; combined acceptance
+  and independent review remain pending.
+- Final builder source checkpoint: connection 876 unit/component, 17 final TLS
+  cases, retained full 407 PG/build; migration 809 unit/component, 23 migration
+  cases, retained full 413 PG/build plus 29 final affected booking-read tests.
+  The retained broad runs preceded test-only refinements; they are not relabeled
+  final full runs. A clock-sensitive inherited DST fixture collision was fixed
+  using a dedicated tutor/profile, preserving all DST and ownership assertions.
+  Root accepted and released the connection worker; migration final handoff is
+  being packaged. Root candidate is assembled for fresh combined verification.
+- Independent candidate-v3 review found two Important effective-privilege gaps:
+  parameter ACL/non-origin-session bypass and surplus grant options. Root repaired
+  these within the blueprint and added22 real-PG regressions; focused62 PASS.
+  Earlier combined895 unit/430 PG/build passed on v3 but did not cover those gaps.
+  Current full verification and independent follow-up are pending. Initial repair
+  check's six stale-mock failures are diagnosed in the integration recovery note.
+- Private launch/spec/baseline records: `.local/staging-database-wave/`.
+  Earlier only-main and no-worker statements below describe the completed prior
+  cleanup checkpoint and are superseded by this launch.
 
 ## Readiness wave — cleanup complete, 2026-10-12
 
