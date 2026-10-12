@@ -166,3 +166,7 @@ All six bounded slices implemented and integrated on cob-g/m4-local-completion-i
 ## Commit and merge closeout — 2026-10-12
 
 After local verification, the user explicitly instructed “okay commit and merge.” This supersedes the earlier no-commit/no-merge boundary for the accepted local candidate only. Feature commit `185cb94ead1a1101227d23f8c0f359725600ffcb` was fast-forwarded into local main, with all 165 candidate paths verified against the frozen source manifest before and after merge. Existing local verification evidence is retained for that exact feature source. Main database migration, worktree/branch cleanup, remote push, deployment and provider operations were not performed. Payments remain deferred and real-user launch decisions remain open. See the latest merge entry in `context/progress-tracker.md`.
+
+## Migration and cleanup closeout — 2026-10-12
+
+The user next explicitly authorized main database migration, worktree/branch cleanup and remote push. Both main local databases advanced from17 to22 reviewed migrations, with private backups, actual isolated restoration proof, preserved original data and verified runtime permissions/protections. Seven completed worktrees and branches were archived and removed; only main remains. Remote publication targets the existing origin/main without force; its final ref confirmation is retained in the private closeout receipt. No hosted migration, deployment, payment activation or real-user launch approval follows. See `docs/operations/local-completion-closeout.md` and the latest tracker entry.

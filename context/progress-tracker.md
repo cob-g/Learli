@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.29 — Local completion wave merged
+> **Version:** 1.30 — Main databases migrated and wave cleaned up
 > **Last updated:** 2026-10-12\
-> **Current overall status:** **Six verified local feature slices committed and merged into local main; main database migration pending; payments deferred**
+> **Current overall status:** **Six verified local feature slices merged; main development/test databases migrated through 0021; completed worktrees/branches archived and removed; payments deferred**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -14,6 +14,18 @@
 **Status legend:** `Documented` = specified only · `Planned` = not verified as started · `In progress` = active work with evidence · `Blocked` = waiting on an explicit decision/dependency · `Done` = verified and linked to evidence.
 
 ---
+
+## Main database migration and local completion cleanup — 2026-10-12
+
+The user explicitly authorized main's database migration, completed worktree/branch cleanup and remote push. On local main after feature `185cb94` and merge record `eccd9d6`, both owned databases (`learli_dev` and `learli_test`, loopback port 55432) advanced from 17 to 22 migrations using `npm run db:migrate` and `npm run db:migrate:test`. Exact prior migration hashes, target identity and protected schema were checked before changes. Private custom-format backups were created and subsequently restored into a fresh isolated target; all 32 original tables, 42 development rows / 54 test rows, historical migration entries and protected functions/triggers matched. The disposable restore target was stopped.
+
+Post-migration checks passed for both databases: all original column values and rows in the 32 existing tables remained identical; new booking logical IDs/revisions were correct; 44 public tables, 24 custom functions and 21 custom triggers matched the reviewed source. Each database passed 1,192 column, 176 table and 24 function privilege checks plus six denied permission probes and three integrity probes, all rolled back. No seed/reset or application data deletion was performed. Main's owned PostgreSQL remains running.
+
+All seven completed wave worktrees and corresponding local branches were removed through Orca after settlement, process ownership checks, and full private archival. Archives preserve source, dirty child changes, handoffs, stopped PostgreSQL data, private configuration and verification artifacts; only reproducible dependency/build caches were excluded. Every archived file/link was checked against its source manifest. Git now has only the main worktree and branch. The separate EduSphere session remained active on its original workspace identity. Details and exact limitations: `docs/operations/local-completion-closeout.md`.
+
+The former integration evidence is now available in main at `.local/local-completion-closeout/integration-evidence/`, with complete worktree archives under `.local/archives/local-completion-2026-10-12/`. Earlier worktree paths in historical entries are archival references. Two temporary inspection-helper failures (catalog-array decoding and restore-session time zone) were diagnosed and corrected without changing application code, migrations or stored data; original evidence is retained. Final backup/restore and migration checks passed.
+
+Remote push to the existing `origin/main` is authorized as the final closeout operation; the final remote-ref result is recorded in `.local/local-completion-closeout/push-receipt.json` and local session memory. No force push, hosted migration, deployment, external email or payment action is part of this operation. Existing feature test results remain retained evidence; no full feature suite was rerun for this operational/documentation closeout. Payments and the remaining hosted/provider/business/safeguarding/legal launch gates stay deferred.
 
 ## Local completion wave — committed and merged, 2026-10-12
 
