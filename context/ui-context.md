@@ -1255,3 +1255,27 @@ resubmission; credential values are absent from summary/status/diagnostics and
 cleared before actual requests and safe captures. Public auth entry from a prior
 private document displays brief loading status until a fresh document replaces
 it, preserving return intent and existing no-JS server navigation.
+
+
+### Directory lesson-time controls (M3.5, 2026-10-12)
+
+The existing directory GET form has a native optional Lesson time disclosure,
+viewer-zone select, weekday checkboxes and one existing time-band select.
+Explicit Browse without a time filter is the default; Any available time also
+requires a viewer zone. Phone controls stay above the list, desktop controls
+in the existing sidebar. Invalid opt-in inputs retain safe values, associate
+inline errors and focus the first correction. Pending navigation announces
+Loading tutors. Filtered rows use the existing full LessonTime date/time/zone
+and visible local-simulation wording; plain rows remain unchanged. URL state
+restores paging/Back and works without scripts. No new tokens or dependencies.
+
+### 2026-10-12 — Local account email confirmation
+
+Dedicated private `/account/email` uses existing page/field/action tokens and
+one primary submit per step. Distinguish saved current email from proposed
+pending email; transient masked numeric codes never enter URLs or browser
+storage. Focus safe status/errors, disable mutation before hydration and during
+requests, and stop retries after uncertain completion with native account/session
+recovery. Successful completion replaces the full document. No new design tokens.
+The email submit changes enabled/disabled colors immediately: interpolating both
+foreground/background produced an insufficient intermediate contrast ratio.

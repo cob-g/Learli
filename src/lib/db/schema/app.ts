@@ -88,6 +88,7 @@ export const subjects = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     slug: text("slug").notNull().unique(),
     name: text("name").notNull(),
+    nameRevision: integer("name_revision").default(0).notNull(),
     category: text("category").$type<SubjectCategory>().notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -107,6 +108,7 @@ export const subjects = pgTable(
       "subjects_name_length",
       sql`char_length(${table.name}) BETWEEN 2 AND 60`,
     ),
+    check("subjects_name_revision_valid", sql`${table.nameRevision} >= 0`),
     check(
       "subjects_category_allowed",
       sql`${table.category} IN ('academic_core', 'test_prep', 'academic_support', 'specialized')`,
@@ -244,6 +246,7 @@ export const auditActions = [
   "subject.created",
   "subject.activated",
   "subject.deactivated",
+  "subject.renamed",
 ] as const;
 export type AuditAction = (typeof auditActions)[number];
 
@@ -268,7 +271,7 @@ export const auditEvents = pgTable(
   (table) => [
     check(
       "audit_action_allowed",
-      sql`${table.action} IN ('account.created', 'account.updated', 'fixture.roles_granted', 'tutor_role.self_granted', 'tutor_profile.submitted', 'tutor_profile.updated', 'tutor_availability.updated', 'tutor_time_off.updated', 'tutor_review.approved', 'tutor_review.rejected', 'tutor_review.suspended', 'tutor_review.reinstated', 'tutor_review.reopened', 'subject.created', 'subject.activated', 'subject.deactivated')`,
+      sql`${table.action} IN ('account.created', 'account.updated', 'fixture.roles_granted', 'tutor_role.self_granted', 'tutor_profile.submitted', 'tutor_profile.updated', 'tutor_availability.updated', 'tutor_time_off.updated', 'tutor_review.approved', 'tutor_review.rejected', 'tutor_review.suspended', 'tutor_review.reinstated', 'tutor_review.reopened', 'subject.created', 'subject.activated', 'subject.deactivated', 'subject.renamed')`,
     ),
   ],
 );

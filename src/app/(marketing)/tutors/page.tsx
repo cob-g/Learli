@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { X } from "lucide-react";
+import { redirect } from "next/navigation";
+import { listTimeZoneOptions } from "@/lib/time/zones";
+import {
+  parseDirectorySearch,
+  sanitizeDirectoryParams,
+} from "@/features/tutors/search";
+import type { LessonTimeValue } from "@/features/bookings/lesson-time";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
 import { filterTutors } from "@/features/tutors/eligibility";
 import {
-  parseTutorSearch,
+  readDirectoryTimes,
   readPublicCatalog,
   tutorsHref,
   tutorsPerPage,
@@ -25,9 +32,10 @@ export default async function TutorsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { subject, level, language, page } = parseTutorSearch(
-    await searchParams,
-  );
+  const sanitized = sanitizeDirectoryParams(await searchParams);
+  if (sanitized.changed) redirect(sanitized.href);
+  const { subject, level, language, page, preferences, fields, draft, optIn } =
+    parseDirectorySearch(sanitized.params);
   const catalog = await readPublicCatalog();
   if (!catalog)
     return (
@@ -40,7 +48,7 @@ export default async function TutorsPage({
         <p className="mt-2 flex flex-wrap gap-x-6">
           <Link
             className="inline-flex min-h-11 items-center"
-            href={tutorsHref({ subject, level, language, page })}
+            href={sanitized.href}
           >
             Try again
           </Link>
@@ -71,7 +79,21 @@ export default async function TutorsPage({
     (item) => item.slug === subject,
   )?.name;
   const levelName = learnerLevelOptions.find(([value]) => value === level)?.[1];
-  const matches = filterTutors(catalog.tutors, { subject, level, language });
+  let matches = filterTutors(catalog.tutors, { subject, level, language });
+  let nextTimes: Record<string, LessonTimeValue> | undefined;
+  let unavailable = false;
+  if (preferences) {
+    const result = await readDirectoryTimes(
+      catalog.tutors,
+      { subject, level, language },
+      preferences,
+    );
+    if (result) {
+      matches = result.tutors;
+      nextTimes = result.nextTimes;
+    } else unavailable = true;
+  }
+  const invalid = optIn && !preferences;
   const pages = Math.max(1, Math.ceil(matches.length / tutorsPerPage));
   const current = Math.min(page, pages);
   const shown = matches.slice(
@@ -81,12 +103,19 @@ export default async function TutorsPage({
   const applied = [
     subject && {
       label: subjectName ?? "Unknown subject",
-      href: tutorsHref({ level, language }),
+      href: tutorsHref({ level, language, preferences }),
     },
-    levelName && { label: levelName, href: tutorsHref({ subject, language }) },
+    levelName && {
+      label: levelName,
+      href: tutorsHref({ subject, language, preferences }),
+    },
     language && {
       label: `Teaching language: ${teachingLanguageLabels[language]}`,
-      href: tutorsHref({ subject, level }),
+      href: tutorsHref({ subject, level, preferences }),
+    },
+    preferences && {
+      label: "Lesson time",
+      href: tutorsHref({ subject, level, language }),
     },
   ].filter((item) => !!item);
 
@@ -96,17 +125,56 @@ export default async function TutorsPage({
       <div className="mt-8 lg:flex lg:gap-8">
         <div className="mb-8 lg:mb-0 lg:w-64 lg:shrink-0">
           <TutorFilterForm
+            key={sanitized.href}
             variant="filters"
             subjects={catalog.subjects}
             subject={subject}
             level={level}
             languages={declaredTeachingLanguages(catalog.tutors)}
             language={language}
+            draft={draft}
+            fields={fields}
+            zones={listTimeZoneOptions(
+              new Date(),
+              draft.timezone ? [draft.timezone] : [],
+            )}
           />
         </div>
         <div className="min-w-0 flex-1">
-          {matches.length === 0 ? (
-            subjectName && !level && !language ? (
+          {preferences && !unavailable && (
+            <p className="mb-4 max-w-prose text-small text-muted-foreground">
+              Local simulation: actual dated open times over the next 14 days,
+              for 60-minute lessons. Times are advisory and checked again when
+              reserving. No payment or confirmed lesson.
+            </p>
+          )}
+          {invalid ? (
+            <p role="alert" className="text-body">
+              Check your lesson time choices to see tutors.
+            </p>
+          ) : unavailable ? (
+            <div>
+              <p role="alert" className="text-body">
+                Lesson times are temporarily unavailable. Choose a subject,
+                level or teaching language to narrow your search, or try again.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-4">
+                <Link
+                  className="inline-flex min-h-11 items-center"
+                  href={sanitized.href}
+                >
+                  Try again
+                </Link>
+                <Link
+                  className="inline-flex min-h-11 items-center"
+                  href={tutorsHref({ subject, level, language })}
+                >
+                  Clear lesson time filter
+                </Link>
+              </div>
+            </div>
+          ) : matches.length === 0 ? (
+            subjectName && !level && !language && !preferences ? (
               <EmptyState
                 title={`No tutors teach ${subjectName} on Learli right now`}
                 href="/tutors"
@@ -155,7 +223,11 @@ export default async function TutorsPage({
                 ))}
               </div>
               <div className="mt-4">
-                <TutorList tutors={shown} />
+                <TutorList
+                  tutors={shown}
+                  nextTimes={nextTimes}
+                  timezone={preferences?.timezone}
+                />
               </div>
               {pages > 1 && (
                 <nav
@@ -169,6 +241,7 @@ export default async function TutorsPage({
                         subject,
                         level,
                         language,
+                        preferences,
                         page: current - 1,
                       })}
                     >
@@ -185,6 +258,7 @@ export default async function TutorsPage({
                         subject,
                         level,
                         language,
+                        preferences,
                         page: current + 1,
                       })}
                     >

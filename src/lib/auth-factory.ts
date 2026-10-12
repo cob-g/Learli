@@ -1,6 +1,7 @@
 // Node-only factory shared by runtime and real-database tests/local fixtures.
 import { betterAuth } from "better-auth";
-import { APIError } from "better-auth/api";
+import { APIError, isAPIError } from "better-auth/api";
+import { emailOTP } from "better-auth/plugins/email-otp";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { eq } from "drizzle-orm";
 import { authOptions } from "./auth-options";
@@ -9,6 +10,7 @@ import * as schema from "./db/schema";
 import { captureLocalMail } from "./email/local-mail";
 import { syntheticEmail } from "./local-mode";
 import { parseServerEnv } from "./env/schema";
+import { createEmailProofBinding } from "@/features/account-email/proof-context";
 
 export function createLocalAuth(source: Record<string, string | undefined>) {
   const env = parseServerEnv(source);
@@ -21,12 +23,72 @@ export function createLocalAuth(source: Record<string, string | undefined>) {
     throw new Error("Local authentication is unavailable.");
   const environment = env.APP_ENV;
   const { db, pool } = createDatabase(env.DATABASE_URL, environment === "test");
+  const emailProofBinding = createEmailProofBinding();
   const auth = betterAuth({
     ...authOptions,
     baseURL: env.APP_URL,
     secret: env.BETTER_AUTH_SECRET,
     trustedOrigins: [env.APP_URL],
+    onAPIError: {
+      // Better Call logs unknown errors even when Better Auth logging is disabled.
+      // Its synchronous hook catch converts this fresh APIError without raw params.
+      onError(error) {
+        if (!isAPIError(error))
+          throw new APIError("INTERNAL_SERVER_ERROR", {
+            message: "Account service is unavailable.",
+          });
+      },
+    },
     database: drizzleAdapter(db, { provider: "pg", schema, transaction: true }),
+    verification: {
+      storeIdentifier: {
+        default: "plain",
+        overrides: Object.fromEntries(
+          ["email-verification-otp-", "change-email-otp-"].map((prefix) => [
+            prefix,
+            {
+              hash: (identifier: string) =>
+                emailProofBinding.identifier(
+                  identifier,
+                  env.BETTER_AUTH_SECRET!,
+                  async (plain) => {
+                    const rows = await db
+                      .select({ id: schema.verification.id })
+                      .from(schema.verification)
+                      .where(eq(schema.verification.identifier, plain))
+                      .limit(1);
+                    return rows.length > 0;
+                  },
+                ),
+            },
+          ]),
+        ),
+      },
+    },
+    plugins: [
+      emailOTP({
+        changeEmail: { enabled: true, verifyCurrentEmail: true },
+        storeOTP: "hashed",
+        expiresIn: 300,
+        allowedAttempts: 3,
+        disableSignUp: true,
+        overrideDefaultEmailVerification: false,
+        sendVerificationOnSignUp: false,
+        async sendVerificationOTP({ email, otp, type }) {
+          if (type !== "email-verification" && type !== "change-email")
+            throw new Error("Local email confirmation is unavailable.");
+          await captureLocalMail(environment, {
+            kind:
+              type === "change-email"
+                ? "email-change-new"
+                : "email-change-current",
+            to: email,
+            url: `${env.APP_URL}/account/email`,
+            otp,
+          });
+        },
+      }),
+    ],
     emailVerification: {
       ...authOptions.emailVerification,
       sendVerificationEmail: async ({ user, url }) =>
@@ -84,6 +146,13 @@ export function createLocalAuth(source: Record<string, string | undefined>) {
       },
     },
   });
-  return { auth, db, pool, origin: env.APP_URL, environment };
+  return {
+    auth,
+    db,
+    pool,
+    origin: env.APP_URL,
+    environment,
+    emailProofBinding,
+  };
 }
 export type AuthRuntime = ReturnType<typeof createLocalAuth>;

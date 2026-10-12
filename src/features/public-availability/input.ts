@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isValidTimeZone } from "@/lib/time/time-zone";
+import { teachingLanguageCodes } from "@/features/tutors/teaching-languages";
 
 export const PUBLIC_CANDIDATE_LIMITS = Object.freeze({
   tutors: 20,
@@ -46,3 +47,16 @@ export const publicCandidateQueryInput = z
   );
 
 export type PublicCandidateQuery = z.infer<typeof publicCandidateQueryInput>;
+
+/** Directory-only additive contract; original profile/matching input stays strict. */
+export const publicDirectoryCandidateQueryInput = z.strictObject({
+  tutorSlugs: z
+    .array(publicSlugInput)
+    .min(1)
+    .max(PUBLIC_CANDIDATE_LIMITS.tutors)
+    .refine((slugs) => new Set(slugs).size === slugs.length),
+  subjectSlug: publicSlugInput.optional(),
+  level: publicLevelInput.optional(),
+  language: z.enum(teachingLanguageCodes).optional(),
+  displayTimezone: publicZoneInput,
+});

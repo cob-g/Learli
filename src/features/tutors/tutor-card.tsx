@@ -4,6 +4,10 @@ import { learnerLevels } from "@/lib/db/schema/app";
 import { cn } from "@/lib/utils";
 import type { PublicTutor } from "./eligibility";
 import { teachingLanguageNames } from "./teaching-languages";
+import {
+  LessonTime,
+  type LessonTimeValue,
+} from "@/features/bookings/lesson-time";
 
 function initials(name: string) {
   const words = name.trim().split(/\s+/).filter(Boolean);
@@ -44,15 +48,18 @@ export function tutorLevels(tutor: PublicTutor) {
 }
 
 /**
- * Tutors as one list, one row each. No time column yet: availability arrives
- * with M4, and a row never shows a time, rating or price it cannot back.
+ * Directory rows optionally show an actual dated, viewer-local open time.
  */
 export function TutorList({
   tutors,
   heading: Heading = "h2",
+  nextTimes,
+  timezone,
 }: {
   tutors: PublicTutor[];
   heading?: "h2" | "h3";
+  nextTimes?: Record<string, LessonTimeValue>;
+  timezone?: string;
 }) {
   return (
     <ul className="@container divide-y divide-border rounded-surface border border-border bg-surface px-4 md:px-6">
@@ -84,10 +91,18 @@ export function TutorList({
                     ? `Teaching languages (tutor-declared): ${teachingLanguageNames(tutor.teachingLanguages).join(" · ")}`
                     : "No teaching languages listed"}
                 </p>
+                {nextTimes?.[tutor.slug] && (
+                  <div className="mt-4">
+                    <p className="text-small text-muted-foreground">
+                      Next time that fits
+                    </p>
+                    <LessonTime value={nextTimes[tutor.slug]} />
+                  </div>
+                )}
               </div>
             </div>
             <Link
-              href={`/tutors/${tutor.slug}`}
+              href={`/tutors/${tutor.slug}${timezone ? `?displayTimezone=${encodeURIComponent(timezone)}` : ""}`}
               aria-label={`View profile: ${tutor.displayName}`}
               className="action action-outline w-full shrink-0 after:absolute after:inset-0 @3xl:w-auto"
             >

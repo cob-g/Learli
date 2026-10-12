@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.15 — Four-feature wave merged locally
+> **Version:** 1.17 — Independent review repairs verified locally
 > **Last updated:** 2026-10-12\
-> **Current overall status:** **Four-feature wave committed and merged locally; next wave being prepared**
+> **Current overall status:** **Three-feature review repairs verified locally; coordinator independent re-review/acceptance pending**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -14,6 +14,146 @@
 **Status legend:** `Documented` = specified only · `Planned` = not verified as started · `In progress` = active work with evidence · `Blocked` = waiting on an explicit decision/dependency · `Done` = verified and linked to evidence.
 
 ---
+
+## Independent three-feature review repairs — verified locally, 2026-10-12
+
+- AUTHORIZED — build-feature delegation, task_3e630db5b07f / ctx_085e3cac6d28;
+  sole candidate editor on cob-g/m5-three-feature-integration at b6cf237. All61
+  frozen files/inventory and both aggregates matched before repair. F1 and M1 are
+  the only authorized findings; no separate human blueprint approval is claimed.
+- Email form now provides fixed safe inline email/current-code/new-code errors,
+  named aria-describedby/invalid states and first-invalid-control focus. Invalid
+  input sends no request; safe address correction, transient masked proof handling,
+  stale-error clearing, provider/uncertainty alerts, no-JS and native recovery stay.
+  Next Up accurately records integration/review/repair and next root decision.
+- Same-agent read-only scoped Review PASS/READY FOR VERIFICATION, zero findings;
+  not independent re-review. Separate Verify PASS: npm run check657/35files plus
+  format/lint/types, production build, focused account-email5/5 and one complete
+  default single-worker browser117/117 in26files (all original115 plus2 new).
+  Actual desktop1440/phone390 keyboard correction, every invalid combination,
+  new-code stage, no request, pending/clear/success, axe/overflow and proof text/
+  storage/URL checks pass. Four safe new captures visually inspected.
+- Prior389 real-PG/24files and fresh17/populated0015→0016/grant proof retained,
+  not rerun:370 relevant backend/schema/config/PG-test inputs and5proof/log hashes
+  remain exact. Only email presentation and its component/browser tests changed.
+  No installation, seed/reset, migration or backend/provider/grant alteration.
+- Current bounded diagnostic privacy PASS; final packaging rechecks report,
+  manifest and memory. Original559 artifacts remain exact after restoring capture
+  paths; restricted original HTML/binaries/earlier stdout are outside clean-text
+  claims. Original source/integration failure history remains unchanged.
+- Evidence: .local/next-wave/recovery-final/report.md and manifest.json; canonical
+  handoff prompts/recovery/2026-10-12-three-feature-review-repairs.md. Root owns
+  independent F1/M1/full-delta re-review, freeze and acceptance/merge decision.
+  No independent re-review pass, commit/merge/push/deploy or launch clearance.
+  Existing13 advisories and all real-user/commercial/consent/safeguarding/hosted
+  provider/production gates remain. Owned55494/3054/3154 only; data preserved.
+
+## Independent three-feature review repairs — implementation checkpoint, 2026-10-12
+
+- AUTHORIZED — build-feature delegation, root-confirmed task_3e630db5b07f /
+  ctx_085e3cac6d28. Initial61-file candidate exactly matches frozen per-file hashes
+  and both root/worker aggregates. Existing source/integration evidence preserved.
+- Recover classifies F1/M1 as targeted existing-contract repairs. Email form now
+  maps known validator paths to bounded fixed inline errors, aria associations and
+  first-invalid focus; correction/submission/stage/restart clears stale errors.
+  Safe address input remains for correction; proof values remain transient/masked.
+  Provider/uncertain alerts, no-JS gate and native recovery/completion stay intact.
+- Meaningful component/browser coverage added for each invalid-field combination,
+  new-address code correction, no request, pending/success and proof privacy.
+  Next Up now states factual implementation/review/repair status. No backend,
+  config, schema, grant, dependency or business/policy change is authorized.
+- Same-agent read-only Review and separate executed check/build/full default
+  browser verification NOT RUN at this checkpoint. Prior389real-PG/migration/grant
+  proof retained only after exact relevant-hash comparison. Canonical handoff:
+  prompts/recovery/2026-10-12-three-feature-review-repairs.md; new operational
+  evidence .local/next-wave/recovery-final/. Root independent re-review/acceptance
+  remains pending; no commit/merge/push/deploy or real-user launch clearance.
+
+## Three-feature integration — verified local candidate, 2026-10-12
+
+- AUTHORIZED — build-feature delegation, task_94ea6f3227f7 / ctx_8f7e5db1f502;
+  owned cob-g/m5-three-feature-integration at b6cf237. Explicit source acceptance/
+  freeze preceded import;65 source/snapshot/report entries verified. Blueprint
+  prompts/features/m3-05-three-feature-integration.md. No separate human approval.
+- Integrated directory actual-date preferences, verified own email changes and
+  specialized name maintenance. Reconciled all shared context insertions and
+  serial default browser projects. Only catalog0016 is additive; all32 historical
+  SQL/metadata files and dependency manifests remain baseline-identical.
+- Added4 combined real-PG and2 browser cases:21-tutor rename/deactivation versus
+  exact dated paging/matching; preserved references/history; old-session catalog/
+  private learner/booking/meeting denial, exact roles/ownership and current notice
+  recipient/capture; stale/suspended proof gates; real provider failure log privacy.
+- Same-agent read-only Review PASS/READY FOR VERIFICATION after scoped re-reviews;
+  separate Verify current PASS: npm run check651/35files (format/lint/types), full
+  real-PG389/24files, production build, final single full default browser115/26files
+  (101 inherited+12source+2combined), fresh17 migrations and populated0015→0016
+  preservation of32 original table projections, historical constraints/triggers,
+  schema/hash/grant and four actual forbidden-column probes. Owned55494/3054/3154.
+- Actual phone/desktop/320px/keyboard/axe/no-JS/Back/pending/forced-color/reflow
+  coverage passed. Six safe captures inspected; original captures/hashes retained.
+  Current candidate recreates the absent inherited observation folder and writes
+  all four sanitized observations with every original assertion preserved.
+- Privacy recovery: installed provider fallback logged one generated synthetic
+  session token; a diagnostic excerpt also exposed it. Exact owned session was
+  provider-revoked, original log hash and redacted history retained. Earlier tool
+  output cannot be removed. Root-authorized synchronous safe APIError normalization
+  preserves known statuses and partial-commit uncertainty; no runtime console or
+  dependency patch, direct auth-row rewrite, or peer operation. Final production
+  injected failure passes without raw fallback. Root separately contained source
+  fixture tokens without source edits; that operational result is distinct.
+- Bounded privacy PASS:265 production source files,123 artifact/client files at
+  initial packaging checkpoint,10 public/auth responses,141 local notice HTML,
+  and2192 private auth captures validated. Final report/manifest/memory are scanned
+  again before settlement. Private original HTML reports retain synthetic inputs
+  under restricted ignored storage with hashes; they are not certified clean.
+- Failed import/format/type/fixture/privacy/harness attempts remain in the canonical
+  Recover note and ignored logs. Only candidate harness/name uniqueness and safe
+  auth error normalization differ from exact frozen imports outside shared docs/
+  config. No assertion removed or gate waived. Report .local/next-wave/integration-report.md,
+  exact manifest .local/next-wave/manifest.json; ignored Remember handoff is the final
+  packaging step. No runtime finding or required local check remains unresolved.
+- Next: coordinator's independent auth/session and directory/catalog/migration
+  reviews of this exact uncommitted candidate. No commit/merge/push/deployment,
+  main/source edits, main/peer DBs, real identities or external mail. Inherited13
+  advisories and real consent/safeguarding/commercial/provider/launch gates remain.
+
+## Historical privacy recovery checkpoint — 2026-10-12
+
+- Initial combined check651, real-PG388, build and full browser115 passed; fresh/
+  populated0015 upgrade preserves32 original table projections. Final privacy
+  caught raw provider fallback logging of one generated local fixture token; a
+  diagnostic excerpt also exposed it. Exact session revoked through existing
+  provider-backed API; original log hash and sanitized history retained. Earlier
+  tool output cannot be removed. Root msg_751cd42ed21c authorizes scoped normalizer.
+- Implemented supported synchronous safe-error normalization and meaningful real
+  failure/log-privacy test. Known provider status and partial-commit uncertainty
+  behavior preserved. Earlier auth-sensitive evidence is historical; full renewed
+  Review/Verify and final privacy remain pending. No main/peer/live operation.
+
+## Initial three-feature implementation checkpoint, 2026-10-12
+
+- AUTHORIZED — build-feature delegation for task_94ea6f3227f7 / ctx_8f7e5db1f502;
+  clean owned branch cob-g/m5-three-feature-integration at b6cf237. Explicit
+  coordinator source acceptance/freeze read before import; blueprint
+  prompts/features/m3-05-three-feature-integration.md. No human blueprint review
+  is claimed. All65 source/snapshot/report entries matched before import.
+- Imported the three accepted local candidates, retaining source reports/manifests
+  under ignored .local/next-wave/sources. Reconciled every shared context insertion
+  from the common baseline and additive Playwright projects; only catalog0016 is
+  new. Historical0000–0015 remain unchanged. Narrow inherited recursive mkdir
+  now owns four-feature observation setup, retaining all assertions.
+- Added combined real-PG/browser regressions for rename/deactivation versus dated
+  discovery/matching, stable references, email/session authority versus catalog
+  and private participant reads, current notice recipient and public privacy.
+- Owned ports55494/3054/3154 verified available; pinned npm ci and local synthetic
+  setup completed, separated dev/test. Importer's original overly strict EOF-only
+  document assumption is preserved in the integration Recover note; all source
+  context changes were insertions and are retained, no overwrite/reset.
+- Review and combined verification NOT RUN at this checkpoint. Source passes
+  below remain historical independent candidates, not combined success. Next:
+  finish migration proof harness, full same-agent read-only Review, then separate
+  full Verify and Remember. Root owns later independent review. No commit/merge/
+  push/deploy, main/peer DB/source edits, real users or external mail.
 
 ## Current targeted recovery — 2026-10-12
 
@@ -36,7 +176,7 @@
 ## Next Up
 
 1. **Completed:** the user authorized commit and merge on 2026-10-12. Exact reviewed 94-file candidate committed as `dcf2c55b0a38a233529e6aeea0ecce65bb63ff66` and fast-forwarded into local `main`. All 94 accepted file hashes match after merge; working tree was clean. Existing check/build/101 browser and applicable historical 337 PostgreSQL/migration evidence remain unchanged.
-2. **Current authorization:** select, launch and supervise the next feature wave through `$build-feature`. Prepare three independent slices: directory actual-date availability filters (M3.5/M4.11), provider-supported local verified email changes (M2.9/AUTH-04), and safe specialized-subject name maintenance (M3.1/M5.6/ADM-02). Each gets its own worktree/branch and isolated services; no implementation result is claimed yet.
+2. **Current local wave:** all three accepted/frozen sources are integrated and locally verified in the owned candidate. Independent auth and marketplace reviews are complete; root authorized the two Minor existing-contract repairs (F1 email-field validation accessibility and M1 stale tracker wording). Scoped same-agent Review and separate local Verify passed; coordinator independent re-review, candidate acceptance and any separately authorized commit/merge decision are next. Original slices: directory actual-date availability filters (M3.5/M4.11), provider-supported local verified email changes (M2.9/AUTH-04), and safe specialized-subject name maintenance (M3.1/M5.6/ADM-02). Sources and isolated service ownership remain preserved.
 3. **Deferred operations:** main local database remains at migrations0000–0012; new0013–0015 remain pending there. Existing worktrees/databases/evidence are preserved. The user's wording leaves main migration and old-worktree cleanup afterward. No push/deployment, real-user launch, or next-wave commit/merge is authorized by this step. New workers migrate only their own isolated databases.
 
 ## Four-feature merge — 2026-10-12
@@ -188,6 +328,45 @@ These are **documented selections, not proof of completed deployment or code**.
 | Legal/safeguarding details for operating markets and child learners | **Open / launch-gated** | Basic protections remain mandatory; no real minor onboarding until approved controls are in place |
 
 ## Session Notes
+
+### Session — 2026-10-12 (specialized subject names — verified local candidate)
+
+- Own clean-start branch `cob-g/m5-specialized-subject-editing`, baseline
+  `b6cf237554b3d46e1e4c58ce10e1ef3ebafe10c0`; AUTHORIZED — build-feature
+  delegation for task_2b4d3ee1c279. Blueprint
+  `prompts/features/m3-01-specialized-subject-name-maintenance.md` (ADM-02,
+  TUT-03, MATCH-02; M3.1/M5.6). Coordinator confirms exclusive0016 ownership.
+- Implemented narrow specialized-name validation/service/API/editor, locked
+  current-admin recheck, duplicate/stale/identical-retry handling and atomic audit.
+  Additive0016 owns DB name revision, fixed-reference/core-name trigger and
+  renamed audit action; historical0000–0015 unchanged. Public discovery/matching
+  implementation stays untouched. Runtime UPDATE is column-limited.
+- Pinned Node24.20.0/npm11.19.0 npm ci PASS777packages, inherited13 advisories
+  retained; owned PostgreSQL17.11 setup PASS atDB55493/dev3053/test3153.
+  Fresh dev/test and populated0015→0016 proof PASS: all32 original table row
+  projections unchanged,16 historical SQL hashes unchanged, narrowed grants.
+- Same-agent read-only Review PASS / READY FOR VERIFICATION, including scoped
+  re-reviews after harness repairs; separate same-agent Verify PASS locally.
+  Current npm run check PASS628 unit/component tests in31 files (check-6.log),
+  full npm run test:integration PASS354 in21 files, npm run build PASS.
+  Default browser discovery106 in23 files. Full run97 PASS with four inherited
+  artifact-parent ENOENT failures and five blocked; scoped recovery passed those
+  four, and final subject-rename project PASS5. Thus106 unique cases passed across
+  preserved/full and scoped runs, not a single uninterrupted green full run.
+  Keyboard/axe at320/390/768/1024/1440, forced colors/reduced motion, stale tabs,
+  native no-JS, real pending lock, network failure and live public names covered;
+  screenshots visually inspected. UI detector PASS. Privacy scan is local scoped
+  evidence, not a claim about every historical/transient output.
+- Failed attempts and targeted Recover history are retained in
+  `prompts/recovery/2026-10-12-specialized-subject-verification.md`; exact commands,
+  Review/Verify separation, limitations and hashes are in ignored
+  `.local/next-wave/report.md` and manifest.json. The inherited integration test
+  assumes `.local/four-feature/recovery-final` exists; own directory was created,
+  no inherited test changed. Root should reconcile that fresh-checkout seam.
+- Local synthetic only; no commit/merge/push/deploy, main/peer database,
+  external mail/provider or real-policy change. Remember saves ignored memory.md.
+  Next: root freezes/hashes source, independently reviews and integrates the
+  candidate; deployment/main DB migration and all launch gates remain deferred.
 
 ### Session — 2026-10-11 (M2.9 signed-in password change — verified local candidate)
 
@@ -1006,3 +1185,56 @@ Copy this compact entry for the next session; include only **actual evidence**:
 - New local report/runtime/candidate manifests under recovery-final; root owns
   independent scoped re-review/acceptance/refreeze. No commit/merge/push/deploy,
   production/provider action, reset or worktree removal. Real policy gates remain.
+
+
+### Session — 2026-10-12 (M3.5 directory time filters, implementation checkpoint)
+
+- Isolated branch cob-g/m3-directory-time-filters at baseline b6cf237554b3d46e1e4c58ce10e1ef3ebafe10c0; blueprint prompts/features/m3-05-directory-time-filters.md records AUTHORIZED — build-feature delegation and coordinator-approved capacity/provider seam.
+- Implemented optional native-GET viewer zone/weekday/time-band filtering, safe URL canonicalization, exact full-set counts before paging, preserved name order and plain browse, real dated shared-provider reads with language/current eligibility rechecks, full viewer-local row times and distinct invalid/empty/unavailable states.
+- Owned local PostgreSQL17 setup on55491 with separated dev/test databases; pinned Node24.20.0/npm11.19.0 npm ci and committed0000–0015 migrations completed locally. No schema/dependency/lockfile changes. Unit/component/real-PG/browser regressions authored; no verification result claimed yet.
+- Same-agent read-only Review and separately executed Verify pending. Inherited13 audit findings and production/consent/safeguarding/commercial gates retained. Next: review current diff, execute required checks, recover defects, save scoped report/manifest and ignored memory.
+
+- Read-only Review R1 found same-query enhanced-navigation pending persistence; scoped Recover diagnosed a targeted UI repair in prompts/recovery/2026-10-12-directory-time-filters.md. Implementation restored native GET navigation with pending feedback and restoration reset; added an actual-browser same-query regression. Fresh Review/Verify pending.
+
+- Separate Verify observed full isolated real-PG PASS348/348 in21files. Check attempt1 failed formatting only; attempt2 passed format/lint/typecheck and616cases but one URL round-trip failed due key ordering. Scoped Recover R2/R3 preserved both logs, formatted the owned test and repaired per-key canonical comparison; current check/build/browser verification remains pending.
+
+- Build PASS after check3 PASS617/617. Full browser attempt1 recorded97PASS/4FAIL/4not-run: four inherited observation writes needed an owned empty ignored artifact directory, now created without peer copying. Recover R4/R5 also diagnosed and repaired inherited-key truthiness in optional directory results, with unit/real-PG empty constructor-slug regressions; fresh Review/current verification pending, failed evidence retained.
+
+
+### Session — 2026-10-12 (M3.5 directory filters verified locally)
+
+- Current scoped implementation matches prompts/features/m3-05-directory-time-filters.md, AUTHORIZED — build-feature delegation. Same-agent read-only Review PASS/READY FOR VERIFICATION after scoped Recover R1–R7; no remaining confirmed findings. Review executed no tests.
+- Separate Verify: current npm run check PASS618/618 in31files plus format/lint/typecheck; full owned real PostgreSQL PASS349/349 in21files; NEXT_TELEMETRY_DISABLED=1 npm run build PASS. Default discovery105cases/23files; full browser attempt2 passed101 inherited cases, then new pending harness failed. After test-only DOM-observer repair, affected directory project4/4PASS on unchanged build, covering all105 cases without duplicating unchanged baseline gates. This is aggregate current coverage, not a single105-case all-pass run.
+- Directory proves real dated shared-provider/matching agreement, full-interval DST cases, time off/live holds/elapsed holds, current profile/account/verification/role/language/offering/disabled-subject exclusion,21 complete batched matches and exact20+1 paging,100-cap fail-closed behavior and uncapped browse, safe malformed params, no private DTO values, native no-JS/Back/keyboard, axe/overflow at320/390/1440. Public phone/desktop/empty captures visually inspected.
+- Earlier failed style/query/pending/artifact attempts remain in own ignored logs and canonical prompts/recovery/2026-10-12-directory-time-filters.md. Successful probe confirmed actual hydrated pending DOM; probes/server ended. Scoped report/manifest in .local/next-wave and ignored memory handoff record exact evidence/limitations.
+- No schema/migration/dependency/lockfile/matching-policy/auth/account/subject implementation changes, commits, merge/push/deploy, peer imports, production/provider actions or real users. Inherited13 advisories and commercial/consent/safeguarding/provider/production gates remain. Next: coordinator source freeze and integration; main migration/old-worktree cleanup deferred.
+
+### 2026-10-12 — M2.9 local verified account email change (worker, verified)
+
+Isolated baseline b6cf237554b3d46e1e4c58ce10e1ef3ebafe10c0; scoped blueprint
+`prompts/features/m2-09-verified-account-email-change.md`, authority
+AUTHORIZED — build-feature delegation. Implemented current/new provider OTP
+flow, exact active verified fresh owner/session boundary, private local capture,
+pending/uncertain UI and other-session revocation. Supported provider identifier
+hashing protects ambiguous address pairs and rejects plain fallback records;
+Recover source finding retained. Owned npm ci and local setup passed with
+unchanged pinned dependencies/lockfile, migrations0000–0015 and inherited13
+audit findings. Same-agent read-only Review7 is READY FOR VERIFICATION with no
+confirmed findings; it is not independent review. Current `npm run check` passes
+31 files/607 tests, `npm run build` passes, and full isolated PostgreSQL
+`npm run test:integration` passes21 files/356 tests (19 own email cases).
+Original failed provider-prefix, component timing, production bundle-context,
+alert-locator and intermediate-contrast attempts remain in scoped Recover/report.
+Runtime-owned scoped proof binding addresses the production-only module split;
+email submit colors now change immediately using existing tokens. Full browser2
+passed101 existing cases; after local-only email UI/fixture repairs, final affected
+browser4 passed all3 new cases, including real confirmation/captured-link
+navigation, desktop1440/phone390/narrow320 keyboard/axe, no-JS and actual partial
+revocation recovery. Provider/business source is unchanged from integration3;
+unaffected successful suites were reused, not falsely relabeled full104 success.
+Final `check-6` (607), `build-4`, `integration-3` (356), browser2 (101 original)
+and browser4 (3 own) evidence are in `.local/next-wave/report.md`; source manifest
+and ignored Remember handoff accompany coordinator freeze. No open feature
+blocker; next: coordinator independent scoped acceptance/integration. Real-user
+launch/policy and inherited13 audit gates remain. No commit/push/deploy or
+production/external delivery/cleanup operation.

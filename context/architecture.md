@@ -814,6 +814,23 @@ One nonblocking global provider-capacity slot precedes the account lock to keep
 distinct concurrent wrappers from saturating the shared five-connection pool.
 See `docs/decisions/2026-10-11-signed-in-password-change.md`.
 
+**Local signed-in email boundary — 2026-10-12:** delegated M2.9 adds private
+`POST /api/account/email` with strict start/request/confirm stages for active
+verified synthetic owners. Better Auth1.7.7 emailOTP requires current-address
+proof before issuing new-address proof, stores hashed five-minute single-use
+codes and enforces HTTP throttles. Each stage rechecks the exact persisted
+session and configured freshness. Supported identifier-prefix custom hashing
+adds purpose/owner/session/address binding through scoped server context and
+rejects matching plain legacy rows read-only. The scoped context belongs to the
+actual auth runtime/hasher closure to preserve binding across Next bundles;
+unrelated auth identifiers stay unchanged. No auth-row/token rewrites or
+additional identity store/schema.
+Completion retains this session, revokes others through the provider, and fully
+replaces the private document. Partial revocation failure discloses that email
+may already have changed and directs native account/session recovery. Raw OTP
+and core change-email routes remain closed; local private capture only. See
+`docs/decisions/2026-10-12-verified-account-email-change.md`.
+
 ### 10.2 Recommended integration pattern
 
 - Mount Better Auth at `src/app/api/auth/[...all]/route.ts`.
@@ -1455,3 +1472,43 @@ all guarded reads/writes and validated return/booking paths remain unchanged.
 Fresh public SSR and no-JS navigation remain ordinary server responses. Existing
 successful sign-out/sign-in replacements remain. Recovery/runtime evidence is
 separate from historical verification, under .local/four-feature/recovery-final/.
+
+
+### M3.5 directory actual-date read composition (2026-10-12)
+
+AUTHORIZED — build-feature delegation, including coordinator approval of the
+directory-only optional-filter provider seam and capacity bound. The original
+profile/matching public query contract remains strict. Directory reads share
+the same read-only, repeatable-read candidate engine and current eligibility
+predicate; optional subject, level and declared-language filters are rechecked
+inside each batch. At most100 pre-candidate eligible tutors are evaluated in
+at most5 complete batches of20. Intersect batch start horizons before whole-
+interval matching. Over-cap, row/output overflow and provider failure are
+unavailable states with no partial count/list. Plain directory browsing is
+uncapped and unchanged. Snapshots across batches are advisory; reservations
+always revalidate. No schema, migration, production policy or write-path change.
+
+### Local specialized-subject display-name maintenance — 2026-10-12
+
+Delegated ADM-02/M3.1/M5.6 adds subject name_revision and subject.renamed audit
+in forward0016. A DB-owned revision advances only on an actual specialized-name
+change; core launch names and subject ID/slug/category stay fixed. Column-limited
+runtime UPDATE permits name/is_active/updated_at. Rename locks the subject under
+READ COMMITTED, rechecks current session/verification/access/admin authority on
+the transaction connection, rejects differing stale edits and uses existing
+lower(name) uniqueness. Name plus minimal audit commit together; identical
+retries are no-ops. Existing activation, tutor offerings, bookings and historical
+snapshots remain. Public consumers continue reading current catalog names through
+their existing eligibility/reference joins. No public/matching service changes or
+real-user launch authority; exact executed evidence belongs to the tracker.
+
+### Integration local auth error privacy — 2026-10-12
+
+The integration runtime synchronously normalizes unknown provider HTTP errors
+through supported onAPIError.onError into a fresh safe APIError500. Installed
+Better Call otherwise logs raw non-API exceptions despite logger.disabled, including
+Drizzle parameters. Known provider statuses, proof binding and all permission/
+origin/throttle/session behavior remain; partial revocation retains uncertainty.
+No global console replacement, auth-row rewrite or dependency patch. Exact local
+fixture containment and sanitized evidence are in the integration Recover note;
+see docs/decisions/2026-10-12-local-auth-error-privacy.md. Local synthetic only.

@@ -1,22 +1,17 @@
 import { randomBytes } from "node:crypto";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import type { Database } from "@/lib/db/connection";
 import { pgErrorCode, uniqueViolation } from "@/lib/db/errors";
 import { auditEvents, subjects } from "@/lib/db/schema";
 import { requireRole } from "@/lib/permissions/access";
+import { AccessError } from "@/lib/permissions/access";
 import { RuleError } from "@/lib/rule-error";
 import { slugify } from "./slug";
+import { subjectNameInput, subjectRenameInput } from "./input";
 
-export const subjectNameInput = z.strictObject({
-  name: z
-    .string()
-    .trim()
-    .min(2)
-    .max(60)
-    .regex(/^[\p{L}\p{N}][\p{L}\p{N} &+\-'().,/]*$/u),
-});
+export { subjectNameInput } from "./input";
 export const subjectStateInput = z.strictObject({ isActive: z.boolean() });
 
 const columns = {
@@ -38,7 +33,73 @@ export async function listSubjectsForAdmin(
   headers: Headers,
 ) {
   await requireRole(runtime, headers, "admin");
-  return listSubjects(runtime.db);
+  return runtime.db
+    .select({ ...columns, nameRevision: subjects.nameRevision })
+    .from(subjects);
+}
+
+/** Stable references survive rename; the locked current name is authoritative. */
+export async function renameSpecializedSubject(
+  runtime: AuthRuntime,
+  headers: Headers,
+  subjectId: string,
+  input: unknown,
+) {
+  const identity = await requireRole(runtime, headers, "admin");
+  const { name, expectedRevision } = subjectRenameInput.parse(input);
+  if (!z.uuid().safeParse(subjectId).success)
+    throw new RuleError(404, "We can't find that subject.");
+  const renameColumns = { ...columns, nameRevision: subjects.nameRevision };
+  try {
+    return await runtime.db.transaction(async (tx) => {
+      const [current] = await tx
+        .select(renameColumns)
+        .from(subjects)
+        .where(eq(subjects.id, subjectId))
+        .for("update");
+      // A new READ COMMITTED statement after the domain lock wait uses this
+      // transaction connection, without a nested provider/pool checkout.
+      const authorized = await tx.execute<{ allowed: boolean }>(sql`
+        SELECT EXISTS (
+          SELECT 1 FROM session s
+          JOIN "user" u ON u.id = s.user_id
+          JOIN user_access a ON a.user_id = u.id
+          WHERE s.id = ${identity.sessionId} AND s.user_id = ${identity.userId}
+            AND s.expires_at > clock_timestamp() AND u.email_verified
+            AND a.status = 'active'
+            AND EXISTS (SELECT 1 FROM user_roles r
+              WHERE r.user_id = u.id AND r.role = 'admin')
+        ) AS allowed
+      `);
+      if (!authorized.rows[0]?.allowed) throw new AccessError(403);
+      if (!current) throw new RuleError(404, "We can't find that subject.");
+      if (current.category !== "specialized")
+        throw new RuleError(403, "The launch subject names are fixed.");
+      // Identical retries never advance the revision or duplicate the audit.
+      if (current.name === name) return current;
+      if (current.nameRevision !== expectedRevision)
+        throw new RuleError(
+          409,
+          "This subject changed. Reload the current name and try again.",
+        );
+      const [changed] = await tx
+        .update(subjects)
+        .set({ name, updatedAt: sql`clock_timestamp()` })
+        .where(eq(subjects.id, subjectId))
+        .returning(renameColumns);
+      await tx.insert(auditEvents).values({
+        actorUserId: identity.userId,
+        targetSubjectId: subjectId,
+        action: "subject.renamed",
+        createdAt: sql`clock_timestamp()`,
+      });
+      return changed;
+    });
+  } catch (error) {
+    if (pgErrorCode(error) === uniqueViolation)
+      throw new RuleError(409, "A subject with that name already exists.");
+    throw error;
+  }
 }
 
 /** Admins add specialized subjects only; the core launch catalog is fixed. */

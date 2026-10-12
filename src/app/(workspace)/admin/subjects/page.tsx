@@ -9,6 +9,7 @@ import {
   SubjectStateButton,
 } from "@/features/subjects/subject-controls";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
+import { SubjectNameForm } from "@/features/subjects/subject-name-form";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Manage subjects",
@@ -42,9 +43,9 @@ export default async function AdminSubjectsPage() {
               return (
                 <li
                   key={subject.id}
-                  className="flex items-center justify-between gap-4 border-b border-border py-2"
+                  className="flex items-start justify-between gap-4 border-b border-border py-2"
                 >
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-body wrap-anywhere">{subject.name}</p>
                     <p
                       className={
@@ -56,6 +57,9 @@ export default async function AdminSubjectsPage() {
                       <Icon size={16} aria-hidden="true" />
                       {subject.isActive ? "Active" : "Inactive"}
                     </p>
+                    {subject.category === "specialized" && (
+                      <SubjectNameForm subject={subject} />
+                    )}
                   </div>
                   <SubjectStateButton subject={subject} />
                 </li>

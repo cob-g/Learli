@@ -16,7 +16,12 @@ import {
 } from "@/features/bookings/demo-schedule";
 import { formatLessonTime } from "@/features/bookings/format-time";
 import type { LessonTimeValue } from "@/features/bookings/lesson-time";
-import { PUBLIC_CANDIDATE_LIMITS, publicCandidateQueryInput } from "./input";
+import {
+  PUBLIC_CANDIDATE_LIMITS,
+  publicCandidateQueryInput,
+  publicDirectoryCandidateQueryInput,
+  type PublicCandidateQuery,
+} from "./input";
 
 export type PublicCandidateTime = LessonTimeValue & {
   tutorTime: LessonTimeValue;
@@ -54,6 +59,23 @@ export async function readPublicCandidates(
   runtime: AuthRuntime,
   input: unknown,
 ): Promise<PublicCandidates> {
+  assertLocal(runtime);
+  return readCandidates(runtime, publicCandidateQueryInput.parse(input));
+}
+
+/** Optional offering filters for directory reads only, with the same public DTO. */
+export async function readPublicDirectoryCandidates(
+  runtime: AuthRuntime,
+  input: unknown,
+): Promise<PublicCandidates> {
+  assertLocal(runtime);
+  return readCandidates(
+    runtime,
+    publicDirectoryCandidateQueryInput.parse(input),
+  );
+}
+
+function assertLocal(runtime: AuthRuntime) {
   if (
     !["development", "test"].includes(runtime.environment) ||
     !isLoopbackOrigin(runtime.origin)
@@ -61,7 +83,22 @@ export async function readPublicCandidates(
     throw new PublicAvailabilityUnavailable(
       "Local simulated open times are unavailable.",
     );
-  const query = publicCandidateQueryInput.parse(input);
+}
+
+async function readCandidates(
+  runtime: AuthRuntime,
+  query: Omit<PublicCandidateQuery, "subjectSlug" | "level"> &
+    Partial<Pick<PublicCandidateQuery, "subjectSlug" | "level">> & {
+      language?: import("@/features/tutors/teaching-languages").TeachingLanguageCode;
+    },
+): Promise<PublicCandidates> {
+  if (
+    !["development", "test"].includes(runtime.environment) ||
+    !isLoopbackOrigin(runtime.origin)
+  )
+    throw new PublicAvailabilityUnavailable(
+      "Local simulated open times are unavailable.",
+    );
   return runtime.db.transaction(
     async (tx) => {
       const clock = await tx.execute<{ milliseconds: number }>(
@@ -72,6 +109,7 @@ export async function readPublicCandidates(
       const eligible = await listEligibleTutorsBySlugs(tx, query.tutorSlugs, {
         subject: query.subjectSlug,
         level: query.level,
+        language: query.language,
       });
       const base = {
         source: "local_simulation" as const,

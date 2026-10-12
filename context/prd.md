@@ -427,6 +427,19 @@ requests are denied; overlapping changes conflict and uncertain provider failure
 offers existing sign-in/reset recovery. See
 `docs/decisions/2026-10-11-signed-in-password-change.md`. Real-user launch stays gated.
 
+<!-- Scoped AUTH-04 local implementation decision; no production launch claim. -->
+
+**2026-10-12 delegated local email slice (AUTH-02/03/04, M2.9):** an active verified
+synthetic owner proves both current and proposed new address using Better Auth's
+supported single-use OTP flow. Each step requires a current fresh session; the
+existing email remains unchanged until new-address verification. Duplicate
+targets use a generic pending response. Proofs are bound to the exact owner,
+session and addresses through supported provider identifier hashing. Completion
+retains the current session and ends other sessions; partial failure explicitly
+discloses uncertainty and offers native account/session recovery. Private local
+capture is the only delivery mechanism. See
+`docs/decisions/2026-10-12-verified-account-email-change.md`; real-user launch stays gated.
+
 #### AUTH-05 — Return to intended booking after authentication `P1 [RECOMMENDED]`
 
 **As a visitor**, I do not lose my chosen tutor/subject after login.
@@ -830,6 +843,14 @@ satisfy human owner/escalation/consent/legal launch gates. See
 - Create/update/deactivate allowed subjects or specialist offerings.
 - Referential integrity prevents breaking existing bookings; deactivation prevents new unsuitable bookings.
 - Changes propagate to search/matching and tutor selection.
+
+Local delegated subset (2026-10-12): active verified admins can correct only
+specialized display names using existing trimmed 2–60-character name rules.
+Core launch names stay fixed. Duplicate/stale edits fail, identical retries do
+not duplicate audit, and actual name/audit changes commit atomically. Subject
+ID/slug/category/active state, tutor offerings and booking/history records stay
+intact. Existing discovery/matching references read current names. This does not
+authorize deletion, taxonomy expansion or a whole-milestone/launch promotion.
 
 #### ADM-03 — Booking/support lookup `P0 [AGREED]`
 
@@ -1350,3 +1371,17 @@ simulation state and stored status events appear; learner/contact/meeting/notice
 data are excluded. Successful reviewer projections receive minimal audit. See
 `docs/decisions/2026-10-11-booking-linked-support.md`; real incident/launch gates
 remain OPEN. This is authorized scope, not executed verification.
+
+
+### PUB-03 / MATCH-02/03 directory time filtering clarification (2026-10-12)
+
+AUTHORIZED — build-feature delegation: optional actual-date directory filtering
+uses the existing viewer IANA-zone, weekday and single time-band preferences.
+The complete lesson interval must fit; subject/level must share one actual
+offering and language remains tutor-declared. College Support and ordinary
+no-time browsing remain available. Coordinator-approved capacity: time-filtered
+queries with more than100 eligible tutors after subject/level/language filtering
+show retry/narrow/clear guidance with no partial result count or false empty
+state. Results preserve directory name/slug order and exact20-per-page totals
+within that capacity. Existing local_simulation gate and14-day/60-minute demo
+semantics remain advisory; no production booking or commercial policy approval.

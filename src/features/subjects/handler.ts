@@ -1,6 +1,29 @@
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { handleJsonMutation } from "@/lib/mutation-handler";
-import { createSpecializedSubject, setSubjectActive } from "./service";
+import {
+  createSpecializedSubject,
+  renameSpecializedSubject,
+  setSubjectActive,
+} from "./service";
+import { subjectNameHelp } from "./input";
+
+export function handleSubjectRenameRequest(
+  runtime: AuthRuntime | null,
+  request: Request,
+  subjectId: string,
+) {
+  return handleJsonMutation(
+    runtime,
+    request,
+    {
+      method: "PATCH",
+      bodyLimit: 1024,
+      invalid: () => ({ message: subjectNameHelp }),
+    },
+    (active, input) =>
+      renameSpecializedSubject(active, request.headers, subjectId, input),
+  );
+}
 
 export function handleSubjectCreateRequest(
   runtime: AuthRuntime | null,

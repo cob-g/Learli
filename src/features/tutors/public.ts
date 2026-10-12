@@ -6,6 +6,9 @@ import {
   listEligibleTutors,
   type PublicTutor,
 } from "./eligibility";
+import { readDirectoryAvailability } from "./directory-availability";
+import type { MatchPreferences } from "@/features/matching/preferences";
+import type { TutorFilters } from "./eligibility";
 
 export const tutorsPerPage = 20;
 
@@ -43,6 +46,26 @@ export async function readPublicTutor(slug: string) {
     return runtime ? await findEligibleTutor(runtime.db, slug) : null;
   } catch {
     return undefined;
+  }
+}
+
+/** Provider failure is distinct from genuine no matches. */
+export async function readDirectoryTimes(
+  tutors: PublicTutor[],
+  filters: TutorFilters,
+  preferences: MatchPreferences,
+) {
+  try {
+    const runtime = getAuthRuntime();
+    if (!runtime) return null;
+    return await readDirectoryAvailability(
+      runtime,
+      tutors,
+      filters,
+      preferences,
+    );
+  } catch {
+    return null;
   }
 }
 

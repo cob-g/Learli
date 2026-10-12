@@ -246,6 +246,11 @@ M6 begins **as early as possible in parallel**; postponing decisions until all e
 ### Work packages
 
 - [ ] **M3.1 — Model the subject catalog.** Categories: Math/Science/English, supported exam prep, homework/study skills, and tutor-backed specialized topics. Explicit active/disabled states; no universal subject database or formal international curricula engine.
+  - **2026-10-12 delegated local subset:** specialized display-name correction,
+    stable references, monotonic name revision, duplicate/stale protections and
+    atomic audit. Blueprint `prompts/features/m3-01-specialized-subject-name-maintenance.md`;
+    executed evidence in tracker. Core launch names remain fixed; full launch
+    checkbox and real-user gates remain open.
 - [ ] **M3.2 — Build basic tutor application/profile forms.** Tutor sets truthful headline, bio, supported learner levels/subjects, teaching background and necessary time zone. Use initials/static avatars; no file-upload service by default.
 - [ ] **M3.3 — Build eligibility status gates.** Support `pending`/`approved`/`rejected`/`suspended` or a reviewed equivalent, with restricted administrator actions and audit. **The real screening process is `[OPEN]`; use fictional applications in development until approved.**
 - [ ] **M3.4 — Create public discovery surfaces.** Home, subjects, tutor directory (`/tutors`), tutor detail (`/tutors/[slug]`), tutor application entry, and an accurate how-it-works explanation as prioritized in the PRD.
@@ -805,3 +810,33 @@ for real operations and policy gates; this note does not grant release readiness
 ## Four-feature local assembly —2026-10-11
 
 The authorized local wave combines M2 signed-in password changes, M5 local reservation links, booking-linked synthetic support and exact-target local restrictions. Its frozen import contract is prompts/features/m5-06-four-feature-coordination-wave.md. Source results are historical isolated evidence; combined checks and root independent reviews are distinct gates. No milestone completion, commit, merge or launch authorization follows from this wave.
+
+
+### M3.5 / M4.11 directory filter branch (2026-10-12)
+
+The supervised directory-only slice is implemented in an isolated branch under
+AUTHORIZED — build-feature delegation. Optional actual-date filtering composes
+the existing provider/preferences with exact pre-pagination results and the
+coordinator-approved100-tutor capacity. No migration or dependency change.
+Scoped tests and additive default Playwright registration are authored; Review
+and executed Verify are still pending at this implementation checkpoint. This
+entry does not promote the entire milestone or remove real-launch gates.
+
+
+The M3.5/M4.11 directory branch now has same-agent read-only Review PASS and
+separate local Verify:618unit/component,349real-PG, production build, and105
+registered browser cases covered as101 unchanged full-run inherited passes plus
+4affected directory passes after a test-only native-navigation observation
+repair. Exact failures, commands, scope and limitations are in the branch's
+ignored .local/next-wave/report.md and canonical recovery history. Local slice
+verified; no whole-milestone, integration, production or launch promotion.
+
+### 2026-10-12 — Scoped M2.9 local account email slice
+
+AUTH-02/03/04 email change uses installed provider current/new re-verification
+with exact fresh active verified owner/session binding, private local capture,
+provider atomic consume and other-session revocation. Scoped blueprint:
+`prompts/features/m2-09-verified-account-email-change.md`. Required evidence is
+real provider/database adverse cases plus actual browser confirmation and
+current check/build; partial completion needs explicit recovery. This does not
+mark the whole M2.9 package or production authentication ready.

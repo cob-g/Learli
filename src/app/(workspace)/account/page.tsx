@@ -60,6 +60,12 @@ export default async function AccountPage() {
       <AccountForm account={account} />
       <PasswordForm />
       <Link
+        className="me-6 mt-8 inline-flex min-h-11 items-center"
+        href="/account/email"
+      >
+        Change account email
+      </Link>
+      <Link
         className="mt-8 inline-flex min-h-11 items-center"
         href="/account/sessions"
       >

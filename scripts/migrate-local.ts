@@ -30,7 +30,9 @@ try {
     GRANT UPDATE (status, revision, updated_at) ON support_cases TO learli_app;
     GRANT SELECT, INSERT ON user_access TO learli_app;
     GRANT INSERT ON audit_events TO learli_app;
-    GRANT SELECT, INSERT, UPDATE ON subjects, tutor_profiles TO learli_app;
+    GRANT SELECT, INSERT ON subjects TO learli_app;
+    GRANT UPDATE (name, is_active, updated_at) ON subjects TO learli_app;
+    GRANT SELECT, INSERT, UPDATE ON tutor_profiles TO learli_app;
     GRANT SELECT, INSERT, UPDATE, DELETE ON tutor_subjects, tutor_availability TO learli_app;
     GRANT SELECT, INSERT, DELETE ON tutor_availability_exceptions TO learli_app;
     GRANT SELECT, INSERT, DELETE ON tutor_teaching_languages TO learli_app;

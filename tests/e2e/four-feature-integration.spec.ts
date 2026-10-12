@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { test, expect, type Browser, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { createDatabase } from "../../src/lib/db/connection";
@@ -18,7 +18,10 @@ const password = "Synthetic-combined-browser-password-123";
 const nextPassword = "Synthetic-combined-browser-rotated-456";
 const privateUrl = "https://zoom.us/j/12345678901?pwd=combinedBrowserPrivate";
 test.use({ trace: "off", screenshot: "off" });
-test.beforeEach(() => owner.pool.query("UPDATE rate_limit SET count=0"));
+test.beforeEach(async () => {
+  await mkdir(".local/four-feature/recovery-final", { recursive: true });
+  await owner.pool.query("UPDATE rate_limit SET count=0");
+});
 test.afterAll(() => owner.pool.end());
 async function actor(browser: Browser, role: "tutor" | "parent" | "admin") {
   const context = await browser.newContext({ baseURL });
