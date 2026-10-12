@@ -1512,3 +1512,16 @@ origin/throttle/session behavior remain; partial revocation retains uncertainty.
 No global console replacement, auth-row rewrite or dependency patch. Exact local
 fixture containment and sanitized evidence are in the integration Recover note;
 see docs/decisions/2026-10-12-local-auth-error-privacy.md. Local synthetic only.
+
+### Bounded local diagnostics — 2026-10-12
+
+M8.6/M8.8 delegated readiness work adds a Node-only, fixed-schema stderr emitter
+shared with local CLI tooling. Shared JSON mutation unavailable/unexpected paths
+and connection setup/idle-pool errors emit only allowlisted categories and fresh
+generated UUIDs. No error/request/identity/SQL/private payload is accepted; 20
+attempts per 60-second monotonic process window bounds output, with excess dropped
+and logger failures absorbed. Responses, ownership, transactions, auth-provider
+normalization and process-liveness health are unchanged. This is limited local
+failure visibility, not distributed monitoring, accurate counting or whole
+NFR-10/production observability. See docs/operations/safe-diagnostics.md; execution
+evidence is recorded separately in the tracker.

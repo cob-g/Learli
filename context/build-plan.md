@@ -453,6 +453,12 @@ M6 is **blocked at baseline**, but founders can resolve decisions while engineer
 ### Infrastructure and deployment packages
 
 - [ ] **M8.1 — Build the deployment runbook.** Document runtime/port/health checks, install/build/start commands, Railway environment setup, rollout and rollback behavior based on the **actual repo**, not assumptions.
+  - **2026-10-12 bounded local preparation:** Worker3's delegated blueprint
+    `prompts/features/m8-01-deployment-preparation.md` owns an actual-runtime
+    deployment runbook and read-only preflight. Shell configuration/build/liveness
+    do not establish hosted auth/data/email capability; disabled/local auth and
+    loopback DB gates remain. Executed evidence belongs in progress-tracker.
+    No deployment or complete M8.3/launch promotion follows from this package.
 - [ ] **M8.2 — Deploy one Next.js Node service to Railway.** Attach the generated HTTPS Railway subdomain for development or an approved pilot; verify routes, server actions and DB connections work in the target runtime.
 - [ ] **M8.3 — Separate environments and data.** Development/staging/test credentials and Neon databases must be isolated from real-user production. No synthetic tutor profiles or fake reviews in the public production catalog.
 - [ ] **M8.4 — Apply reviewed migrations intentionally.** Version migration SQL, review destructive changes, back up where appropriate, validate migration order and provide rollback/restoration steps. Never run migrations against production without the required authorization.
@@ -840,3 +846,27 @@ provider atomic consume and other-session revocation. Scoped blueprint:
 real provider/database adverse cases plus actual browser confirmation and
 current check/build; partial completion needs explicit recovery. This does not
 mark the whole M2.9 package or production authentication ready.
+
+### M8.4/M8.7 local restoration tooling — 2026-10-12
+
+The delegated Worker2 package supplies a checkout-owned synthetic test-database
+rehearsal, fresh disposable target, exact row/schema/grant/migration comparison
+and rolled-back constraint/permission probes. See
+`prompts/features/m8-07-local-backup-restore.md` and
+`docs/operations/local-backup-restore.md`. Actual Review/Verify outcomes belong
+in the tracker/private report; this local subset does not complete hosted backup,
+retention, recovery targets, incident staffing or M8 launch requirements.
+
+### M8.9 bounded local browser and performance tooling — 2026-10-12
+
+The readiness wave adds an explicit selected Firefox/WebKit matrix and a fixed
+local production-build performance workload. The former checks actual synthetic
+marketplace, private-history and native-control behavior; the latter measures
+public navigation and two-account booking conflicts with exact cleanup and
+source identity. These supplement existing Chromium and real PostgreSQL tests.
+Commands remain opt-in and separate from default Docker/Chromium CI. Observed
+results, original failures and repairs belong in the tracker/readiness report.
+Emulated viewports, Playwright engines and local timings do not replace physical
+target devices, target connections, hosted acceptance or complete M8.9 approval.
+See `prompts/features/m8-09-cross-browser-acceptance.md` and
+`prompts/features/m8-09-performance-baseline.md`.

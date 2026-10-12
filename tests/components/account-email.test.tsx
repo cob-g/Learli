@@ -1,5 +1,11 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { EmailForm } from "@/features/account-email/email-form";
@@ -289,3 +295,32 @@ it("clears field errors on restart and keeps valid sends pending until the respo
   expect(screen.queryByText(/Enter the six-digit/)).not.toBeInTheDocument();
   expect(screen.queryByText(/Pending new email/)).not.toBeInTheDocument();
 });
+
+it.each([
+  { name: "success", status: 200, role: "status" },
+  { name: "refusal", status: 400, role: "alert" },
+  { name: "uncertainty", status: 503, role: "alert" },
+])(
+  "focuses a fast $name result when a frame precedes its render",
+  async ({ status, role }) => {
+    // Model an available frame while React is still batching async response work.
+    // A frame callback must not be the only chance to focus the rendered result.
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      queueMicrotask(() => callback(performance.now()));
+      return 1;
+    });
+    const fetch = vi.fn(async () => Response.json({}, { status }));
+    vi.stubGlobal("fetch", fetch);
+    render(<EmailForm currentEmail="old@learli.test" />);
+    const submit = screen.getByRole("button", {
+      name: "Send current-address code",
+    });
+    submit.focus();
+    await act(async () => {
+      fireEvent.submit(submit.closest("form")!);
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    });
+    expect(screen.getByRole(role)).toHaveFocus();
+    expect(fetch).toHaveBeenCalledTimes(1);
+  },
+);

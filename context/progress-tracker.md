@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.18 — Three-feature merge, main migration and cleanup complete
+> **Version:** 1.21 — Six-package local readiness candidate
 > **Last updated:** 2026-10-12\
-> **Current overall status:** **Reviewed three-feature wave merged locally; main databases migrated; completed worktrees and branches removed**
+> **Current overall status:** **Local readiness verification passes; six-package candidate remains uncommitted and unmerged; hosted and real-user launch gates remain open**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -14,6 +14,59 @@
 **Status legend:** `Documented` = specified only · `Planned` = not verified as started · `In progress` = active work with evidence · `Blocked` = waiting on an explicit decision/dependency · `Done` = verified and linked to evidence.
 
 ---
+
+## Six-worker readiness wave — local candidate, 2026-10-12
+
+- User authority: execute the proposed six packages with GPT-6.1 Sol **High**
+  effort and scoped `$build-feature`. All original and repair/review worker launch
+  settings were verified. Run `run_245d8cf8134b`; blueprint
+  [readiness wave](../prompts/features/m8-01-readiness-wave.md), **AUTHORIZED —
+  build-feature delegation**, not separate human blueprint approval.
+- Candidate `cob-g/m8-readiness-integration` derives from pushed main
+  `5634e44fd71e8851400e004de6bbe3554e65eae1`. Six source worktrees plus integration
+  remain uncommitted and preserved. Main application/databases are unchanged.
+  The user-requested root [orchestration lessons](../ORCHESTRATION-LESSONS.md)
+  are included as a reusable handoff.
+- Delivered scope: dependency maintenance, owned local backup/restore tooling,
+  deployment preparation, safe diagnostics, Firefox/WebKit acceptance and local
+  performance baseline. [Readiness report](../docs/operations/readiness-wave.md)
+  records exact outcomes, recovery, source applicability and remaining gates.
+- Isolation: worker DB55501–55506/dev3061–3066/test3161–3166, integration
+  DB55507/dev3067/test3167 and disposable restore55517. At most two heavy jobs;
+  authoritative timing held both exclusively. Inventories and SHA256 manifests
+  govern imports. No migration or dependency version change was introduced.
+- Dependency findings remain13 (nine high/four moderate, two underlying advisories).
+  No safe compatible stable fix was demonstrated; unchanged pins/lockfile are not
+  a clean audit or waiver. Hosted/policy/M8 milestone gates remain open.
+- Root verification passes: full check790/43files including format/lint/types;
+  production build on final application source; revised restore1/1 including
+  three actual post-start failure paths and normal33-table/17-migration proof.
+  PostgreSQL390/25files is retained with327 exact unchanged relevant inputs; only
+  CSS and two result-focus presentation files differ from that earlier run.
+- Chromium: one complete117/117 run passed before the booking-result focus repair,
+  then the affected existing booking/profile9/9 passed after it. This is retained
+  coverage plus an affected rerun, not a second full117. Final Firefox/WebKit
+  passed18/18, nine per engine, without retries/skips, on every accepted runtime
+  repair. Root alias discovery remains117default/18additional-engine cases.
+- Performance:72public navigations and16measured conflict pairs across two fixed
+  repetitions, with separate candidate/success/conflict/retry distributions,
+  ownership/idempotency/one-row/event invariants and cleanup all passing. All270
+  application/config/pin/lock inputs match integration. Local loopback/emulated
+  viewport measurements do not establish a production SLA or physical-device result.
+- Independent Review A's restore-cleanup F1 was repaired and closed by Review B.
+  Review C re-reviewed the browser failure-diagnostic privacy fix and both bounded
+  result-focus fixes; no other source finding remains in those scopes. Final
+  acceptance reconciles the unchanged A/B hashes with C's frozen source/doc scope
+  and the separate executed evidence. Reviewers did not execute tests.
+- Original failures remain preserved, including email/booking focus reproductions,
+  fixture collision before timing samples, native select sizing and harness/test
+  authoring errors. Stable forced-color modes pass in separate documents; immediate
+  live mode-switch transition correctness remains unverified. Existing assertions,
+  permissions, retry semantics, booking caps and privacy boundaries remain intact.
+- Next decision: user-authorized commit/merge, if requested. No new merge, push,
+  deployment, main migration or worktree/branch cleanup is claimed. Provider,
+  commercial, guardian, consent, safeguarding/legal and public-launch gates stay
+  open. Private manifests/reports and ignored memory retain the operational handoff.
 
 ## Three-feature merge, main migration and cleanup — completed, 2026-10-12
 
@@ -202,17 +255,22 @@
 
 ## Next Up
 
-1. **Completed:** the prior four-feature wave and latest three-feature wave are
-   committed and merged into local `main` (`dcf2c55`, then `3cea492`). Matching
-   independent review and verification evidence remain preserved; the merged-main
-   production build passed.
-2. **Completed operations:** both main local databases are migrated through 0016
-   with verified backups/data preservation/runtime grants. All nine completed
-   worktrees and their merged branches were removed after private archival.
-3. **Next work:** select the next bounded PRD/build-plan package or address the
-   existing dependency advisories. No new wave has been spawned. Hosted-service,
-   commercial, consent, safeguarding and public-launch gates remain; push and
-   deployment were not performed.
+1. **Prior closeout complete:** main was merged/pushed at `5634e44`; both owned
+   local databases reached0016 with verified preservation/grants, and the prior
+   wave's worktrees/branches were archived and removed.
+2. **Current wave:** six isolated readiness packages are assembled in
+   `cob-g/m8-readiness-integration`. Current runtime/check/Chromium/restore/local
+   performance evidence passes, including final Firefox/WebKit18/18. Final
+   review scope and handoff evidence accompany the candidate. Follow the current
+   readiness report, not old session notes.
+3. **After acceptance:** the next user decision is whether to commit/merge this
+   candidate. This wave adds no migration. Preserve its seven worktrees and
+   branches until any separately authorized closeout; do not infer push or cleanup
+   authority from the prior wave's completed request.
+4. **Launch work remains gated:** thirteen inherited dependency findings,
+   hosted integration/operations, real-user commercial/guardian/consent/legal/
+   safeguarding decisions and explicit pilot/public-release approval. Choose the
+   next bounded work package only within the user's subsequent instruction.
 
 ## Four-feature merge — 2026-10-12
 
@@ -1273,3 +1331,31 @@ and ignored Remember handoff accompany coordinator freeze. No open feature
 blocker; next: coordinator independent scoped acceptance/integration. Real-user
 launch/policy and inherited13 audit gates remain. No commit/push/deploy or
 production/external delivery/cleanup operation.
+
+### Session — 2026-10-12 (bounded readiness integration email focus repair)
+
+- AUTHORIZED — build-feature delegation; `cob-g/m8-readiness-integration` at
+  `5634e44`, M8.9/NFR-01/02, scoped canonical recovery note
+  `prompts/recovery/2026-10-12-readiness-integration.md`. Original check-1/check-2
+  failures1/760 and isolated8/8 pass remain retained. A controlled early-frame
+  regression failed3/763 on unchanged runtime and recorded an absent notice/ref
+  at the one-shot focus attempt. Historical callback order remains unobserved.
+- Minimal result-notice focus now follows React commit via `useEffect([notice])`.
+  Validation, code clearing, request/auth/privacy contracts, uncertainty locking,
+  recovery links and no-JS behavior preserved; three behavioral regressions added
+  without changing any existing assertion/timeout or global test parallelism.
+- Distinct same-agent read-only Review PASS/READY FOR VERIFICATION; root independent
+  review pending. Separate Verify PASS: `npm run check` format/lint/types and
+ 763/763 in40files; with-test-env production build; coordinator-approved bounded
+  non-capturing Chromium email3/3 on loopback DB55507/test3167, including success
+  at1440/390/320, uncertainty focus and no-JS/auth denials. First empty browser
+  selection failure retained; corrected exact selection changed no assertions.
+- Private evidence/source/config manifests and original copies:
+  `.local/readiness-wave/email-focus-repair/report.md`. Source hash
+  `5f3a88f0dcb37c459a8c89d7ac0db564c2fa0b0a4065eb0d450406083096534e`;
+  test hash `6bb8ff3bf5fa147ef555e4c5678704a34bfad9c85a9c44b90298bd887094356d`.
+  Slot B released; no reset/seed/install/provider/commit/merge/deploy operation.
+- Next: root independently reviews the repair and runs complete Chromium/check/build
+  for the final combined candidate, including later performance imports outside
+  this worker's full-check snapshot. This bounded repair does not complete M8 or
+  authorize launch; public/paid/safeguarding policies remain gated.

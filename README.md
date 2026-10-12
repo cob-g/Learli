@@ -2,7 +2,8 @@
 
 Learli is a one-to-one tutoring marketplace and booking intermediary. Tutors
 teach through Zoom or Google Meet. The repository has a responsive app foundation
-and **local-only identity/account development**. Marketplace booking is not built.
+and **local-only identity, marketplace coordination and synthetic booking development**.
+Live customer booking remains disabled.
 
 ## Run locally
 
@@ -67,10 +68,21 @@ npm run check              # format, lint, typecheck, unit/component tests
 npm run test:integration   # real isolated PostgreSQL, synthetic records only
 npm run build
 npx --no-install playwright install chromium
-npm run test:e2e           # all projects; own loopback server from test APP_URL
+npm run test:e2e           # default Chromium projects; own loopback test server
 ```
 
 Do not run integration/browser suites simultaneously against `learli_test`.
+
+Additional local readiness commands are explicit and separate from the default
+Chromium/Docker CI suites. Follow the owned-environment requirements in the
+[restore](docs/operations/local-backup-restore.md),
+[deployment preflight](docs/operations/deployment-runbook.md),
+[cross-browser](docs/operations/cross-browser-acceptance.md) and
+[performance](docs/operations/performance-baseline.md) runbooks before using
+`test:restore`, `db:restore:drill`, `deployment:preflight`,
+`test:e2e:cross-browser` or `performance:baseline`. The
+[readiness report](docs/operations/readiness-wave.md) records actual outcomes and
+remaining gates; these commands do not authorize hosted or production operations.
 The browser suite refuses to reuse an unrelated server. CI is configured with
 an ephemeral PostgreSQL service but has not been run remotely for this work.
 A clean build downloads Poppins through `next/font/google`, then serves fonts
@@ -86,9 +98,8 @@ applying it. Local scripts reject remote DB targets; no destructive reset exists
 - `/tutors`, `/tutors/[slug]`, `/subjects` and the home page list only publicly
   eligible tutors (approved, active verified account, active subject) and show
   truthful empty states otherwise. `/get-matched` asks level and subject and
-  lists the tutors who teach that pairing; it is rule-based. Booking remains
-  unavailable. No
-  invented tutor inventory, prices, ratings or lessons.
+  lists the tutors who teach that pairing; it is rule-based. Live customer booking
+  remains unavailable. No invented tutor inventory, prices, ratings or lessons.
 - Local M3.1–M3.3 and the M3.4 entry: any verified account can start a tutor
   application from `/become-a-tutor`, which grants the `tutor` role only. A tutor
   submits and edits one application at `/tutor/profile`; an `admin` reviews it at `/admin/tutors`
@@ -111,13 +122,15 @@ applying it. Local scripts reject remote DB targets; no destructive reset exists
 
 ## Dependency maintenance
 
-The current tree reports **13 audit findings (4 moderate, 9 high)** in upstream
-`braces` (lint/shadcn) and legacy `esbuild` (Drizzle Kit) chains. `--omit=dev`
-still reports four moderate findings because Better Auth declares Drizzle Kit as
-an optional peer. The audit is **not clean**. No patched stable braces release was
-available when inspected; forced fixes proposed incompatible major downgrades.
-Reassess upstream fixes and exposure before public release. Drizzle Studio and
-esbuild development servers are not used by this app or its migration runner.
+Rechecked 2026-10-12: **13 audit findings (4 moderate, 9 high)** remain in two
+underlying advisories: `braces` (dev lint/shadcn) and nested legacy `esbuild`
+(Drizzle Kit). `--omit=dev` still reports four moderate findings through Better
+Auth's optional Drizzle Kit peer. The audit is **not clean**; filtered optional-peer
+omission is not a fix. No compatible stable upgrade resolves these findings, so
+exact pins and lockfile are retained. Drizzle Studio and esbuild development
+servers are not used by this app or its migration runner. See the
+[dependency maintenance report](docs/operations/dependency-maintenance.md) for
+each advisory, installed path, exposure, mitigation and current evidence.
 
 ESLint 9 is pinned because installed Next lint plugins' peers exclude ESLint 10;
 its deprecation remains visible. Do not hide peer failures using `--force` or

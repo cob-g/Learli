@@ -3,6 +3,7 @@ import type { AuthRuntime } from "./auth-factory";
 import { privateJson, readSmallJson, sameLocalOrigin } from "./auth-handler";
 import { AccessError } from "./permissions/access";
 import { RuleError } from "./rule-error";
+import { emitDiagnostic } from "./diagnostics.server";
 
 /**
  * Shared boundary for a JSON write: runtime present, exact same-origin request,
@@ -18,8 +19,10 @@ export async function handleJsonMutation(
   },
   run: (runtime: AuthRuntime, input: unknown) => Promise<unknown>,
 ) {
-  if (!runtime)
+  if (!runtime) {
+    emitDiagnostic("mutation.unavailable");
     return privateJson({ message: "This service is unavailable." }, 503);
+  }
   if (!sameLocalOrigin(request, runtime))
     return privateJson({ message: "Request origin is not allowed." }, 403);
   if (request.method !== options.method)
@@ -33,10 +36,14 @@ export async function handleJsonMutation(
   try {
     return privateJson(await run(runtime, input));
   } catch (error) {
-    if (error instanceof AccessError || error instanceof RuleError)
+    if (error instanceof AccessError || error instanceof RuleError) {
+      if (error instanceof AccessError && error.status === 503)
+        emitDiagnostic("mutation.unavailable");
       return privateJson({ message: error.message }, error.status);
+    }
     if (error instanceof ZodError)
       return privateJson(options.invalid(error), 400);
+    emitDiagnostic("mutation.failed");
     return privateJson(
       { message: "This service is unavailable. Try again later." },
       503,

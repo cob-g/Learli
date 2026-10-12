@@ -1,7 +1,13 @@
 "use client";
 /* eslint-disable @next/next/no-html-link-for-pages -- Native recovery replaces potentially stale private identity state after credential mutation. */
 
-import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+} from "react";
 import { emailChangeInput } from "./input";
 
 const subscribe = () => () => {};
@@ -25,6 +31,10 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
   }>();
   const message = useRef<HTMLParagraphElement>(null);
   const submitting = useRef(false);
+  useEffect(() => {
+    // Focus only after the result notice and its ref have committed.
+    if (notice) message.current?.focus();
+  }, [notice]);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting.current || notice?.uncertain) return;
@@ -125,7 +135,6 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
     } finally {
       submitting.current = false;
       setPending(false);
-      requestAnimationFrame(() => message.current?.focus());
     }
   }
   const label =

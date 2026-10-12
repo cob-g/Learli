@@ -31,7 +31,12 @@
     "mail:open": "node scripts/local-open.mjs mail",
     "fixtures:open": "node scripts/local-open.mjs fixtures",
     "test:integration": "node scripts/with-test-env.mjs node_modules/.bin/vitest run --config vitest.integration.config.ts",
-    "local:setup": "npm run db:start && npm run db:migrate && npm run db:migrate:test && npm run db:seed"
+    "local:setup": "npm run db:start && npm run db:migrate && npm run db:migrate:test && npm run db:seed",
+    "test:restore": "node scripts/with-test-env.mjs node_modules/.bin/vitest run --config vitest.restore.config.ts",
+    "db:restore:drill": "tsx scripts/local-backup-restore.ts drill",
+    "deployment:preflight": "node --import tsx scripts/deployment-preflight.ts",
+    "test:e2e:cross-browser": "node scripts/with-test-env.mjs node_modules/.bin/playwright test --config playwright.cross-browser.config.ts",
+    "performance:baseline": "node scripts/with-test-env.mjs node scripts/performance-baseline.mjs"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.7",

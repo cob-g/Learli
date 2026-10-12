@@ -3,11 +3,18 @@ import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { localDatabaseConfig } from "./local-config";
 import * as schema from "./schema";
+import { emitDiagnostic } from "../diagnostics.server";
 
 export function createDatabase(url: string, testOnly = false) {
-  const pool = new Pool(localDatabaseConfig(url, testOnly));
+  let pool: Pool;
+  try {
+    pool = new Pool(localDatabaseConfig(url, testOnly));
+  } catch (error) {
+    emitDiagnostic("database.setup_failed");
+    throw error;
+  }
   pool.on("error", () => {
-    console.error("Local database connection failed; details omitted.");
+    emitDiagnostic("database.pool_failed");
   });
   const db = drizzle(pool, { schema });
   return { db, pool };

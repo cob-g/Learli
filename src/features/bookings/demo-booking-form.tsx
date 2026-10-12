@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { CircleAlert, Info, LoaderCircle, Check, TimerOff } from "lucide-react";
 import type { TimeZoneOption } from "@/lib/time/zones";
 import { levelNames } from "@/features/subjects/catalog";
@@ -55,6 +55,9 @@ export function DemoBookingForm({
   const choiceVersion = useRef(0);
   const alertRef = useRef<HTMLParagraphElement>(null);
   const resultRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (result) resultRef.current?.focus();
+  }, [result]);
   const learner = options.learners.find((row) => row.id === learnerId);
   const tutor = options.tutors.find((row) => row.slug === tutorSlug);
   const offerings =
@@ -183,7 +186,6 @@ export function DemoBookingForm({
       } else {
         setResult(data);
         setUnknown(false);
-        requestAnimationFrame(() => resultRef.current?.focus());
       }
     } catch {
       setUnknown(true);

@@ -1279,3 +1279,29 @@ requests, and stop retries after uncertain completion with native account/sessio
 recovery. Successful completion replaces the full document. No new design tokens.
 The email submit changes enabled/disabled colors immediately: interpolating both
 foreground/background produced an insufficient intermediate contrast ratio.
+
+
+### Local native select sizing compatibility — 2026-10-12
+
+Root msg_33183702628d allocates the existing .field native-select repair after
+actual Firefox/WebKit acceptance found public selects44px versus30px. Select
+fields relinquish OS closed-control painting with appearance:none so existing
+field minimum/type/border/color/radius tokens control their box. They remain
+actual labelled HTML selects with native keyboard/popup/no-JS behavior and the
+existing global focus outline. No fixed height, new tokens, JavaScript widget,
+asset/dependency or role/permission change. Execution evidence is recorded
+separately in progress-tracker and the Worker5 report; this note is not a claim
+that repair verification or full M8/launch acceptance already passed.
+
+
+Root followup msg_21e135a68e2e requires a visible dropdown affordance. The final
+CSS uses two hard-stop transparent/currentColor triangles as a flat functional
+marker, with existing spacing values8/12/20/32 and reserved inline text space.
+This narrowly allocated control indicator is the only use of gradient syntax
+allowed here; decorative gradients remain prohibited. CurrentColor follows the
+existing foreground or disabled muted token; no new hue, asset or widget.
+Only single-value dropdowns (no size or size0/1, not multiple) receive it.
+Multi-selects/listboxes receive no marker. Disabled select fields use existing
+subtle/muted/border tokens. Forced-colors mode restores native painting/marker
+and clears background images; global focus and native HTML behavior remain.
+The earlier marker-less draft was not accepted/frozen and is superseded.

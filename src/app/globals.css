@@ -78,6 +78,10 @@
   .action {
     border: 1px solid ButtonText;
   }
+  select.field {
+    appearance: auto;
+    background-image: none;
+  }
   [data-surface="inverse"] {
     --bg-inverse: Canvas;
     --text-inverse: CanvasText;
@@ -289,6 +293,34 @@
 @layer components {
   .field {
     @apply block min-h-11 w-full rounded-control border border-control bg-surface px-3 py-2 text-body text-foreground;
+  }
+  /* Native WebKit painting constrains select height despite the field minimum.
+     Keep the HTML select behavior while letting the shared field tokens size it. */
+  select.field {
+    appearance: none;
+  }
+  /* Flat current-color triangles restore the dropdown marker without a widget.
+     A listbox or multi-select must not advertise a single-value popup. */
+  select.field:not([multiple]):not([size]),
+  select.field:not([multiple])[size="0"],
+  select.field:not([multiple])[size="1"] {
+    padding-inline-end: calc(var(--spacing) * 8);
+    background-image:
+      linear-gradient(45deg, transparent 50%, currentColor 50%),
+      linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position:
+      calc(100% - var(--spacing) * 5) center,
+      calc(100% - var(--spacing) * 3) center;
+    background-size:
+      calc(var(--spacing) * 2) calc(var(--spacing) * 2),
+      calc(var(--spacing) * 2) calc(var(--spacing) * 2);
+    background-repeat: no-repeat;
+  }
+  select.field:disabled {
+    color: var(--text-muted);
+    background-color: var(--bg-subtle);
+    border-color: var(--border-default);
+    cursor: not-allowed;
   }
   .action:disabled {
     @apply cursor-not-allowed border border-control bg-subtle text-muted-foreground;
