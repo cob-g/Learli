@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.21 — Six-package local readiness candidate
+> **Version:** 1.22 — Six-package readiness wave merged locally
 > **Last updated:** 2026-10-12\
-> **Current overall status:** **Local readiness verification passes; six-package candidate remains uncommitted and unmerged; hosted and real-user launch gates remain open**
+> **Current overall status:** **Six-package readiness wave committed and merged into local main; fresh main build passed; remote publication and worktree cleanup remain; hosted and real-user launch gates stay open**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -15,7 +15,35 @@
 
 ---
 
-## Six-worker readiness wave — local candidate, 2026-10-12
+## Readiness wave — local merge complete, 2026-10-12
+
+- The user authorized the reported next step: commit and merge the reviewed
+  candidate. Feature commit `581b4219a4fb9a323f50656dd6b82db90adac637` was
+  fast-forwarded from `cob-g/m8-readiness-integration` into local `main`.
+  All55 files matched the frozen independent-review manifest in the index,
+  commit and merged main. No application changes were made during closeout.
+- Independent A/B/C coverage is complete, with restore F1 and diagnostic-privacy
+  F-C1 closed and zero open confirmed findings. All11 original, repair and review
+  workers used GPT-6.1 Sol High and are released. The seven wave worktrees and
+  branches are preserved; source worker edits/evidence have not been removed.
+- Fresh merged-main production build PASS with Node24.20.0/npm11.19.0 and owned
+  local test configuration. Retained candidate evidence:790 unit/component,
+  390 PostgreSQL with source applicability,18 Firefox/WebKit, full117 Chromium
+  before the focus repair plus9 affected cases afterward, restoration and local
+  performance proof. These are not new full-suite runs after merge.
+- Prior root tracker/lessons/blueprint edits were hash-checked and privately
+  backed up before merge; the lessons and blueprint exactly matched the candidate.
+  Current tracker/report now record completed operations. Private commit/merge,
+  backup and build receipts: `.local/readiness-wave/merge-closeout/`.
+- No new migration exists or was needed, and main databases were unchanged.
+  No remote push, deployment, provider action or worktree/branch cleanup occurred.
+  Thirteen inherited advisories, the live forced-color-transition limitation and
+  hosted, physical-device, commercial, consent and safeguarding launch gates remain.
+- [Current readiness report](../docs/operations/readiness-wave.md). Next work is
+  separately requested remote publication and/or safe cleanup of preserved wave
+  worktrees; no additional feature wave was selected or started.
+
+## Six-worker readiness wave — historical pre-merge candidate, 2026-10-12
 
 - User authority: execute the proposed six packages with GPT-6.1 Sol **High**
   effort and scoped `$build-feature`. All original and repair/review worker launch
@@ -255,22 +283,20 @@
 
 ## Next Up
 
-1. **Prior closeout complete:** main was merged/pushed at `5634e44`; both owned
-   local databases reached0016 with verified preservation/grants, and the prior
-   wave's worktrees/branches were archived and removed.
-2. **Current wave:** six isolated readiness packages are assembled in
-   `cob-g/m8-readiness-integration`. Current runtime/check/Chromium/restore/local
-   performance evidence passes, including final Firefox/WebKit18/18. Final
-   review scope and handoff evidence accompany the candidate. Follow the current
-   readiness report, not old session notes.
-3. **After acceptance:** the next user decision is whether to commit/merge this
-   candidate. This wave adds no migration. Preserve its seven worktrees and
-   branches until any separately authorized closeout; do not infer push or cleanup
-   authority from the prior wave's completed request.
-4. **Launch work remains gated:** thirteen inherited dependency findings,
-   hosted integration/operations, real-user commercial/guardian/consent/legal/
-   safeguarding decisions and explicit pilot/public-release approval. Choose the
-   next bounded work package only within the user's subsequent instruction.
+1. **Current merge complete:** six readiness packages are committed and merged
+   into local `main` at feature commit `581b421`; all55 reviewed hashes matched
+   and a fresh main production build passed. The top merge entry and readiness
+   report supersede older pending-merge checkpoints.
+2. **Optional closeout:** remote publication and safe archival/removal of the
+   seven completed wave worktrees/branches await a subsequent user instruction.
+   Preserve their ignored evidence and source edits until then. This wave adds
+   no migration; main databases require no update for these changes.
+3. **Launch work remains gated:** thirteen inherited dependency findings,
+   hosted integration/operations, physical-device/connection measurements and
+   real-user commercial/guardian/consent/legal/safeguarding decisions. No local
+   check constitutes pilot/public-release approval.
+4. **Next feature wave:** select a bounded PRD/build-plan package only when the
+   user requests it; no new workers are active or queued.
 
 ## Four-feature merge — 2026-10-12
 

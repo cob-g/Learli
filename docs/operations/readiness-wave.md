@@ -1,10 +1,22 @@
 # Local readiness wave — 2026-10-12
 
-Runtime, database, browser and local performance verification passed for this
-candidate. The six packages remain **uncommitted and unmerged** on
-`cob-g/m8-readiness-integration`, based on
-`5634e44fd71e8851400e004de6bbe3554e65eae1`. This is local synthetic-data evidence,
-not hosted deployment, pilot or public-launch clearance.
+The user-authorized readiness candidate was committed as
+`581b4219a4fb9a323f50656dd6b82db90adac637` and fast-forwarded into local `main`
+on 2026-10-12. All 55 committed files matched the independently reviewed freeze
+before and after merge. A fresh production build from merged main passed using
+the pinned Node/npm versions and the owned local test configuration. No new
+migration was introduced or needed; main databases were unchanged.
+
+Independent Reviews A/B/C cover the complete candidate with zero open confirmed
+findings. The local test evidence below remains applicable to the identical
+application source; it was not rerun merely because Git advanced. This report
+and the progress tracker were then updated solely to record the merge.
+
+This is local synthetic-data evidence, not hosted deployment, pilot or public
+launch clearance. The seven wave worktrees and branches remain preserved; this
+closeout did not push, deploy or remove them. Private merge, source-identity,
+main-document backups and fresh-build receipts are in
+`.local/readiness-wave/merge-closeout/` in the main checkout.
 
 Authority: the user requested the proposed wave using GPT-6.1 Sol **High** effort
 and `$build-feature`. The [wave blueprint](../../prompts/features/m8-01-readiness-wave.md)
@@ -109,7 +121,7 @@ physical-device/connection measurements still need their respective work.
 Commercial, guardian, legal and safeguarding decisions and explicit pilot/public
 release approval remain gated. No local success resolves those decisions.
 
-The next user decision is whether to commit and merge this candidate. Main's
-application and databases are unchanged by the wave. Preserve its seven
-worktrees and branches until any separately authorized closeout; no commit,
-merge, push, deployment, main migration or worktree/branch removal is claimed.
+The authorized commit and local merge are complete. Remote publication and safe
+worktree/branch cleanup can follow a subsequent instruction. Preserve the seven
+wave worktrees and their ignored evidence until that closeout. No database
+migration is required by this wave; hosted and real-user launch gates remain.
