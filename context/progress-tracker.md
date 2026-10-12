@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.25 — Staging database foundation locally verified
+> **Version:** 1.26 — Staging database foundation merged and cleaned up
 > **Last updated:** 2026-10-12\
-> **Current overall status:** **Staging database code preparation independently reviewed and locally verified in an unmerged integration branch; hosted/provider and real-user launch gates stay open**
+> **Current overall status:** **Staging database code preparation independently reviewed, locally verified and merged into main; wave cleanup complete; hosted/provider and real-user launch gates stay open**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -15,13 +15,13 @@
 
 ---
 
-## Staging database foundation — local preparation complete, 2026-10-12
+## Staging database foundation — merged and cleaned up, 2026-10-12
 
-- Current code is uncommitted/unmerged in
-  `/Users/cob/orca/workspaces/learli/m8-staging-database-foundation`, branch
-  `cob-g/m8-staging-database-foundation`, based on main `0d7f2dd`. Main application
-  code/database and remote state were not changed. This is the M8.3 preparation
-  subset, not full M8/environment/provider or launch completion.
+- User approved the proposed commit/merge/cleanup step. Reviewed feature commit
+  `55885fd` was fast-forwarded into local main from `0d7f2dd`; all 36 frozen
+  candidate files matched before commit and after merge. Main's database and
+  remote state were not changed. This is the M8.3 preparation subset, not full
+  M8/environment/provider or launch completion.
 - Delivered explicit target/TLS/role boundary, private configuration inspection,
   read-only inspection, hash-bound plans and serialized deliberate migration
   tooling, preserving 17 SQL migrations, journal/snapshots and exact runtime grants.
@@ -40,18 +40,22 @@
   **NOT RUN**. Browser/UI checks were not rerun for this operator-only slice.
 - Two builders used `$build-feature`; two independent review workers used
   `$review`, all observed GPT-6.1 Sol / High. All four workers in
-  `run_3c007079ec29` succeeded and were released; three wave worktrees/branches
-  remain preserved. Main's database 55432 and other projects were not test targets.
+  `run_3c007079ec29` succeeded and were released. The three wave worktrees and
+  their branches were archived, verified and removed through Orca; only main
+  remains in Git and Orca. Owned databases 55601–55603 were stopped, while main's
+  database 55432 was preserved. No other project's process was targeted.
 - [Wave report](../docs/operations/staging-database-wave.md) records source-bound
   evidence, failures, recovery and limits. Private manifests/snapshots/reports:
-  `.local/staging-database-wave/` in root/integration. Final documentation-only
+  `.local/staging-database-wave/` in root and the verified worktree archives under
+  its `merge-closeout/` directory. Final documentation-only
   status updates have a separate applicability bridge; no new runtime pass is
   claimed for later prose. Earlier checkpoints below remain historical.
-- Remaining: local commit/merge when requested; then a concrete named Neon
+- Remaining: a concrete named Neon
   target/operator/isolation/budget/recovery packet and explicit provider-operation
   authorization. Existing 13 advisories (9 high/4 moderate), hosted auth/email/
   deployment and business/guardian/consent/legal/safeguarding/device/release gates
-  remain open. No commit/merge/push/provider operation or current-wave cleanup.
+  remain open. Local merge/cleanup is complete; no remote push, provider operation
+  or deployment occurred. No new migration is required by this wave.
 
 ## Staging database foundation — start and recovery checkpoints, 2026-10-12
 
@@ -394,16 +398,18 @@
 
 ## Next Up
 
-1. **Readiness closeout complete:** reviewed feature `581b421` is merged into main;
-   the fresh merged-main build passed. All seven completed worktrees and local
-   feature branches are archived and removed. Only main remains.
-2. **Evidence retained:** use the private cleanup archives for former worktree
-   paths. Current tracker/report supersede older pending-operation checkpoints.
-   No migration is required for this wave and main's database is preserved.
-3. **Next gate:** select the next bounded PRD/build-plan or launch-readiness task
-   when requested. Thirteen inherited dependency findings, hosted operations,
-   physical-device/connection evidence and commercial/guardian/consent/legal/
-   safeguarding/public-launch decisions remain open. No new agents are queued.
+1. **Staging foundation closeout complete:** reviewed feature `55885fd` is merged
+   into local main with all 36 candidate hashes preserved. All three wave
+   worktrees and branches are archived and removed; only main remains.
+2. **Evidence retained:** use `.local/staging-database-wave/merge-closeout/` for
+   former worktree paths. The existing 895 unit/component, 452 PostgreSQL and
+   production-build passes apply to unchanged source. No new migration is required;
+   main's database is preserved. Remote push and deployment have not run.
+3. **Next gate:** prepare a named Neon target/operator, isolation, budget and
+   recovery packet before specifically authorized provider rehearsal. Thirteen
+   inherited dependency findings, hosted operations, physical-device/connection
+   evidence and commercial/guardian/consent/legal/safeguarding/public-launch
+   decisions remain open. No new agents are queued.
 
 ## Four-feature merge — 2026-10-12
 

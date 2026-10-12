@@ -1,8 +1,9 @@
 # Staging database foundation — 2026-10-12
 
-Status: **PREPARED, INDEPENDENTLY REVIEWED AND LOCALLY VERIFIED**.
-Code is uncommitted and unmerged on `cob-g/m8-staging-database-foundation`, based
-on `0d7f2ddba07b05a72c8a995428e29c3584224ebe`. This is the bounded M8.3 code-preparation
+Status: **COMMITTED, MERGED LOCALLY AND CLEANED UP**.
+Reviewed feature commit `55885fd1021f0c64c4ce43b95cb7f67d3122c4ce` was fast-forwarded
+into local `main` from `0d7f2ddba07b05a72c8a995428e29c3584224ebe` after the user approved
+the proposed commit, merge and cleanup step. This is the bounded M8.3 code-preparation
 slice, not complete M8, hosted application readiness or launch approval.
 
 ## Delivered scope
@@ -62,12 +63,36 @@ user-facing application behavior change. This is not a new browser or physical
 device certification. Test adapters are local-only; successful real CLI network
 inspect/plan/apply on Neon is not established by primitive loopback tests.
 
-Private evidence: integration `.local/staging-database-wave/`, especially
+Private evidence originally lived in integration `.local/staging-database-wave/`, especially
 `candidate-v4.json`, source snapshots, `final-verification-summary.json`, original
 and follow-up `review/` reports and exact command/source receipts. Root retains
 accepted builder reports under the same private wave directory in main. Final
 status-only documentation has separate coordinator review/source applicability
 evidence; do not claim those later prose bytes were in the earlier runtime run.
+
+## Local merge and cleanup
+
+- Commit and post-merge checks matched all 36 frozen candidate files, aggregate
+  `ae9d4f64fdc4c8ca53a35616827b8f21bd9af3ce09bb446ea5b5420bdb9c3e34`.
+  Main's three coordinator documentation mirrors were verified and backed up
+  before the fast-forward. No runtime source changed during the merge.
+- All four workers were independently observed as succeeded/completed with
+  released terminals before cleanup. The integration's remaining idle shell was
+  closed through its exact Orca terminal handle.
+- The three owned synthetic PostgreSQL clusters on 55601, 55602 and 55603 were
+  stopped after verifying their process, data-directory and port identities.
+  Main's cluster on 55432 was preserved. This wave requires no new schema migration.
+- All three worktrees' source, ignored evidence, local handoffs and stopped
+  synthetic database snapshots were archived and every archived file/link was
+  verified. Reproducible `node_modules`, `.next` and Git metadata were excluded.
+  Private archives and receipts are under main's
+  `.local/staging-database-wave/merge-closeout/`; use the corresponding worktree
+  archive for former integration and builder evidence paths.
+- Orca removal completed for `m8-staging-connection`, `m8-staging-migrations` and
+  `m8-staging-database-foundation`, including their three `cob-g/` branches.
+  Physical paths, Git and Orca were checked: only main remains.
+- The test/build results above are retained evidence for identical source, not
+  newly executed post-merge tests. This closeout changes status documentation only.
 
 ## Remaining work
 
@@ -79,7 +104,6 @@ No provider resource, deployment, email, production or real-user operation occur
 
 The 13 inherited dependency findings (9 high, 4 moderate) remain unresolved with no
 waiver. Hosted auth/email/deployment and commercial/guardian/consent/legal/safety/
-device/pilot/public-release gates remain open. No commit, merge, push or current
-wave worktree/branch cleanup was performed. All four supervised workers succeeded and were released after their reports were accepted. Worktrees and source evidence remain
-preserved. Next local step is review/commit/merge when requested; actual provider
-rehearsal is a separate subsequent operation.
+device/pilot/public-release gates remain open. Local commit, merge and cleanup are
+complete. No remote push or deployment was performed. Actual provider rehearsal
+is a separate subsequent operation requiring the concrete target and authority above.
