@@ -182,6 +182,22 @@ When authorized for the current task:
 7. Update durable status from observed facts, preserving historical failures and
    limitations. Keep raw logs, credentials, captures, and backups out of Git.
 
+### Verify process ownership before stopping anything
+
+A process's current working directory is a reference to a folder, not proof of
+which project or task owns the session. During readiness cleanup, the orchestrator
+mistakenly associated background processes with the user's Claude session from
+that directory alone. The user identified the actual session in EduSphere, and
+its unchanged Orca terminal identity and connection were verified after Learli
+cleanup. The unregistered background group exited during worktree removal; that
+observation does not establish its exact owner or exit cause.
+
+Check Orca's actual project/worktree/session binding, terminal identity, process
+ancestry and open files before deciding what to stop. Target only the authorized
+workspace, and recheck the other project's actual session afterward. An empty
+terminal list does not prove no background processes exist; a matching CWD does
+not establish an active task. Keep these facts separate in cleanup reports.
+
 Local simulation, local mail capture, clean builds, and merged code never establish
 real-user readiness. Consult current canonical decisions for remaining launch gates.
 

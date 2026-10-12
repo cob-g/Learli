@@ -13,9 +13,10 @@ application source; it was not rerun merely because Git advanced. This report
 and the progress tracker were then updated solely to record the merge.
 
 This is local synthetic-data evidence, not hosted deployment, pilot or public
-launch clearance. The seven wave worktrees and branches remain preserved; this
-closeout did not push, deploy or remove them. Private merge, source-identity,
-main-document backups and fresh-build receipts are in
+launch clearance. A later user-authorized cleanup removed all seven wave worktrees
+and local feature branches after verified private archival. Only the main checkout and
+local `main` branch remain. This cleanup did not push or deploy. Private merge,
+source-identity, main-document backups and fresh-build receipts are in
 `.local/readiness-wave/merge-closeout/` in the main checkout.
 
 Authority: the user requested the proposed wave using GPT-6.1 Sol **High** effort
@@ -121,7 +122,41 @@ physical-device/connection measurements still need their respective work.
 Commercial, guardian, legal and safeguarding decisions and explicit pilot/public
 release approval remain gated. No local success resolves those decisions.
 
-The authorized commit and local merge are complete. Remote publication and safe
-worktree/branch cleanup can follow a subsequent instruction. Preserve the seven
-wave worktrees and their ignored evidence until that closeout. No database
-migration is required by this wave; hosted and real-user launch gates remain.
+The authorized commit, local merge and worktree/branch cleanup are complete.
+At cleanup start, the existing `origin/main` reference already matched merged
+main `f2980fc`; this cleanup performed no push. No database migration is required
+by the wave; hosted and real-user launch gates remain.
+
+## Verified cleanup — 2026-10-12
+
+The cleanup audit matched 122 accepted file versions across six source worktrees
+and the integration. Eleven intermediate source versions differed from current
+main but matched preserved accepted snapshots; no unknown source edits were
+found. All seven branch tips were ancestors of main and all eleven workers were
+released. No additional cleanup agent was spawned.
+
+Six running owned test clusters were stopped, and all 22 owned cluster directories
+(including stopped restore targets) were checked stopped. Main's database process
+identity and port 55432 were preserved. Seven private worktree archives retain
+source, local configuration, handoffs, evidence and stopped PostgreSQL data/WAL.
+File hashes, modes, paths and symlink targets were checked against each archive
+and checked again before removal. Only root `.git`, `node_modules`, `.next` and
+`tsconfig.tsbuildinfo` were excluded as metadata or regenerable output.
+
+All seven worktrees were removed through Orca; physical removal and deletion of
+the corresponding local branches were observed. No unrelated repository was
+removed or targeted. The user's separate EduSphere Claude terminal remained
+connected with the same tab/leaf identity. An initial inference that three
+background processes belonged to that session merely because their working
+directory was the integration path was incorrect; working directory alone does
+not establish project ownership. Those unregistered background processes exited
+during Orca's removal. No direct stop/signal was sent to them, and the exact exit
+cause was not separately established. The initial guard failure and ownership
+correction are retained in the private cleanup evidence.
+
+Private archives, inventories, shutdown/audit/removal receipts and final proof:
+`.local/readiness-wave/cleanup/`. Historical worktree paths now refer to files in
+the corresponding named `.tar.gz` archive. Never publish these private archives
+or their generated credentials, captures and logs. The cleanup changed no
+application code, schema or dependencies; existing verification retains its
+recorded applicability.

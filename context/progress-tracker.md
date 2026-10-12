@@ -2,9 +2,9 @@
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.22 — Six-package readiness wave merged locally
+> **Version:** 1.23 — Readiness wave cleanup complete
 > **Last updated:** 2026-10-12\
-> **Current overall status:** **Six-package readiness wave committed and merged into local main; fresh main build passed; remote publication and worktree cleanup remain; hosted and real-user launch gates stay open**
+> **Current overall status:** **Six-package readiness wave merged and all seven completed worktrees/local branches archived and removed; only main remains; hosted and real-user launch gates stay open**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -14,6 +14,33 @@
 **Status legend:** `Documented` = specified only · `Planned` = not verified as started · `In progress` = active work with evidence · `Blocked` = waiting on an explicit decision/dependency · `Done` = verified and linked to evidence.
 
 ---
+
+## Readiness wave — cleanup complete, 2026-10-12
+
+- User-authorized cleanup removed the six source worktrees and integration, plus
+  their seven local `cob-g/m8-` branches. Only the main checkout and local `main`
+  branch remain in Learli. All eleven wave workers were already released.
+- Audited 122 accepted file versions, including 11 intermediate versions differing
+  from main; all matched preserved snapshots. Seven private archives passed file
+  hash, mode, inventory and symlink checks, including a recheck before deletion.
+  Source/evidence/configuration/stopped database files are retained; root Git
+  metadata and regenerable dependency/build output alone were excluded.
+- Stopped six running owned temporary clusters and checked all 22 owned cluster
+  directories stopped. Main database process identity and port 55432 were preserved.
+  Actual Orca removal, directory absence and branch deletion were all verified.
+- The user corrected an ownership inference based only on a background process
+  CWD. The separate EduSphere Claude terminal remains connected at its original
+  tab/leaf identity. No other repository was targeted. Three unregistered
+  background processes exited during integration removal; no direct stop signal
+  was sent and their exit cause was not separately established.
+- Private proof/archives: `.local/readiness-wave/cleanup/`; current
+  [readiness report](../docs/operations/readiness-wave.md) explains recovery paths
+  and the ownership correction. `ORCHESTRATION-LESSONS.md` records the lesson.
+  Older preservation/pending-cleanup statements below are historical checkpoints.
+- Main and existing `origin/main` were both f2980fc at cleanup start; no push was
+  performed by cleanup. No application/schema/dependency change, new migration,
+  deployment, new feature wave or new application-test claim. Existing 13 advisory
+  findings and hosted/real-user launch gates remain open.
 
 ## Readiness wave — local merge complete, 2026-10-12
 
@@ -283,20 +310,16 @@
 
 ## Next Up
 
-1. **Current merge complete:** six readiness packages are committed and merged
-   into local `main` at feature commit `581b421`; all55 reviewed hashes matched
-   and a fresh main production build passed. The top merge entry and readiness
-   report supersede older pending-merge checkpoints.
-2. **Optional closeout:** remote publication and safe archival/removal of the
-   seven completed wave worktrees/branches await a subsequent user instruction.
-   Preserve their ignored evidence and source edits until then. This wave adds
-   no migration; main databases require no update for these changes.
-3. **Launch work remains gated:** thirteen inherited dependency findings,
-   hosted integration/operations, physical-device/connection measurements and
-   real-user commercial/guardian/consent/legal/safeguarding decisions. No local
-   check constitutes pilot/public-release approval.
-4. **Next feature wave:** select a bounded PRD/build-plan package only when the
-   user requests it; no new workers are active or queued.
+1. **Readiness closeout complete:** reviewed feature `581b421` is merged into main;
+   the fresh merged-main build passed. All seven completed worktrees and local
+   feature branches are archived and removed. Only main remains.
+2. **Evidence retained:** use the private cleanup archives for former worktree
+   paths. Current tracker/report supersede older pending-operation checkpoints.
+   No migration is required for this wave and main's database is preserved.
+3. **Next gate:** select the next bounded PRD/build-plan or launch-readiness task
+   when requested. Thirteen inherited dependency findings, hosted operations,
+   physical-device/connection evidence and commercial/guardian/consent/legal/
+   safeguarding/public-launch decisions remain open. No new agents are queued.
 
 ## Four-feature merge — 2026-10-12
 
