@@ -163,7 +163,7 @@ export function TutorProfileForm({
 
   return (
     <form
-      className="max-w-xl space-y-6"
+      className="max-w-3xl space-y-8 rounded-surface border border-border bg-surface p-6 sm:p-8"
       onSubmit={submit}
       aria-busy={pending}
       aria-label="Tutor profile"
@@ -255,8 +255,11 @@ export function TutorProfileForm({
         </p>
         <FieldError id="timezone-error" message={errors.timezone} />
       </div>
-      <fieldset aria-describedby="languages-help languages-error">
-        <legend className="text-item-title">
+      <fieldset
+        className="border-t border-border pt-6"
+        aria-describedby="languages-help languages-error"
+      >
+        <legend className="text-item-title text-primary">
           Teaching languages{" "}
           <span className="text-caption text-muted-foreground">(optional)</span>
         </legend>
@@ -292,9 +295,12 @@ export function TutorProfileForm({
       </fieldset>
       <fieldset
         ref={offeringsRef}
+        className="border-t border-border pt-6"
         aria-describedby="offerings-help offerings-error"
       >
-        <legend className="text-item-title">Subjects and levels</legend>
+        <legend className="text-item-title text-primary">
+          Subjects and levels
+        </legend>
         <p
           id="offerings-help"
           className="mt-2 text-small text-muted-foreground"
@@ -313,7 +319,7 @@ export function TutorProfileForm({
               return (
                 <fieldset
                   key={subject.id}
-                  className="mt-2 border-b border-border pb-2"
+                  className="mt-4 border-b border-border pb-4"
                 >
                   <legend className="text-body">{subject.name}</legend>
                   <div className="flex flex-wrap gap-x-6">

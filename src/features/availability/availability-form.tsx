@@ -123,7 +123,7 @@ export function AvailabilityForm({
   return (
     <form
       ref={formRef}
-      className="max-w-xl space-y-8"
+      className="max-w-3xl space-y-8 rounded-surface border border-border bg-surface p-6 sm:p-8"
       onSubmit={submit}
       aria-label="Weekly availability"
       aria-busy={pending}
@@ -186,9 +186,9 @@ export function AvailabilityForm({
       {weekdays.map((day, dayIndex) => (
         <fieldset
           key={day}
-          className="min-w-0 space-y-4 border-b border-border pb-4"
+          className="min-w-0 space-y-4 border-b border-border pb-6"
         >
-          <legend className="mb-4 text-item-title">{day}</legend>
+          <legend className="mb-4 text-item-title text-primary">{day}</legend>
           {!rows.some((row) => row.isoWeekday === dayIndex + 1) && (
             <p className="text-small text-muted-foreground">
               No hours on {day}.
@@ -197,7 +197,7 @@ export function AvailabilityForm({
           {rows.map(
             (row, index) =>
               row.isoWeekday === dayIndex + 1 && (
-                <div key={row.key} className="space-y-2">
+                <div key={row.key} className="space-y-3">
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {(["startMinute", "endMinute"] as const).map((field) => {
                       const id = `range-${row.key}-${field}`;

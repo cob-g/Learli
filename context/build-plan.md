@@ -178,12 +178,13 @@ M6 begins **as early as possible in parallel**; postponing decisions until all e
 - [ ] **M1.1 — Initialize/verify the Next.js project.** Use App Router, React, strict TypeScript, supported Node **LTS**, a pinned lockfile, and one package manager. Check current version compatibility instead of hardcoding old install commands.
 - [ ] **M1.2 — Establish a feature-oriented structure.** Keep routes under `src/app/`, reusable UI in `src/components/`, domain logic in `src/features/`, server-only helpers under `src/lib/`, migrations in `drizzle/`, and tests in `tests/` (adapt to the real repo; do not reorganize a working project without cause).
 - [ ] **M1.3 — Set up Tailwind and shadcn/ui.** Start with approved primitives only as used: button, input, form, card, dialog/drawer, select, feedback states. Use React Server Components by default and `use client` only for interactive parts.
-- [ ] **M1.4 — Implement Learli theme tokens.** Light-first navy/teal identity, lowercase wordmark, brand assets, accessible colors, Poppins proposed typography, radius/spacing scale from `ui-context.md`. Exact hex and typography values are **proposed defaults**, not a license to bypass review.
+- [ ] **M1.4 — Implement Learli theme tokens.** Light-first navy/teal identity, lowercase wordmark, brand assets, accessible colors, Lexend interface and Literata reading typography from the adopted brand kit 2.0, radius/spacing scale from `ui-context.md`. The owner-adopted brand kit 2.0 now supplies the active palette and typography; changes still require scoped review.
 - [ ] **M1.5 — Create shared page shells.** Public header/footer, meaningful navigation, placeholder route layouts for authorized workspaces (not exposed private data), 404/not-found and error handling, skeleton/empty patterns.
 - [ ] **M1.6 — Set up quality tools.** Confirm lint, `tsc` typecheck, a formatter, unit/component tests (Vitest/Testing Library **recommended**), browser tests (Playwright **recommended**), and production build scripts. Prefer repo-established compatible tools.
 - [ ] **M1.7 — Prepare environment safety.** `.env.example` containing **names only**, `.gitignore`, development/staging/production naming and server-only config validation; do not put secrets under `NEXT_PUBLIC_*` or commit `.env.local`.
 - [ ] **M1.8 — Prepare CI / basic health route.** Add a low-risk health endpoint that does not disclose secrets or student data; configure CI to run the scripts that actually exist. No fake green badges.
 - [ ] **M1.9 — Build a truthful marketing skeleton.** A homepage indicating what Learli actually offers, primary paths **Find a Tutor / Get Matched**, a tutoring-versus-platform explanation, and appropriate SEO metadata. Do not add stock fake ratings, pricing or tutor inventory.
+- [x] **M1.10 — Adopt the supplied brand kit across the implemented frontend.** Owner-requested on 2026-10-13; original artwork, Lexend/Literata, shared theme, public discovery, account forms and role/booking workspaces are locally verified. Responsive, keyboard, contrast and enlarged-text repairs passed scoped review and browser verification; see `prompts/features/m1-10-brand-kit-ui.md` and the current progress-tracker entry for exact aggregate evidence and limits. This does not close other milestone or launch gates.
 
 ### M1 exit criteria
 
@@ -593,12 +594,12 @@ Treat `ui-context.md` as the source for design and interaction behavior. The **p
 
 ### Visual guidance
 
-- Use the **lowercase `learli` logo**; capitalize *Learli* in running text. Primary navy `#1E2A78`, teal `#2ECCB0`, neutral `#F7F9FC` as the proposed initial theme from `ui-context.md` (version 1.1 removed the lavender accent).
+- Use the **lowercase `learli` logo**; capitalize *Learli* in running text. Primary navy `#1E2A78`, teal `#2ECCB0`, paper `#F5F8F6` from the adopted brand kit 2.0 in `ui-context.md`.
 - Use theme **CSS variables** and semantic tokens; no feature-level hardcoded colors. Use **navy/white** for primary CTA; avoid low-contrast white text on bright teal.
-- Use **Poppins** as the proposed brand font; do not mix arbitrary font families across pages. Shared Tailwind/shadcn components should be responsive, navigable and accessible.
+- Use **Lexend** for the interface and **Literata** for longer reading, as approved by the brand-kit adoption; do not mix arbitrary font families across pages. Shared Tailwind/shadcn components should be responsive, navigable and accessible.
 - Show real profile, status, timezone and action context before secondary decoration. Keep dashboards compact; no fake performance charts or LMS navigation.
 - Distinguish visitor/public pages from private workspaces via layout, but maintain one design system and app.
-- Artwork is an initial concept, not evidence of finalized vector production files; obtain consent/rights for actual photography and never copy competitors' imagery or UI assets.
+- Original vector wordmark variants and an icon are supplied by the owner's brand kit 2.0; use those exact assets. Obtain consent/rights for actual photography and never copy competitors' imagery or UI assets.
 
 ### Viewports/accessibility validation
 

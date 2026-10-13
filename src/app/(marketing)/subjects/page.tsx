@@ -15,7 +15,7 @@ export default async function SubjectsPage() {
   const catalog = await readPublicCatalog();
   return (
     <div className="page-shell page-space">
-      <h1 className="text-page-title">Subjects</h1>
+      <h1 className="text-headline">Find your subject</h1>
       {!catalog ? (
         <p role="alert" className="mt-8 max-w-prose text-body">
           We couldn&apos;t load subjects. Try again, or{" "}
@@ -34,44 +34,51 @@ export default async function SubjectsPage() {
             Choose a subject to see tutors who teach it. A level appears beside
             a subject when a tutor on Learli teaches it at that level.
           </p>
-          {groupSubjects(catalog.subjects).map((group) => (
-            <section key={group.category} className="mt-8 max-w-xl">
-              <h2 className="text-item-title">{group.label}</h2>
-              <ul className="mt-2 border-t border-border">
-                {group.subjects.map((subject) => (
-                  <li
-                    key={subject.slug}
-                    className="flex min-h-11 flex-wrap items-center gap-x-6 border-b border-border"
-                  >
-                    <Link
-                      className="inline-flex min-h-11 items-center text-body"
-                      href={tutorsHref({ subject: subject.slug })}
+          <div className="mt-12 grid items-start gap-12 md:grid-cols-2 lg:grid-cols-3">
+            {groupSubjects(catalog.subjects).map((group) => (
+              <section key={group.category} className="min-w-0">
+                <h2 className="text-section-title">{group.label}</h2>
+                <ul className="mt-6 border-t border-border">
+                  {group.subjects.map((subject) => (
+                    <li
+                      key={subject.slug}
+                      className="flex flex-col items-start gap-2 border-b border-border py-4"
                     >
-                      {subject.name}
-                    </Link>
-                    {learnerLevelOptions
-                      .filter(
-                        ([level]) =>
-                          filterTutors(catalog.tutors, {
-                            subject: subject.slug,
-                            level,
-                          }).length > 0,
-                      )
-                      .map(([level, label]) => (
-                        <Link
-                          key={level}
-                          className="inline-flex min-h-11 items-center text-small"
-                          aria-label={`${subject.name}, ${label}`}
-                          href={tutorsHref({ subject: subject.slug, level })}
-                        >
-                          {label}
-                        </Link>
-                      ))}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
+                      <Link
+                        className="inline-flex min-h-12 items-center text-item-title"
+                        href={tutorsHref({ subject: subject.slug })}
+                      >
+                        {subject.name}
+                      </Link>
+                      <div className="flex flex-wrap gap-x-4">
+                        {learnerLevelOptions
+                          .filter(
+                            ([level]) =>
+                              filterTutors(catalog.tutors, {
+                                subject: subject.slug,
+                                level,
+                              }).length > 0,
+                          )
+                          .map(([level, label]) => (
+                            <Link
+                              key={level}
+                              className="inline-flex min-h-11 items-center text-small"
+                              aria-label={`${subject.name}, ${label}`}
+                              href={tutorsHref({
+                                subject: subject.slug,
+                                level,
+                              })}
+                            >
+                              {label}
+                            </Link>
+                          ))}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
         </>
       )}
     </div>

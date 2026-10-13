@@ -18,14 +18,16 @@ export function ProfileSummary({
   timeZone: string;
 }) {
   return (
-    <dl className="max-w-prose space-y-6">
+    <dl className="max-w-3xl space-y-8 rounded-surface border border-border bg-surface p-6 sm:p-8">
       <div>
         <dt className="text-label text-muted-foreground">Headline</dt>
-        <dd className="mt-1 text-body wrap-break-word">{profile.headline}</dd>
+        <dd className="mt-2 text-item-title wrap-break-word text-primary">
+          {profile.headline}
+        </dd>
       </div>
       <div>
         <dt className="text-label text-muted-foreground">Introduction</dt>
-        <dd className="mt-1 text-prose wrap-break-word whitespace-pre-line">
+        <dd className="mt-2 max-w-prose font-reading text-reading wrap-break-word whitespace-pre-line">
           {profile.bio}
         </dd>
       </div>
@@ -33,7 +35,7 @@ export function ProfileSummary({
         <dt className="text-label text-muted-foreground">
           Teaching background
         </dt>
-        <dd className="mt-1 text-prose wrap-break-word whitespace-pre-line">
+        <dd className="mt-2 max-w-prose font-reading text-reading wrap-break-word whitespace-pre-line">
           {profile.teachingBackground}
         </dd>
       </div>
@@ -53,9 +55,9 @@ export function ProfileSummary({
           Subjects and levels
         </dt>
         <dd className="mt-1">
-          <ul className="space-y-2">
+          <ul className="divide-y divide-border border-y border-border">
             {profile.offerings.map((offering) => (
-              <li key={offering.subjectId}>
+              <li key={offering.subjectId} className="py-4">
                 <p className="text-body">
                   {offering.name}
                   {offering.isActive ? "" : " (not currently offered)"}

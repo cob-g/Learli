@@ -5,7 +5,7 @@ export default function Loading() {
         Loading support cases…
       </p>
       <div
-        className="mt-8 h-24 max-w-xl rounded-surface bg-border motion-safe:animate-pulse"
+        className="mt-8 h-24 max-w-5xl rounded-surface border border-border bg-subtle"
         aria-hidden="true"
       />
     </div>

@@ -142,7 +142,10 @@ export function PasswordForm() {
     }
   }
   return (
-    <section aria-labelledby="password-heading" className="mt-12 max-w-prose">
+    <section
+      aria-labelledby="password-heading"
+      className="mt-8 max-w-prose rounded-surface border border-border bg-surface p-6 sm:p-8"
+    >
       <h2 id="password-heading" className="text-section-title">
         Change password
       </h2>
@@ -230,7 +233,10 @@ export function PasswordForm() {
               )}
             </div>
           ))}
-          <button className="action action-outline" type="submit">
+          <button
+            className="action action-outline w-full sm:w-auto"
+            type="submit"
+          >
             {pending ? "Changing password…" : "Change password"}
           </button>
         </fieldset>
@@ -244,7 +250,11 @@ export function PasswordForm() {
             ref={message}
             tabIndex={-1}
             role={notice.failed ? "alert" : "status"}
-            className={notice.failed ? "text-body text-error" : "text-body"}
+            className={
+              notice.failed
+                ? "rounded-control border border-error p-4 text-body text-error"
+                : "rounded-control border border-border bg-subtle p-4 text-body"
+            }
           >
             {notice.message}
           </p>

@@ -41,17 +41,19 @@ export default async function Page({
       </p>
       {context.enabled ? (
         <>
-          <p className="mt-4 max-w-prose text-body">
+          <p className="mt-4 max-w-prose rounded-control border border-border bg-subtle p-4 text-small text-muted-foreground">
             Synthetic readiness only. Use fictional details. A review does not
             establish real age, consent or guardian identity.
           </p>
-          <AdmissionForm
-            requestId={randomUUID()}
-            policyVersion={context.policyVersion}
-            policyDigest={context.policyDigest}
-            zones={listTimeZoneOptions(new Date(), ["UTC"])}
-            next={next ?? undefined}
-          />
+          <div className="mt-6 max-w-xl rounded-surface border border-border bg-surface p-6 sm:p-8">
+            <AdmissionForm
+              requestId={randomUUID()}
+              policyVersion={context.policyVersion}
+              policyDigest={context.policyDigest}
+              zones={listTimeZoneOptions(new Date(), ["UTC"])}
+              next={next ?? undefined}
+            />
+          </div>
         </>
       ) : (
         <p className="mt-8 max-w-prose text-body">
@@ -68,7 +70,7 @@ export default async function Page({
       <LearnerLink
         href="/learner-admission"
         label="Your admission requests"
-        className="ms-4 mt-8 inline-flex min-h-11 items-center"
+        className="me-6 mt-8 inline-flex min-h-11 items-center"
       />
     </div>
   );

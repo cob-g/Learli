@@ -38,7 +38,7 @@ export function BookingHistoryFilters({
           if (typeof value === "string") query.append(name, value);
         startTransition(() => router.push(`/bookings?${query}`));
       }}
-      className="mt-6 flex flex-wrap items-end gap-4"
+      className="mt-6 flex max-w-5xl flex-wrap items-end gap-4 rounded-surface border border-border bg-surface p-4 sm:p-6"
     >
       <input type="hidden" name="scope" value={scope} />
       <input type="hidden" name="pageSize" value={pageSize} />
@@ -122,7 +122,7 @@ export function BookingReadLink({
       href={href}
       prefetch={false}
       aria-label={ariaLabel}
-      className="action action-outline shrink-0 self-start"
+      className="action action-outline max-w-full shrink-0 self-start"
     >
       <PendingLabel label={label} pendingLabel={pendingLabel} />
     </Link>

@@ -127,7 +127,7 @@ test("the shell remains light with a dark system preference", async ({
     await page
       .locator("body")
       .evaluate((element) => getComputedStyle(element).backgroundColor),
-  ).toBe("rgb(247, 249, 252)");
+  ).toBe("rgb(245, 248, 246)");
 });
 
 test("anonymous visitors cannot open private workspaces", async ({ page }) => {

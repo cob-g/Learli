@@ -102,6 +102,35 @@ async function privateFixture(wave: CrossBrowserWorld) {
   };
 }
 
+test("branded navigation supports enlarged text and restores mobile menu focus", async ({
+  page,
+}) => {
+  await privateGoto(page, "/sign-in");
+  await page.evaluate(() => {
+    document.documentElement.style.fontSize = "200%";
+  });
+  for (const width of [320, 390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+      `Navigation fits at ${width}px with 200% text`,
+    ).toBe(true);
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  const menu = page.getByRole("button", { name: "Menu", exact: true });
+  await menu.click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await expect(menu).toBeFocused();
+  await menu.click();
+  await page.getByRole("button", { name: "Close menu", exact: true }).click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await expect(menu).toBeFocused();
+});
+
 test("public discovery, real matching, denied tutors and responsive keyboard controls", async ({
   wave,
 }, info) => {

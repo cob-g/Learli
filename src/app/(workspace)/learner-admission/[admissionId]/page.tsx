@@ -42,27 +42,37 @@ export default async function Page({
         Synthetic readiness only. This record establishes no real consent or
         eligibility.
       </p>
-      <h2 className="mt-8 text-section-title">{row.learner.displayName}</h2>
-      <p className="mt-2 text-body">
-        {levelNames([row.learner.level]).join()}.{" "}
-        {row.management === "self"
-          ? "Independent learner"
-          : "Guardian-managed learner"}
-        .
-      </p>
-      <p className="mt-4 text-caption">
-        Policy: {row.policyVersion}. Synthetic readiness only.
-      </p>
-      <p className="mt-4 text-body">Status: {row.state}.</p>
-      <p className="mt-2 text-body">
-        {row.state === "pending"
-          ? "Assigned review is required. Learner access is not authorized."
-          : row.state === "authorized"
-            ? row.currentAccess
-              ? "Synthetic learner access is currently authorized."
-              : "An authorization decision is recorded, but current learner access is unavailable."
-            : "Current learner access is unavailable. The decision history is retained."}
-      </p>
+      <section
+        className="mt-6 max-w-prose rounded-surface border border-border bg-surface p-6 sm:p-8"
+        aria-labelledby="admission-learner-heading"
+      >
+        <h2
+          id="admission-learner-heading"
+          className="text-section-title wrap-anywhere"
+        >
+          {row.learner.displayName}
+        </h2>
+        <p className="mt-2 text-body">
+          {levelNames([row.learner.level]).join()}.{" "}
+          {row.management === "self"
+            ? "Independent learner"
+            : "Guardian-managed learner"}
+          .
+        </p>
+        <p className="mt-4 text-caption">
+          Policy: {row.policyVersion}. Synthetic readiness only.
+        </p>
+        <p className="mt-4 text-body">Status: {row.state}.</p>
+        <p className="mt-2 text-body">
+          {row.state === "pending"
+            ? "Assigned review is required. Learner access is not authorized."
+            : row.state === "authorized"
+              ? row.currentAccess
+                ? "Synthetic learner access is currently authorized."
+                : "An authorization decision is recorded, but current learner access is unavailable."
+              : "Current learner access is unavailable. The decision history is retained."}
+        </p>
+      </section>
       <>
         {row.state === "authorized" && row.currentAccess && (
           <LearnerLink

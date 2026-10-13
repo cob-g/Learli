@@ -13,6 +13,7 @@ const mergeClasses = extendTailwindMerge({
         "item-title",
         "body",
         "prose",
+        "reading",
         "action",
         "time",
         "label",

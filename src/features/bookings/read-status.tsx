@@ -49,14 +49,16 @@ export function BookingReadStatus({ booking }: { booking: BookingSummary }) {
   return (
     <div aria-live="polite" className="space-y-2">
       <span
-        className={`inline-flex min-h-7 items-center gap-1 rounded-tag border px-2 text-label ${booking.state === "confirmed" ? "border-success bg-success-soft text-success" : terminal ? "border-control bg-subtle text-muted-foreground" : "border-warning bg-warning-soft text-warning"}`}
+        className={`inline-flex min-h-7 max-w-full items-center gap-1 rounded-tag border px-2 text-label ${booking.state === "confirmed" ? "border-success bg-success-soft text-success" : terminal ? "border-control bg-subtle text-muted-foreground" : "border-warning bg-warning-soft text-warning"}`}
       >
-        <Icon aria-hidden="true" size={16} />
-        {expired
-          ? booking.source === "synthetic_readiness"
-            ? "Synthetic booking expired"
-            : "Simulation expired"
-          : demoStateLabels[booking.state]}
+        <Icon aria-hidden="true" size={16} className="shrink-0" />
+        <span className="min-w-0 wrap-anywhere">
+          {expired
+            ? booking.source === "synthetic_readiness"
+              ? "Synthetic booking expired"
+              : "Simulation expired"
+            : demoStateLabels[booking.state]}
+        </span>
       </span>
       <p className="text-small text-muted-foreground">
         {booking.source === "synthetic_readiness"

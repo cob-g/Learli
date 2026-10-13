@@ -49,9 +49,9 @@ function SimulationStatus({ state }: { state: TutorAgendaBooking["state"] }) {
     !demoLiveState(state) && state !== "provisional" && state !== "confirmed";
   const Icon = expired ? TimerOff : Hourglass;
   return (
-    <span className="inline-flex min-h-7 items-center gap-1 rounded-tag border border-control bg-subtle px-2 text-label">
+    <span className="inline-flex min-h-7 max-w-full items-center gap-1 rounded-tag border border-control bg-subtle px-2 text-label">
       <Icon size={16} aria-hidden="true" className="shrink-0 text-primary" />
-      {demoStateLabels[state]}
+      <span className="min-w-0 wrap-anywhere">{demoStateLabels[state]}</span>
     </span>
   );
 }
@@ -59,7 +59,9 @@ function SimulationStatus({ state }: { state: TutorAgendaBooking["state"] }) {
 function BookingIdentity({ booking }: { booking: TutorAgendaBooking }) {
   return (
     <div className="min-w-0">
-      <p className="text-item-title wrap-anywhere">{booking.learnerLabel}</p>
+      <p className="text-item-title wrap-anywhere text-primary">
+        {booking.learnerLabel}
+      </p>
       <p className="mt-2 text-body wrap-anywhere">{booking.subject}</p>
       <p className="mt-1 text-small">{booking.learnerLevel}</p>
     </div>
@@ -117,19 +119,19 @@ export function TutorBookingAgenda({
       {next ? (
         <section
           aria-labelledby="next-simulation-title"
-          className="rounded-surface border border-border bg-surface p-4 md:p-6"
+          className="rounded-surface border border-border bg-surface p-6 md:p-8"
         >
           <h2 id="next-simulation-title" className="text-section-title">
             Next future simulation
           </h2>
-          <div className="mt-4 grid min-w-0 gap-4 md:grid-cols-2">
+          <div className="mt-6 grid min-w-0 gap-6 md:grid-cols-2">
             <LessonTime value={next.time} variant="prominent" />
             <BookingIdentity booking={next} />
           </div>
           <div className="mt-4">
             <SimulationStatus state={next.state} />
           </div>
-          <p className="mt-2 max-w-prose text-body">
+          <p className="mt-6 max-w-prose border-t border-border pt-6 text-small text-muted-foreground">
             This is a local simulation, not a confirmed lesson.
           </p>
           <Expiry booking={next} />
@@ -189,18 +191,20 @@ function BookingRows({
     <section aria-label={title}>
       <h2 className="text-section-title">{title}</h2>
       {bookings.length ? (
-        <div className="mt-4 space-y-8">
+        <div className="mt-6 space-y-8">
           {[...groups.entries()].map(([key, group]) => (
             <div key={key}>
-              <h3 className="text-item-title">{group[0].time.date}</h3>
-              <p className="mt-2 text-small text-muted-foreground">
+              <h3 className="text-item-title text-primary">
+                {group[0].time.date}
+              </h3>
+              <p className="mt-1 text-small text-muted-foreground">
                 Times shown in {group[0].time.zone}
               </p>
-              <ul className="mt-4 divide-y divide-border">
+              <ul className="mt-4 divide-y divide-border border-y border-border">
                 {group.map((booking) => (
                   <li
                     key={booking.id}
-                    className="grid min-w-0 gap-4 py-4 md:flex"
+                    className="grid min-w-0 gap-6 py-6 md:flex"
                   >
                     <div className="min-w-0 md:w-44 md:shrink-0">
                       <LessonTime value={booking.time} variant="time-only" />

@@ -45,10 +45,8 @@ export function ReviewNotice({
     <section
       aria-labelledby="review-notice-title"
       className={cn(
-        "flex max-w-prose gap-3 rounded-surface border p-4",
-        approved
-          ? "border-success bg-success-soft"
-          : "border-foreground bg-subtle",
+        "flex max-w-3xl gap-3 rounded-surface border p-6",
+        approved ? "border-success bg-success-soft" : "border-border bg-subtle",
       )}
     >
       <Icon
@@ -63,7 +61,7 @@ export function ReviewNotice({
         <h2 id="review-notice-title" className="text-item-title">
           {title}
         </h2>
-        <p className="mt-2 text-body">{body}</p>
+        <p className="mt-2 max-w-prose text-small">{body}</p>
         <p className="mt-2 flex flex-wrap gap-x-6 gap-y-2 text-body">
           {editHref && (
             <Link className="inline-flex min-h-11 items-center" href={editHref}>

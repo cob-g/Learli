@@ -44,8 +44,8 @@ export default async function Page({
           This case is unavailable to this account.
         </p>
       ) : (
-        <>
-          <p className="mt-4 text-body">
+        <div className="mt-6 max-w-5xl rounded-surface border border-border bg-surface p-6 sm:p-8">
+          <p className="text-label text-muted-foreground">
             {detail.status} · Revision {detail.revision}
           </p>
           {detail.subject && (
@@ -75,7 +75,7 @@ export default async function Page({
               </li>
             ))}
           </ul>
-        </>
+        </div>
       )}
       {detail && booking && <SupportBookingSection booking={booking} />}
     </section>

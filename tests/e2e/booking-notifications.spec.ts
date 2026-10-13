@@ -636,7 +636,9 @@ test("confirmed owner fixture capture keeps synthetic wording and meaningful TTL
     }),
   ).toBeVisible();
   await expect(
-    page.locator("main span").filter({ hasText: /^Fixture confirmation$/ }),
+    page
+      .locator('main [aria-live="polite"]')
+      .getByText("Fixture confirmation", { exact: true }),
   ).toBeVisible();
   const noJs = await browser.newContext({
     baseURL,
@@ -654,8 +656,8 @@ test("confirmed owner fixture capture keeps synthetic wording and meaningful TTL
   ).toBeVisible();
   await expect(
     staticPage
-      .locator("main span")
-      .filter({ hasText: /^Fixture confirmation$/ }),
+      .locator('main [aria-live="polite"]')
+      .getByText("Fixture confirmation", { exact: true }),
   ).toBeVisible();
   await noJs.close();
   await f.context.close();

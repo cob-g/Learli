@@ -31,14 +31,16 @@ export async function AuthFrame({
     );
   return (
     <div className="page-shell page-space">
-      <div className="max-w-prose">
+      <div className="mx-auto max-w-xl">
         <h1 className="text-page-title">{title}</h1>
-        <p className="mt-4 text-body text-muted-foreground">
+        <p className="mt-4 rounded-control border border-border bg-subtle p-4 text-small text-muted-foreground">
           {mode === "local"
             ? "Local testing only. Use a made-up name and an email ending in .test. Messages stay in your local mailbox."
             : "Hosted synthetic testing only. Use an explicitly configured fictional account. Message requests do not establish delivery or real account eligibility."}
         </p>
-        {children}
+        <div className="mt-6 rounded-surface border border-border bg-surface p-6 sm:p-8">
+          {children}
+        </div>
       </div>
     </div>
   );

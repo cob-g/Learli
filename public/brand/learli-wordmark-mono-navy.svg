@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 408 145" width="408" height="145" role="img" aria-label="learli">
+  <g fill="#1E2A78">
+    <rect x="0" y="0" width="24" height="144"/>
+    <path d="M134.497 103A49 49 0 1 0 123.536 127.497L105.151 112.07A25 25 0 1 1 110 103Z"/>
+    <rect x="58" y="86" width="68" height="17"/>
+    <path fill-rule="evenodd" d="M194 47a49 49 0 1 0 0 98a49 49 0 1 0 0-98ZM194 71a25 25 0 1 1 0 50a25 25 0 1 1 0-50Z"/>
+    <rect x="219" y="48" width="24" height="96"/>
+    <rect x="265" y="48" width="24" height="96"/>
+    <path d="M265 90A42 42 0 0 1 320 50.06L320 77.55A18 18 0 0 0 289 90Z"/>
+    <rect x="333" y="0" width="24" height="144"/>
+    <rect x="379" y="48" width="24" height="96"/>
+    <circle cx="391" cy="17" r="17"/>
+  </g>
+</svg>

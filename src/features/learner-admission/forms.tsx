@@ -153,7 +153,7 @@ export function AdmissionForm({
       method="post"
       action="/api/learner-admission"
       onSubmit={save}
-      className="mt-8 max-w-prose space-y-6"
+      className="max-w-prose space-y-6"
     >
       <fieldset disabled={state.disabled} className="space-y-6">
         <legend className="text-section-title">
@@ -190,7 +190,7 @@ export function AdmissionForm({
             }
           />
           {state.fields.displayName && (
-            <p id="displayName-error" className="mt-2 text-body">
+            <p id="displayName-error" className="mt-2 text-body text-error">
               {state.fields.displayName}
             </p>
           )}
@@ -231,7 +231,10 @@ export function AdmissionForm({
             ))}
           </select>
         </div>
-        <button className="action action-primary transition-none" type="submit">
+        <button
+          className="action action-primary w-full transition-none sm:w-auto"
+          type="submit"
+        >
           Request admission review
         </button>
       </fieldset>

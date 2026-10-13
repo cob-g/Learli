@@ -119,7 +119,7 @@ export function AdminSecurityForm({
   }
   const verifying = challenge || enrolled || !!secret;
   return (
-    <div className="mt-8 max-w-xl space-y-8">
+    <div className="mt-6 max-w-xl space-y-8">
       {!ready && (
         <p className="text-body">
           JavaScript is required for secure authenticator setup and
@@ -168,7 +168,7 @@ export function AdminSecurityForm({
           ref={status}
           tabIndex={-1}
           role="alert"
-          className="text-body text-error"
+          className="rounded-control border border-error p-4 text-body text-error"
         >
           {notice}
         </p>
@@ -207,7 +207,7 @@ export function AdminSecurityForm({
           required
         />
         <button
-          className="action action-primary transition-none"
+          className="action action-primary w-full transition-none sm:w-auto"
           type="submit"
           disabled={!ready}
           aria-disabled={pending}
@@ -232,7 +232,7 @@ export function AdminSecurityForm({
         </button>
       )}
       {enrolled && !challenge && (
-        <section className="space-y-4">
+        <section className="space-y-4 border-t border-border pt-8">
           <h2 className="text-section-title">Change recovery settings</h2>
           <p className="text-body">
             Verify your authenticator or recovery code within five minutes, then

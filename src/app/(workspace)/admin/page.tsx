@@ -27,16 +27,20 @@ export default async function AdminWorkspacePage() {
   return (
     <AdminShell>
       <h1 className="text-page-title">Admin workspace</h1>
-      <p className="mt-4 text-body">Signed in as {account.email}</p>
-      <p className="mt-4 max-w-prose text-body text-muted-foreground">
+      <p className="mt-3 text-small wrap-anywhere text-muted-foreground">
+        Signed in as {account.email}
+      </p>
+      <p className="mt-6 max-w-prose border-t border-border pt-6 text-body">
         Review local tutor applications and manage the subject catalog. Support
         cases, account controls and private synthetic reviews require separately
         granted access to each relevant record.
       </p>
-      <Link className="mt-4 inline-flex min-h-11 items-center" href="/account">
-        Account settings
-      </Link>
-      <AdmissionReviewEntry />
+      <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2">
+        <Link className="inline-flex min-h-12 items-center" href="/account">
+          Account settings
+        </Link>
+        <AdmissionReviewEntry />
+      </div>
       <SignOut />
     </AdminShell>
   );

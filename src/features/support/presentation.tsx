@@ -8,7 +8,7 @@ import { SupportBookingSection } from "@/features/support-bookings/presentation"
 
 export function DemoNotice() {
   return (
-    <p className="mt-4 max-w-prose text-body text-muted-foreground">
+    <p className="mt-4 max-w-prose rounded-control border border-border bg-subtle p-4 text-small text-muted-foreground">
       Local demo for fictional reports only. This is not monitored and is not an
       emergency reporting channel. Do not enter real personal details, dates of
       birth, school names or private meeting links.
@@ -36,7 +36,13 @@ export function CaseRows({
   return (
     <>
       {result.cases.length ? (
-        <ul className="mt-8 max-w-5xl divide-y divide-border">
+        <ul
+          className={
+            reviewer
+              ? "mt-8 max-w-5xl divide-y divide-border"
+              : "mt-8 max-w-5xl divide-y divide-border rounded-surface border border-border bg-surface px-6 sm:px-8"
+          }
+        >
           {result.cases.map((row) => (
             <li
               key={row.id}
@@ -55,7 +61,13 @@ export function CaseRows({
           ))}
         </ul>
       ) : (
-        <section className="mt-8 max-w-prose">
+        <section
+          className={
+            reviewer
+              ? "mt-8 max-w-prose"
+              : "mt-8 max-w-prose rounded-surface border border-border bg-surface p-6 sm:p-8"
+          }
+        >
           <h2 className="text-item-title">
             {reviewer
               ? "No cases assigned to you"
@@ -115,10 +127,22 @@ export function CaseView({
     <>
       <CaseTitle subject={detail.subject} />
       <DemoNotice />
-      <div className="mt-8">
+      <div
+        className={
+          reviewer
+            ? "mt-8"
+            : "mt-8 max-w-prose rounded-surface border border-border bg-surface p-6 sm:p-8"
+        }
+      >
         <CaseStatusLabel status={detail.status} />
         <p className="mt-4 text-body">{categoryLabels[detail.category]}</p>
-        <p className="mt-4 max-w-prose text-prose wrap-anywhere whitespace-pre-wrap">
+        <p
+          className={
+            reviewer
+              ? "mt-4 max-w-prose text-prose wrap-anywhere whitespace-pre-wrap"
+              : "mt-6 max-w-prose font-reading text-reading wrap-anywhere whitespace-pre-wrap"
+          }
+        >
           {detail.body}
         </p>
       </div>
@@ -130,7 +154,13 @@ export function CaseView({
           revision={detail.revision}
         />
       )}
-      <section className="mt-12 max-w-prose">
+      <section
+        className={
+          reviewer
+            ? "mt-12 max-w-prose"
+            : "mt-8 max-w-prose border-t border-border pt-8"
+        }
+      >
         <h2 className="text-section-title">Case history</h2>
         <ol className="mt-4 divide-y divide-border">
           {detail.history.map((event) => (

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useRef } from "react";
+import { BrandLogo } from "@/components/shared/brand-logo";
 
 const links = [
   ["/tutors", "Find a tutor"],
@@ -15,13 +16,13 @@ const links = [
 export function SiteHeader() {
   const pathname = usePathname();
   const dialog = useRef<HTMLDialogElement>(null);
+  const menuTrigger = useRef<HTMLButtonElement>(null);
 
   return (
     <header className="border-b border-border bg-surface">
-      <div className="page-shell flex min-h-14 items-center justify-between gap-4 lg:min-h-16">
-        {/* Development placeholder allowed by ui-context.md; not final artwork. */}
-        <Link href="/" className="nav-link text-item-title">
-          Learli
+      <div className="page-shell flex min-h-20 flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2 lg:min-h-24">
+        <Link href="/" className="brand-home" aria-label="Learli home">
+          <BrandLogo />
         </Link>
         <nav
           aria-label="Main navigation"
@@ -38,7 +39,7 @@ export function SiteHeader() {
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-4">
+        <div className="flex max-w-full flex-wrap items-center justify-end gap-3 sm:gap-6">
           <Link
             href="/sign-in"
             className="nav-link"
@@ -47,6 +48,7 @@ export function SiteHeader() {
             Sign in
           </Link>
           <button
+            ref={menuTrigger}
             type="button"
             className="action action-outline lg:hidden"
             aria-haspopup="dialog"
@@ -56,8 +58,13 @@ export function SiteHeader() {
           </button>
         </div>
       </div>
-      <dialog ref={dialog} aria-labelledby="menu-title" className="mobile-menu">
-        <div className="flex items-center justify-between gap-4">
+      <dialog
+        ref={dialog}
+        aria-labelledby="menu-title"
+        className="mobile-menu"
+        onClose={() => menuTrigger.current?.focus()}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <h2 id="menu-title" className="text-item-title">
             Menu
           </h2>

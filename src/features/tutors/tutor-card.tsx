@@ -29,8 +29,8 @@ export function InitialsAvatar({
     <span
       aria-hidden="true"
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full bg-subtle text-label-strong text-foreground",
-        large ? "size-16" : "size-10",
+        "inline-flex shrink-0 items-center justify-center rounded-full bg-mint text-label-strong text-foreground",
+        large ? "size-20" : "size-12",
       )}
     >
       {initials(name)}
@@ -62,15 +62,15 @@ export function TutorList({
   timezone?: string;
 }) {
   return (
-    <ul className="@container divide-y divide-border rounded-surface border border-border bg-surface px-4 md:px-6">
+    <ul className="@container divide-y divide-border border-y border-border">
       {tutors.map((tutor) => {
         const names = tutor.offerings.map((offering) => offering.subjectName);
         return (
           <li
             key={tutor.slug}
-            className="relative flex flex-col gap-4 py-4 @3xl:flex-row @3xl:items-start @3xl:justify-between"
+            className="relative grid grid-cols-1 gap-6 py-6 @3xl:grid-cols-[minmax(0,1fr)_auto] @3xl:items-start"
           >
-            <div className="flex min-w-0 gap-3">
+            <div className="flex min-w-0 gap-4">
               <InitialsAvatar name={tutor.displayName} />
               <div className="min-w-0">
                 <Heading className="text-item-title wrap-anywhere">
