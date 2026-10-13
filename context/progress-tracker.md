@@ -1,5 +1,71 @@
 # Learli — Progress Tracker
 
+## 2026-10-13 — daily development preparation verified; source uncommitted
+
+The owner requested dependency maintenance, complete Neon development acceptance
+and preparation of the primary checkout, then explicitly requested agents.
+Blueprint: `prompts/features/m8-09-development-readiness.md`, AUTHORIZED —
+build-feature delegation. Work is on `codex/development-readiness` from main
+`a8a92c1`; no commit, merge, push or deployment occurred in this wave.
+
+**Dependency maintenance:** a scoped core-utils esbuild override (0.18.20 to
+0.25.12) and clean install reduce the audit from 13 findings to nine high
+**development-tool entries for one unpatched braces advisory**. Runtime-only audit
+has zero findings. No finding was suppressed. Direct dependency versions and
+application source/schema are unchanged; optional bundled Tailwind lockfile
+metadata is explained by independent review.
+
+**Environment/data:** the exact non-default/non-primary Neon development branch
+`learli-local-development` is selected through a private restricted-runtime packet,
+recovered with verified archive hashes. Production configuration was not selected.
+The unchanged test env remains owned loopback PostgreSQL on 55432. Its database
+advanced from 22 to 29 migration stamps after a custom backup; every original
+row/column value in 44 baseline public tables matched immediately after migration.
+The old local development database remains preserved at its previous schema.
+
+**Executed verification:**
+- Clean install, production build and offline Drizzle/Better Auth generation PASS;
+  Drizzle reports no schema delta and committed schemas/migrations are unchanged.
+- `npm run check` PASS: formatting, lint (one inherited unused-import warning),
+  types, **1,338 tests / 84 files**.
+- Selected real loopback PostgreSQL integration PASS: **198 tests / nine suites**
+  for auth, learners/creation, bookings/read/lifecycle/meeting links and
+  availability/public availability.
+- Independent dependency worker's separate direct-loader verification PASS:
+  **17 checks** for actual nested esbuild, TS/TSX, dynamic imports and source maps.
+- Actual Neon development acceptance is **aggregate evidence**: 43 successful core
+  assertions in retained FAIL run `f98af887-0a7a-4fdb-9cea-8382b81ff066`, followed by
+  24 assertions in PASS follow-up `01a8390a-6a18-46e2-8bec-e5ee823501b9`, with overlap.
+  This is not 67 unique tests or a single uninterrupted PASS. Covered: synthetic
+  signup/verification/sign-in and tutor/learner setup, actual positive reservation,
+  idempotency, concurrent overlap prevention, lifecycle/history, independent
+  College booking, meeting privacy and foreign read/mutation denials. Browser
+  booking rendering passed at 390/1440 pixels; follow-up public tutor privacy and
+  mobile rendering passed. The exact owned tutor was retired afterward.
+
+**Review/orchestration:** two GPT-6.1 SOL High agents used isolated worktrees and
+branches for dependency and development review. Dependency review found zero
+findings. Development review's Minor README/local-guide drift was corrected,
+integrated and re-reviewed. Final scoped reviews PASS/ready for verification with
+no remaining confirmed findings; broader requirements/production clearance are
+not claimed. Coordinator alone owned shared database/browser/check work.
+
+**Recovery and limits:** failed attempts are retained, including fixture connection
+failures, one generic sign-in 503, helper response-shape error and public-page
+observation during navigation. The targeted follow-up passed without retries;
+transient provider/connection failure causes remain unproven, not declared fixed.
+No application timeout, TLS check, permission or policy gate changed. See
+`prompts/recovery/2026-10-13-development-readiness.md` and
+`docs/operations/daily-development.md`. Evidence: `.local/development-readiness/`.
+The restarted preview returned HTTP 200 for `/api/health` and `/tutors` at
+`http://127.0.0.1:3000`. Original `next-env.d.ts`, `.env.test.local` and the unrelated
+brand archive matched their baseline hashes. Historical schemas/migrations are
+unchanged; selected private credentials are absent from the candidate files and
+server build traces include no private environment/artifact paths. Worker review
+worktrees/branches remain retained. Configuration backups are preserved. Full
+Firefox/WebKit gaps, real-user policy/auth activation, live email, deployment and
+payments remain separate; payments stay paused. No whole-milestone completion.
+
 ## 2026-10-13 — remote push and completed-wave cleanup verified
 
 The user explicitly authorized pushing main and removing completed worktrees and

@@ -1,5 +1,18 @@
 # Local development
 
+The configured primary checkout uses isolated Neon development with synthetic
+accounts; follow [Daily local development](daily-development.md) for that workflow.
+Its automated tests stay on the independent `.env.test.local` and owned loopback
+`learli_test` database on port 55432. Production is not a development or test target.
+Real workflow policies and payments remain disabled.
+
+This guide covers fresh opt-in loopback development and its fixtures. Its
+`local:setup`, `db:migrate` and `db:seed` commands are not Neon setup commands.
+Existing environment files are preserved, so setup does not switch an already
+configured Neon checkout to loopback. The old `.local/fixtures.json` and private
+credential sheet belong to the former loopback database, not Neon login accounts.
+Reconcile its migrations before switching back to that preserved database.
+
 Prerequisites: Node 24.20.0, npm 11.19.0 and PostgreSQL 17 command-line binaries
 (`initdb`, `pg_ctl`) on PATH. On this machine PostgreSQL 17.11 is already installed.
 If needed, set `PG_BIN` to the directory containing the PostgreSQL 17 binaries.

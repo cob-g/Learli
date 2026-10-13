@@ -991,3 +991,17 @@ authorization. All 14 completed worktrees and branches were archived, verified a
 removed; private recovery artifacts remain in `.local/hosted-wave-cleanup-2026-10-13/`.
 Their port-3039 preview is stopped. Main's original local database/dependency
 preparation remains a separate operation; Neon cloud resources are unchanged.
+
+### M8.9 daily development readiness — 2026-10-13
+
+The owner requested dependency maintenance, primary-checkout development setup
+and successful synthetic booking acceptance on the existing isolated Neon
+development branch. The authorized blueprint is
+`prompts/features/m8-09-development-readiness.md`. Automated suites remain on
+owned loopback PostgreSQL; production is not an acceptance target. The tracker
+records completed local preparation: check 1,338, selected PostgreSQL 198,
+build/offline generation, 17 direct-loader checks and aggregate Neon development
+acceptance (43 successful core assertions plus a 24-assertion follow-up, with
+overlap). Nine high development-tool audit entries remain unpatched upstream.
+Source is uncommitted on the review branch. This does not close real-policy,
+provider-email, deployment or payment milestones.
