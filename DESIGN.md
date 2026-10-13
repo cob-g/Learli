@@ -27,6 +27,12 @@ colors:
   state-error-soft: "#fef1f1"
   scrim: "rgb(22 32 77 / 0.5)"
 typography:
+  hero:
+    fontFamily: 'Lexend, "Avenir Next", Verdana, sans-serif'
+    fontSize: "clamp(2.5rem, 1.35rem + 3.6vw, 4.25rem)"
+    fontWeight: 600
+    lineHeight: 1.04
+    letterSpacing: "-0.03em"
   display:
     fontFamily: 'Lexend, "Avenir Next", Verdana, sans-serif'
     fontSize: "clamp(2.25rem, 1.833rem + 2.083vw, 3.5rem)"
@@ -122,6 +128,7 @@ rounded:
   control: "0.625rem"
   surface: "1rem"
   overlay: "1.125rem"
+  frame: "0.75rem"
   full: "calc(infinity * 1px)"
 spacing:
   "1": "0.25rem"
@@ -337,6 +344,43 @@ an entrance animation runs on every surface.
 **The Flat Surface Rule.** Group work with borders, tonal surfaces and spacing;
 do not add resting card shadows, glass or decorative elevation.
 
+### Public home motion
+
+The public home page is the one surface with authored motion (`home.css`,
+`HomeMotion`). Four moves: the mint highlight is drawn across a headline phrase
+(760ms); hairlines above list rows are ruled left to right (900ms, staggered
+70ms, capped); a blue stroke is drawn through the three lesson steps (1100ms)
+behind their glass tiles; and each lesson glyph assembles as the stroke
+reaches it (900ms, 250ms apart). All use `cubic-bezier(0.16, 1, 0.3, 1)`.
+Hover and focus sweep the highlight across an index row (320ms).
+
+The sample review carousel (preview environments only) swings three pictures
+round a shallow 3D arc with an overshoot, `cubic-bezier(0.4, 2, 0.3, 1)` over
+800ms, and brings each quote in word by word (220ms per word, 25ms apart). It
+is the one place that advances by itself: after 2.5s plus about 330ms per word
+of the quote, waiting under a pointer or keyboard focus, and never under
+reduced motion. Its one control is Next.
+
+**The Complete Markup Rule.** Motion only withholds a decorative stroke that is
+still below the viewport. Text, links and final arrangements are in the server
+markup; reduced motion keeps each state and removes the travel.
+
+### Public home liquid glass
+
+On the public home page the flat surface rule gives way to one material,
+`.glass`: a softened and tinted backdrop, a lit rim, a soft offset contact
+shadow and a glint that follows the pointer. It is used for floating layers
+only: the header, the finder, the lesson tiles, the card for what Learli looks
+after, the sample-review sheet and the primary and outline actions (300ms scale
+on hover). Light sheets carry
+a white tint of 62%; sheets on navy carry 9% and keep white text. Chromium also
+bends the backdrop through an SVG filter. Reduced transparency, higher contrast,
+forced colors and browsers without backdrop filters get solid surfaces.
+
+**The Something Behind It Rule.** A sheet always lies over Learli's own
+material (photographs, the illustration, tonal rings, the scrolling page) and
+its text holds AA over all of it. Glass is never laid on an empty ground.
+
 ## Shapes
 
 Controls use gently rounded corners; panels are rounder and native confirmation
@@ -401,17 +445,34 @@ Main navigation uses Navy interface labels with minimum (3rem) height; the curre
 page is stronger and underlined. Large-screen links appear from (64rem); below
 that a named Menu button opens the native side dialog, capped at (20rem) and the
 viewport width. Escape and focus return remain native/explicit behavior. Header
-groups wrap with enlarged text. Footer navigation sits on Navy with White labels.
+groups wrap with enlarged text. The footer sits on Navy: the reverse wordmark,
+the tagline in the headline role with its mint highlight, three labelled link
+groups in White at body size with (2.75rem) targets, and a closing bar under a
+hairline with a Back to top link. On the public home page its top edge is cut
+on a five-degree diagonal with the mint stroke lying along it.
 Admin current navigation uses Navy/White and a small teal dot with `aria-current`.
 
 ### Artwork and lesson details
 
 `public/brand/` holds five original kit SVGs: primary, reverse, mono navy and mono
 white wordmarks plus the icon. The current shared logo renders primary on light
-and reverse on the footer; it is (6rem) wide, then (7rem) at small, preserving the
+and reverse on the footer; it is (6rem) wide, then (7rem) at small (the footer
+sets it at (7rem), then (9rem)), preserving the
 original aspect ratio. Home links are named “Learli home”; the icon is metadata
 artwork, not a second mark next to the wordmark. Provenance is recorded in
-`public/brand/README.md`. No photography or raster production asset is added.
+`public/brand/README.md`.
+
+The home hero carries illustrative, AI-generated photographs from
+`public/home/` (provenance in its README) as one layered scene: a clean plate
+of a room in a (1rem) frame, the learner with her desk as a cutout in front of
+it with her head above the frame, a second photograph on a card behind and a
+third on a card in front. Planes move a few tens of pixels with scroll and a
+fine pointer leans the stage about three degrees. They appear nowhere else and
+represent no real person.
+
+The home page carries original inline-SVG artwork built from the wordmark's
+geometry in existing tokens: a lesson glyph made of a ring, two stems and one
+dot. It represents no real tutor, learner or lesson time.
 
 Lesson details render server-formatted date, time and time-zone context together.
 Normal time uses the time role; prominent time uses section-title. Synthetic
@@ -431,7 +492,8 @@ interface and must not be removed for a cleaner screenshot.
 ### Don't:
 
 - **Don't** use Bright teal or Mint as ordinary text on a light surface.
-- **Don't** add card shadows, glass, decorative gradients or invented imagery.
+- **Don't** add card shadows, glass, decorative gradients or invented imagery outside the public home page; there, glass is for floating layers and photographs stay in the hero, illustrative and uncaptioned.
+- **Don't** animate outside the public home page beyond short state transitions, or hide content behind any animation.
 - **Don't** turn kit example practice sets, messages or progress screens into product functionality.
 - **Don't** invent tutors, availability, reviews, prices or customer claims to fill a layout.
 - **Don't** hide synthetic notices, policy drafts, private-data boundaries or booking state for visual polish.

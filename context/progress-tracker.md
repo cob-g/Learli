@@ -1,5 +1,251 @@
 # Learli — Progress Tracker
 
+## 2026-10-13 — Public home page motion, illustration, layered hero photographs, liquid glass, sample review carousel and added information; uncommitted
+
+**Task:** UI only. Owner request, same day: a more engaging, professional
+landing page with motion, scroll animation, imagery and repo-grounded
+information, full creative latitude, Impeccable rules kept. Branch
+`feature/home-landing-motion` from `772870b`. PRD: PUB-01, PUB-02, QA-01, and the
+support/safety route visibility part of PUB-05. Decision:
+`docs/decisions/2026-10-13-home-motion-illustration.md`; rules:
+`context/ui-context.md` 2.6. Same-day follow-ups from the owner asked for
+images of students in the hero, then for a liquid-glass environment using a
+pasted `LiquidButton` as the reference, then to install the scroll-craft skill
+and use it for an "HD and in 3D" hero, then for a transparent full-width header
+and a new hero layout, then for a testimonials section with placeholder
+messages. Status: **Ready for QA**, not committed.
+
+**Changed:**
+
+- `src/app/(marketing)/page.tsx`: larger headline (`text-hero`) beside three
+  hero photographs, the finder / zero-inventory / unavailable panel as a
+  full-width bar beneath (same logic and copy), the subject index plus
+  learner-level links (real `/tutors` filters), a navy three-step sequence at
+  `#how-it-works`, a "what Learli looks after / what your tutor looks after"
+  section closed by the two-places illustration, and two closing doors. Find a tutor, Get matched,
+  Become a tutor and Report a concern are now reachable in every catalog state.
+- New `src/features/home/`: `home-motion.tsx` (one client component: reveal,
+  active step, scroll progress), `lesson-glyph.tsx`, `two-places.tsx` (inline
+  SVG), `learner-photos.tsx`. New `src/app/(marketing)/home.css`.
+- New `public/home/`: four WebP photographs and a README. **They are
+  AI-generated**, made at the owner's request with the owner's Higgsfield
+  account (about 14 credits in all), art-directed to the kit's imagery board.
+  They show no real person and no actual Learli learner or lesson, carry no
+  caption or name, and appear only in the home hero. This sets aside the kit's
+  "no generated faces" line for that one place, by owner decision.
+- **scroll-craft skill installed** at `.claude/skills/scroll-craft/` (0.3.1,
+  commit `75d81f7`, MIT, unmodified; source in its `SOURCE.md`), linked at
+  `.agents/skills/scroll-craft`. Read and audited first: its scripts check
+  tools, serve files locally and take screenshots; the one that calls kie.ai
+  needs a key Learli does not set and was not run. Its workspace is
+  `scrollcraft/`, holding the hero brief and one registry row.
+- **Layered hero**, using scroll-craft's hero-depth method and layer contract
+  (`scrollcraft/builds/learli-home-hero/BRIEF.md`): `hero-scene.tsx` replaces
+  the flat photo grid. A clean plate of the room and the learner with her desk
+  as one cutout, her head above the frame, with a card behind and a card in
+  front; planes move at their own rates with scroll, and a fine pointer leans
+  the stage about three degrees. Both halves of the scene are held until both
+  load. The skill's standalone engine, grammar gate and kie.ai were not used.
+  `next.config.ts` allows image quality 90. Sets aside the kit's "no cut-outs"
+  line for this scene, by owner decision.
+- **Liquid glass, home page only.** One `.glass` material in `home.css`, built
+  from the reference's technique in Learli tokens; the reference component, its
+  metal button and its other variants were not installed. Used for the finder
+  (laid across the foot of the photographs, with the illustration's sun and dot
+  behind it), the stage tile around the lesson glyph, the illustration's caption
+  plate, and the primary and outline actions. New `glass-filters.tsx` holds two
+  SVG refraction filters. This sets aside the flat surface rule on this page by
+  owner decision.
+- `site-header.tsx` (shared): on `/` only, the header is transparent and spans
+  the viewport; with scripts it stays on screen (viewport at least 40rem tall)
+  and turns to glass once the page scrolls beneath it. Destinations and menu
+  behavior are identical; every other route renders the header as before.
+- **Hero layout (latest):** wide two-line headline with the introduction at its
+  right, the layered scene at centre stage, and the finder as a glass card at
+  its right. The first version's flat mint band was replaced at the owner's
+  request by one mint stroke across the viewport that passes behind the small
+  photograph, through the main one behind the learner, and under the glass
+  finder, with a teal stop that travels along it on scroll. The finder form
+  is back to its stacked layout; `tutor-filter-form.tsx` no longer differs from
+  `main`. `lib/utils.ts` registers the `hero` text size and
+  `frame` radius so `cn()` merges them correctly.
+- **Footer redesigned** at the owner's request (`site-footer.tsx`, shared by
+  every page): wordmark and highlighted tagline on the left, the same seven
+  destinations under three labels (Learli, Help, Policies), and a closing bar
+  with a Back to top link. `BrandLogo` takes an optional width. On the home
+  page only, a new last element (`.home-close`) cuts the footer's top edge on a
+  five-degree diagonal with the hero's mint stroke and stop along it. No
+  copyright, company details or new destinations were added.
+- **Two-places illustration removed** at the owner's request (the day/night
+  diptych with "Where you are / Where your tutor is" and its glass caption);
+  `two-places.tsx` and its styles are deleted. The owner then found the section
+  plain and asked for a design: it is now a layered scene, a photograph
+  between a liquid-glass card ("What Learli looks after") over its
+  left edge and a navy card ("What your tutor looks after") over its right.
+  The cards are in normal flow and do not move; the photograph drifts inside
+  its frame with scroll and pointer. `HomeMotion` now leans every `[data-tilt]`
+  scene, not only the hero's. The photograph first reused the hero's kitchen
+  picture; at the owner's request it is now its own image,
+  `public/home/family-table.webp` (a generated parent and young learner at a
+  table, about 3 Higgsfield credits; provenance in the folder's README).
+- **How a lesson comes together (latest):** rebuilt twice at the owner's
+  request. Final form: the hero's layered stroke in blue on navy, crossing the
+  viewport behind three glass tiles (top left to bottom right, the mirror of
+  the hero's). The process climbs the line: Find lowest at the bottom right,
+  Choose in the middle, Meet highest at the top left, with the steps still in
+  order in the markup and the line drawn from the low end. A stop before the
+  first step copies the hero's size and ring in navy and white. Removed along the way: the ring and dot behind the tile, the
+  scroll-filled rail, then a pinned tile that filled with liquid while the
+  steps tilted past. `lesson-tile.tsx` is a plain glass tile; `HomeMotion` lost
+  its step logic and gained `data-reveal-group`. Two fixes found on the way:
+  the step tiles' icon was sized from the column instead of the tile (a quarter
+  size on tablets), and waiting states animated into place, so a fast scroll
+  could catch a stroke half hidden. Waiting now applies at once, page-wide.
+  Last adjustments at the owner's request: more vertical room, scaled to the
+  screen's height (919px tall at 1440 × 900, up from about 750), and the
+  introduction sentence moved from Literata to Lexend; then the heading and
+  introduction swapped sides on wide screens (introduction left, heading
+  right), with the heading still first in the markup.
+- **Sample review carousel:** `review-carousel.tsx` rebuilds the
+  animation of 21st.dev's "circular testimonials" in CSS (no new dependency;
+  the reference's source was not downloadable). `sample-reviews.ts` holds three
+  invented quotes, clearly marked as such: no names, numbers, prices, results or
+  verification claims. `preview-content.ts` renders the section only where
+  `APP_ENV` is development, test or staging; **in production the page has no
+  review section**, so PUB-01 holds for the public site. The section is tagged
+  "Sample reviews" with "They are not from Learli customers." Three faceless
+  crops (`public/home/moment-*.webp`) accompany the quotes.
+- `globals.css`: `--text-hero`, `--radius-frame`, `--rule-inverse`. No new hue.
+- No dependency, API, service, schema, migration or environment change.
+- Copy restates existing approved text and implemented behavior only. No
+  prices, counts, reviews, testimonials or verification claims.
+
+**Verified on the final source:**
+
+- `npm run check` PASS: formatting, lint (the one inherited unused-import
+  warning in `time-off/service.ts`), type checking, **1,356 tests / 88 files**
+  (four new home tests: entry points in every catalog state, no invented
+  claims, photograph alt text that presents no one as a Learli learner or tutor,
+  complete markup without scripts; plus two header tests: glass on `/` only,
+  and every destination and the menu control present in both variants; plus
+  review tests: no review section where preview content is not allowed, the
+  sample label where it is, the gate's environments, the carousel's server
+  markup, and the sample data's limits).
+- Review carousel in Chromium, final behaviour (one control, Next; no pause
+  button, by owner request): at 1440 wide the first review had not changed at
+  7.5s and changed at about 11s; after Next it kept changing by itself (about
+  12.4s for the longer quote); it stayed put for 15s under a resting pointer and
+  moved on 2.5s after the pointer left; it stayed put for 15s with keyboard
+  focus on Next; only a visitor's own change was announced ("Review 3 of 3").
+  Zero axe violations, no overflow or console errors. At 390 wide with touch it
+  kept changing after a tap. Reduced motion: no automatic change, Next works.
+  Scripts off: all three quotes listed, no buttons.
+- `npm run build` PASS.
+- Impeccable detector, one run per change over the changed UI targets: no
+  findings either time.
+- Chromium against the running development preview, zero-inventory catalog,
+  two rounds for each change (figures below are from the final source):
+  1440, 1820 and 390 wide; then reduced motion, scripts disabled,
+  320 wide, and doubled root font size at 390 and 320. No horizontal overflow
+  in any of them; zero axe violations (wcag2a/2aa/21aa) at 1440, 1820 and 390;
+  no console errors; one `h1`; no `input`. Stage glyph moved 1 → 2 → 3 with
+  scroll; nine strokes withheld below the fold at load and none after scrolling;
+  none withheld under reduced motion; scripts-off render complete. One defect
+  found and fixed in round two: 21px overflow at 320 wide with doubled text,
+  from the steps column's minimum content width.
+
+- Layered hero, per the skill's acceptance list: opening, two mid-scroll and
+  exit frames at 1440; opening, scene and exit at 390 × 844 and 360 × 640; two
+  pointer positions compared (planes visibly parted; the room moved behind the
+  learner); reduced motion (no lean, same composition); scripts off (same
+  composition). No console errors, failed requests or broken images; pictures
+  served at quality 90. The cutout was checked on a contrasting ground for
+  halos and for real transparency before use.
+- Hero stroke in Chromium: its two copies measured on the same line (identical
+  centre and start); the drawing was captured part-way as one continuous
+  front; no overflow at 1820, 1440, 1366, 1100, 820, 390 and 360 wide; at 1100
+  it starts behind the far card and does not run under the words; the
+  search-form state (harness) keeps its button on the first screen at 1440 and
+  1366 with the stroke under the card's heading only.
+- Lesson section in Chromium at 1820, 1440, 1100, 820, 390 and 360 wide: every
+  tile centre within 1px of the stroke; the stop measured 40px with a 6px ring
+  and the stroke 80, 64 and 52px thick, each identical to the hero's at the
+  same width; no step or heading block within 23px of a stroke; no overflow; zero axe violations at 1440 and 390; no console
+  errors. Timing sampled at 1440: the stroke left the screen edge at reveal,
+  passed the three tiles at about 350, 480 and 590ms, and the glyphs began
+  assembling at 300, 550 and 800ms, in order. Reduced motion: nothing waits and
+  nothing drifts. Scripts off: the finished composition.
+- "Learli arranges the lesson" scene in Chromium at 1820, 1440, 1100, 820, 390
+  and 360 wide: cards overlap the photograph and never each other; nothing
+  leaves the stage; no overflow, including with doubled text at 390 and 320
+  (a 28px overflow at 320 with doubled text was found and fixed: the cards'
+  column could not shrink below its longest word); zero axe
+  violations at 1440 and 390; no console errors. A pointer moved the picture
+  about 10px each way while the cards stayed put. Reduced motion: no drift.
+  Scripts off: the same composition. Text on the glass card over the photograph
+  was judged readable by eye; axe cannot measure contrast over a picture.
+- Footer in Chromium: on `/` at 1820, 1440, 820 and 390 wide, and on
+  `/how-it-works` and `/sign-in`: seven links, each 44px tall; logo flush with
+  the text margin; no overflow, including doubled text at 390; zero axe
+  violations on every page checked. Home close: the wedge measured exactly five
+  degrees and overlaps the footer by 1px, so no seam; the stroke was caught
+  half drawn with a clean leading edge; Back to top landed at scroll 0 with
+  focus on `main`. Reduced motion and scripts off: the finished close, static.
+  The footer's existing component test (policy and help links) still passes;
+  its browser test in `draft-policies.spec.ts` was not run.
+- WebKit and Firefox test engines at 1440 wide: no errors, no overflow, the
+  refraction flag correctly absent, and the stage glyph moved 1 → 2 → 3 → 2 in
+  WebKit. A cross-engine check found and fixed two defects: sheets were built on
+  `isolation: isolate`, and the header's tint was too light to read if a blur
+  failed to render (now 80%).
+
+**Not run / not verified:**
+
+- **The production gate was not exercised on a production deployment.** It is
+  covered by the unit and component tests only; a production-mode server could
+  not be started here.
+
+- **The frosted glass has not been seen in real Safari or Firefox.** The
+  headless WebKit and Firefox engines here do not render any backdrop filter:
+  a bare `backdrop-filter: blur()` control box stayed sharp in both. Those
+  captures show the page is legible without blur, not that the blur works.
+- Scroll performance of the backdrop and refraction filters was not measured,
+  on any device.
+
+- **Playwright suite not run.** `npm run test:e2e` (desktop, phone, narrow)
+  could not start its server: `Invalid server configuration: DATABASE_MODE`.
+  `.env.local` is in `neon-development` mode for the owner's preview and the
+  schema refuses that mode with `APP_ENV=test`. No test executed; the guard was
+  not bypassed and no environment file was changed. The local test database was
+  started for the attempt and stopped again. The home assertions in
+  `foundation.spec.ts` were reproduced by hand as listed above, which is not the
+  same as the suite passing.
+- The tutors-listed home state was rendered only in a harness, on the final
+  hero: the page's server markup with a synthetic fixture, injected into the
+  preview. No overflow at 1440, 1366, 1100 and 390 wide. The search button is on
+  the first screen at 1440 × 900 and 1366 × 768. **At 1100 × 800 it is not**:
+  the card's lower edge sits about 107px below the fold, a short scroll. It was
+  never exercised against a real catalog with tutors.
+- The pointer lean and plane travel were judged from still frames, not watched
+  in motion, and not on a real phone or a high-density display.
+- scroll-craft's own `shoot.mjs` harness was not run: it walks pages built on
+  its engine, which this page does not load.
+- Firefox and WebKit not checked. Keyboard walk-through not repeated by hand
+  beyond the in-page cue moving focus to `#how-it-works`.
+- The independent Impeccable finish review was not run.
+
+**Open decisions / risks:** real reviews and an approved review policy are
+needed before any review appears publicly; until then the samples stay tagged
+and out of production. Also two for the owner before any public launch: whether
+to label the hero photographs as illustrative, and when to replace them with
+consented photographs of real lessons. Until then they must not be captioned or
+described as Learli learners. The glass should be looked at in Safari and on a
+phone before launch. Not deployed; nothing pushed.
+
+**Next smallest unit:** run the browser suite in a local-mode environment (or
+have the owner say how tests should run while the preview is in Neon
+development mode), then commit on the feature branch if the owner approves.
+
 ## 2026-10-13 — Brand kit UI committed and merged into local main
 
 The owner explicitly requested a commit and local-main merge. The 84 reviewed

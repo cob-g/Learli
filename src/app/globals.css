@@ -31,6 +31,12 @@
   --text-inverse: #ffffff;
   --text-inverse-muted: #c9d3ce;
   --focus-ring-inverse: #ffffff;
+  /* Hairlines on navy are mixed from the two tokens they sit between. */
+  --rule-inverse: color-mix(
+    in srgb,
+    var(--text-inverse) 28%,
+    var(--brand-navy)
+  );
   --scrim: rgb(22 32 77 / 0.5);
 
   /* State tones */
@@ -173,6 +179,7 @@
   --color-inverse: var(--bg-inverse);
   --color-on-inverse: var(--text-inverse);
   --color-on-inverse-muted: var(--text-inverse-muted);
+  --color-rule-inverse: var(--rule-inverse);
   --color-inverse-action: var(--accent-primary);
   --color-inverse-action-hover: var(--accent-soft);
   --color-scrim: var(--scrim);
@@ -187,10 +194,17 @@
   --radius-control: 0.625rem;
   --radius-surface: 1rem;
   --radius-overlay: 1.125rem;
+  /* The kit's image frame: illustration now, consented photography later. */
+  --radius-frame: 0.75rem;
   --shadow-float: none;
   --shadow-modal: none;
   --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  /* Public home headline only; every other page starts at display. */
+  --text-hero: clamp(2.5rem, 1.35rem + 3.6vw, 4.25rem);
+  --text-hero--line-height: 1.04;
+  --text-hero--font-weight: 600;
+  --text-hero--letter-spacing: -0.03em;
   --text-display: clamp(2.25rem, 1.833rem + 2.083vw, 3.5rem);
   --text-display--line-height: 1.07143;
   --text-display--font-weight: 600;

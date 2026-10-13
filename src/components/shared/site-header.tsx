@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useRef } from "react";
+import { useRef, useSyncExternalStore } from "react";
 import { BrandLogo } from "@/components/shared/brand-logo";
+import { cn } from "@/lib/utils";
 
 const links = [
   ["/tutors", "Find a tutor"],
@@ -13,14 +14,46 @@ const links = [
   ["/become-a-tutor", "Become a tutor"],
 ] as const;
 
+const idle = () => () => {};
+const onScroll = (notify: () => void) => {
+  window.addEventListener("scroll", notify, { passive: true });
+  return () => window.removeEventListener("scroll", notify);
+};
+
 export function SiteHeader() {
   const pathname = usePathname();
   const dialog = useRef<HTMLDialogElement>(null);
   const menuTrigger = useRef<HTMLButtonElement>(null);
+  // On the public home page the header is transparent and spans the viewport.
+  // Once scripts run it stays on screen, and takes on glass (home.css) only
+  // when the page has moved beneath it, so its labels never sit on raw content.
+  const home = pathname === "/";
+  const live = useSyncExternalStore(
+    idle,
+    () => true,
+    () => false,
+  );
+  const raised = useSyncExternalStore(
+    home ? onScroll : idle,
+    () => window.scrollY > 8,
+    () => false,
+  );
 
   return (
-    <header className="border-b border-border bg-surface">
-      <div className="page-shell flex min-h-20 flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2 lg:min-h-24">
+    <header
+      className={home ? "home-header" : "border-b border-border bg-surface"}
+      data-live={home && live ? "" : undefined}
+      data-raised={home && raised ? "" : undefined}
+    >
+      <div
+        className={cn(
+          "flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2",
+          home
+            ? "home-header-bar glass glass-liquid min-h-16 lg:min-h-18"
+            : "page-shell min-h-20 lg:min-h-24",
+        )}
+        data-glint={home ? "" : undefined}
+      >
         <Link href="/" className="brand-home" aria-label="Learli home">
           <BrandLogo />
         </Link>

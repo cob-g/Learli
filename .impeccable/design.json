@@ -342,6 +342,10 @@
       }
     },
     "typographyMeta": {
+      "hero": {
+        "displayName": "Hero",
+        "purpose": "Public home headline only."
+      },
       "display": {
         "displayName": "Display",
         "purpose": "Implemented Lexend display role."
@@ -413,6 +417,11 @@
         "name": "modal",
         "value": "none",
         "purpose": "Native dialog and mobile menu use border and scrim."
+      },
+      {
+        "name": "home-glass-cast",
+        "value": "0 1px 2px color-mix(in srgb, #131a3d 7%, transparent), 0 18px 36px -18px color-mix(in srgb, #131a3d 34%, transparent)",
+        "purpose": "Contact shadow under a light glass sheet on the public home page only."
       }
     ],
     "motion": [
@@ -424,12 +433,62 @@
       {
         "name": "ease-enter",
         "value": "cubic-bezier(0.16, 1, 0.3, 1)",
-        "purpose": "Declared source token, not a universal entrance animation."
+        "purpose": "Public home highlight, rule and glyph motion; not a universal entrance animation."
       },
       {
         "name": "ease-exit",
         "value": "cubic-bezier(0.4, 0, 1, 1)",
         "purpose": "Declared source token, not a universal exit animation."
+      },
+      {
+        "name": "home-highlight-duration",
+        "value": "760ms",
+        "purpose": "Mint highlight drawn across a home headline phrase."
+      },
+      {
+        "name": "home-rule-duration",
+        "value": "900ms",
+        "purpose": "Hairline ruled above a home list row; 70ms stagger, capped at four steps."
+      },
+      {
+        "name": "home-glyph-duration",
+        "value": "900ms",
+        "purpose": "Lesson glyph rearranging between steps."
+      },
+      {
+        "name": "home-row-hover-duration",
+        "value": "320ms",
+        "purpose": "Highlight sweep on an index row for hover and focus."
+      },
+      {
+        "name": "home-photo-settle-duration",
+        "value": "1400ms",
+        "purpose": "Hero photograph settling from a slight zoom on load; frames never move."
+      },
+      {
+        "name": "home-glass-action-scale-duration",
+        "value": "300ms",
+        "purpose": "Glass action scaling on hover and press on the public home page."
+      },
+      {
+        "name": "home-review-swing",
+        "value": "800ms cubic-bezier(0.4, 2, 0.3, 1)",
+        "purpose": "Sample review carousel: pictures swinging round the arc, with overshoot."
+      },
+      {
+        "name": "home-review-word",
+        "value": "220ms, 25ms stagger",
+        "purpose": "Sample review carousel: each word of a quote settling out of a blur."
+      },
+      {
+        "name": "home-review-autoplay",
+        "value": "2500ms + 330ms per word",
+        "purpose": "Sample review carousel: how long a review stays up before the automatic change; waits under a pointer or keyboard focus, off under reduced motion."
+      },
+      {
+        "name": "home-lesson-line",
+        "value": "1100ms cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Blue stroke drawn through the three lesson steps on arrival; glyphs follow 250ms apart."
       }
     ],
     "breakpoints": [
@@ -563,6 +622,16 @@
         "name": "The Flat Surface Rule",
         "body": "Group work with borders, tonal surfaces and spacing; do not add resting card shadows, glass or decorative elevation.",
         "section": "elevation"
+      },
+      {
+        "name": "The Complete Markup Rule",
+        "body": "Motion only withholds a decorative stroke that is still below the viewport. Text, links and final arrangements are in the server markup; reduced motion keeps each state and removes the travel.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Something Behind It Rule",
+        "body": "A sheet of home-page glass always lies over Learli's own material (photographs, the illustration, tonal rings, the scrolling page) and its text holds AA over all of it. Glass is never laid on an empty ground.",
+        "section": "elevation"
       }
     ],
     "dos": [
@@ -574,10 +643,11 @@
     ],
     "donts": [
       "**Don't** use Bright teal or Mint as ordinary text on a light surface.",
-      "**Don't** add card shadows, glass, decorative gradients or invented imagery.",
+      "**Don't** add card shadows, glass, decorative gradients or invented imagery outside the public home page; there, glass is for floating layers and photographs stay in the hero, illustrative and uncaptioned.",
       "**Don't** turn kit example practice sets, messages or progress screens into product functionality.",
       "**Don't** invent tutors, availability, reviews, prices or customer claims to fill a layout.",
-      "**Don't** hide synthetic notices, policy drafts, private-data boundaries or booking state for visual polish."
+      "**Don't** hide synthetic notices, policy drafts, private-data boundaries or booking state for visual polish.",
+      "**Don't** animate outside the public home page beyond short state transitions, or hide content behind any animation."
     ]
   }
 }

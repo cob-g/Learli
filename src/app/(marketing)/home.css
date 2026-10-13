@@ -1,0 +1,1582 @@
+/* Public home page: illustration and scroll motion.
+
+   Everything here is presentation. The markup is complete and readable without
+   scripts: [data-reveal="pending"] is only ever set by HomeMotion, and only on
+   an element that is still below the viewport, so nothing in view can vanish.
+   Reduced motion keeps every state and removes the travel. */
+@layer components {
+  .home {
+    --home-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --home-rule: var(--border-default);
+  }
+  .home [data-surface="inverse"] {
+    --home-rule: var(--rule-inverse);
+  }
+
+  /* The highlight: one marker stroke per headline, on the words that matter.
+     A single-colour image stands in for the fill only so the stroke can be
+     sized; it is never a visible gradient. */
+  .brand-highlight.home-mark {
+    background-color: transparent;
+    background-image: linear-gradient(var(--brand-mint), var(--brand-mint));
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+  }
+  @keyframes home-line-draw {
+    from {
+      scale: 0 1;
+    }
+  }
+  @keyframes home-bead-in {
+    from {
+      scale: 0;
+    }
+  }
+  @keyframes home-mark-draw {
+    from {
+      background-size: 0% 100%;
+    }
+  }
+
+  /* Quiet links that carry a direction. */
+  .home-cue {
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+  }
+  .home-cue svg,
+  .home-arrow {
+    flex: none;
+    transition: transform 240ms var(--home-ease);
+  }
+
+  /* Ruled lists: each row sits under a hairline that is drawn, not faded. A
+     border keeps the line in forced-colors mode. */
+  .home-ruled > li {
+    position: relative;
+  }
+  .home-ruled > li::before,
+  .home-ruled-closed > li:last-child::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    border-top: 1px solid var(--home-rule);
+    transform-origin: left center;
+  }
+  .home-ruled > li::before {
+    top: 0;
+  }
+  .home-ruled-closed > li:last-child::after {
+    bottom: 0;
+  }
+  .home-ruled > li:nth-child(2) {
+    --home-order: 1;
+  }
+  .home-ruled > li:nth-child(3) {
+    --home-order: 2;
+  }
+  .home-ruled > li:nth-child(4) {
+    --home-order: 3;
+  }
+  .home-ruled > li:nth-child(n + 5) {
+    --home-order: 4;
+  }
+
+  /* The subject and level index: a row is a link, and the highlight is its
+     hover and focus state. */
+  .home-index-link {
+    display: flex;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.75rem;
+    color: var(--brand-navy);
+    text-decoration-line: none;
+    background-image: linear-gradient(var(--brand-mint), var(--brand-mint));
+    background-repeat: no-repeat;
+    background-size: 0% 100%;
+    transition: background-size 320ms var(--home-ease);
+  }
+  .home-index-link > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    transition: transform 320ms var(--home-ease);
+  }
+  .home-index-link > svg {
+    flex: none;
+    color: var(--accent-strong);
+    transition:
+      transform 320ms var(--home-ease),
+      color 160ms linear;
+  }
+  .home-index-link:focus-visible {
+    background-size: 100% 100%;
+  }
+  .home-index-link:focus-visible > span {
+    transform: translateX(0.75rem);
+  }
+  .home-index-link:focus-visible > svg {
+    transform: translateX(-0.75rem);
+    color: var(--brand-navy);
+  }
+  @media (hover: hover) {
+    .home-index-link:hover {
+      background-size: 100% 100%;
+    }
+    .home-index-link:hover > span {
+      transform: translateX(0.75rem);
+    }
+    .home-index-link:hover > svg {
+      transform: translateX(-0.75rem);
+      color: var(--brand-navy);
+    }
+    .home-cue:hover svg,
+    .action:hover > .home-arrow {
+      transform: translate(var(--home-cue-x, 0.25rem), var(--home-cue-y, 0));
+    }
+  }
+  .home-cue:focus-visible svg,
+  .action:focus-visible > .home-arrow {
+    transform: translate(var(--home-cue-x, 0.25rem), var(--home-cue-y, 0));
+  }
+  .home-cue-down {
+    --home-cue-x: 0;
+    --home-cue-y: 0.25rem;
+  }
+
+  /* Hero depth, after scroll-craft's hero method: one photograph cut into
+     planes that move at their own rates. Back to front: a second learner on a
+     card, the empty room, the learner with her desk, a worked problem on a
+     card. A fine pointer leans the whole stage a few degrees (--tilt-x/y, -1 to
+     1) and slides each plane by its own --shift: far planes follow the pointer,
+     near planes move against it. Scroll (--progress) moves each plane by its
+     own --rise. At rest every plane sits exactly where it was drawn.
+     Nothing here hides a picture: with no script and no motion the planes sit
+     composed, and her head still breaks the frame. */
+  .home-depth {
+    --progress: 0.5;
+    --tilt-x: 0;
+    --tilt-y: 0;
+    position: relative;
+    aspect-ratio: 100 / 106;
+    perspective: 1400px;
+  }
+  .home-depth-space {
+    position: absolute;
+    inset: 0;
+  }
+  .home-depth-plane {
+    --rise: 0px;
+    --shift: 0px;
+    position: absolute;
+    translate: calc(var(--tilt-x) * var(--shift))
+      calc(
+        (var(--progress) - 0.5) * var(--rise) + var(--tilt-y) * var(--shift) *
+          0.8
+      );
+  }
+  .home-depth-plane img,
+  .home-depth-plate {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    object-fit: cover;
+  }
+  .home-depth-scene {
+    position: absolute;
+    top: -10%;
+    left: 12%;
+    width: 88%;
+    aspect-ratio: 1400 / 1876;
+  }
+  /* The stroke. A rail is a zero-height line across the scene, turned about the
+     scene's centre; what hangs on it is measured along the stroke. --line-y is
+     the stroke's height at that centre, as a percentage of the scene. The same
+     stroke is hung twice, behind every plane and inside the frame (which
+     starts 17% down the scene), and the two always meet because they share the
+     rail's geometry. */
+  .home-depth-scene {
+    --line-y: 35;
+    --line-t: 3.25rem;
+    /* Past the left edge of the viewport wherever the scene sits in it. */
+    --tail: 80vw;
+  }
+  .home-depth-rail {
+    position: absolute;
+    top: calc(var(--line-y) * 1%);
+    left: 0;
+    width: 100%;
+    height: 0;
+    rotate: -5deg;
+  }
+  .home-depth-rail-back {
+    z-index: -1;
+  }
+  .home-depth-stroke {
+    position: absolute;
+    top: calc(var(--line-t) / -2);
+    left: calc(50% - var(--tail));
+    width: calc(var(--tail) + 60vw);
+    height: var(--line-t);
+    background: var(--brand-mint);
+    transform-origin: 0 50%;
+  }
+  .home-depth-through {
+    position: absolute;
+    inset: 17% 0 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .home-depth-through .home-depth-rail {
+    top: calc((var(--line-y) - 17) / 0.83 * 1%);
+  }
+  /* The one teal dot: a stop on the line, just before the finder. A paper ring
+     keeps it clear of the mint. It moves along the line as the hero scrolls
+     away. Only wide screens have the stretch of open line it needs. */
+  .home-depth-bead {
+    display: none;
+    position: absolute;
+    top: -1.25rem;
+    left: calc(100% + 3.5rem);
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    box-shadow: 0 0 0 0.375rem var(--bg-base);
+    translate: calc(max(0, var(--progress) - 0.5) * 60rem) 0;
+  }
+  /* The frame starts below her hairline; the plate inside is laid out against
+     the whole scene so room and learner register. */
+  .home-depth-room {
+    position: absolute;
+    inset: 17% 0 0;
+    overflow: hidden;
+    background: var(--bg-subtle);
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--text-primary) 8%, transparent),
+      0 24px 48px -28px color-mix(in srgb, var(--text-primary) 45%, transparent);
+  }
+  .home-depth-plate {
+    top: -20.482%;
+    height: 120.482%;
+    scale: 1.1;
+    translate: calc(var(--tilt-x) * 11px)
+      calc((var(--progress) - 0.5) * 44px + var(--tilt-y) * 9px);
+  }
+  /* Window light: a slow veil on the side the daylight comes from. */
+  .home-depth-light {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse 70% 80% at 0% 25%,
+      color-mix(in srgb, var(--text-inverse) 38%, transparent),
+      transparent 70%
+    );
+    opacity: calc(0.35 + var(--progress) * 0.5);
+  }
+  /* Clipped to the frame at the sides and foot, open above it. */
+  .home-depth-subject {
+    --rise: -26px;
+    --shift: -9px;
+    inset: 0;
+    clip-path: inset(-30% 0 0 round 0 0 1rem 1rem);
+  }
+  .home-depth-far {
+    display: none;
+    --rise: 60px;
+    --shift: 18px;
+    overflow: hidden;
+    background: var(--bg-subtle);
+  }
+  .home-depth-near {
+    --rise: -70px;
+    --shift: -24px;
+    bottom: 13%;
+    left: 0;
+    width: 44%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--bg-subtle);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, var(--text-inverse) 55%, transparent),
+      0 2px 4px color-mix(in srgb, var(--text-primary) 10%, transparent),
+      0 28px 44px -22px color-mix(in srgb, var(--text-primary) 55%, transparent);
+  }
+  .home-depth-near img {
+    object-position: 38% 50%;
+  }
+  /* Both halves of the scene arrive together or not at all. */
+  .home-depth-scene img {
+    transition: opacity 420ms linear;
+  }
+  .home-depth-scene[data-loading] img {
+    opacity: 0;
+  }
+  @media (min-width: 40rem) {
+    .home-depth-scene {
+      --line-t: 4rem;
+    }
+    .home-depth {
+      aspect-ratio: 21 / 16;
+    }
+    .home-depth-scene {
+      top: -12.5%;
+      left: 36%;
+      width: 64%;
+    }
+    .home-depth-far {
+      display: block;
+      top: 16%;
+      left: 0;
+      width: 46%;
+      aspect-ratio: 5 / 4;
+    }
+    .home-depth-near {
+      bottom: 12%;
+      left: 9%;
+      width: 42%;
+    }
+  }
+  /* Two columns: the words sit left of the scene, and nothing mint may run
+     under them. The stroke starts out of sight behind the far card. */
+  @media (min-width: 64rem) and (max-width: 79.999rem) {
+    .home-depth-scene {
+      --tail: 60%;
+    }
+  }
+  /* Centre stage: the scene in the middle, the far card behind its left
+     shoulder, the near card in front at its lower right. */
+  @media (min-width: 80rem) {
+    .home-depth-scene {
+      --line-t: 5rem;
+    }
+    .home-depth-bead {
+      display: block;
+    }
+    .home-depth {
+      aspect-ratio: 17 / 10;
+    }
+    .home-depth-scene {
+      top: 0;
+      left: 42%;
+      width: 43.9%;
+    }
+    .home-depth-far {
+      top: 24%;
+      left: 12%;
+      width: 36%;
+    }
+    .home-depth-near {
+      bottom: 6%;
+      left: 73%;
+      width: 25%;
+    }
+  }
+
+  /* The lesson glyph: the kit icon's parts (a ring, two stems, one teal dot)
+     arranged three ways. Pieces sit at the origin and are placed by transform,
+     so moving between arrangements is a single interpolation.
+       find  : a lens and its handle, the dot inside it
+       time  : a clock, the dot on the chosen hour
+       meet  : two people under one arc, the dot at its top
+     A glyph that is still waiting below the viewport holds the arrangement
+     before its own, so it assembles as it arrives. */
+  .lesson-glyph {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    color: var(--text-inverse);
+    forced-color-adjust: none;
+  }
+  .lesson-glyph .g-ring {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 22px;
+    stroke-dasharray: 604 0;
+    stroke-dashoffset: 0;
+  }
+  .lesson-glyph :is(.g-stem, .g-pivot, .g-head) {
+    fill: currentColor;
+  }
+  .lesson-glyph .g-dot {
+    fill: var(--accent-primary);
+  }
+
+  /* before find: only the ring */
+  .lesson-glyph[data-state="1"][data-reveal="pending"] {
+    & .g-ring {
+      transform: translate(172px, 168px) rotate(90deg);
+    }
+    & .g-stem {
+      transform: translate(239.9px, 235.9px) rotate(-45deg) scaleY(0);
+    }
+    & .g-stem-b {
+      opacity: 0;
+    }
+    & .g-pivot {
+      transform: translate(172px, 168px) scale(0);
+    }
+    & .g-head-a {
+      transform: translate(104px, 196px) scale(0);
+    }
+    & .g-head-b {
+      transform: translate(296px, 196px) scale(0);
+    }
+    & .g-dot {
+      transform: translate(172px, 168px) scale(0);
+    }
+  }
+
+  /* find */
+  .lesson-glyph:is(
+    [data-state="1"]:not([data-reveal="pending"]),
+    [data-state="2"][data-reveal="pending"]
+  ) {
+    & .g-ring {
+      transform: translate(172px, 168px) rotate(90deg);
+    }
+    & .g-stem {
+      transform: translate(281.6px, 277.6px) rotate(-45deg) scaleY(0.983);
+    }
+    & .g-stem-b {
+      opacity: 0;
+    }
+    & .g-pivot {
+      transform: translate(172px, 168px) scale(0);
+    }
+    & .g-head-a {
+      transform: translate(104px, 196px) scale(0);
+    }
+    & .g-head-b {
+      transform: translate(296px, 196px) scale(0);
+    }
+    & .g-dot {
+      transform: translate(172px, 168px) scale(1);
+    }
+  }
+
+  /* time */
+  .lesson-glyph:is(
+    [data-state="2"]:not([data-reveal="pending"]),
+    [data-state="3"][data-reveal="pending"]
+  ) {
+    & .g-ring {
+      transform: translate(200px, 200px) rotate(90deg);
+    }
+    & .g-stem-a {
+      transform: translate(223.4px, 213.5px) rotate(-60deg) scaleY(0.45);
+    }
+    & .g-stem-b {
+      transform: translate(200px, 163px) rotate(0deg) scaleY(0.617);
+    }
+    & .g-pivot {
+      transform: translate(200px, 200px) scale(1);
+    }
+    & .g-head-a {
+      transform: translate(104px, 196px) scale(0);
+    }
+    & .g-head-b {
+      transform: translate(296px, 196px) scale(0);
+    }
+    & .g-dot {
+      transform: translate(283.1px, 248px) scale(1);
+    }
+  }
+
+  /* meet */
+  .lesson-glyph[data-state="3"]:not([data-reveal="pending"]) {
+    & .g-ring {
+      transform: translate(200px, 196px) rotate(90deg);
+      stroke-dasharray: 301.6 301.6;
+      stroke-dashoffset: -150.8;
+    }
+    & .g-stem-a {
+      transform: translate(104px, 288px) rotate(0deg) scaleY(0.967);
+    }
+    & .g-stem-b {
+      transform: translate(296px, 288px) rotate(0deg) scaleY(0.967);
+    }
+    & .g-pivot {
+      transform: translate(200px, 196px) scale(0);
+    }
+    & .g-head-a {
+      transform: translate(104px, 196px) scale(1);
+    }
+    & .g-head-b {
+      transform: translate(296px, 196px) scale(1);
+    }
+    & .g-dot {
+      transform: translate(200px, 100px) scale(1);
+    }
+  }
+
+  /* How a lesson comes together. The hero's stroke, in blue on navy and turned
+     the other way: one line falling five degrees to the right across the whole
+     viewport, with the three steps set on it. Each step's glass tile sits over the line, so the glass bends it
+     and the white glyph stands in front. Wide screens run one stroke through
+     all three tiles, and the steps climb it from its low end at the bottom
+     right to the top left: find, choose, meet; narrower screens stack the steps
+     and give each tile its own stroke.
+
+     The blue is navy lifted toward white, kept in the navy's own hue. Text
+     never sits on it: each step's words are below its tile. */
+  /* Room around the section and between its heading and its steps. From
+     tablet widths it follows the height of the screen, so a tall window gets
+     more air and a short one is not pushed past a screenful. */
+  .home-lesson-section {
+    --lesson-pad: 5rem;
+    --lesson-gap: 3.5rem;
+    overflow: hidden;
+  }
+  .home-lesson-top {
+    padding-top: var(--lesson-pad);
+  }
+  .home-lesson-body {
+    padding-block: var(--lesson-gap) var(--lesson-pad);
+  }
+  @media (min-width: 48rem) {
+    .home-lesson-section {
+      --lesson-pad: clamp(6rem, 16vh, 11rem);
+      --lesson-gap: clamp(4rem, 11vh, 7rem);
+    }
+  }
+  .home-lesson-head {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .home-lesson {
+    --line: color-mix(in oklch, var(--brand-navy) 72%, var(--text-inverse));
+    /* The hero stroke's thickness, at each of its breakpoints. */
+    --line-t: 3.25rem;
+    --tile: 9rem;
+    --progress: 0.5;
+    position: relative;
+    z-index: 0;
+    container-type: inline-size;
+  }
+  /* Where the browser can, the same hue at full strength: a clearer blue. */
+  @supports (color: oklch(from white l c h)) {
+    .home-lesson {
+      --line: oklch(from var(--brand-navy) 0.57 c h);
+    }
+  }
+  .home-line {
+    display: none;
+  }
+  .home-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+  }
+  .home-steps > li {
+    position: relative;
+    z-index: 0;
+  }
+  .home-steps .home-tile {
+    width: var(--tile);
+    margin-bottom: 2rem;
+  }
+  /* A stacked step's stroke dips below its tile toward the far right. A
+     heading kept to this width ends before that, whatever its words. */
+  .home-steps h3 {
+    max-width: 34rem;
+  }
+  /* A step's own stroke, turned about the centre of its tile. */
+  .home-steps > li::before {
+    content: "";
+    position: absolute;
+    top: calc(var(--tile) / 2 - var(--line-t) / 2);
+    left: -50vw;
+    z-index: -1;
+    width: 200vw;
+    height: var(--line-t);
+    background: var(--line);
+    transform-origin: calc(50vw + var(--tile) / 2) 50%;
+    rotate: 5deg;
+  }
+  @media (min-width: 40rem) {
+    .home-lesson {
+      --line-t: 4rem;
+    }
+  }
+  @media (min-width: 64rem) {
+    /* The introduction on the left, the heading on the right. The heading
+       stays first in the markup, so it is still read before its introduction.
+       Its two lines are set in the markup, so its box is exactly as wide as
+       its words and they meet the right margin. */
+    .home-lesson-head {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      column-gap: 5rem;
+      align-items: end;
+    }
+    .home-lesson-head > h2 {
+      order: 2;
+      justify-self: end;
+    }
+    /* --pitch is the distance from one tile to the next; --rise is how far the
+       line drops over that distance (tan 5deg). --edge reaches from the
+       steps to the edge of the viewport and a little past it. */
+    .home-lesson {
+      --gap: 3rem;
+      --tile: clamp(9rem, 13cqw, 11rem);
+      --pitch: calc((100cqw + var(--gap)) / 3);
+      --rise: calc(var(--pitch) * 0.0875);
+      --edge: calc((100vw - 100cqw) / 2 + 4rem);
+    }
+    .home-steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: var(--gap);
+      align-items: start;
+    }
+    .home-steps > li::before {
+      content: none;
+    }
+    /* The steps climb the line: the first sits lowest, at the right, and the
+       last highest, at the left. They stay in order in the markup. */
+    .home-steps > li {
+      grid-row: 1;
+    }
+    .home-steps > li:nth-child(1) {
+      grid-column: 3;
+      margin-top: calc(var(--rise) * 2);
+    }
+    .home-steps > li:nth-child(2) {
+      grid-column: 2;
+      margin-top: var(--rise);
+    }
+    .home-steps > li:nth-child(3) {
+      grid-column: 1;
+    }
+    /* One stroke through the centre of every tile, turned about the middle
+       one. */
+    .home-line {
+      position: absolute;
+      top: calc(var(--rise) + var(--tile) / 2 - var(--line-t) / 2);
+      left: calc(var(--edge) * -1);
+      z-index: -1;
+      display: block;
+      width: calc(100cqw + var(--edge) * 2);
+      height: var(--line-t);
+      background: var(--line);
+      transform-origin: calc(var(--edge) + var(--pitch) + var(--tile) / 2) 50%;
+      rotate: 5deg;
+    }
+    /* The stop: where the line starts, just before the first step. It is the
+       hero's stop to the pixel (a 2.5rem dot in a 0.375rem ring) in this
+       section's colours, navy in white. As the section scrolls away it moves
+       up the line and under the first tile's glass. */
+    .home-line-bead {
+      position: absolute;
+      top: calc(50% - 1.25rem);
+      left: calc(var(--edge) + var(--pitch) * 2 + var(--tile) + 3rem);
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      background: var(--brand-navy);
+      box-shadow: 0 0 0 0.375rem var(--text-inverse);
+      translate: calc(max(0, var(--progress) - 0.5) * -14rem) 0;
+    }
+  }
+  @media (min-width: 80rem) {
+    .home-lesson {
+      --line-t: 5rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .home-depth-space {
+      transform: rotateX(calc(var(--tilt-y) * -2.6deg))
+        rotateY(calc(var(--tilt-x) * 3.6deg));
+    }
+    /* Drawn left to right, as the headline's highlight finishes. */
+    .home-depth-stroke {
+      animation: home-line-draw 1100ms var(--home-ease) 450ms backwards;
+    }
+    .home-depth-bead {
+      animation: home-bead-in 500ms var(--home-ease) 1150ms backwards;
+    }
+    .home-mark-load {
+      animation: home-mark-draw 760ms var(--home-ease) 200ms backwards;
+    }
+    .brand-highlight.home-mark[data-reveal] {
+      transition: background-size 760ms var(--home-ease) 120ms;
+    }
+    .brand-highlight.home-mark[data-reveal="pending"] {
+      background-size: 0% 100%;
+      transition: none;
+    }
+    .home-ruled[data-reveal] > li::before,
+    .home-ruled[data-reveal] > li::after {
+      transition: transform 900ms var(--home-ease)
+        calc(var(--home-order, 0) * 70ms);
+    }
+    .home-ruled[data-reveal="pending"] > li::before,
+    .home-ruled[data-reveal="pending"] > li::after {
+      transform: scaleX(0);
+      transition: none;
+    }
+    .lesson-glyph * {
+      transition:
+        transform 900ms var(--home-ease),
+        opacity 420ms linear,
+        stroke-dasharray 900ms var(--home-ease),
+        stroke-dashoffset 900ms var(--home-ease);
+      transition-delay: var(--glyph-delay, 0ms);
+    }
+    .lesson-glyph .g-dot {
+      transition-delay: calc(var(--glyph-delay, 0ms) + 90ms);
+    }
+    .lesson-glyph .g-head {
+      transition-delay: calc(var(--glyph-delay, 0ms) + 260ms);
+    }
+    /* Waiting is a state to be in at once, not one to animate into: a glyph
+       or stroke that is told to wait must already be waiting when a fast
+       scroll reaches it. Only the release is animated. */
+    .lesson-glyph[data-reveal="pending"] * {
+      transition: none;
+    }
+    /* A step's stroke is drawn as its glyph assembles. The resting clip is an
+       inset of nothing, because an inset cannot be animated to "none". */
+    .home-steps > li::before {
+      clip-path: inset(0);
+      transition: clip-path 900ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .home-steps > li:has(.lesson-glyph[data-reveal="pending"])::before {
+      clip-path: inset(0 100% 0 0);
+      transition: none;
+    }
+  }
+  /* Wide screens: the one stroke is drawn from its low end at the right up to
+     the left, each glyph assembles as it passes, and the tiles drift a little
+     against the line as the page moves, so the line reads as lying behind
+     them. */
+  @media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+    .home-lesson[data-reveal] .home-line {
+      clip-path: inset(0);
+      transition: clip-path 1100ms cubic-bezier(0.4, 0, 0.2, 1) 100ms;
+    }
+    .home-lesson[data-reveal="pending"] .home-line {
+      clip-path: inset(0 0 0 100%);
+      transition: none;
+    }
+    .home-steps > li:nth-child(1) {
+      --glyph-delay: 400ms;
+    }
+    .home-steps > li:nth-child(2) {
+      --glyph-delay: 620ms;
+    }
+    .home-steps > li:nth-child(3) {
+      --glyph-delay: 840ms;
+    }
+    .home-line {
+      translate: 0 calc((var(--progress) - 0.5) * 18px);
+    }
+    .home-steps .home-tile {
+      translate: 0 calc((var(--progress) - 0.5) * -22px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-depth {
+      --progress: 0.5 !important;
+    }
+    .home-depth-scene img {
+      transition: none;
+    }
+    .home-cue svg,
+    .home-arrow,
+    .home-index-link,
+    .home-index-link > span,
+    .home-index-link > svg {
+      transition: none;
+    }
+  }
+}
+
+/* Liquid glass.
+
+   The owner asked for a liquid-glass environment on this page, with a
+   LiquidButton as the reference. It sets aside the flat surface rule here only,
+   and only for layers that float above content: the header, the finder, the
+   lesson tiles, the review sheet and the actions. Reading sections stay solid.
+
+   A sheet is three layers. ::before softens what is behind it and carries the
+   tint. ::after draws the rim (a bright edge toward the light, a thin shade
+   away from it) and a glint that follows the pointer. The element holds the
+   content and the contact shadow. Nothing above ::before may set filter,
+   opacity, mask, clip-path or isolation: that would cut the sheet off from the
+   page behind it. Tints stay strong enough to keep text at AA over anything on this page. */
+@layer components {
+  .glass {
+    --glass-ink: var(--text-primary);
+    --glass-light: var(--text-inverse);
+    --glass-tint: color-mix(in srgb, var(--glass-light) 62%, transparent);
+    --glass-soften: blur(16px) saturate(180%);
+    --glass-rim:
+      inset 0 0 0 1px color-mix(in srgb, var(--glass-light) 70%, transparent),
+      inset 1.5px 1.5px 0.5px -0.5px
+        color-mix(in srgb, var(--glass-light) 95%, transparent),
+      inset -1.5px -1.5px 0.5px -0.5px
+        color-mix(in srgb, var(--glass-ink) 22%, transparent),
+      inset 3px 3px 0.5px -3px
+        color-mix(in srgb, var(--glass-ink) 50%, transparent),
+      inset -3px -3px 0.5px -3px
+        color-mix(in srgb, var(--glass-ink) 45%, transparent),
+      inset 0 0 14px 2px color-mix(in srgb, var(--glass-light) 30%, transparent);
+    --glass-cast:
+      0 1px 2px color-mix(in srgb, var(--glass-ink) 7%, transparent),
+      0 18px 36px -18px color-mix(in srgb, var(--glass-ink) 34%, transparent);
+    --glass-glint: color-mix(in srgb, var(--glass-light) 40%, transparent);
+    /* A stacking context, so the two layers stay inside the sheet, but not an
+       isolated one: Firefox and WebKit give an isolated group an empty
+       backdrop, and the sheet would stop softening the page behind it. */
+    position: relative;
+    z-index: 0;
+    box-shadow: var(--glass-cast);
+  }
+  .glass::before,
+  .glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .glass::before {
+    background: var(--glass-tint);
+    -webkit-backdrop-filter: var(--glass-soften);
+    backdrop-filter: var(--glass-soften);
+  }
+  .glass::after {
+    background: radial-gradient(
+      circle 18rem at var(--glint-x, 22%) var(--glint-y, 0%),
+      var(--glass-glint),
+      transparent 70%
+    );
+    box-shadow: var(--glass-rim);
+  }
+  /* Chromium can bend the backdrop as well as soften it. HomeMotion sets the
+     attribute; without it every browser gets the frosted sheet above. */
+  :root[data-glass="liquid"] .glass-liquid::before {
+    -webkit-backdrop-filter: url("#learli-glass") saturate(180%);
+    backdrop-filter: url("#learli-glass") saturate(180%);
+  }
+
+  /* On navy the sheet is a faint lift with a lit edge; text stays white. */
+  [data-surface="inverse"] .glass {
+    --glass-tint: color-mix(in srgb, var(--glass-light) 9%, transparent);
+    --glass-soften: blur(18px) saturate(125%);
+    --glass-rim:
+      inset 0 0 0 1px color-mix(in srgb, var(--glass-light) 16%, transparent),
+      inset 1.5px 1.5px 0.5px -0.5px
+        color-mix(in srgb, var(--glass-light) 62%, transparent),
+      inset -1.5px -1.5px 0.5px -0.5px
+        color-mix(in srgb, var(--glass-light) 22%, transparent),
+      inset 0 0 18px 2px color-mix(in srgb, var(--glass-light) 8%, transparent);
+    --glass-cast: 0 24px 48px -24px
+      color-mix(in srgb, var(--glass-ink) 85%, transparent);
+    --glass-glint: color-mix(in srgb, var(--glass-light) 14%, transparent);
+  }
+
+  /* Actions: the primary is navy glass, the secondary clear glass. */
+  :is(.home, .home-header) :is(.action-primary, .action-outline) {
+    --glass-ink: var(--text-primary);
+    --glass-light: var(--text-inverse);
+    border-color: transparent;
+    -webkit-backdrop-filter: blur(10px) saturate(180%);
+    backdrop-filter: blur(10px) saturate(180%);
+    transition:
+      scale 300ms var(--home-ease, ease),
+      background-color 150ms linear;
+  }
+  :is(.home, .home-header) .action-primary {
+    background: color-mix(in srgb, var(--brand-navy) 88%, transparent);
+    box-shadow:
+      0 1px 1px color-mix(in srgb, var(--glass-ink) 30%, transparent),
+      0 12px 22px -12px color-mix(in srgb, var(--brand-navy) 75%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--glass-light) 14%, transparent),
+      inset 0 1.5px 0.5px -0.5px
+        color-mix(in srgb, var(--glass-light) 55%, transparent),
+      inset 0 -1.5px 0.5px -0.5px
+        color-mix(in srgb, var(--glass-ink) 60%, transparent),
+      inset 0 10px 12px -8px
+        color-mix(in srgb, var(--glass-light) 22%, transparent);
+  }
+  :is(.home, .home-header) .action-outline {
+    background: color-mix(in srgb, var(--glass-light) 48%, transparent);
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--glass-ink) 8%, transparent),
+      0 10px 20px -12px color-mix(in srgb, var(--glass-ink) 34%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--glass-light) 70%, transparent),
+      inset 1.5px 1.5px 0.5px -0.5px
+        color-mix(in srgb, var(--glass-light) 95%, transparent),
+      inset -1.5px -1.5px 0.5px -0.5px
+        color-mix(in srgb, var(--glass-ink) 24%, transparent),
+      inset 3px 3px 0.5px -3px
+        color-mix(in srgb, var(--glass-ink) 50%, transparent),
+      inset -3px -3px 0.5px -3px
+        color-mix(in srgb, var(--glass-ink) 45%, transparent);
+  }
+  :root[data-glass="liquid"] :is(.home, .home-header) .action-outline {
+    -webkit-backdrop-filter: url("#learli-glass-fine") saturate(180%);
+    backdrop-filter: url("#learli-glass-fine") saturate(180%);
+  }
+  :is(.home, .home-header) .action-primary:active {
+    background: color-mix(in srgb, var(--brand-navy-active) 92%, transparent);
+  }
+  @media (hover: hover) {
+    :is(.home, .home-header) .action-primary:hover {
+      background: color-mix(in srgb, var(--brand-navy-hover) 94%, transparent);
+    }
+    :is(.home, .home-header) .action-outline:hover {
+      background: color-mix(in srgb, var(--glass-light) 66%, transparent);
+    }
+  }
+
+  /* The header is transparent and spans the viewport. With scripts it stays on
+     screen, and its glass appears only once the page has moved beneath it:
+     pinned labels on raw content would be unreadable. Text scrolls under this
+     sheet, so its tint is heavier than the others and it reads even where a
+     browser fails to blur. */
+  .home-header {
+    position: relative;
+    z-index: 40;
+  }
+  .home-header .home-header-bar {
+    --glass-tint: color-mix(in srgb, var(--glass-light) 80%, transparent);
+    --glass-soften: blur(20px) saturate(180%);
+    padding-inline: clamp(0.5rem, 2.4vw, 2.5rem);
+  }
+  .home-header .home-header-bar::before,
+  .home-header .home-header-bar::after {
+    transition: opacity 240ms linear;
+  }
+  .home-header:not([data-raised]) .home-header-bar {
+    box-shadow: none;
+  }
+  .home-header:not([data-raised]) .home-header-bar::before,
+  .home-header:not([data-raised]) .home-header-bar::after {
+    opacity: 0;
+  }
+  /* It only stays on screen when there is height to spare, so enlarged text
+     never loses the page to a tall fixed bar. */
+  @media (min-height: 40rem) {
+    .home-header[data-live] {
+      position: sticky;
+      top: 0;
+    }
+    :root:has(.home-header[data-live]) {
+      scroll-padding-top: 5.5rem;
+    }
+  }
+
+  /* The hero. Wide screens set the headline and the words side by side, then
+     the layered scene with the finder at its right. The scene's mint stroke
+     runs the full width of the viewport; the section clips it at the edges. */
+  .home-hero {
+    overflow: hidden;
+  }
+  .home-hero-grid {
+    display: grid;
+    gap: 2rem;
+    padding-block: 1.5rem 4rem;
+  }
+  .home-hero-title {
+    max-width: 64rem;
+  }
+  .home-hero-words {
+    max-width: 36rem;
+  }
+  .home-finder {
+    position: relative;
+    z-index: 1;
+  }
+  @media (min-width: 64rem) {
+    .home-hero-grid {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      column-gap: 3rem;
+      align-items: start;
+      padding-top: 2.5rem;
+    }
+    .home-hero-title {
+      grid-column: 1 / -1;
+    }
+    .home-hero-words,
+    .home-finder {
+      grid-column: 1;
+    }
+    .home-hero-stage {
+      grid-column: 2;
+      grid-row: 2 / span 2;
+      align-self: center;
+    }
+  }
+  @media (min-width: 80rem) {
+    .home-hero-grid {
+      grid-template-columns: minmax(0, 1fr) 21rem;
+      column-gap: 2rem;
+    }
+    .home-hero-title {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .home-hero-words {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: end;
+    }
+    .home-hero-stage {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    /* The finder sits where the stroke passes, so its glass has the stroke to
+       bend. The search form is taller than a notice and starts at the top of
+       the stage, which keeps its button on a laptop's first screen. */
+    .home-finder {
+      grid-column: 2;
+      grid-row: 2;
+      align-self: start;
+      margin-top: 2.25rem;
+    }
+    .home-finder:has(form) {
+      margin-top: 0;
+    }
+  }
+
+  /* Who looks after what. The lesson is a photograph in the middle; Learli's
+     part is a glass card lying over its left edge and the tutor's part a navy
+     card over its right, so the heading above is also the picture: Learli, the
+     lesson, your tutor. The cards hold text and never move. Depth comes from
+     the overlap and from the photograph drifting inside its frame with scroll
+     (--progress) and a fine pointer (--tilt-x/y), which also slides the
+     picture under the glass. Cards are in normal flow, so they grow with
+     their words. */
+  .home-care {
+    --progress: 0.5;
+    --tilt-x: 0;
+    --tilt-y: 0;
+    display: grid;
+    /* A column that may shrink below its longest word, so enlarged text wraps
+       inside the cards and never widens the page. */
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: 3rem;
+  }
+  .home-care-photo {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 5 / 4;
+    background: var(--bg-subtle);
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--text-primary) 8%, transparent),
+      0 24px 48px -28px color-mix(in srgb, var(--text-primary) 45%, transparent);
+  }
+  .home-care-photo img {
+    position: absolute;
+    top: -6%;
+    left: 0;
+    width: 100%;
+    max-width: none;
+    height: 112%;
+    object-fit: cover;
+    /* The picture is square, with both people in its upper half. Each frame
+       shape is given the band that keeps their faces in it. */
+    object-position: 50% 30%;
+  }
+  .home-care-card {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+    padding: 1.5rem;
+    overflow-wrap: anywhere;
+  }
+  /* A little more tint than other sheets: this one carries a list. */
+  .home-care-learli {
+    --glass-tint: color-mix(in srgb, var(--glass-light) 72%, transparent);
+    margin: -3.5rem 1.5rem 0 0;
+  }
+  .home-care-tutor {
+    margin: 1rem 0 0 1.5rem;
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--text-primary) 20%, transparent),
+      0 24px 44px -24px color-mix(in srgb, var(--text-primary) 60%, transparent);
+  }
+  @media (min-width: 40rem) {
+    /* Each card is as tall as its own list, not as tall as its neighbour. */
+    .home-care {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 1.5rem;
+      align-items: start;
+    }
+    .home-care-photo {
+      grid-column: 1 / -1;
+      aspect-ratio: 16 / 9;
+    }
+    .home-care-photo img {
+      object-position: 50% 20%;
+    }
+    .home-care-learli {
+      margin: -5rem 0 0 1.5rem;
+    }
+    .home-care-tutor {
+      margin: -2.5rem 1.5rem 0 0;
+    }
+  }
+  @media (min-width: 64rem) {
+    .home-care {
+      grid-template-columns:
+        minmax(0, 1fr) minmax(0, 1.2fr)
+        minmax(0, 1fr);
+      column-gap: 0;
+      align-items: center;
+      margin-top: 4rem;
+    }
+    .home-care-photo {
+      grid-column: 2;
+      grid-row: 1;
+      aspect-ratio: 4 / 5;
+    }
+    /* Nudged left, so both faces sit clear of the navy card. */
+    .home-care-photo img {
+      object-position: 62% 40%;
+    }
+    .home-care-learli {
+      grid-column: 1;
+      grid-row: 1;
+      align-self: end;
+      margin: 0 -4.5rem 2.5rem 0;
+    }
+    .home-care-tutor {
+      grid-column: 3;
+      grid-row: 1;
+      align-self: start;
+      margin: 2.5rem 0 0 -4.5rem;
+    }
+  }
+  @media (min-width: 80rem) {
+    .home-care-card {
+      padding: 2rem;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .home-care-photo img {
+      scale: 1.08;
+      translate: calc(var(--tilt-x) * -10px)
+        calc((var(--progress) - 0.5) * 6% + var(--tilt-y) * -8px);
+    }
+  }
+
+  /* The close. The footer that follows is navy; on this page its top edge is
+     cut on the hero's diagonal (--rise is tan 5deg of the width), and the
+     hero's mint stroke lies along the cut with its teal stop: the line the
+     page opened with, come to rest. The wedge is the footer's own colour and
+     sits directly above it, so the two read as one shape. The stroke is drawn
+     left to right on arrival and the stop travels up it as the page ends. */
+  .home-close {
+    container-type: inline-size;
+    /* One pixel under the footer, so no seam can open between them. */
+    margin-bottom: -1px;
+    background: var(--bg-surface);
+  }
+  .home-close-art {
+    --rise: 8.749cqw;
+    --t: 3.25rem;
+    --progress: 0.5;
+    position: relative;
+    height: calc(var(--rise) + var(--t) + 1.5rem);
+    overflow: hidden;
+  }
+  .home-close-art > span {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
+  .home-close-wedge {
+    width: 100%;
+    height: var(--rise);
+    background: var(--bg-inverse);
+    clip-path: polygon(0 100%, 100% 0, 100% 100%);
+  }
+  .home-close-ribbon {
+    width: 100%;
+    height: calc(var(--rise) + var(--t));
+    background: var(--brand-mint);
+    clip-path: polygon(0 calc(100% - var(--t)), 100% 0, 100% var(--t), 0 100%);
+  }
+  /* The hero's stop, to the pixel, at a point along the stroke's centre line.
+     Phones have no clear stretch of line for it. */
+  .home-close-art > .home-close-stop {
+    --at: 0.56;
+    display: none;
+    bottom: calc(var(--rise) * var(--at) + var(--t) / 2 - 1.25rem);
+    left: calc(var(--at) * 100%);
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    box-shadow: 0 0 0 0.375rem var(--bg-base);
+  }
+  @media (min-width: 40rem) {
+    .home-close-art {
+      --t: 4rem;
+    }
+    .home-close-art > .home-close-stop {
+      display: block;
+    }
+  }
+  @media (min-width: 80rem) {
+    .home-close-art {
+      --t: 5rem;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .home-close[data-reveal] .home-close-ribbon {
+      transition: clip-path 1100ms cubic-bezier(0.4, 0, 0.2, 1) 100ms;
+    }
+    .home-close[data-reveal="pending"] .home-close-ribbon {
+      clip-path: polygon(
+        0 calc(100% - var(--t)),
+        0 calc(100% - var(--t)),
+        0 100%,
+        0 100%
+      );
+      transition: none;
+    }
+    .home-close[data-reveal] .home-close-stop {
+      transition: scale 500ms var(--home-ease) 700ms;
+    }
+    .home-close[data-reveal="pending"] .home-close-stop {
+      scale: 0;
+      transition: none;
+    }
+    .home-close-stop {
+      translate: calc(var(--progress) * 26cqw)
+        calc(var(--progress) * 26cqw * -0.08749);
+    }
+  }
+
+  /* The lesson tile: the kit icon's shape in glass. A light blur keeps the
+     stroke behind it readable as a line; Chromium also ripples it. */
+  .home-tile {
+    display: grid;
+    aspect-ratio: 1;
+    place-items: center;
+    border-radius: 22%;
+  }
+  [data-surface="inverse"] .home-tile {
+    --glass-soften: blur(5px) saturate(150%);
+  }
+  :root[data-glass="liquid"] .home-tile.glass-liquid::before {
+    -webkit-backdrop-filter: url("#learli-glass-fine") saturate(150%);
+    backdrop-filter: url("#learli-glass-fine") saturate(150%);
+  }
+  /* The glyph's inset is a share of the tile. Padding on the tile would be a
+     share of whatever the tile sits in, and crush the glyph in a wide column. */
+  .home-tile > .lesson-glyph {
+    width: 86%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) and (hover: hover) {
+    :is(.home, .home-header) :is(.action-primary, .action-outline):hover {
+      scale: 1.04;
+    }
+    :is(.home, .home-header) :is(.action-primary, .action-outline):active {
+      scale: 0.98;
+    }
+  }
+
+  /* Without a backdrop to soften, or when the visitor asks for less
+     transparency or more contrast, a sheet is simply a solid surface. */
+  @supports not (
+    (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+  ) {
+    .glass {
+      --glass-tint: color-mix(in srgb, var(--glass-light) 94%, var(--bg-base));
+    }
+    [data-surface="inverse"] .glass {
+      --glass-tint: color-mix(
+        in srgb,
+        var(--glass-light) 12%,
+        var(--brand-navy)
+      );
+    }
+  }
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    .glass {
+      --glass-tint: var(--bg-surface);
+      --glass-soften: none;
+      --glass-glint: transparent;
+    }
+    [data-surface="inverse"] .glass {
+      --glass-tint: color-mix(
+        in srgb,
+        var(--glass-light) 12%,
+        var(--brand-navy)
+      );
+    }
+    :root[data-glass="liquid"] .glass-liquid::before,
+    :is(.home, .home-header) :is(.action-primary, .action-outline) {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    :is(.home, .home-header) .action-primary {
+      background: var(--brand-navy);
+    }
+    :is(.home, .home-header) .action-outline {
+      border-color: var(--brand-navy);
+      background: var(--bg-surface);
+    }
+  }
+  @media (forced-colors: active) {
+    .glass {
+      border: 1px solid CanvasText;
+      box-shadow: none;
+    }
+    .glass::before {
+      background: Canvas;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .glass::after {
+      background: none;
+      box-shadow: none;
+    }
+    :is(.home, .home-header) :is(.action-primary, .action-outline) {
+      border: 1px solid ButtonText;
+      box-shadow: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .home-depth-rail,
+    .home-depth-through,
+    .home-line,
+    .home-close-art {
+      display: none;
+    }
+    .home-steps > li::before {
+      content: none;
+    }
+  }
+}
+
+/* Reviews: a circular stack.
+
+   The owner asked for the animation of a "circular testimonials" component in
+   Learli's theme. Three pictures stand in a shallow 3D arc; when the review
+   changes they swing round with a springy overshoot and the quote arrives word
+   by word, each word settling out of a blur. Learli's own parts: the mint sun
+   behind the stack, the quote on glass in the reading face, and the kit icon
+   (a navy tile with its teal dot) travelling along the track.
+
+   Without scripts ([data-live] absent) every review is simply listed. */
+@layer components {
+  .home-reviews-section {
+    overflow: clip;
+  }
+  .home-reviews {
+    display: grid;
+    align-items: center;
+  }
+  .home-reviews-stage {
+    --gap: clamp(2.5rem, 6vw, 5.375rem);
+    position: relative;
+    height: 20rem;
+    perspective: 1000px;
+  }
+  .home-reviews-sun {
+    position: absolute;
+    right: -6%;
+    bottom: -9%;
+    width: 58%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--brand-mint);
+  }
+  .home-reviews-card {
+    position: absolute;
+    inset: calc(var(--gap) * 0.8) var(--gap) 0;
+    overflow: hidden;
+    background: var(--bg-surface);
+    box-shadow:
+      0 2px 4px color-mix(in srgb, var(--text-primary) 10%, transparent),
+      0 28px 44px -24px color-mix(in srgb, var(--text-primary) 50%, transparent);
+  }
+  .home-reviews-card img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    object-fit: cover;
+  }
+  .home-reviews-card[data-place="active"] {
+    z-index: 3;
+  }
+  .home-reviews-card[data-place="prev"] {
+    z-index: 2;
+    transform: translateX(calc(var(--gap) * -1))
+      translateY(calc(var(--gap) * -0.8)) scale(0.85) rotateY(15deg);
+  }
+  .home-reviews-card[data-place="next"] {
+    z-index: 2;
+    transform: translateX(var(--gap)) translateY(calc(var(--gap) * -0.8))
+      scale(0.85) rotateY(-15deg);
+  }
+  .home-reviews-card[data-place="away"] {
+    z-index: 1;
+    opacity: 0;
+  }
+
+  /* The quote lies across the foot of the stack, so the sheet has pictures
+     and the sun to bend. */
+  .home-reviews-sheet {
+    z-index: 4;
+    margin-top: -1.5rem;
+    padding: 1.5rem;
+  }
+  .home-reviews-list > li + li {
+    margin-top: 1.5rem;
+    border-top: 1px solid var(--border-default);
+    padding-top: 1.5rem;
+  }
+  /* Live: every review shares one cell, so the sheet keeps the height of the
+     longest and nothing below it jumps. */
+  .home-reviews[data-live] .home-reviews-list {
+    display: grid;
+  }
+  .home-reviews[data-live] .home-reviews-list > li {
+    grid-area: 1 / 1;
+    margin-top: 0;
+    border-top: 0;
+    padding-top: 0;
+  }
+  .home-reviews-list > li:is([data-state="away"], [data-state="out"]) {
+    visibility: hidden;
+  }
+  .home-reviews-word {
+    display: inline-block;
+  }
+  .home-reviews-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .home-reviews-controls .action {
+    padding-inline: 0.75rem;
+  }
+  /* The track: a slot per review, and the kit icon marking the one shown. */
+  .home-reviews-track {
+    --slot: 1.5rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 1.25rem;
+  }
+  .home-reviews-track > span:not(.home-reviews-marker) {
+    width: var(--slot);
+    height: 0.375rem;
+    background: radial-gradient(
+      circle,
+      var(--border-control) 0.1875rem,
+      transparent 0.21875rem
+    );
+  }
+  .home-reviews-marker {
+    position: absolute;
+    top: 0;
+    left: calc((var(--slot) - 1.25rem) / 2);
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 22%;
+    background:
+      radial-gradient(
+        circle at 63% 69%,
+        var(--accent-primary) 0.1875rem,
+        transparent 0.21875rem
+      ),
+      var(--brand-navy);
+    translate: calc(var(--at) * var(--slot)) 0;
+  }
+  @media (min-width: 48rem) {
+    .home-reviews-stage {
+      height: 24rem;
+    }
+    .home-reviews-sheet {
+      padding: 2rem;
+    }
+  }
+  @media (min-width: 64rem) {
+    .home-reviews {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    }
+    .home-reviews-sheet {
+      margin-top: 0;
+      margin-left: -3.5rem;
+    }
+  }
+
+  @keyframes home-review-out {
+    from {
+      visibility: visible;
+      opacity: 1;
+    }
+    to {
+      visibility: hidden;
+      opacity: 0;
+      translate: 0 -20px;
+    }
+  }
+  @keyframes home-review-in {
+    from {
+      opacity: 0;
+      translate: 0 20px;
+    }
+  }
+  @keyframes home-review-word {
+    from {
+      opacity: 0;
+      filter: blur(10px);
+      translate: 0 5px;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    /* The reference's curve: it overshoots, which is the swing. */
+    .home-reviews[data-live] .home-reviews-card {
+      transition:
+        transform 800ms cubic-bezier(0.4, 2, 0.3, 1),
+        opacity 400ms linear;
+    }
+    .home-reviews-list > li[data-state="out"] {
+      animation: home-review-out 220ms ease-in forwards;
+    }
+    .home-reviews-list > li[data-state="in"] figcaption {
+      animation: home-review-in 300ms ease-out 200ms backwards;
+    }
+    .home-reviews-list > li[data-state="in"] .home-reviews-word {
+      animation: home-review-word 220ms ease-in-out backwards;
+      animation-delay: calc(240ms + var(--i) * 25ms);
+    }
+    .home-reviews-marker {
+      transition: translate 500ms var(--home-ease);
+    }
+  }
+  @media (forced-colors: active) {
+    .home-reviews-sun {
+      display: none;
+    }
+    .home-reviews-track,
+    .home-reviews-marker {
+      forced-color-adjust: none;
+    }
+  }
+}
