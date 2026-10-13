@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdmissionReviewEntry } from "@/features/learner-admission/navigation";
 import Link from "next/link";
 import { requireRole } from "@/lib/permissions/access";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
@@ -35,6 +36,7 @@ export default async function AdminWorkspacePage() {
       <Link className="mt-4 inline-flex min-h-11 items-center" href="/account">
         Account settings
       </Link>
+      <AdmissionReviewEntry />
       <SignOut />
     </AdminShell>
   );

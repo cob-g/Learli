@@ -1,3 +1,8 @@
+import { loadPublicReviews } from "@/features/review-publication/public";
+import {
+  PublicReviewSection,
+  PublicationBookingHandoff,
+} from "@/features/review-publication/presentation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -48,7 +53,13 @@ export default async function TutorPage({
         </Link>
       </div>
     );
-  const preview = await loadProfilePreview(tutor, await searchParams);
+  const reviews = await loadPublicReviews(tutor.slug);
+  // null is the ordinary disabled composition; an enabled failure must not
+  // silently show the historical demo duration/source picker.
+  const preview =
+    reviews === null
+      ? await loadProfilePreview(tutor, await searchParams)
+      : null;
   return (
     <div className="page-shell page-space">
       <div className="flex items-start gap-4">
@@ -68,11 +79,18 @@ export default async function TutorPage({
           </p>
         </div>
       </div>
-      <ProfilePicker
-        tutor={tutor}
-        preview={preview}
-        zones={listTimeZoneOptions(new Date(), [preview.timezone])}
-      />
+      {preview ? (
+        <ProfilePicker
+          tutor={tutor}
+          preview={preview}
+          zones={listTimeZoneOptions(new Date(), [preview.timezone])}
+        />
+      ) : (
+        <PublicationBookingHandoff
+          slug={tutor.slug}
+          subjectSlug={tutor.offerings[0]?.subjectSlug}
+        />
+      )}
       <section aria-labelledby="subjects-title" className="mt-8">
         <h2 id="subjects-title" className="text-section-title">
           Subjects and levels
@@ -115,6 +133,7 @@ export default async function TutorPage({
           {tutor.bio}
         </p>
       </section>
+      <PublicReviewSection result={reviews} />
       <section aria-labelledby="background-title" className="mt-12">
         <h2 id="background-title" className="text-section-title">
           Teaching background

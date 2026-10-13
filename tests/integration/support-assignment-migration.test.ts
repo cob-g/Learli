@@ -1,3 +1,4 @@
+import { currentMigrationCandidate } from "../support/migration-inventory";
 import { randomUUID, createHash } from "node:crypto";
 import { appendFileSync, mkdirSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
@@ -21,7 +22,9 @@ describe("support assignment forward migration", () => {
       const files = (await readdir("drizzle"))
         .filter((f) => /^\d{4}_.+\.sql$/.test(f))
         .sort();
-      expect(files).toHaveLength(22);
+      expect(files).toEqual(
+        currentMigrationCandidate.entries.map((entry) => `${entry.tag}.sql`),
+      );
       const sources = await Promise.all(
         files.map(async (name) => ({
           name,
@@ -102,12 +105,24 @@ describe("support assignment forward migration", () => {
           }
           phase(`${mode}: before snapshot`);
           const before: Record<string, unknown> = {};
-          for (const table of tables)
+          const projections: Record<string, string> = {};
+          for (const table of tables) {
+            projections[table] = (
+              await connection.query<{ column_name: string }>(
+                "SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name=$1 ORDER BY ordinal_position",
+                [table],
+              )
+            ).rows
+              .map(
+                ({ column_name }) => `"${column_name.replaceAll('"', '""')}"`,
+              )
+              .join(",");
             before[table] = (
               await connection.query(
-                `SELECT coalesce(jsonb_agg(to_jsonb(t) ORDER BY to_jsonb(t)::text),'[]'::jsonb) AS rows FROM "${table}" t`,
+                `SELECT coalesce(jsonb_agg(to_jsonb(t) ORDER BY to_jsonb(t)::text),'[]'::jsonb) AS rows FROM (SELECT ${projections[table]} FROM "${table}") t`,
               )
             ).rows[0].rows;
+          }
           phase(`${mode}: forward`);
           for (const source of sources.slice(17)) {
             phase(`${mode}: ${source.name}`);
@@ -118,7 +133,7 @@ describe("support assignment forward migration", () => {
             expect(
               (
                 await connection.query(
-                  `SELECT coalesce(jsonb_agg(to_jsonb(t) ORDER BY to_jsonb(t)::text),'[]'::jsonb) AS rows FROM "${table}" t`,
+                  `SELECT coalesce(jsonb_agg(to_jsonb(t) ORDER BY to_jsonb(t)::text),'[]'::jsonb) AS rows FROM (SELECT ${projections[table]} FROM "${table}") t`,
                 )
               ).rows[0].rows,
             ).toEqual(before[table]);

@@ -21,9 +21,19 @@ type IdentityRow = {
   ssl: boolean;
   replication_role: string;
 };
+import {
+  verifiedPoolConfig,
+  type VerifiedDatabaseConfig,
+} from "./verified-config";
+import { verifyNativeTls } from "./native-tls";
+
 type PrivilegeRow = { unsafe: boolean };
-async function verifyClient(client: ClientBase, config: StagingDatabaseConfig) {
+async function verifyClient(
+  client: ClientBase,
+  config: VerifiedDatabaseConfig,
+) {
   try {
+    verifyNativeTls(client, verifiedPoolConfig(config));
     const result = await client.query<IdentityRow>(`
       SELECT current_database() AS database, current_user AS current_role,
         session_user AS session_role,
@@ -36,11 +46,11 @@ async function verifyClient(client: ClientBase, config: StagingDatabaseConfig) {
       identity.database !== config.target.database ||
       identity.current_role !== config.role ||
       identity.session_role !== config.role ||
-      identity.ssl !== true ||
       identity.replication_role !== "origin"
     )
       throw new StagingDatabaseError("identity_mismatch");
-    if (config.purpose !== "runtime") return;
+    if (config.purpose !== "runtime" && config.purpose !== "inspect-runtime")
+      return;
     if (!(await stagingParameterPrivilegesSafe(client)))
       throw new StagingDatabaseError("runtime_privilege");
     // Reject every membership (including SET ROLE-only) rather than naming a
@@ -69,11 +79,11 @@ async function verifyClient(client: ClientBase, config: StagingDatabaseConfig) {
   }
 }
 
-export async function openStagingConnection(
-  config: StagingDatabaseConfig,
+export async function openVerifiedOperationConnection(
+  config: VerifiedDatabaseConfig,
 ): Promise<StagingConnection> {
   // Resolve the opaque settings and TLS process guards BEFORE allocating a pool.
-  const options = stagingPoolConfig(config);
+  const options = verifiedPoolConfig(config);
   let pool: Pool;
   try {
     pool = new Pool({
@@ -123,4 +133,12 @@ export async function openStagingConnection(
     await close();
     throw error;
   }
+}
+
+/** Original staging entry cannot admit a development/production packet. */
+export async function openStagingConnection(config: StagingDatabaseConfig) {
+  stagingPoolConfig(config);
+  if (config.target.environment !== "staging")
+    throw new StagingDatabaseError("config_invalid");
+  return openVerifiedOperationConnection(config);
 }

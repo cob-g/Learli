@@ -1,15 +1,19 @@
-import type { DemoBookingState } from "@/features/bookings/lifecycle-model";
+import type {
+  BookingState,
+  BookingEvent,
+} from "@/features/bookings/lifecycle-model";
 import type { LessonTimeValue } from "@/features/bookings/lesson-time";
 
 export type SupportBookingContext =
   | {
       available: true;
+      source?: "synthetic_readiness";
       tutorName: string;
       subjectName: string;
-      state: DemoBookingState;
+      state: BookingState;
       time: LessonTimeValue;
       events: {
-        event: "demo_reserved" | "demo_expired";
+        event: BookingEvent;
         time: LessonTimeValue;
       }[];
     }

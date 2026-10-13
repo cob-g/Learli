@@ -9,6 +9,8 @@ import {
   userRoles,
   type LearnerLevel,
 } from "@/lib/db/schema";
+import { screeningEligibilityPredicate } from "@/features/tutor-screening/eligibility";
+import type { ScreeningScope } from "@/features/tutor-screening/policy";
 import { teachingLanguagesSelection } from "./language-query";
 import type { TeachingLanguageCode } from "./teaching-languages";
 
@@ -43,6 +45,7 @@ async function eligibleTutors(
   db: Pick<Database, "select">,
   slug?: string,
   slugs?: readonly string[],
+  scope: ScreeningScope = "local_demo",
 ) {
   const query = db
     .select({
@@ -65,6 +68,7 @@ async function eligibleTutors(
     .where(
       and(
         eq(tutorProfiles.reviewStatus, "approved"),
+        screeningEligibilityPredicate(sql`${tutorProfiles.id}`, scope),
         eq(userAccess.status, "active"),
         eq(user.emailVerified, true),
         sql`EXISTS (SELECT 1 FROM ${userRoles} r WHERE r.user_id = ${user.id} AND r.role = 'tutor')`,
@@ -117,8 +121,12 @@ export function filterTutors(tutors: PublicTutor[], filters: TutorFilters) {
 export async function listEligibleTutors(
   db: Pick<Database, "select">,
   filters: TutorFilters = {},
+  scope: ScreeningScope = "local_demo",
 ) {
-  return filterTutors(await eligibleTutors(db), filters);
+  return filterTutors(
+    await eligibleTutors(db, undefined, undefined, scope),
+    filters,
+  );
 }
 
 /** Bounded subset using the exact same public eligibility predicate. */
@@ -126,6 +134,7 @@ export async function listEligibleTutorsBySlugs(
   db: Pick<Database, "select">,
   slugs: readonly string[],
   filters: TutorFilters = {},
+  scope: ScreeningScope = "local_demo",
 ) {
   if (
     slugs.length < 1 ||
@@ -136,14 +145,18 @@ export async function listEligibleTutorsBySlugs(
     )
   )
     throw new RangeError("Choose 1 to 20 unique tutor slugs.");
-  return filterTutors(await eligibleTutors(db, undefined, slugs), filters);
+  return filterTutors(
+    await eligibleTutors(db, undefined, slugs, scope),
+    filters,
+  );
 }
 
 /** One eligible tutor, or null. Ineligible and unknown look the same. */
 export async function findEligibleTutor(
   db: Pick<Database, "select">,
   slug: string,
+  scope: ScreeningScope = "local_demo",
 ) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 80) return null;
-  return (await eligibleTutors(db, slug))[0] ?? null;
+  return (await eligibleTutors(db, slug, undefined, scope))[0] ?? null;
 }

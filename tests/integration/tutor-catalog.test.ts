@@ -1,3 +1,4 @@
+import { provisionScreeningAssignment } from "@/features/tutor-screening/fixture-tooling";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
@@ -502,10 +503,21 @@ describe("tutor application", () => {
   });
 });
 
+async function exactReview(admin: TestAccount, profileId: string) {
+  await provisionScreeningAssignment(
+    world.owner,
+    profileId,
+    admin.id,
+    "local_fixture",
+    new Date(Date.now() + 3600000),
+  );
+}
+
 describe("admin review", () => {
   it("moves an application through every allowed transition and audits each", async () => {
     const admin = await createAccount(world, ["admin"]);
     const tutor = await tutorWithApplication();
+    await exactReview(admin, tutor.profileId);
     const status = async () => (await profileOf(tutor)).reviewStatus;
     for (const [action, expected] of [
       ["approve", "approved"],
@@ -518,6 +530,7 @@ describe("admin review", () => {
       expect(await status()).toBe(expected);
     }
     const second = await tutorWithApplication();
+    await exactReview(admin, second.profileId);
     expect(
       (await review(admin, second.profileId, { action: "reject" })).status,
     ).toBe(200);
@@ -545,11 +558,13 @@ describe("admin review", () => {
   it("refuses illegal transitions, unknown applications and forged input", async () => {
     const admin = await createAccount(world, ["admin"]);
     const pending = await tutorWithApplication();
+    await exactReview(admin, pending.profileId);
     for (const action of ["suspend", "reinstate", "reopen"])
       expect((await review(admin, pending.profileId, { action })).status).toBe(
         409,
       );
     const approved = await tutorWithApplication("approved");
+    await exactReview(admin, approved.profileId);
     for (const action of ["approve", "reject", "reinstate", "reopen"])
       expect((await review(admin, approved.profileId, { action })).status).toBe(
         409,
@@ -594,24 +609,24 @@ describe("admin review", () => {
     expect((await saveProfile(both, application())).status).toBe(200);
     const ownId = (await profileOf(both)).id;
     const self = await review(both, ownId, approve);
-    expect(self.status).toBe(403);
-    expect(
-      (await readTutorApplication(world.runtime, both.headers, ownId))
-        .ownedByReviewer,
-    ).toBe(true);
+    expect(self.status).toBe(404);
+    await expect(
+      readTutorApplication(world.runtime, both.headers, ownId),
+    ).rejects.toMatchObject({ status: 404 });
     expect((await profileOf(both)).reviewStatus).toBe("pending");
     expect((await profileOf(tutor)).reviewStatus).toBe("pending");
-    // A different admin can.
+    // A different admin needs the exact trusted assignment.
+    await exactReview(admin, ownId);
     expect((await review(admin, ownId, approve)).status).toBe(200);
   });
 
   it("lets exactly one of two simultaneous decisions succeed", async () => {
     const first = await createAccount(world, ["admin"]);
-    const second = await createAccount(world, ["admin"]);
     const tutor = await tutorWithApplication();
+    await exactReview(first, tutor.profileId);
     const responses = await Promise.all([
       review(first, tutor.profileId, { action: "approve" }),
-      review(second, tutor.profileId, { action: "reject" }),
+      review(first, tutor.profileId, { action: "reject" }),
     ]);
     expect(responses.map((response) => response.status).sort()).toEqual([
       200, 409,
@@ -631,6 +646,8 @@ describe("admin review", () => {
     const admin = await createAccount(world, ["admin"]);
     const pending = await tutorWithApplication(undefined, "Pending person");
     const approved = await tutorWithApplication("approved", "Approved person");
+    await exactReview(admin, pending.profileId);
+    await exactReview(admin, approved.profileId);
     const queue = await listTutorApplications(
       world.runtime,
       admin.headers,

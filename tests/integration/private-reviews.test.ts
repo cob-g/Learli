@@ -1,4 +1,4 @@
-import { handleAuthRequest } from "@/lib/auth-handler";
+import { refreshTestAdmin } from "../support/admin-mfa";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
@@ -552,20 +552,10 @@ describe("private booking-backed reviews on actual PostgreSQL", () => {
           "INSERT INTO user_roles(user_id,role) VALUES($1,'admin') ON CONFLICT DO NOTHING",
           [moderator.id],
         );
-        if (kind === "session") {
-          const signed = await handleAuthRequest(
-            world.runtime,
-            jsonRequest(world, "/api/auth/sign-in/email", {
-              body: { email: moderator.email, password },
-            }),
-          );
-          expect(signed.status).toBe(200);
-          moderator.cookie = signed.headers
-            .getSetCookie()
-            .map((v) => v.split(";")[0])
-            .join("; ");
-          moderator.headers = new Headers({ cookie: moderator.cookie });
-        }
+        await world.owner.pool.query(
+          "UPDATE rate_limit SET count=0 WHERE key LIKE '%/two-factor/%'",
+        );
+        await refreshTestAdmin(world.runtime, moderator, password);
       }
     },
   );

@@ -13,9 +13,11 @@ const serverReady = () => false;
 export function LearnerForm({
   profile,
   zones,
+  reviewed = false,
 }: {
   profile: PrivateLearner;
   zones: TimeZoneOption[];
+  reviewed?: boolean;
 }) {
   const router = useRouter();
   const ready = useSyncExternalStore(
@@ -43,7 +45,7 @@ export function LearnerForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           displayName: data.get("displayName"),
-          level: data.get("level"),
+          ...(!reviewed ? { level: data.get("level") } : {}),
           timezone: data.get("timezone"),
         }),
       });
@@ -129,7 +131,7 @@ export function LearnerForm({
           className="field"
           id="level"
           name="level"
-          disabled={!ready}
+          disabled={!ready || reviewed}
           defaultValue={profile.level}
           aria-invalid={!!fields.level}
           aria-describedby={fields.level ? "level-error" : undefined}

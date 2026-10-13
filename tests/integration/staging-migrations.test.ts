@@ -1,3 +1,4 @@
+import { currentMigrationFunctionCount } from "../support/migration-inventory";
 // Test-only loopback adapter. The staging CLI/factory never accepts this target.
 import { spawnSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
@@ -221,7 +222,7 @@ describe("real PostgreSQL controlled staging migration primitives", () => {
     const w = await world(),
       plan = await inspectTarget(w.owner, candidate, w.identity);
     expect(plan.state).toBe("empty");
-    expect(plan.pending).toHaveLength(22);
+    expect(plan.pending).toEqual(candidate.entries.map((entry) => entry.hash));
     const result = await apply(w, plan);
     expect(result.status, `${result.category}/${result.stage}`).toBe("PASS");
     expect(result.migrations).toBe("committed");
@@ -456,7 +457,9 @@ describe("real PostgreSQL controlled staging migration primitives", () => {
     try {
       await check.withClient(async (client) => {
         await client.query(runtimeGrantsSql);
-        expect((await verifyRuntimeGrants(client)).functionChecks).toBe(24);
+        expect((await verifyRuntimeGrants(client)).functionChecks).toBe(
+          currentMigrationFunctionCount,
+        );
         await client.query("GRANT UPDATE ON user_roles TO learli_app");
         await expect(verifyRuntimeGrants(client)).rejects.toThrow(
           "grant_mismatch",
@@ -733,7 +736,9 @@ describe("real PostgreSQL controlled staging migration primitives", () => {
           await client.query(
             `REVOKE GRANT OPTION FOR ${privilege} ON ${target} FROM learli_app`,
           );
-          expect((await verifyRuntimeGrants(client)).functionChecks).toBe(24);
+          expect((await verifyRuntimeGrants(client)).functionChecks).toBe(
+            currentMigrationFunctionCount,
+          );
         });
       } finally {
         await owner.close();

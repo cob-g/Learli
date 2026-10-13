@@ -5,6 +5,7 @@ import { timeZoneLabel } from "@/lib/time/zones";
 import { AdminShell } from "@/features/admin/admin-shell";
 import { readTutorApplication } from "@/features/tutors/review";
 import { ProfileSummary } from "@/features/tutors/profile-summary";
+import { ScreeningForm } from "@/features/tutor-screening/forms";
 import { ReviewActions } from "@/features/tutors/review-actions";
 import { ReviewStatusBadge } from "@/features/tutors/review-status";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
@@ -56,7 +57,13 @@ export default async function TutorApplicationPage({
         <h2 id="review-title" className="text-section-title">
           Review
         </h2>
-        {application.ownedByReviewer ? (
+        {application.screening ? (
+          <ScreeningForm
+            key={application.screening.revision}
+            tutorId={profileId}
+            detail={application.screening}
+          />
+        ) : application.ownedByReviewer ? (
           <p className="mt-4 max-w-prose text-body">
             You can&apos;t review your own application. Another admin must
             review it.

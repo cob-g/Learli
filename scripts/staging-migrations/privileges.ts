@@ -138,15 +138,50 @@ export async function verifyRuntimeGrants(client: PoolClient) {
     WHERE n.nspname='public' AND NOT EXISTS (SELECT 1 FROM pg_depend d
       WHERE d.classid='pg_proc'::regclass AND d.objid=p.oid AND d.deptype='e')`);
   const permitted = new Set([
+    "publication_policy_current(uuid)",
+    "publication_completion_current(text,uuid,uuid,integer)",
+    "publication_author_allowed(text,text,uuid,uuid,integer,uuid)",
+    "publication_moderator_allowed(text,text,uuid,uuid)",
+    "submit_publication_review(text,text,uuid,uuid,integer,uuid,uuid,integer,text)",
+    "decide_publication_review(text,text,uuid,uuid,integer,uuid,text,boolean)",
+    "assert_booking_workflow_receipt(text,text,uuid,uuid,text,uuid,boolean,text,timestamp with time zone,timestamp with time zone,timestamp with time zone)",
+    "booking_workflow_policy_current(uuid)",
+    "expire_policy_bookings(uuid)",
+    "has_current_booking_beneficiary(text,uuid,uuid)",
+    "has_booking_workflow_task(text,text,uuid,text)",
+    "create_policy_booking(text,text,uuid,uuid,uuid,uuid,uuid,timestamp with time zone,timestamp with time zone,text,text)",
+    "change_policy_booking(text,text,uuid,uuid,uuid,integer,text,text,timestamp with time zone,timestamp with time zone,text,text)",
+    "booking_workflow_participant(text,text,uuid)",
+    "create_booking_workflow_dispute(text,text,uuid,uuid,text,text,text,text)",
+    "has_current_tutor_screening(uuid,text)",
+    "has_tutor_screening_authority(text,text,uuid,text)",
+    "request_tutor_screening(text,text,uuid,uuid,text)",
+    "record_tutor_screening_check(text,text,uuid,integer,uuid,text,text,text,timestamp with time zone,timestamp with time zone)",
+    "decide_tutor_screening(text,text,uuid,integer,uuid,text)",
+    "review_local_tutor_application(text,text,uuid,text)",
+    "resubmit_tutor_application(text,text,uuid)",
+    "has_current_support_policy(text)",
+    "has_safeguarding_case_authority(text,text,uuid,text)",
+    "create_safeguarding_case(text,text,uuid,text,text,text,text)",
+    "change_safeguarding_response(text,text,uuid,integer,uuid,text,text)",
+    "change_safeguarding_access(text,text,text,integer,text,text,uuid)",
+
+    "create_learner_admission(text,text,uuid,uuid,text,text,text,text,text)",
+    "record_learner_admission_evidence(text,text,uuid,integer,uuid,text,text)",
+    "decide_learner_admission(text,text,uuid,integer,uuid,text)",
+    "revoke_learner_admission_evidence(text,text,uuid,integer,uuid,uuid)",
+    "update_admitted_learner(text,text,uuid,uuid,text,text)",
+    "has_current_learner_authority(text,text,uuid,uuid)",
     "grant_tutor_role(text)",
     "submit_private_review(text,text,uuid,integer,uuid,integer,text)",
     "moderate_private_review(text,text,uuid,integer,uuid,text)",
+    "has_admin_assurance(text,text,integer)",
     "change_local_account_access(text,text,text,integer,text,text,uuid)",
     "create_local_learner(text,text,uuid,text,text,text,text)",
     "change_local_support_assignment(text,text,uuid,integer,text,text,uuid)",
   ]);
   if (
-    functions.rows.length !== 24 ||
+    functions.rows.length !== 86 ||
     functions.rows.some(
       (row) =>
         !row.safe ||
@@ -248,6 +283,26 @@ export async function probeRuntime(client: PoolClient) {
       if (code !== "23514") throw new MigrationFault("runtime_probe_failed");
     }
     return { denials: 6, integrityChecks: 3, rollbackOnly: true };
+  } finally {
+    await client.query("ROLLBACK");
+  }
+}
+
+/** Production acceptance inspects only; negative write probes belong to dev. */
+export async function probeRuntimeReadOnly(client: PoolClient) {
+  await client.query("BEGIN READ ONLY");
+  try {
+    const result = await client.query<{ safe: boolean }>(
+      "SELECT current_user='learli_app' AND session_user='learli_app' AND current_setting('session_replication_role')='origin' AND current_setting('transaction_read_only')='on' AS safe",
+    );
+    if (
+      result.rows.length !== 1 ||
+      result.rows[0].safe !== true ||
+      !(await stagingParameterPrivilegesSafe(client))
+    )
+      throw new MigrationFault("runtime_probe_failed");
+    await client.query("SELECT id FROM public.subjects LIMIT 0");
+    return { readOnly: true };
   } finally {
     await client.query("ROLLBACK");
   }

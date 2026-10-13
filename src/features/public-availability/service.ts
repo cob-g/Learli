@@ -1,3 +1,4 @@
+import { blockingBookingPredicate } from "@/features/booking-workflows/model";
 // Node-only read service, also used directly by isolated PostgreSQL tests.
 import { and, asc, gt, inArray, lt, sql } from "drizzle-orm";
 import type { AuthRuntime } from "@/lib/auth-factory";
@@ -8,6 +9,7 @@ import {
   tutorProfiles,
 } from "@/lib/db/schema";
 import { isLoopbackOrigin } from "@/lib/local-mode";
+import type { ScreeningScope } from "@/features/tutor-screening/policy";
 import { listEligibleTutorsBySlugs } from "@/features/tutors/eligibility";
 import { demoBookingPolicy } from "@/features/bookings/demo-policy";
 import {
@@ -58,20 +60,31 @@ const overload = () =>
 export async function readPublicCandidates(
   runtime: AuthRuntime,
   input: unknown,
+  scope: ScreeningScope = "local_demo",
 ): Promise<PublicCandidates> {
   assertLocal(runtime);
-  return readCandidates(runtime, publicCandidateQueryInput.parse(input));
+  if (scope !== "local_demo" && scope !== "synthetic_readiness")
+    throw overload();
+  if (scope === "synthetic_readiness" && runtime.environment !== "test")
+    throw overload();
+  return readCandidates(runtime, publicCandidateQueryInput.parse(input), scope);
 }
 
 /** Optional offering filters for directory reads only, with the same public DTO. */
 export async function readPublicDirectoryCandidates(
   runtime: AuthRuntime,
   input: unknown,
+  scope: ScreeningScope = "local_demo",
 ): Promise<PublicCandidates> {
   assertLocal(runtime);
+  if (scope !== "local_demo" && scope !== "synthetic_readiness")
+    throw overload();
+  if (scope === "synthetic_readiness" && runtime.environment !== "test")
+    throw overload();
   return readCandidates(
     runtime,
     publicDirectoryCandidateQueryInput.parse(input),
+    scope,
   );
 }
 
@@ -91,6 +104,7 @@ async function readCandidates(
     Partial<Pick<PublicCandidateQuery, "subjectSlug" | "level">> & {
       language?: import("@/features/tutors/teaching-languages").TeachingLanguageCode;
     },
+  scope: ScreeningScope = "local_demo",
 ): Promise<PublicCandidates> {
   if (
     !["development", "test"].includes(runtime.environment) ||
@@ -106,11 +120,16 @@ async function readCandidates(
       );
       const now = new Date(clock.rows[0].milliseconds);
       const range = demoCandidateRange(now, query);
-      const eligible = await listEligibleTutorsBySlugs(tx, query.tutorSlugs, {
-        subject: query.subjectSlug,
-        level: query.level,
-        language: query.language,
-      });
+      const eligible = await listEligibleTutorsBySlugs(
+        tx,
+        query.tutorSlugs,
+        {
+          subject: query.subjectSlug,
+          level: query.level,
+          language: query.language,
+        },
+        scope,
+      );
       const base = {
         source: "local_simulation" as const,
         generatedAtUtc: now.toISOString(),
@@ -174,8 +193,7 @@ async function readCandidates(
         .where(
           and(
             inArray(bookings.tutorId, ids),
-            inArray(bookings.state, ["demo_reserved", "demo_confirmed"]),
-            gt(bookings.expiresAt, now),
+            blockingBookingPredicate(sql`bookings`, now),
             lt(bookings.startAtUtc, range.busyTo),
             gt(bookings.endAtUtc, range.from),
           ),

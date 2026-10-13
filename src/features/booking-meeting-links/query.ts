@@ -6,6 +6,7 @@ import type { MeetingProvider } from "@/lib/validation/meeting-link";
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 export type MeetingActor = { userId: string; sessionId: string };
 export type MeetingSnapshot = {
+  source: "local_simulation" | "synthetic_readiness";
   live: boolean;
   canEdit: boolean;
   now: string;
@@ -30,30 +31,30 @@ export async function queryPrivateMeeting(
       WHERE u.id=${actor.userId} AND u.email_verified=true
         AND u.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$'
     ), permitted AS (
-      SELECT b.id, a.now,
-        b.state IN('demo_reserved','demo_confirmed') AND b.expires_at > a.now AS live,
+      SELECT b.id, b.source, a.now,
+        ((b.source='local_simulation' AND b.state IN('demo_reserved','demo_confirmed') AND b.expires_at > a.now) OR (b.source='synthetic_readiness' AND b.state='confirmed' AND b.end_at_utc>a.now AND public.booking_workflow_policy_current(b.workflow_policy_id))) AS live,
         tp.user_id=a.id AND EXISTS (
           SELECT 1 FROM user_roles r WHERE r.user_id=a.id AND r.role='tutor'
         ) AS can_edit
-      FROM actor a JOIN bookings b ON b.id=${bookingId}::uuid AND b.source='local_simulation'
+      FROM actor a JOIN bookings b ON b.id=${bookingId}::uuid AND b.source IN('local_simulation','synthetic_readiness')
       JOIN tutor_profiles tp ON tp.id=b.tutor_id AND tp.review_status='approved'
       JOIN "user" tu ON tu.id=tp.user_id AND tu.email_verified=true
         AND tu.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$'
       JOIN user_access ta ON ta.user_id=tu.id AND ta.status='active'
-      JOIN learner_profiles l ON l.id=b.learner_id AND l.status='active' AND l.source='local_fixture'
+      JOIN learner_profiles l ON l.id=b.learner_id AND l.status='active' AND ((b.source='local_simulation' AND l.source='local_fixture') OR (b.source='synthetic_readiness' AND l.source=b.source AND public.has_current_booking_beneficiary(b.booked_by_user_id,l.id,b.admission_policy_id) AND public.has_current_tutor_screening(tp.id,'synthetic_readiness')))
       WHERE EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id=tu.id AND r.role='tutor')
         AND (
           (tp.user_id=a.id AND EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id=a.id AND r.role='tutor'))
           ${
             editing
               ? sql``
-              : sql`OR (l.management='self' AND l.user_id=a.id AND l.level='college_support' AND EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id=a.id AND r.role='student'))
-          OR (l.management='guardian' AND l.user_id IS NULL AND EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id=a.id AND r.role='parent') AND EXISTS (
+              : sql`OR (b.source='synthetic_readiness' AND public.has_current_learner_authority(a.id,${actor.sessionId},l.id,b.admission_policy_id)) OR (b.source='local_simulation' AND l.management='self' AND l.user_id=a.id AND l.level='college_support' AND EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id=a.id AND r.role='student'))
+          OR (b.source='local_simulation' AND l.management='guardian' AND l.user_id IS NULL AND EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id=a.id AND r.role='parent') AND EXISTS (
             SELECT 1 FROM guardian_learner_links g WHERE g.guardian_user_id=a.id AND g.learner_id=l.id AND g.status='authorized' AND g.source='local_fixture'
           ))`
           }
         )
-    ) SELECT p.live, p.can_edit AS "canEdit", p.now::text AS now,
+    ) SELECT p.source, p.live, p.can_edit AS "canEdit", p.now::text AS now,
       m.url, m.provider, m.revision
     FROM permitted p LEFT JOIN booking_meeting_links m ON m.booking_id=p.id AND p.live
   `);

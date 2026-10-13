@@ -12,6 +12,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
+import { supportResponsePolicies } from "./safeguarding";
 
 const instant = (name: string) =>
   timestamp(name, { withTimezone: true }).defaultNow().notNull();
@@ -21,14 +22,16 @@ export const accountRestrictionTargets = pgTable(
     userId: text("user_id")
       .primaryKey()
       .references(() => user.id, { onDelete: "restrict" }),
-    source: text("source").$type<"local_fixture">().notNull(),
+    source: text("source")
+      .$type<"local_fixture" | "synthetic_readiness">()
+      .notNull(),
     revision: integer("revision").default(0).notNull(),
     createdAt: instant("created_at"),
   },
   (t) => [
     check(
       "account_restriction_targets_source",
-      sql`${t.source} = 'local_fixture'`,
+      sql`${t.source} IN ('local_fixture','synthetic_readiness')`,
     ),
     check("account_restriction_targets_revision", sql`${t.revision} >= 0`),
   ],
@@ -36,6 +39,12 @@ export const accountRestrictionTargets = pgTable(
 export const accountRestrictionGrants = pgTable(
   "account_restriction_grants",
   {
+    source: text("source")
+      .$type<"local_fixture" | "synthetic_readiness">()
+      .default("local_fixture")
+      .notNull(),
+    validUntil: timestamp("valid_until", { withTimezone: true }),
+    permittedActions: text("permitted_actions").array(),
     staffUserId: text("staff_user_id")
       .notNull()
       .references(() => user.id, { onDelete: "restrict" }),
@@ -50,6 +59,10 @@ export const accountRestrictionGrants = pgTable(
   },
   (t) => [
     primaryKey({ columns: [t.staffUserId, t.targetUserId] }),
+    check(
+      "account_restriction_grants_source",
+      sql`(${t.source}='local_fixture' AND ${t.validUntil} IS NULL AND ${t.permittedActions} IS NULL) OR (${t.source}='synthetic_readiness' AND ${t.validUntil} IS NOT NULL AND isfinite(${t.validUntil}) AND cardinality(${t.permittedActions}) BETWEEN 1 AND 2 AND ${t.permittedActions} <@ ARRAY['restrict','restore']::text[])`,
+    ),
     check(
       "account_restriction_grants_not_self",
       sql`${t.staffUserId} <> ${t.targetUserId}`,
@@ -66,6 +79,9 @@ export const accountRestrictionGrantEvents = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     staffUserId: text("staff_user_id").notNull(),
     targetUserId: text("target_user_id").notNull(),
+    validUntil: timestamp("valid_until", { withTimezone: true }),
+    permittedActions: text("permitted_actions").array(),
+    toolingActorId: text("tooling_actor_id"),
     action: text("action").$type<"authorized" | "revoked">().notNull(),
     createdAt: instant("created_at"),
   },
@@ -102,12 +118,31 @@ export const accountRestrictionEvents = pgTable(
       .$type<"active" | "suspended">()
       .notNull(),
     nextStatus: text("next_status").$type<"active" | "suspended">().notNull(),
+    policyProvenance: text("policy_provenance").$type<"synthetic_readiness">(),
+    policyVersion: text("policy_version"),
     reason: text("reason")
-      .$type<"local_access_test" | "local_review_test" | "local_restore_test">()
+      .$type<
+        | "local_access_test"
+        | "local_review_test"
+        | "local_restore_test"
+        | "synthetic_safety_restrict"
+        | "synthetic_safety_restore"
+      >()
       .notNull(),
     createdAt: instant("created_at"),
   },
   (t) => [
+    foreignKey({
+      columns: [t.policyProvenance, t.policyVersion],
+      foreignColumns: [
+        supportResponsePolicies.provenance,
+        supportResponsePolicies.version,
+      ],
+    }).onDelete("restrict"),
+    check(
+      "restriction_event_policy_receipt",
+      sql`((${t.reason} IN ('synthetic_safety_restrict','synthetic_safety_restore') AND ${t.policyProvenance}='synthetic_readiness' AND ${t.policyVersion} IS NOT NULL) OR (${t.reason} IN ('local_access_test','local_review_test','local_restore_test') AND ${t.policyProvenance} IS NULL AND ${t.policyVersion} IS NULL)) IS TRUE`,
+    ),
     unique("account_restriction_events_request").on(
       t.actorUserId,
       t.requestKey,
@@ -130,7 +165,7 @@ export const accountRestrictionEvents = pgTable(
     ),
     check(
       "account_restriction_events_shape",
-      sql`((${t.previousStatus} = 'active' AND ${t.nextStatus} = 'suspended' AND ${t.reason} IN ('local_access_test','local_review_test')) OR (${t.previousStatus} = 'suspended' AND ${t.nextStatus} = 'active' AND ${t.reason} = 'local_restore_test')) IS TRUE`,
+      sql`((${t.previousStatus} = 'active' AND ${t.nextStatus} = 'suspended' AND ${t.reason} IN ('local_access_test','local_review_test','synthetic_safety_restrict')) OR (${t.previousStatus} = 'suspended' AND ${t.nextStatus} = 'active' AND ${t.reason} IN ('local_restore_test','synthetic_safety_restore'))) IS TRUE`,
     ),
   ],
 );

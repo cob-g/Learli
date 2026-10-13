@@ -27,6 +27,7 @@ export function DemoCancelControl({
     if (notice) alert.current?.focus();
   }, [notice]);
   if (
+    booking.source !== "local_simulation" ||
     scope === "tutor" ||
     !demoLiveState(booking.state) ||
     (booking.currentHeadId ?? booking.id) !== booking.id

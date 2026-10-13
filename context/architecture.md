@@ -1554,3 +1554,156 @@ support assignment use narrow database functions with fresh current authorizatio
 and fixed search paths instead of broad protected-table write grants. Existing
 local-only runtime, staging operator separation, historical 0000–0016 SQL, private
 links and no-money/no-real-user boundaries remain. The candidate adds a separate lifecycle delivery queue with real lifecycle-event foreign keys, captured locally only. Private synthetic reviews use one immutable submission per logical booking, current family authority and exact separately provisioned moderator scope; local approval never publishes. The combined local candidate passed the scoped independent reviews and required local verification; exact evidence belongs to the tracker. The exact verified code and migration files are committed on local main. Both main local databases subsequently applied0017–0021 under explicit user authorization, with all existing values preserved and the exact reviewed grants/functions/triggers verified. No hosted migration or release is implied.
+
+
+### Hosted workflow preparation boundary — 2026-10-12
+
+The authorized eight-area blueprint adds a separately validated pooled staging
+runtime without weakening local parsers or deliberate operator migration tools.
+Hosted HTTPS authentication composes the same installed Better Auth provider,
+current admin assurance and Resend transport while retaining local capture.
+Provider-owned factor credentials remain in its generated schema; app assurance
+receipts contain only current session/security metadata. Each database lease
+revalidates target and effective role/session safety before application SQL.
+
+Policy-dependent admission, screening, booking and publication use narrowly
+consumed versioned records, synthetic readiness provenance and disabled real-use
+defaults. Extend the existing booking logical chain and exclusion guarantees
+across blocking states; do not create a second booking engine. Committed event
+mail uses a bounded operator drain, immutable retry material and truthful API
+accepted/uncertain states. Existing local fixtures/private reviews cannot be
+promoted to real public records. This is planned software scope, not deployed
+architecture or completed provider acceptance. See the dated hosted-workflows
+software decision and progress tracker for authority and actual evidence.
+
+
+### W1 administrator assurance software boundary — 2026-10-12
+
+AUTHORIZED — build-feature delegation under the hosted-readiness parent and
+scoped `prompts/features/m8-08-admin-assurance.md`. Installed Better Auth1.7.7
+owns TOTP credentials and encrypted single-use recovery codes; generated provider
+schema and forward0022 add only provider tables/field plus app epoch, exact-session
+assurance receipt and minimal events. No credential copies or provider row rewrites.
+Password sign-in with an enrolled factor remains pending until verification;
+ordinary sessions/new role grants/reset/email verification do not grant assurance.
+Every administrative boundary, final private projection, post-lock check and
+narrow SQL function composes current provider session/user, active verified account,
+verified enabled factor ID, epoch, exact admin grant timestamp and bounded DB time.
+Task-specific grants/assignments and self-review exclusions remain additional.
+Runtime-owned scoped HTTP dispatch preserves provider throttles/cookies and denies
+unscoped two-factor calls, email/SMS/trusted-device/passwordless bypasses. Before
+factor change, actual current password plus fresh assurance (when enrolled) are
+checked and epoch invalidation commits; uncertainty stays unprivileged. Normal
+assurance is bounded8h; factor-change proof5min. Recovery is provider-code or TOTP
+verification; password plus total factor/code loss has no automated bypass.
+These are delegated software security controls, not real staff provisioning,
+hosted provider activation, production migration or launch approval. Actual
+Review/Verify results belong in the tracker and private worker report.
+
+### Integrated W6 synthetic booking lifecycle — 2026-10-13
+
+The accepted W6 software extends the existing booking/logical replacement chain
+through forward migration0025. Versioned immutable policy receipts bind
+provisional, confirmed, expired, cancelled, replaced, administrative completion
+and no-show states. Confirmed bookings outlive the provisional deadline and keep
+the shared exclusion constraint blocking conflicts until a terminal transition.
+Replacement atomically preserves history, retires the old private meeting link
+and requires a new link. Current account/session/role, beneficiary, screening,
+original policy and applicable time windows are checked again after blocking
+writes. Administrative outcomes do not establish attendance or payment.
+
+Immutable booking notice intents commit with canonical events; a minimum current
+recipient projection uses sessionless beneficiary eligibility while viewer and
+action authorization still requires an exact current session. The completion
+provider binds the ended current completed logical head, event and revision.
+A nullable immutable server-stamped top-level transaction marker permits only an
+atomically created safeguarding case/event/booking association, preserving old
+NULL markers and local source behavior. Real composition remains disabled.
+See the W6 child blueprint and contribution; combined verification remains in the
+progress tracker, distinct from isolated component acceptance.
+
+
+### Integrated account, admission, screening and publication boundaries — 2026-10-13
+
+The isolated eight-area candidate now contains the W2 validated pooled database
+runtime and W3 explicit hosted-synthetic authentication. Hosted connection leases
+recheck exact target, TLS and effective role/session settings. Local test parsing
+and deliberate staging migration commands remain separate. Hosted auth uses
+the installed Better Auth provider, exact HTTPS origin/trusted ingress contract,
+allowlisted synthetic membership and W1 current MFA; only its private validated
+configuration packet can select it. Raw forwarded headers do not confer trust.
+The production-only Node entry path and local owned HTTPS harness have separate
+verification evidence; neither is a Railway or Neon acceptance result.
+
+W5 admission records pending requests separately from authorized learner links.
+Versioned policy, required evidence, exact assigned reviewer and current MFA govern
+approval/revocation; independent eligible College Support remains distinct from
+guardian representation. Intake denies before collecting child fields without
+a capability. W8 screening similarly requires current policy/evidence and assigned
+MFA review; a tutor profile approval alone cannot substitute for current screening.
+Safeguarding separates minimal dispatch metadata from assigned private case work
+and preserves current restriction effects. Database grants and post-wait checks
+enforce these boundaries, not only rendered controls.
+
+W7 forward0026 keeps publication in separate tables from historical private reviews.
+An immutable submission binds the current ended administratively completed booking
+head, event/revision, author and policy. Exact assigned current MFA moderation,
+self-author/self-tutor exclusions, explicit privacy confirmation and constrained
+revision transitions precede publication. One current eligible set drives public
+rows/count/average; public fields are only Customer, rating, plain text and date.
+Logout alone does not revoke the stored author's beneficiary eligibility; actual
+admission/account/tutor/policy revocation removes visibility. Query failures remain
+unavailable rather than a fabricated zero. Shipped publication/admission/screening/
+safeguarding/booking factories are disabled; test-owned source mirrors override
+only named composition seams with validated synthetic packets.
+
+Forward0026 rejects non-READ-COMMITTED calls before work in two publication and
+three existing booking mutators. The latter are exact0025 definitions plus the
+early guard; historical0025 is immutable. This closes observed direct-SQL
+stale-snapshot authority races while preserving ordinary transactional locking
+and post-wait checks. It is not an audit claim for every historical function.
+Current component and combined verification belong in the progress tracker.
+
+
+### Public discovery continuation and committed notice drain — 2026-10-13
+
+A public tutor/subject pair is a separate strict continuation shape from a full
+six-field slot selection. Authentication, pending admission and the SQL validator
+accept only canonical public slugs; extra/private/duplicate fields cannot degrade
+an invalid slot into a discovery request. Forward0028 changes only that existing
+validator, retaining private grants and the original complete-selection branch.
+Continuation never creates guardian authority or chooses a time. The admitted
+learner still uses current authorized slot and booking validation.
+
+Forward0027 adds a separate durable committed-event delivery queue. A bounded
+operator claims and prepares immutable recipient/payload/key/configuration data
+under short READ COMMITTED transactions, commits before the installed SDK call,
+rechecks current eligibility, and acknowledges with a claim-token comparison.
+Retries retain identical material; changed recipients/configuration and exhausted
+or uncertain windows fail closed. API acceptance does not establish delivery.
+There is no implicit scheduler, public resend endpoint, real transport activation
+or payment behavior. Local actual verification and prepared-payload restoration
+are separate evidence, recorded in the progress tracker.
+
+### Neon operational and local development boundary — 2026-10-13
+
+AUTHORIZED — build-feature delegation and explicit production-migration request
+with separate local development branch; source/provider execution gates remain
+separate. A distinct opaque production/development operator parser reuses the
+source-bound Drizzle migration engine and exact grant/protection checks. Production
+runtime purpose is refused; operator inspect-runtime performs metadata-only
+acceptance. Native authorized TLSSocket certificate/hostname evidence establishes
+client transport at every guarded lease; Neon backend pg_stat_ssl can report false
+behind its TLS proxy. Existing staging environment/target and loopback test parsers
+remain separate, without alternate caller TLS assertions.
+
+Opt-in DATABASE_MODE=neon-development preserves existing synthetic local auth and
+coordination using the installed Better Auth composition and guarded runtime pool.
+It requires development, local auth, loopback origin and a private runtime-only
+schema-only-development packet; no owner URL or real-mail/hosted credentials.
+The synchronous factory allocates without an unchecked query; every query/checkout
+still validates native transport and current role/identity/privileges. Default
+local/test behavior and disabled real policy factories remain. Provider apply,
+branch/role provisioning, verification and actual local-dev acceptance are distinct
+from this software implementation. See docs/operations/neon-activation.md and the
+activation blueprint; actual outcomes belong in the tracker.

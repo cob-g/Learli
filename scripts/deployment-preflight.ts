@@ -86,7 +86,7 @@ export async function deploymentPreflight(
       name: "hosted-readiness",
       status: "BLOCKED",
       message:
-        "Hosted auth/data/email are unimplemented; local gates and release approvals remain required. No network check performed.",
+        "Hosted release requires provider acceptance, approved operating policies and explicit deployment approval. Local software checks do not establish hosted readiness. No network check performed.",
     });
     return {
       mode: options.mode,

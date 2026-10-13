@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { admissionContext } from "@/features/learner-admission/context";
+import { AccessError } from "@/lib/permissions/access";
 import type { Metadata } from "next";
 import { LearnerLink } from "@/features/learners/learner-link";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
@@ -28,7 +30,30 @@ export default async function CreateLearnerPage({
     returnToBooking
       ? `/learners/new?next=${encodeURIComponent(returnToBooking)}`
       : "/learners/new",
-    readLearnerCreationContext,
+    async (runtime, headers) => {
+      const admissionEnabled =
+        admissionContext(runtime).admission.authority === "synthetic_test";
+      try {
+        return {
+          ...(await readLearnerCreationContext(runtime, headers)),
+          admissionEnabled,
+          demoUnavailable: false,
+        };
+      } catch (error) {
+        if (
+          admissionEnabled &&
+          error instanceof AccessError &&
+          error.status === 403
+        )
+          return {
+            modes: [],
+            timezone: "UTC",
+            admissionEnabled,
+            demoUnavailable: true,
+          };
+        throw error;
+      }
+    },
   );
   if (!context)
     return (
@@ -49,6 +74,17 @@ export default async function CreateLearnerPage({
         Local demonstration only: use fictional learner details. This flow does
         not verify real consent, age or guardian identity.
       </p>
+      {context.admissionEnabled && (
+        <LearnerLink
+          href={
+            returnToBooking
+              ? `/learner-admission/new?next=${encodeURIComponent(returnToBooking)}`
+              : "/learner-admission/new"
+          }
+          className="action action-outline mt-8"
+          label="Request separate admission review"
+        />
+      )}
       {context.modes.length ? (
         <CreateLearnerForm
           requestId={randomUUID()}
@@ -59,9 +95,15 @@ export default async function CreateLearnerPage({
         />
       ) : (
         <section className="mt-8 max-w-prose">
-          <h2 className="text-item-title">Your local profile already exists</h2>
+          <h2 className="text-item-title">
+            {context.demoUnavailable
+              ? "A local demonstration role is required"
+              : "Your local profile already exists"}
+          </h2>
           <p className="mt-2 text-body">
-            Return to your learners to edit your existing profile.
+            {context.demoUnavailable
+              ? "Use the separate admission review to request a synthetic learner relationship."
+              : "Return to your learners to edit your existing profile."}
           </p>
         </section>
       )}

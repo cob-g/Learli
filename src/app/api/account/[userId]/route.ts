@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getAccountAuthRuntime } from "@/lib/auth";
 import { privateJson } from "@/lib/auth-handler";
 import { handleAccountRequest } from "@/features/account/handler";
 export const runtime = "nodejs";
@@ -9,7 +9,7 @@ async function handler(
 ) {
   try {
     return await handleAccountRequest(
-      getAuthRuntime(),
+      await getAccountAuthRuntime(),
       request,
       (await context.params).userId,
     );

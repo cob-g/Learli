@@ -354,25 +354,25 @@ export async function canonicalSourceSchema(
   } finally {
     await target.query("ROLLBACK");
   }
-  const seen = new Set<string>();
-  const result = schema
-    .split("\n")
-    .map((line) => {
-      for (const [name, value] of replacements) {
-        if (
-          line.includes(`CONSTRAINT ${name} `) ||
-          line.includes(`CONSTRAINT ${quote(name)} `)
-        ) {
-          if (!line.includes(value.original)) fail("check-schema-shape");
-          seen.add(name);
-          // Replacement strings interpret $' regex anchors as suffix insertion.
-          return line.replace(value.original, () => value.canonical);
-        }
-      }
-      return line;
-    })
-    .join("\n");
-  if (seen.size !== checks.length) fail("check-schema-coverage");
+  let result = schema;
+  for (const [name, value] of replacements) {
+    // CHECK definitions may contain literal newlines (for example a rejected
+    // control-character pattern). Match the whole exact named definition, never
+    // normalize its contents or assume one physical pg_dump line.
+    const forms = [name, quote(name)].map((label) => ({
+      original: `CONSTRAINT ${label} ${value.original}`,
+      canonical: `CONSTRAINT ${label} ${value.canonical}`,
+    }));
+    const matches = forms.flatMap((form) =>
+      Array.from(
+        { length: result.split(form.original).length - 1 },
+        () => form,
+      ),
+    );
+    if (matches.length !== 1) fail("check-schema-shape");
+    // A replacement callback preserves literal replacement metacharacters.
+    result = result.replace(matches[0].original, () => matches[0].canonical);
+  }
   return result;
 }
 export async function snapshot(client: Client) {
@@ -462,6 +462,147 @@ function checkMigrations(
   if (JSON.stringify(migrations) !== JSON.stringify(expected))
     fail("migration-state");
 }
+// Exact accepted0025 provenance contracts. New columns fail closed until root
+// reconciles their accepted schema; this is never an arbitrary synthetic flag.
+export const syntheticProvenance = [
+  ["learner_profiles", "source", ["local_fixture", "synthetic_readiness"]],
+  [
+    "guardian_learner_links",
+    "source",
+    ["local_fixture", "synthetic_readiness"],
+  ],
+  ["bookings", "source", ["local_simulation", "synthetic_readiness"]],
+  ["booking_workflow_policy_head", "source", ["synthetic_readiness"]],
+  ["review_publication_policy_head", "source", ["synthetic_readiness"]],
+  ["publication_reviews", "source", ["synthetic_readiness"]],
+  ["support_cases", "source", ["local_synthetic", "synthetic_readiness"]],
+  ["support_reviewers", "source", ["local_fixture", "synthetic_readiness"]],
+  [
+    "account_restriction_targets",
+    "source",
+    ["local_fixture", "synthetic_readiness"],
+  ],
+  [
+    "account_restriction_grants",
+    "source",
+    ["local_fixture", "synthetic_readiness"],
+  ],
+  [
+    "account_restriction_events",
+    "policy_provenance",
+    [null, "synthetic_readiness"],
+  ],
+  [
+    "support_dispatch_grants",
+    "source",
+    ["local_fixture", "synthetic_readiness"],
+  ],
+  [
+    "support_reviewer_choices",
+    "source",
+    ["local_fixture", "synthetic_readiness"],
+  ],
+  ["private_booking_reviews", "source", ["local_synthetic"]],
+  ["review_moderators", "source", ["local_fixture"]],
+  ["learner_admission_policies", "source", ["synthetic_readiness"]],
+  ["learner_admission_policy_state", "source", ["synthetic_readiness"]],
+  ["learner_admissions", "source", ["synthetic_readiness"]],
+  ["learner_admission_reviewers", "source", ["synthetic_readiness"]],
+  ["learner_admission_assignments", "source", ["synthetic_readiness"]],
+  ["learner_admission_evidence", "source", ["synthetic_readiness"]],
+  ["tutor_screening_policies", "provenance", ["synthetic_readiness"]],
+  ["tutor_screening_policy_heads", "provenance", ["synthetic_readiness"]],
+  ["tutor_screening_cases", "provenance", ["synthetic_readiness"]],
+  ["tutor_screening_checks", "provenance", ["synthetic_readiness"]],
+  ["tutor_screening_decisions", "provenance", ["synthetic_readiness"]],
+  [
+    "tutor_screening_staff",
+    "provenance",
+    ["local_fixture", "synthetic_readiness"],
+  ],
+  [
+    "tutor_screening_assignments",
+    "provenance",
+    ["local_fixture", "synthetic_readiness"],
+  ],
+  ["support_response_policies", "provenance", ["synthetic_readiness"]],
+  ["support_response_policy_heads", "provenance", ["synthetic_readiness"]],
+  ["support_case_responses", "provenance", ["synthetic_readiness"]],
+  ["support_response_events", "provenance", ["synthetic_readiness"]],
+] as const;
+export function assertAllowedProvenance(
+  table: string,
+  column: string,
+  values: (string | null)[],
+) {
+  const rule =
+    syntheticProvenance.find(([t, c]) => t === table && c === column) ??
+    fail("provenance-coverage");
+  const allowed: readonly (string | null)[] = rule[2];
+  if (values.some((value) => !allowed.includes(value))) fail("synthetic-only");
+}
+export function assertProvenanceCoverage(
+  columns: { table: string; column: string }[],
+) {
+  const actual = columns
+    .map(({ table, column }) => `${table}.${column}`)
+    .sort();
+  const expected = syntheticProvenance.map(([t, c]) => `${t}.${c}`).sort();
+  if (JSON.stringify(actual) !== JSON.stringify(expected))
+    fail("provenance-coverage");
+}
+export function acceptedTableInventory(root: string) {
+  const journal = JSON.parse(
+    readFileSync(path.join(root, "drizzle/meta/_journal.json"), "utf8"),
+  ) as { entries: { tag: string }[] };
+  const tag = journal.entries.at(-1)?.tag ?? fail("snapshot-tag");
+  if (!/^[0-9]{4}_[a-z0-9_]+$/.test(tag)) fail("snapshot-tag");
+  const state = JSON.parse(
+    readFileSync(
+      path.join(root, `drizzle/meta/${tag.slice(0, 4)}_snapshot.json`),
+      "utf8",
+    ),
+  ) as { tables: Record<string, { columns: Record<string, unknown> }> };
+  const columns = Object.entries(state.tables).flatMap(([table, value]) =>
+    Object.keys(value.columns)
+      .filter((column) =>
+        ["source", "provenance", "policy_provenance"].includes(column),
+      )
+      .map((column) => ({ table: table.replace(/^public\./, ""), column })),
+  );
+  assertProvenanceCoverage(columns);
+  return [...Object.keys(state.tables), "drizzle.__drizzle_migrations"].sort();
+}
+export function assertTableInventory(expected: string[], actual: string[]) {
+  if (
+    JSON.stringify([...expected].sort()) !== JSON.stringify([...actual].sort())
+  )
+    fail("table-inventory");
+}
+export async function assertSyntheticSource(client: Client) {
+  const columns = (
+    await client.query<{ table: string; column: string }>(
+      `SELECT table_name AS "table",column_name AS "column" FROM information_schema.columns WHERE table_schema='public' AND column_name IN ('source','provenance','policy_provenance') ORDER BY table_name,column_name`,
+    )
+  ).rows;
+  assertProvenanceCoverage(columns);
+  // Match the accepted fixture tooling's anchored test-domain grammar. .test is
+  // only hygiene on an owned synthetic database, never evidence of real consent.
+  const unsafe = (
+    await client.query<{ unsafe: boolean }>(
+      `SELECT EXISTS(SELECT 1 FROM "user" WHERE email !~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$') OR EXISTS(SELECT 1 FROM learner_admission_policies WHERE authority<>'synthetic_test' OR market_code<>'synthetic_test') AS unsafe`,
+    )
+  ).rows[0];
+  if (!unsafe || unsafe.unsafe) fail("synthetic-only");
+  for (const [table, column] of syntheticProvenance) {
+    const values = (
+      await client.query<{ value: string | null }>(
+        `SELECT DISTINCT ${quote(column)} AS value FROM public.${quote(table)}`,
+      )
+    ).rows.map(({ value }) => value);
+    assertAllowedProvenance(table, column, values);
+  }
+}
 async function denied(client: Client, sql: string, code: string) {
   await client.query("BEGIN");
   try {
@@ -512,7 +653,49 @@ async function probes(owner: Client, appConfig: ClientConfig) {
       "UPDATE bookings SET request_fingerprint=repeat('0',64)",
       "23514",
     );
+    const immutableReadinessTables = [];
+    for (const [table, denialCode] of [
+      ["learner_admission_events", "55000"],
+      ["learner_admission_policies", "55000"],
+      ["learner_admission_evidence", "55000"],
+      ["tutor_screening_checks", "55000"],
+      ["tutor_screening_decisions", "55000"],
+      ["tutor_screening_decision_checks", "55000"],
+      ["tutor_screening_events", "55000"],
+      ["support_response_policies", "55000"],
+      ["support_response_events", "55000"],
+      ["booking_workflow_policies", "23514"],
+      ["booking_workflow_notice_intents", "23514"],
+      ["review_publication_policies", "23514"],
+      ["publication_review_events", "23514"],
+      ["transactional_deliveries", "23514"],
+    ] as const) {
+      const populated = (
+        await owner.query<{ populated: boolean }>(
+          `SELECT EXISTS(SELECT 1 FROM public.${quote(table)}) AS populated`,
+        )
+      ).rows[0].populated;
+      if (!populated) continue;
+      await denied(owner, `DELETE FROM public.${quote(table)}`, denialCode);
+      await denied(app, `DELETE FROM public.${quote(table)}`, "42501");
+      immutableReadinessTables.push(table);
+    }
+    const preparedDeliveryImmutable = (
+      await owner.query<{ prepared: boolean }>(
+        "SELECT EXISTS(SELECT 1 FROM transactional_deliveries WHERE payload IS NOT NULL) AS prepared",
+      )
+    ).rows[0].prepared;
+    if (preparedDeliveryImmutable) {
+      for (const client of [owner, app])
+        await denied(
+          client,
+          "UPDATE transactional_deliveries SET payload='{}'::jsonb WHERE payload IS NOT NULL",
+          "23514",
+        );
+    }
     return {
+      immutableReadinessTables,
+      preparedDeliveryImmutable,
       runtimeDenials: 5,
       checkConstraint: true,
       foreignKey: true,
@@ -553,13 +736,13 @@ export async function drill(
       "learli_owner",
     );
     await owner.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
-    const synthetic = (
-      await owner.query<{ unsafe: boolean }>(
-        `SELECT EXISTS(SELECT 1 FROM "user" WHERE lower(email) NOT LIKE '%.test') OR EXISTS(SELECT 1 FROM learner_profiles WHERE source<>'local_fixture') OR EXISTS(SELECT 1 FROM bookings WHERE source<>'local_simulation') AS unsafe`,
-      )
-    ).rows[0];
-    if (!synthetic || synthetic.unsafe) fail("synthetic-only");
+    const expectedTables = acceptedTableInventory(source.root);
+    await assertSyntheticSource(owner);
     const before = await snapshot(owner);
+    assertTableInventory(
+      expectedTables,
+      before.rows.map((row) => row.table),
+    );
     const checks = (
       await owner.query<CheckDefinition>(
         "SELECT conrelid::regclass::text AS table, conname AS name, pg_get_constraintdef(oid) AS definition FROM pg_constraint WHERE connamespace='public'::regnamespace AND contype='c' ORDER BY conname",
@@ -749,6 +932,10 @@ export async function drill(
       canonicalSchema !== restoredSchema
     )
       fail("restored-comparison");
+    assertTableInventory(
+      expectedTables,
+      after.rows.map((row) => row.table),
+    );
     checkMigrations(source.root, after.migrations);
     const materialCheck =
       checks.find((check) => check.name === "subjects_category_allowed") ??
@@ -775,6 +962,8 @@ export async function drill(
     });
     if (JSON.stringify(after) !== JSON.stringify(await snapshot(target)))
       fail("probe-rollback");
+    if (JSON.stringify(before) !== JSON.stringify(await snapshot(owner)))
+      fail("source-preservation");
     const result = {
       status: "PASS",
       runId,
@@ -786,6 +975,7 @@ export async function drill(
       schemaSha256: hash(restoredSchema),
       archiveSha256: hash(readFileSync(archive)),
       exactRowsSchemaGrantsSequencesRoles: true,
+      sourcePreserved: true,
       proof: { ...proof, schemaRuleDriftRejected: true },
     };
     success = result;

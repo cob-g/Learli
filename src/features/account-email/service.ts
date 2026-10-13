@@ -1,3 +1,7 @@
+import {
+  providerHeaders,
+  permitsAccountEmail,
+} from "@/features/hosted-auth/request";
 // Server boundary only. Better Auth owns identity, proof storage and consumption.
 import { eq, sql } from "drizzle-orm";
 import type { AuthRuntime } from "@/lib/auth-factory";
@@ -6,6 +10,7 @@ import { requireIdentity } from "@/lib/permissions/access";
 import { recheckIdentity } from "@/lib/permissions/recheck";
 import { syntheticEmail } from "@/lib/local-mode";
 import { RuleError } from "@/lib/rule-error";
+import { refusedMailResponse } from "@/features/hosted-auth/mail-attempt";
 import type { EmailChangeInput } from "./input";
 
 export class EmailFreshnessError extends RuleError {
@@ -43,7 +48,13 @@ export async function changeOwnEmail(
           sessionConfig.freshAge * 1000)
     )
       throw new EmailFreshnessError();
-    if (!syntheticEmail(current.email))
+    if (
+      !syntheticEmail(current.email) ||
+      !permitsAccountEmail(runtime, current.email) ||
+      (input.action !== "start" &&
+        !permitsAccountEmail(runtime, input.newEmail)) ||
+      ("hosted" in runtime && runtime.hosted.mail.mode === "disabled")
+    )
       throw new RuleError(
         403,
         "Email changes are unavailable on this account.",
@@ -53,8 +64,7 @@ export async function changeOwnEmail(
       input.newEmail === current.email.toLowerCase()
     )
       throw new RuleError(400, "Choose a different synthetic .test address.");
-    const headers = new Headers(requestHeaders);
-    headers.set("x-learli-local-ip", "127.0.0.1");
+    const headers = providerHeaders(runtime, requestHeaders, true);
     headers.set("content-type", "application/json");
     headers.delete("content-length");
     const call = (path: string, body: object) =>
@@ -65,14 +75,21 @@ export async function changeOwnEmail(
           currentEmail: current.email.toLowerCase(),
           newEmail: input.action === "start" ? undefined : input.newEmail,
         },
-        () =>
-          runtime.auth.handler(
-            new Request(`${runtime.origin}/api/auth/${path}`, {
-              method: "POST",
-              headers,
-              body: JSON.stringify(body),
-            }),
-          ),
+        async () => {
+          const dispatch = () =>
+            runtime.auth.handler(
+              new Request(`${runtime.origin}/api/auth/${path}`, {
+                method: "POST",
+                headers,
+                body: JSON.stringify(body),
+              }),
+            );
+          if (!("hosted" in runtime)) return dispatch();
+          const attempt = await runtime.mailAttempt.run(dispatch);
+          return attempt.failed
+            ? refusedMailResponse(attempt.value)
+            : attempt.value;
+        },
       );
     const provider = await call(
       input.action === "start"

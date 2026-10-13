@@ -1,10 +1,14 @@
+import {
+  providerHeaders,
+  permitsAccountEmail,
+} from "@/features/hosted-auth/request";
 // Server boundary only: routes/tests. Better Auth remains the credential owner.
 import { eq, sql } from "drizzle-orm";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { requireIdentity } from "@/lib/permissions/access";
 import { recheckIdentity } from "@/lib/permissions/recheck";
 import { RuleError } from "@/lib/rule-error";
-import { session } from "@/lib/db/schema";
+import { session, user } from "@/lib/db/schema";
 import type { PasswordChangeInput } from "./input";
 
 export class PasswordFreshnessError extends RuleError {
@@ -38,10 +42,16 @@ export async function changeOwnPassword(
       );
     await recheckIdentity(tx, identity);
     const [current] = await tx
-      .select({ createdAt: session.createdAt })
+      .select({ createdAt: session.createdAt, email: user.email })
       .from(session)
+      .innerJoin(user, eq(user.id, session.userId))
       .where(eq(session.id, identity.sessionId));
     const { sessionConfig } = await runtime.auth.$context;
+    if (current && !permitsAccountEmail(runtime, current.email))
+      throw new RuleError(
+        403,
+        "Password changes are unavailable on this account.",
+      );
     // 1.7.7 sensitive middleware checks validity, not freshness. Match the
     // provider's fresh-session age rule explicitly for this local boundary.
     if (
@@ -51,8 +61,7 @@ export async function changeOwnPassword(
           sessionConfig.freshAge * 1000)
     )
       throw new PasswordFreshnessError();
-    const headers = new Headers(requestHeaders);
-    headers.set("x-learli-local-ip", "127.0.0.1");
+    const headers = providerHeaders(runtime, requestHeaders, true);
     headers.set("content-type", "application/json");
     headers.delete("content-length");
     // Use the HTTP handler, not auth.api: rate limiting runs in HTTP middleware.

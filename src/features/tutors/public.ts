@@ -1,4 +1,6 @@
 import "server-only";
+import { publicationContext } from "@/features/review-publication/composition";
+import { requirePublicationPolicy } from "@/features/review-publication/service";
 import { getAuthRuntime } from "@/lib/auth";
 import { listSubjects } from "@/features/subjects/service";
 import {
@@ -43,7 +45,13 @@ export type PublicCatalog = NonNullable<
 export async function readPublicTutor(slug: string) {
   try {
     const runtime = getAuthRuntime();
-    return runtime ? await findEligibleTutor(runtime.db, slug) : null;
+    if (!runtime) return null;
+    const context = publicationContext(runtime);
+    const scope =
+      context.publication.authority === "disabled"
+        ? "local_demo"
+        : (requirePublicationPolicy(context), "synthetic_readiness");
+    return await findEligibleTutor(runtime.db, slug, scope);
   } catch {
     return undefined;
   }

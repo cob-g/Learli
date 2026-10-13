@@ -2,8 +2,9 @@
 
 Learli is a one-to-one tutoring marketplace and booking intermediary. Tutors
 teach through Zoom or Google Meet. The repository has a responsive app foundation
-and **local-only identity, marketplace coordination and synthetic booking development**.
-Live customer booking remains disabled.
+and **synthetic identity, marketplace coordination and policy-gated workflow development**.
+The isolated readiness candidate also adds explicit hosted-synthetic account
+support. Live customer booking remains disabled.
 
 ## Run locally
 
@@ -41,17 +42,17 @@ Detailed setup, migration, credential and recovery instructions:
 
 ## Installed stack
 
-| Area           | Tools / actual state                                                              |
-| -------------- | --------------------------------------------------------------------------------- |
-| App            | Next.js 16.4, React 19.3, strict TypeScript 6                                     |
-| UI             | Tailwind 4.3, Poppins, proposed Learli tokens, shadcn CLI/config, native controls |
-| Local data     | PostgreSQL 17, node-postgres, Drizzle ORM/Kit, reviewed SQL migrations            |
-| Auth           | Better Auth 1.7.7 with generated Drizzle schema, verification/reset/session flows |
-| Access         | Server role and ownership checks, account status, limited audit events            |
-| Mail           | Private local capture only; Resend package reserved for later                     |
-| Quality        | ESLint, Prettier, Vitest/Testing Library, PostgreSQL integration tests            |
-| Browser        | Playwright Chromium and axe; desktop, phone and narrow layout checks              |
-| Hosted targets | Neon/Railway/Resend remain planned and unconnected                                |
+| Area           | Tools / actual state                                                                      |
+| -------------- | ----------------------------------------------------------------------------------------- |
+| App            | Next.js 16.4, React 19.3, strict TypeScript 6                                             |
+| UI             | Tailwind 4.3, Poppins, proposed Learli tokens, shadcn CLI/config, native controls         |
+| Local data     | PostgreSQL 17, node-postgres, Drizzle ORM/Kit, reviewed SQL migrations                    |
+| Auth           | Better Auth 1.7.7, verification/reset/sessions, TOTP and admin assurance                  |
+| Access         | Server role and ownership checks, account status, limited audit events                    |
+| Mail           | Private local capture plus pinned Resend transport; external delivery gated               |
+| Quality        | ESLint, Prettier, Vitest/Testing Library, PostgreSQL integration tests                    |
+| Browser        | Playwright Chromium/Firefox/WebKit and axe; owned local acceptance                        |
+| Hosted targets | Hosted runtime/auth adapters prepared; provider acceptance and Railway deployment pending |
 
 Versions and installation-script policy are pinned in package/lockfile; do not
 mix package managers or force incompatible peers. Next's automatic agent-rule
@@ -100,20 +101,20 @@ applying it. Local scripts reject remote DB targets; no destructive reset exists
   truthful empty states otherwise. `/get-matched` asks level and subject and
   lists the tutors who teach that pairing; it is rule-based. Live customer booking
   remains unavailable. No invented tutor inventory, prices, ratings or lessons.
-- Local M3.1–M3.3 and the M3.4 entry: any verified account can start a tutor
-  application from `/become-a-tutor`, which grants the `tutor` role only. A tutor
-  submits and edits one application at `/tutor/profile`; an `admin` reviews it at `/admin/tutors`
-  and manages the catalog at `/admin/subjects`. Approving lists the tutor
-  publicly in this local environment. The tutor screening policy is undecided.
-- Student and parent workspaces link to private, fixture-provisioned learner
-  list/detail/edit pages. Runtime can edit only display name, level and time zone;
-  creation, ownership and guardian links stay in trusted synthetic fixture tooling.
-  Run `npx --no-install tsx scripts/seed-local-learners.ts` after `db:seed`;
-  see [local learner setup](docs/operations/local-learners.md). Real onboarding
-  and bookings remain unavailable.
-- The standalone Zoom/Meet URL validator is pure syntax validation only. It makes
-  no network requests and provides no storage, meeting access or attendance proof.
-  The private meeting integration draft remains blocked on product decisions.
+- Verified synthetic accounts can start tutor applications. Real eligibility
+  requires separately approved screening policy/evidence and human reviewers.
+  The new default-disabled screening path supports assigned MFA review and
+  current evidence; fixture approval does not establish real qualifications.
+- Synthetic learner creation and private family workspaces exist. The new
+  admission path distinguishes pending requests from authorized guardian links,
+  supports independent College Support, and requires current policy/evidence and
+  assigned MFA review. Its shipped intake is disabled pending activation.
+- Synthetic bookings have atomic overlap protection, participant-scoped history
+  and private validated Zoom/Meet links. The new policy workflow adds provisional
+  expiry, assigned confirmation, cancellation/replacement and administrative
+  completion/no-show/dispute. None establishes payment or actual attendance.
+- Review publication is a separate default-disabled synthetic software path.
+  Historical private reviews are never promoted to public social proof.
 - `/api/health` is uncached process liveness, not a database/email readiness claim.
 - Pages remain excluded from indexing. Local auth is rejected in staging/production.
 - Final brand artwork and generated shadcn primitive approval remain open.
@@ -129,9 +130,14 @@ ordinary application requests and local tools keep their existing local guards.
 See [staging database operations](docs/operations/staging-database.md) for input
 formats, role separation, plan binding and recovery requirements.
 
-This wave prepares and locally verifies the tool. A named, authorized provider
-rehearsal must establish actual Neon compatibility; hosted auth, email and release
-remain separate gates. The full hosted deployment preflight remains blocked.
+A named, authorized provider rehearsal must establish actual Neon compatibility.
+The validated application pool, HTTPS synthetic-account entry and Resend transport
+are separately documented in [hosted database runtime](docs/operations/w2-hosted-runtime-provider.md),
+[hosted authentication](docs/operations/w3-hosted-auth.md) and
+[mail transport](docs/operations/w4a-resend-provider.md). These describe prepared
+software and exact configuration contracts, not provider or release acceptance.
+The existing Neon project linkage and empty config deploy made no application
+schema/runtime changes. The full hosted deployment preflight remains blocked.
 
 ## Dependency maintenance
 

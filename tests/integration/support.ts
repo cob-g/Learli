@@ -1,8 +1,9 @@
+import { enrollTestAdmin } from "../support/admin-mfa";
 // Helpers for real-PostgreSQL tests. Synthetic accounts on learli_test only.
 import { randomUUID } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { createLocalAuth, type AuthRuntime } from "@/lib/auth-factory";
+import { createLocalAuth, type LocalAuthRuntime } from "@/lib/auth-factory";
 import { handleAuthRequest } from "@/lib/auth-handler";
 import { createDatabase } from "@/lib/db/connection";
 import { userRoles, type Role } from "@/lib/db/schema";
@@ -10,7 +11,7 @@ import { localMailbox, type LocalMessage } from "@/lib/email/local-mail";
 
 export const password = "Synthetic-only-passphrase-123";
 export type World = {
-  runtime: AuthRuntime;
+  runtime: LocalAuthRuntime;
   owner: ReturnType<typeof createDatabase>;
 };
 
@@ -80,7 +81,7 @@ export async function createAccount(
   // Trusted synthetic provisioning must not inherit another suite's auth
   // attempts. Feature throttle assertions use real requests after provisioning.
   await world.owner.pool.query(
-    "UPDATE rate_limit SET count = 0 WHERE key LIKE '%/sign-up/email%' OR key LIKE '%/sign-in/email%'",
+    "UPDATE rate_limit SET count = 0 WHERE key LIKE '%/sign-up/email%' OR key LIKE '%/sign-in/email%' OR key LIKE '%/two-factor/%' OR key LIKE '%verify-email%'",
   );
   const email = `test-${randomUUID()}@learli.test`;
   const signUp = await handleAuthRequest(
@@ -92,10 +93,22 @@ export async function createAccount(
   if (signUp.status !== 200)
     throw new Error(`Synthetic registration failed (HTTP ${signUp.status}).`);
   const id = ((await signUp.json()) as { user: { id: string } }).user.id;
-  await handleAuthRequest(
+  const verification = await handleAuthRequest(
     world.runtime,
     new Request(await verificationUrl(email)),
   );
+  if (verification.status >= 400)
+    throw new Error(
+      `Synthetic verification failed (HTTP ${verification.status}).`,
+    );
+  const verifiedState = await world.owner.pool.query(
+    'SELECT email_verified FROM "user" WHERE id=$1',
+    [id],
+  );
+  if (verifiedState.rows[0]?.email_verified !== true)
+    throw new Error(
+      `Synthetic verification did not complete (HTTP ${verification.status}).`,
+    );
   // Trusted test setup; the application has no role-grant endpoint.
   if (roles.length)
     await world.owner.db
@@ -107,11 +120,14 @@ export async function createAccount(
       body: { email, password },
     }),
   );
-  if (signIn.status !== 200) throw new Error("Synthetic sign-in failed.");
-  const cookie = signIn.headers
+  if (signIn.status !== 200)
+    throw new Error(`Synthetic sign-in failed (HTTP ${signIn.status}).`);
+  let cookie = signIn.headers
     .getSetCookie()
     .map((value) => value.split(";")[0])
     .join("; ");
+  if (roles.includes("admin"))
+    cookie = await enrollTestAdmin(world.runtime, cookie, password);
   return { id, email, name, cookie, headers: new Headers({ cookie }) };
 }
 export type TestAccount = Awaited<ReturnType<typeof createAccount>>;

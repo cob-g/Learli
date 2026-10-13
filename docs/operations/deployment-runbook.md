@@ -1,7 +1,8 @@
 # Deployment preparation and release gates
 
 This runbook supports M8.1/M8.3 and NFR-11. It describes the inspected local
-application at baseline `5634e44` and a future operator's hosted checklist.
+application and the isolated eight-area readiness candidate; current source and
+verification status are recorded in the progress tracker. It is an operator checklist.
 It authorizes no provider creation, deployment, DNS/variable change, migration,
 real user, external email or public release. Current execution evidence belongs
 to the progress tracker and the private worker report, not this procedure.
@@ -14,17 +15,35 @@ to the progress tracker and the private worker report, not this procedure.
 | Build      | `npm run build` runs `next build`; no standalone output in `next.config.ts`                                                       | Serve the normal `.next` build with `next start`; keep `public`, dependencies and build output together |
 | Start      | `npm start` runs `next start --hostname 127.0.0.1`                                                                                | Safe local default; unsuitable for Railway ingress without an explicit service start command            |
 | Health     | `/api/health` returns HTTP200, `{ "status": "ok" }`, `Cache-Control: no-store`                                                    | Process liveness only; no DB/auth/mail/booking or release-readiness proof                               |
-| Auth       | `AUTH_MODE` accepts only `disabled` or `local`                                                                                    | No hosted-auth mode exists; setting credentials does not enable it                                      |
+| Auth       | `AUTH_MODE` supports disabled/local and explicit staging hosted-synthetic accounts                                                | Hosted mode needs an exact private validated packet, HTTPS ingress and selected synthetic accounts      |
 | Local auth | development/test APP_ENV, loopback HTTP origin, matching auth origin, restricted dedicated local DB, synthetic `.test` identities | Never enable it in staging/production or expose synthetic identities publicly                           |
-| Database   | `createDatabase` uses `localDatabaseConfig`: loopback, no URL query/fragment, `learli_dev`/`learli_test`, TLS disabled locally    | A Neon connection string is intentionally rejected by the current adapter                               |
-| Mail       | Private local captures under ignored `.local`                                                                                     | Installed Resend SDK and variable names do not provide hosted delivery                                  |
+| Database   | `createDatabase` uses `localDatabaseConfig`: loopback, no URL query/fragment, `learli_dev`/`learli_test`, TLS disabled locally    | Local adapter rejects Neon; separate guarded hosted pool requires approved target/TLS/runtime identity  |
+| Mail       | Local capture plus pinned Resend transport and explicit hosted account callback binding                                           | Verified sender, authorized recipient/configuration and provider acceptance remain required             |
 
 There are two separate readiness decisions: a **shell-only Node process** with
 auth disabled and no integration configuration, and an **authenticated hosted
 marketplace**. The latter is blocked pending a separately authorized hosted
-adapter/auth/email implementation and applicable launch decisions. A public
+provider/ingress/mail acceptance and applicable launch decisions. A public
 shell still requires separate deployment authorization and accurate content.
 Do not bypass the local guards to make a hosted smoke test look complete.
+
+## Prepared hosted-synthetic account entry
+
+The separate W2 guarded pool revalidates target, TLS, effective role and session
+safety for application leases. W3 adds explicit staging-only hosted-synthetic
+accounts, mandatory admin assurance and pinned W4a mail transport. See
+[w2 runtime](w2-hosted-runtime-provider.md), [w3 auth](w3-hosted-auth.md) and
+[w4a mail](w4a-resend-provider.md) for exact packet, ingress, recipient and safe
+failure contracts. Hosted account support does not activate unrelated local-only
+tutor/learner/booking/support domains.
+
+The optional start:hosted command serves the normal Next build through the
+reviewed Node ingress entry; select HOSTNAME and PORT deliberately. It requires
+a private HOSTED_AUTH_CONFIG_FILE, separate HOSTED_INGRESS_SECRET and exact
+HTTPS/peer-header contract. Neither local setup nor startup migrates a hosted DB.
+Local HTTPS and production-dependency packaging rehearsals are software evidence,
+not proof of Railway isolation, Neon role provisioning or real mail delivery.
+Default-denied policy factories and the hosted preflight release block remain.
 
 ## Separate staging database preparation
 
@@ -111,7 +130,7 @@ Invoke through installed tsx, from repository root. Explicit `--mode` is require
 | -------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | `local`  | Server parser, development/test local auth, dedicated matching runtime/owner DB roles/target, origin/PORT, no external email config | 0 only for scoped configuration and requested local liveness |
 | `shell`  | Server parser, auth disabled, no auth/DB/email configuration, plain HTTPS or loopback HTTP origin, valid PORT                       | 0 only for scoped configuration and requested local liveness |
-| `hosted` | Reports missing hosted auth/data/email and release gates; performs no network check                                                 | Always2/BLOCKED                                              |
+| `hosted` | Reports unresolved provider acceptance, operating policy and release gates; performs no network check                               | Always2/BLOCKED                                              |
 
 Exit1 means invalid arguments, unavailable inputs, runtime/build/configuration
 mismatch or failed requested local health. JSON has fixed messages and statuses;
@@ -134,17 +153,17 @@ so an existing `.env.local` cannot fill them. Failures do not change any config.
 
 ## Environment configuration — names only
 
-| Names                                                             | Current purpose / separation rule                                                                                            |
-| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `APP_ENV`                                                         | development/test for local synthetic app; staging/production require HTTPS and reject local auth                             |
-| `APP_URL`                                                         | Canonical application origin; match local auth and process port locally; public HTTPS behind hosting proxy                   |
-| `AUTH_MODE`                                                       | disabled for shell, local for isolated synthetic development/test; no hosted value                                           |
-| `PORT`                                                            | Runtime listener; injected by Railway for a future authorized service                                                        |
-| `DATABASE_URL`                                                    | Restricted runtime credential; local loopback adapter today; hosted TLS/runtime adapter still missing                        |
-| `DATABASE_URL_DIRECT`                                             | Separate owner/migration credential for deliberate controlled operations; not browser/public config                          |
-| `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`                           | Local auth secret/origin today; future hosted trusted-origin/cookie behavior requires implementation and exact HTTPS testing |
-| `RESEND_API_KEY`, `EMAIL_FROM`                                    | Reserved today; future approved mail adapter and verified sender needed                                                      |
-| `LEARLI_DB_PORT`, `LEARLI_DEV_PORT`, `LEARLI_TEST_PORT`, `PG_BIN` | Owned local setup only; never a Railway database-provisioning recipe                                                         |
+| Names                                                             | Current purpose / separation rule                                                                          |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `APP_ENV`                                                         | development/test for local synthetic app; staging/production require HTTPS and reject local auth           |
+| `APP_URL`                                                         | Canonical application origin; match local auth and process port locally; public HTTPS behind hosting proxy |
+| `AUTH_MODE`                                                       | disabled for shell; local for development/test; hosted-synthetic only through validated staging packet     |
+| `PORT`                                                            | Runtime listener; injected by Railway for a future authorized service                                      |
+| `DATABASE_URL`                                                    | Local restricted loopback runtime credential; hosted pool separately consumes STAGING_DATABASE_URL         |
+| `DATABASE_URL_DIRECT`                                             | Separate owner/migration credential for deliberate controlled operations; not browser/public config        |
+| `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`                           | Exact selected auth secret/origin; hosted path requires HTTPS and validated trusted-ingress contract       |
+| `RESEND_API_KEY`, `EMAIL_FROM`                                    | Explicit approved mail configuration only; never enables sending merely by being present                   |
+| `LEARLI_DB_PORT`, `LEARLI_DEV_PORT`, `LEARLI_TEST_PORT`, `PG_BIN` | Owned local setup only; never a Railway database-provisioning recipe                                       |
 
 Leave integration names absent/empty in shell-only configuration. Never prefix
 secrets with `NEXT_PUBLIC_`, publish `.env*`/`.local` or bake them into artifacts.

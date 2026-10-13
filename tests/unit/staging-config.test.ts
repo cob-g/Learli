@@ -243,6 +243,10 @@ describe("explicit staging target binding", () => {
   });
 });
 
+// This file tests mock SQL/lifecycle semantics; native transport has actual
+// PostgreSQL/proxy coverage in neon-native-tls and staging-connection suites.
+vi.mock("@/lib/db/native-tls", () => ({ verifyNativeTls: vi.fn() }));
+
 const poolState = vi.hoisted(() => ({
   options: undefined as import("pg").PoolConfig | undefined,
   connect: vi.fn(),
@@ -338,7 +342,7 @@ describe("bounded staging lifecycle and safe errors", () => {
       current_role: "learli_app",
       session_role: "learli_app",
       ssl: false,
-      replication_role: "origin",
+      replication_role: "replica",
     },
   ])(
     "refuses actual identity mismatch #%# and closes pool",

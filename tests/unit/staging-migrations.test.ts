@@ -11,6 +11,7 @@ import {
   expectedTables,
   planHash,
   planSchema,
+  validateApplyInputs,
 } from "../../scripts/staging-migrations/runner";
 const journal = readFileSync("drizzle/meta/_journal.json", "utf8");
 const files = Object.fromEntries(
@@ -21,7 +22,8 @@ const files = Object.fromEntries(
 const candidate = parseJournal(journal, files, digest("synthetic-source"));
 describe("controlled staging journal and plan", () => {
   it("captures the reviewed ordered migration hashes and freezes SQL", () => {
-    expect(candidate.entries).toHaveLength(22);
+    expect(candidate.entries).toHaveLength(Object.keys(files).length);
+    expect(candidate.entries[26].tag).toBe("0026_review_publication");
     expect(candidate.entries[0].hash).toBe(
       digest(files["0000_local_identity_foundation.sql"]),
     );
@@ -95,6 +97,71 @@ describe("controlled staging journal and plan", () => {
       planSchema.parse({ ...plan, password: "forbidden" }),
     ).toThrow();
   });
+  it.each(["empty", "populated"] as const)(
+    "requires source/target/plan-bound recovery for every production apply, including %s with no pending migrations",
+    (state) => {
+      const targetHash = digest("production-target");
+      const identity = {
+        database: "neondb",
+        migrationRole: "learli_migrator",
+        targetHash,
+        environment: "production" as const,
+      };
+      const plan = planSchema.parse({
+        version: 1,
+        targetHash,
+        candidateHash: candidate.hash,
+        history:
+          state === "populated"
+            ? candidate.entries.map(({ hash, when }) => ({ hash, when }))
+            : [],
+        schemaHash: digest("schema"),
+        state,
+        pending: [],
+      });
+      const hash = planHash(plan);
+      expect(() =>
+        validateApplyInputs(candidate, identity, plan, hash),
+      ).toThrow("recovery_required");
+      const recovery = {
+        version: 1,
+        targetHash,
+        planHash: hash,
+        restorePointReference: "private-production-backup",
+        verifiedRecoveryReference: "owned-isolated-restore-proof",
+        operatorApproval: "explicit-production-operation",
+      };
+      expect(
+        validateApplyInputs(candidate, identity, plan, hash, recovery),
+      ).toEqual(plan);
+      expect(() =>
+        validateApplyInputs(candidate, identity, plan, hash, {
+          ...recovery,
+          targetHash: digest("other-target"),
+        }),
+      ).toThrow("recovery_required");
+      expect(() =>
+        validateApplyInputs(candidate, identity, plan, hash, {
+          ...recovery,
+          planHash: digest("other-plan"),
+        }),
+      ).toThrow("recovery_required");
+      expect(() =>
+        validateApplyInputs(candidate, identity, plan, hash, {
+          ...recovery,
+          password: "forbidden-extra",
+        }),
+      ).toThrow("recovery_required");
+      expect(
+        validateApplyInputs(
+          candidate,
+          { ...identity, environment: "development" },
+          plan,
+          hash,
+        ),
+      ).toEqual(plan);
+    },
+  );
   it("preserves broad auth rights and narrow protected column/function boundaries", () => {
     expect(expectedGrant("session", "token", "DELETE")).toBe(true);
     expect(expectedGrant("bookings", "state", "UPDATE")).toBe(true);
@@ -139,10 +206,10 @@ describe("forward migration protection definitions", () => {
   });
   it("includes the reviewed lifecycle replacement and deferred audit guard once", () => {
     const result = expectedProtections(
-      candidate.entries.flatMap((entry) => entry.statements),
+      candidate.entries.slice(0, 26).flatMap((entry) => entry.statements),
     );
-    expect(result.functions).toHaveLength(24);
-    expect(result.triggers).toHaveLength(21);
+    expect(result.functions).toHaveLength(75);
+    expect(result.triggers).toHaveLength(62);
     expect(
       result.functions.filter((fn) => fn.name === "preserve_demo_booking"),
     ).toHaveLength(1);
@@ -159,6 +226,24 @@ describe("forward migration protection definitions", () => {
       deferred: true,
       type: 17,
     });
+  });
+  it("includes the exact0026 publication functions/triggers and only forward W6 isolation deltas", () => {
+    const result = expectedProtections(
+      candidate.entries.slice(0, 27).flatMap((e) => e.statements),
+    );
+    expect(result.functions).toHaveLength(84);
+    expect(result.triggers).toHaveLength(66);
+    for (const name of [
+      "submit_publication_review",
+      "decide_publication_review",
+      "create_policy_booking",
+      "change_policy_booking",
+      "create_booking_workflow_dispute",
+    ]) {
+      expect(result.functions.find((f) => f.name === name)?.body).toContain(
+        "transaction_isolation",
+      );
+    }
   });
   it("reconciles an explicit dropped trigger and retains deferred constraint semantics", () => {
     const result = expectedProtections([

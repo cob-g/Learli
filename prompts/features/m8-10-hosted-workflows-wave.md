@@ -631,3 +631,48 @@ combined security/domain scopes, executes Verify, and saves ignored `memory.md`.
 This architect's verification status: **NOT RUN — planning only**. Planning is
 complete when this actionable scope and report are returned to root; it does not
 grant this worker implementation ownership. Blueprint ready.
+
+## Root integration clarification — current beneficiary eligibility
+
+2026-10-12, AUTHORIZED — build-feature delegation. Root inspected accepted0023
+and authorized W6 to add a private read-only beneficiary predicate in forward0025.
+A participant logging out does not by itself revoke the learner's existing
+admission, tutor-side booking eligibility, or a current notice recipient. The new
+predicate must retain every current policy/source/receipt/evidence/role/ownership
+and active verified synthetic-account check from W5, excluding only the
+beneficiary's session requirement. Existing0023 and exact-session actor predicate
+remain unchanged. W6 must separately authenticate/authorize the actual viewer or
+mutating actor with current session and exact booking ownership/assigned scope,
+including post-wait checks. The beneficiary boolean never grants public, tutor,
+admin or meeting-link access by itself. Notice projection binds the actual booked
+participant; it does not discover arbitrary guardians. Real activation remains
+disabled, and no guardian or commercial policy is decided by this technical split.
+Root requires actual logout-versus-revocation and post-wait regressions before
+accepting the new provider contract. W6 owns implementation; root owns independent
+review and final integration.
+
+## Root integration clarification — dispute creation and test placement
+
+2026-10-12, AUTHORIZED — build-feature delegation. W6 owns the narrow forward0025
+bridge from an authorized booking participant to the existing W8 synthetic case
+service and immutable booking association. W8's nested exception transaction
+requires an explicit server-generated top-level creation transaction marker on
+new readiness cases; a forward-only trigger stamps it and rejects later changes.
+Existing rows remain null, the W8 function/0024 and legacy association branch
+remain unchanged, and all participant/policy checks recur after blocking writes.
+This is database transaction bookkeeping, not a new case system or real response
+policy. Root requires actual nested-success, forgery/old-case/replay denials,
+late-revocation rollback and forward preservation before acceptance.
+
+Root may configure only test-owned placement to run the accepted source on its
+own listeners. Hosted fixture defaults remain compatible with W3; explicit
+validated backend/HTTPS/TLS assignments preserve exact loopback, private packet,
+certificate and source-substitution checks. Root reserves3319/3419/56019 for the
+hosted fixture, separately from ordinary3199 and readiness3099. No application
+capability or production guard is changed by test placement.
+
+## Root integration clarification — public discovery return paths
+
+2026-10-13, AUTHORIZED — build-feature delegation. The W7 enabled public profile now hands a public tutor/subject pair to W6 before any learner or slot is chosen. Preserve that exact two-field pair through authentication and admission alongside the existing complete legacy time tuple. Use a separate strict public schema; never infer age, level, duration, learner identity or availability and never downgrade malformed/extra/private fields to discovery. Root owns the shared return parser, initial private-page return and admission detour/input plus actual anonymous-profile→sign-in→admission→booking verification.
+
+The accepted0023 private valid_admission_selection function currently permits only the full six-field legacy tuple. Root allocates forward0028 after W4's frozen0027 solely to recognize the canonical two-field public pair before its otherwise unchanged six-field validation. Historical0000–0027 bytes and all actor/guardian/policy/evidence checks remain unchanged. No table/column/role/grant change, backfill, destructive migration, production action or operating policy approval is introduced. Verify real admission storage/read of the pair and direct SQL rejection of private/duplicate/extra/malformed fields, canonical fresh/forward preservation through the final chain, root combined browser and restored-source integrity.

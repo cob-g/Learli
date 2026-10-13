@@ -1,3 +1,4 @@
+import { blockingBookingPredicate } from "@/features/booking-workflows/model";
 // Node-only domain service, shared by routes and isolated real PostgreSQL tests.
 import { and, eq, gt, lt, lte, sql, inArray, ne } from "drizzle-orm";
 import type { AuthRuntime } from "@/lib/auth-factory";
@@ -108,6 +109,7 @@ export async function expireTutorReservations(
   tutorId: string,
   now: Date,
 ) {
+  await tx.execute(sql`SELECT public.expire_policy_bookings(${tutorId}::uuid)`);
   const expired = await tx
     .update(bookings)
     .set({ state: "demo_expired" })
@@ -220,8 +222,7 @@ export async function candidateIntervals(
       and(
         eq(bookings.tutorId, tutor.id),
         excludingBookingId ? ne(bookings.id, excludingBookingId) : undefined,
-        inArray(bookings.state, ["demo_reserved", "demo_confirmed"]),
-        gt(bookings.expiresAt, now),
+        blockingBookingPredicate(sql`bookings`, now),
         lt(bookings.startAtUtc, busyTo),
         gt(bookings.endAtUtc, from),
       ),

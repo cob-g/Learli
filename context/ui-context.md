@@ -1328,3 +1328,41 @@ action controls; it never exposes report body or private learner/meeting data.
 The footer links Privacy draft, Terms draft and Cancellations draft, with visibly
 unfinished preparation content and no consent or acceptance controls. These
 local additions do not establish customer policy or production readiness.
+
+
+### W1 authenticator security surfaces — 2026-10-12
+
+`/account/security` is reachable using verified active admin identity for setup,
+but shows no administrative domain records without current assurance. Native
+Learli tokens/labelled password and one-time-code controls provide manual
+transient authenticator-key entry and once-visible recovery codes. No external
+QR service, persisted browser storage, URL/SSR bootstrap credential, screenshot
+or trace with secrets. Secret regions are removed on departure; restored documents
+reload. `/two-factor` handles pending password sign-in with authenticator or
+provider recovery code and full document replacement after verification. No-script
+states explain the security requirement and have inert mutation controls. Current
+password plus fresh factor proof protects code rotation/disable; safe errors offer
+sign-in/verification recovery without promising rollback after provider uncertainty.
+
+
+### Policy preparation surfaces in the eight-area candidate — 2026-10-13
+
+Admission, tutor evidence, assigned safeguarding and policy booking controls reuse
+native labelled inputs, existing Learli tokens, semantic status text and private
+document replacement. Pending admission is explicitly unauthorized. Missing policy
+prevents intake, rather than collecting information behind an inactive submit.
+Administrative completion/no-show and synthetic prerequisites are labelled as
+software states, without attendance, payment or verified-person claims.
+
+A validated public tutor/subject/level/interval survives authentication and learner
+admission using canonical return links. Current server candidates decide whether
+the exact saved interval is preselected; stale choices stay unselected with an
+explanation and never reserve automatically. Private learner IDs do not travel in
+public authentication return parameters. Native no-script navigation remains
+readable; mutations stay inert before hydration and independently guarded on POST.
+
+The publication software projection is a separately labelled synthetic readiness
+surface, not social proof for the public marketplace. Only approved eligible new
+records may contribute Customer/rating/plain-text/date and the matching aggregate;
+private authors and booking details are absent. An unavailable query cannot be
+styled as zero reviews. Actual public publication remains gated by policy.

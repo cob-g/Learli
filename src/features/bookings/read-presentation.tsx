@@ -1,5 +1,5 @@
 import { LifecycleHeading } from "./lifecycle-heading";
-import { demoStateLabels } from "./lifecycle-model";
+import { bookingEventLabels } from "./lifecycle-model";
 import { DemoCancelControl } from "./lifecycle-controls";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -53,7 +53,9 @@ export function BookingDetailView({
     <div className="page-shell page-space">
       <LifecycleHeading booking={booking} />
       <p className="mt-4 text-body text-muted-foreground">
-        Local simulated booking. No payment or meeting is arranged.
+        {booking.source === "synthetic_readiness"
+          ? "Synthetic readiness booking. Confirmation and outcomes exercise software only; no payment or attendance is established."
+          : "Local simulated booking. No payment or meeting is arranged."}
       </p>
       <div className="mt-6 max-w-5xl rounded-surface border border-border bg-surface p-4 sm:p-6">
         <BookingReadStatus booking={booking} />
@@ -85,11 +87,15 @@ export function BookingDetailView({
           </div>
           <div>
             <dt className="text-label text-muted-foreground">
-              {["demo_cancelled", "demo_replaced", "demo_completed"].includes(
-                booking.state,
-              )
-                ? "Original simulation deadline"
-                : "Simulation expiry"}
+              {booking.source === "synthetic_readiness"
+                ? "Original provisional deadline"
+                : [
+                      "demo_cancelled",
+                      "demo_replaced",
+                      "demo_completed",
+                    ].includes(booking.state)
+                  ? "Original simulation deadline"
+                  : "Simulation expiry"}
             </dt>
             <dd className="mt-2">
               <LessonTime value={booking.expires} />
@@ -118,13 +124,7 @@ export function BookingDetailView({
               {booking.events.map((event) => (
                 <li key={event.id} className="py-4">
                   <h3 className="mb-2 text-item-title">
-                    {event.event === "demo_reserved"
-                      ? "Simulated reservation saved"
-                      : event.event === "demo_expired"
-                        ? "Simulation expiry saved"
-                        : event.event === "demo_rescheduled"
-                          ? "Simulation rescheduled"
-                          : demoStateLabels[event.event]}
+                    {bookingEventLabels[event.event]}
                   </h3>
                   <LessonTime value={event.time} />
                 </li>

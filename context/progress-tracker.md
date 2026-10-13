@@ -1,36 +1,208 @@
 # Learli — Progress Tracker
 
-## 2026-10-13 — production Neon migrated; development preview is separate
+## 2026-10-13 — Neon production migrated; separate development preview verified
 
-The user subsequently authorized production schema migration while keeping the
-local app on a separate development branch. The reviewed candidate in
-`/Users/cob/orca/workspaces/learli/m8-hosted-workflows-integration` remains
-uncommitted and unmerged. Its Neon activation worker completed a PG18 backup,
-actual restore into the new schema-only `learli-local-development` branch,
-development rehearsal, and all 29 production migrations with exact runtime grants.
-Read-only acceptance confirms 78 public application tables, 29 exact ledger
-entries and eight static subjects; production has no other application rows.
-Original database ownership and provider-role definitions/memberships are preserved.
+Under the explicit production-migration/development-separation authorization,
+the reviewed v4 operator completed a PostgreSQL 18 backup and actual empty-backup
+restore on the new schema-only `learli-local-development` branch. Development
+rehearsal and production application both committed all 29 migrations and exact
+runtime grants. Independent root inspection of the retained receipts confirms
+78 public application tables, 29 exact migration-ledger entries and eight static
+subject entries in production; all other application tables are empty. Existing
+database ownership, all 20 original provider-role definitions and their memberships
+are preserved. Two restricted Learli roles were created separately on each branch.
 
-The reviewed Neon-development preview is http://127.0.0.1:3039 in the
-`m8-neon-activation` worktree. Twenty-four browser/API smoke checks pass, including
-synthetic authentication, captured verification and cross-account denials.
-Successful cloud booking preview was not exercised; unassigned-role denial was.
-Main's existing http://127.0.0.1:3000 preview still uses its preserved local
-PostgreSQL database. Main/integration envs and the worker's loopback test env are
-unchanged. The older status below describes main's committed application baseline;
-it is not the current cloud schema or the unmerged integration candidate.
+The reviewed worker checkout now serves http://127.0.0.1:3039 using only the Neon
+development runtime identity. Twenty-four actual browser/API smoke checks pass,
+including synthetic signup, captured verification, sign-in, own-account changes,
+foreign/anonymous denial, no-store responses and real-email signup refusal.
+Booking-preview role denial was checked; a successful cloud booking preview was
+not exercised because no fixture roles were seeded. Earlier positive local and
+TLS-proxy coverage remains separate evidence. Main's existing port-3000 preview
+still uses its original local database. Root verified that main/integration envs
+and the worker's loopback test env remain byte-identical to their baselines.
 
-Private acceptance receipts and independent reviews are retained in
-`.local/hosted-readiness-wave/`; the backup and private runtime configuration stay
-in the Neon worker's `.local/neon-activation/`. No application deployment, live
-email, real-policy launch, payment activation, commit, merge or push occurred.
+Cloud receipts are retained privately, with the production dump and restore
+evidence in the Neon worker checkout. Final worker privacy scan passes 23 current credential/provider patterns across
+3,740 source/build/log files with zero hits. The factual final report and three-document
+delta have passed root inspection; application/operator/migration bytes are unchanged. The application has not been deployed, the candidate remains uncommitted
+and unmerged, real-policy flows remain disabled, and payments remain paused.
+
+## 2026-10-13 — Neon operator review passed; approved cloud execution begins
+
+The v4 bootstrap successor resolves the observed server-error and cancellation
+credential logging findings. Independent root review checked all 1,056 frozen and
+current source hashes, aggregate and the bounded delta; plan alignment and
+unintended-change audit pass with zero open findings. All seven actual PostgreSQL
+bootstrap/logging/rollback cases and scoped static checks pass. The accepted five
+operator/test/document paths are imported over v2; this tracker is reconciled.
+Application bytes, all 29 SQL migrations and exact runtime grants are unchanged.
+
+The coordinator issued technical GO under the existing explicit user production
+migration/development separation authorization. Backup, schema-only development
+restore/rehearsal, production schema apply and dev app smoke are now worker-owned;
+this entry is authorization to proceed, not evidence that cloud operations passed.
+The root post-import text scan passes 3,159 current credential patterns across
+2,933 files and 414 audit rows, with zero hits and the same text-only limitations.
+Main preview remains available on its original local database at port 3000.
+
+## 2026-10-13 — post-Neon-import local regression verified
+
+Root verification after importing the reviewed v2 compatibility delta passes
+formatting/lint/types and **1,338 tests/84 files** (one inherited warning),
+production build, **92 local Chromium browser cases** across the selected projects
+and their dependencies, and **seven hosted HTTPS Chromium authentication cases**.
+Rebuilt production tracing covers 132 manifests with zero private references.
+Worker assigned-port TLS/operator PostgreSQL regression passes **116 tests/five
+files**. These are separate executions; original full-wave evidence below remains
+scoped to its pre-Neon source.
+
+The subsequent v3 operator-only credential logging repair has six passing actual
+PostgreSQL cases and passing scoped static checks. Root verified all 1,056 frozen
+file hashes and the aggregate, and is checking the cancellation-error boundary
+before technical provider GO. Application bytes, all 29 historical migrations and
+runtime grants are unchanged. Actual Neon backup/development restore/production
+apply and local Neon connection remain pending; no cloud success is claimed.
+
+## 2026-10-13 — reviewed Neon compatibility imported; cloud execution pending
+
+The independently reviewed Neon v2 compatibility/operations delta is now imported
+into this integration candidate after its original eight-area acceptance. Source
+manifest1056/37 has aggregate d9900d62a6d59ae21ac050596d84543fb03eca551a55a41aba0d7cbe0ff59cae;
+36 paths imported exactly, with this tracker reconciled to preserve final wave
+results. All29 historical SQL files and runtime grants remain unchanged. Changes
+add genuine native TLS verification, truthful production/development operation
+packets, production recovery requirements, bounded role bootstrap/empty-target
+backup/restore, and a separate development-only local app connection preserving
+synthetic auth/mail/preview. Original loopback test parsers stay unchanged.
+
+Root independent v2 review has zero open findings; worker check4 passes1338 tests
+in84files plus format/lint/types (one inherited warning), build1 passes, and actual
+TLS/auth8 and non-superuser bootstrap3 cases pass. Current assigned-port regression
+is finishing. Root integration checks after import are pending. The original
+171-case browser/full889PG/restore evidence remains scoped to the pre-Neon candidate;
+no fresh whole-suite result is claimed for these changed runtime bytes. Actual
+Neon backup/development rehearsal/production migration and final local connection
+still await coordinator technical GO. Existing main preview remains untouched.
+
+## 2026-10-13 — eight-area local candidate verified and independently reviewed
+
+The integrated eight-area candidate remains uncommitted in its isolated worktree.
+Full normal Chromium3 passes **171/171** in 7.0 minutes after the recorded R22–R24
+fixture/mirror repairs. All original business/privacy assertions are retained.
+Affected Firefox/WebKit coverage is complete across distinct runs: cross-browser1
+passes 28 cases before one publication setup failure (three not run), then
+publication cross-browser3 passes all eight publication cases. This is not a claim
+of a single 32-pass invocation. Earlier failures remain available in private logs.
+
+Current source evidence: check5 formatting/lint/types and **1,304 tests/81 files**
+PASS; final static1 formatting/lint/types PASS after the test-only changes (one
+inherited unused-import warning); full actual PostgreSQL2 **889 tests/59 files**
+PASS plus two separately executed delivery-recipient variants; production build3
+PASS. Populated restore3 covers 79 tables/66 populated, 29 migration stamps,
+14 immutable readiness histories plus prepared delivery immutability, exact
+rows/catalogs/grants/sequences/roles, five runtime denials, material-CHECK-drift
+refusal and preserved source. Rebuilt production traces: 132 manifests, zero
+private references. Final text privacy scan: 2,980 current credential patterns,
+179 factor rows, 2,899 files and 402 audit rows, zero hits. It does not perform OCR
+or make claims about deleted credentials or every screenshot pixel.
+
+Final mirror applicability matches current source/pins/assets with zero drift:
+436 entries in the combined mirror and exactly five declared capability-factory
+substitutions; 430 source entries in the independent admission mirror and exactly
+one substitution. Shipped real-policy factories remain disabled. Final independent
+combined review passed plan alignment and unintended-change audit with zero open
+findings; all 1,040 source files, 42 evidence artifacts and 874 mirror artifacts
+were checked against their immutable manifests. The reviewer settled and was
+released; no checks were executed by Review. No remote CI, real mail,
+production app deployment or real-policy acceptance is inferred from these checks.
+
+The separately authorized Neon production migration/development branch work is in
+its own checkout. Compatibility review and actual TLS-proxy rehearsal are active;
+no provider mutation has been authorized by the coordinator yet. The existing main
+app was started for the user at http://127.0.0.1:3000 against its preserved local
+PostgreSQL database; homepage and tutor directory returned HTTP 200. Current-wave
+commit/merge/push and payments remain deferred.
+
+## 2026-10-13 08:35 PHT — final restore passed; browser regression isolated
+
+Root check5 passes formatting/lint/types and1,304 tests/81files; production build3
+passes after the committed-notice password-focus correction. The unchanged four
+password browser tests pass. Actual populated restore3 through0028 passes with
+79tables/66populated/29migration stamps,14immutable readiness tables, immutable
+prepared deliveries, five runtime denials, exact catalogs/rows/grants/sequences/roles
+and material-CHECK-drift refusal. Earlier collection/comparator failures are retained
+in recoveryR20/R21. All132 rebuilt trace manifests have zero private references.
+
+Full normal Chromium2 remains a failed run:152PASS/1FAIL/18NOTRUN. R22 identifies
+an admission-only test reusing a publication-enabled mirror which correctly rejects
+its legacy tutor fixture. The harness now uses its own one-substitution mirror and
+assigned port; application checks and browser assertions are unchanged. Independent
+review and scoped/full browser verification are in progress. Additional delivery
+address-change/independent-College adapter checks pass2/2 on actual owned PostgreSQL
+as a supplement to the earlier full889/59 result. Final affected Firefox/WebKit,
+privacy scan and independent whole-wave acceptance remain pending.
+
+The user separately authorized production Neon schema migration and a distinct
+Neon development branch for the local app. The operational worker confirmed an
+empty production database and authenticated CLI; it is implementing the bounded
+TLS/target/development-runtime compatibility seam in a separate checkout. No
+provider mutation has occurred, and current-wave commit/merge/push, application
+deployment, live mail, real-user policy activation and payments remain outside
+this task. Tests stay on isolated loopback PostgreSQL.
+
+## 2026-10-13 08:13 PHT — final database/build and combined Chromium passed
+
+Following restart reconciliation, the preserved owned55919 cluster was restarted without reset or repeated migrations. Interrupted fullPG1 has no result; fullPG2 exited0 with889 tests/59files PASS. Production build2 exited0. R17 actual file-trace inspection found private local mail in120 of132 manifests; supported narrow Next output exclusions now leave0 private references across132 rebuilt traces, with before/after evidence retained. No deployment occurred.
+
+W4 final31 source,15 evidence hashes and Remember are accepted; builder and independent reviewer settled/released. Independent W4 Review has0 open findings; whole-wave Review remains active. Root combined Chromium2 passes the actual new guardian/tutor onboarding, admission/screening, exact public discovery continuation, booking, fake SDK notices, administrative outcome, public review, safety restriction and strict old-case Back/account-switch privacy journey. Chromium1 failed a test-only current actor text locator and is retained. The current mirror436 source/pins/assets match the original tree exactly before five declared capability-factory overrides, with no missing/extra/stale paths. Full normal Chromium, affected Firefox/WebKit,0028 populated restore, final privacy and review closure are still pending. Existing static check3 remains1,304/81PASS; payments/live operations remain gated.
+
+
+## 2026-10-13 02:38 PHT — full static/unit check passed; database and independent combined review running
+
+Current root check3 passed formatting/lint/types and1,304tests across81files; one inherited unused-import warning remains. The original check2 had1,303PASS/1FAIL because an admission component test asserted focus before its React effect. The exact accessibility condition now uses bounded waitFor; scoped4PASS and fullcheck3PASS, with no application change. First finalcheck format failure was confined to generated0028 JSON formatting. W7 final49 source and209 evidence hashes/report/handoff were verified and accepted; its worker is settled/released. Root visually inspected final390px public profile and1440px moderation captures. Final combined independent review is running against an immutable1,038-file snapshot, alongside the full real PostgreSQL suite. Current whole-wave build/browser/restore/privacy and final review remain pending. Main and external environments are unchanged.
+
+Current integration continuation — 2026-10-13 02:32 PHT: root discovery return correction now preserves only the exact public tutor/subject pair across authentication and pending admission, without learner IDs, fabricated times or guardian authority. Forward0028 extends the existing admission-selection function while preserving historical SQL and the complete six-field selection. Actual owned PostgreSQL reproduction:2FAIL before,2PASS after; isolated55919 dev/test migrations through0028 PASS. Focused input/component checks58/3 PASS. The combined anonymous-to-admitted browser journey is authored but not yet run. W7 component final Chrome/Firefox/WebKit4/4 each and check1273/78 are reported; final source acceptance is pending. W4v4 is prospectively imported after all29 hashes, aggregatef25e9b44605a6318cff2f6b1f5621b5a2f55c8da93d7e6fc468678d5e01173eb and changed source were inspected; core runtime unchanged from reviewedv3. Current delivery browser/independent settlement remains pending. Root final full checks, independent combined review, prepared-notice restore and privacy scan remain pending; earlier component evidence is not a whole-wave pass. Payments and external activation remain paused.
+
+## 2026-10-13 02:07 PHT — W7 prospective full source integrated; whole-wave verification pending
+
+Root verified all47 hashes and aggregate65e632079f48f3a0a678431cbd7f4a2f9839f57563208d27d5b668db03f4ee13 of W7 full-source-p1, read the new production/shared/test diff, and imported21 changed paths into the isolated integration checkout. The accepted22-file provider remains byte-identical. Source includes exact assigned moderation, separate synthetic publication/legacy private-review behavior, anonymous public projection, native controls, ordinary and cross-browser registrations, and a five-factory test mirror with exact source inventory. Final W7 worker settlement and independent combined review remain pending.
+
+Observed worker logs: current Chromium4/4 PASS50.1s, Firefox4/4 PASS36.6s, WebKit4/4 PASS30.9s; separately93 PostgreSQL regression tests across5 files PASS92.41s. These are worker component results, not a root full-wave pass. W4b repaired queue suite21/21 PASS across2 files102.66s after retained18PASS/3FAIL; revised frozen adapter source and independent review remain pending. Root's combined journey/0026 restore population and final privacy scan are prepared but not yet executed. Payments and all real activation gates remain unchanged.
+
+
+## Current integration checkpoint — 2026-10-13 01:42 PHT
+
+Eight-area local readiness remains in progress in the isolated
+m8-hosted-workflows-integration checkout; main and external services are unchanged.
+The W6 browser/admission composition regression is repaired: validated public
+selection survives the first authentication redirect and admission detour; an
+interval is preselected only when both instants match current authorized slots.
+The original guardian browser assertion is unchanged. Evidence: focused before
+1 failed/1 passed, after 2 passed; format/lint/typecheck and 1,245 tests in 75 files
+passed (one inherited unused import warning); production build passed; affected
+W5/W8/W6 Chromium tail 14/14 passed in 55.3s. The earlier full run remains
+152 passed/1 failed/12 not run; it is not reported as a full-suite pass.
+
+W7 bounded provider v2 (22 files) is now imported after independent review with
+zero remaining confirmed findings. Its supplied 56 PostgreSQL cases in five files
+passed, including canonical fresh/forward migration and seven isolation denials.
+Forward migration 0026 adds publication and early READ COMMITTED guards to its
+two mutators and three W6 mutators; historical 0025 is byte-identical. The actual
+before-repair stale-permission reproductions remain in private evidence. Root
+combined post-guard W6 create/dispute, migration units, full UI and final Verify
+remain pending. W4b can now add 0027; its queue has not yet passed actual PG
+verification. Full W7 UI/browser work and independent W4 review are active.
+
+These are synthetic software controls. Real consent, screening evidence, staffed
+safeguarding, booking/review policies, external mail/provider acceptance and
+release authorization remain open. Payments remain idle.
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.30 — Main databases migrated and wave cleaned up
-> **Last updated:** 2026-10-12\
-> **Current overall status:** **Six verified local feature slices merged; main development/test databases migrated through 0021; completed worktrees/branches archived and removed; payments deferred**
+> **Version:** 1.32 — Eight-area local candidate verified; Neon activation in progress
+> **Last updated:** 2026-10-13\
+> **Current overall status:** **Eight-area local candidate verified and independently reviewed, uncommitted/unmerged; authorized Neon activation in progress; real-operation gates and payments remain deferred**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
@@ -40,6 +212,326 @@ email, real-policy launch, payment activation, commit, merge or push occurred.
 **Status legend:** `Documented` = specified only · `Planned` = not verified as started · `In progress` = active work with evidence · `Blocked` = waiting on an explicit decision/dependency · `Done` = verified and linked to evidence.
 
 ---
+
+## Eight-area hosted workflow wave — in progress, 2026-10-12
+
+User authorized the eight software work areas with GPT-6.1 Sol High builders
+using `$build-feature`, preserving payment deferral and real-operation gates.
+Orca run `run_c34d7c3c1119`; parent blueprint
+`prompts/features/m8-10-hosted-workflows-wave.md`, AUTHORIZED — build-feature
+delegation. Architecture and W1 admin MFA, W2 hosted DB and W4a Resend
+foundation tasks settled successfully; all completed workers/reviewers were
+released. W3 hosted-auth, W5 admission and W8 safeguarding architecture is accepted.
+W3, W5 and W8 completed their isolated software handoffs and were released.
+W6 full68 component is accepted/imported and its worker released. Root combined
+format/lint/types and1243 unit/component tests in74files pass with unchanged
+source during execution; full PostgreSQL verification is active. W7 publication
+and W4b delivery consume the accepted full source and portable four-factory
+mirror. W7 bounded0026 has39 actualPG passes and independent review is active;
+W4b0027 waits for that accepted metadata. Heavy A is root; B is W7.
+Independent review subsequently found a direct-SQL REPEATABLE READ stale-authority
+issue in W7 and three adjacent W6 mutation entry points. W7 owns the narrow
+forward0026 guards and actual reproductions;0025 remains immutable. Full W6/W7
+wave acceptance is withheld until repair/re-review. Root PGthrough0025 completed
+791 passes/12 count-assertion failures/3 unexecuted tests from a worker-specific
+setup guard; targeted portable migration-test corrections are being verified.
+At most three active workers and two heavy jobs.
+Independent W2/W4a review completed with zero confirmed findings in its scope.
+
+Latest W5 acceptance: root independently reviewed the final64-file source package,
+verified aggregate `f2337e6b332588ed7f1f152aa298fb3287e2004d6cb759d3e886ea91b9188137`
+and its final local memory handoff, then released the succeeded dispatch. Root
+imported58 changed files and retained5 already-identical shared files; its tracker
+was reconciled separately and account navigation added only the two reviewed
+admission-entry hunks. Current isolated evidence: check1097/63, scoped PG40/4,
+production build, Chromium6 and Firefox/WebKit12 passed. The earlier full687 and
+separate corrected-fixture115 results retain their stated applicability. Text
+privacy scan206 files/915 current owned patterns found zero hits; no whole-pixel
+or expired-secret claim. W8 final191-file freeze5 was independently hash-verified and its final
+12-file delta reviewed; check1111/65, scoped PG62/7, production build, Chromium7
+and Firefox/WebKit6 passed. Root imported78 reconciled changes, retained current
+W5 account navigation and combined project discovery; worker-specific test ports
+are now configurable for the integration checkout; combined browser verification follows. Root subsequently applied
+0023/0024 to both isolated55919 development/test databases, preserving main.
+W3 final74-file source and
+evidence were independently reviewed and hash-verified: check1111/66, full
+PG658/38, build, default Chromium151/151, hosted Firefox7/WebKit7 and actual
+production-only entry proof passed with source applicability recorded. Root
+imported68 changes, retained5 identical shared paths and reconciled its tracker,
+W5 account entry and combined test discovery. All failed attempts remain in
+private evidence; no mixed-source run is counted as exact-source acceptance.
+
+Root integration follow-up: W6 started in its own worktree with effective GPT-6.1
+Sol High and observed turn start, consuming the frozen233-file provider baseline
+at aggregate `8bd364092127371ec6d0cd5d2dcb87b8a4cf6c5f602c2d24f75250b1cafaaea6`.
+At that earlier checkpoint, heavy A belonged to W6 and B to W4b. The Sol High restore-support agent completed a
+six-file isolated handoff through0024, with check1177/67, actual restore1/1
+(69tables,25stamps,53populated), source preservation and production build passed.
+Root reviewed the owned delta/evidence, released the worker and imported five
+files while preserving its tracker. Root subsequently ran the actual combined
+restore on55919→fresh55519:69tables/25stamps/64populated, exact records/schema/grants/
+sequences/roles, source preservation, nine immutable-history checks and five runtime
+denials passed; targets stopped and artifacts retained. Final0025–0027 populated
+restore remains.
+W6 was allocated a narrow0025 beneficiary eligibility predicate
+that preserves W5 policy/ownership/evidence checks without requiring the booked
+participant to stay signed in; actual viewer/action session checks stay mandatory.
+W6 froze a bounded33-file provider with28/28 actual PostgreSQL checks and strict types passed; independent provider Review found changes required, so it is withheld from downstream consumers. Root corrected only the stale hosted preflight
+message: it now names provider acceptance, approved operating policies and
+explicit deployment approval, preserving BLOCKED/no-I/O behavior. Root combined
+check1225/72 passed twice, including after scoped test-placement and migration-test
+repairs. The first full PG run had732passes/4failures; missing evidence directories,
+an obsolete pending-count expectation and a whole-row comparison of a new nullable
+column were repaired without changing migrations or runtime authority. The four
+affected migration files then passed43/43, retaining exact original-column/row,
+historical-hash and restricted-grant proofs. These are separate runs, not a claimed
+single full736pass. Canonical recovery records the original failures.
+Root early W6 review requires complete authority checks after blocking writes
+and binding changes to the booking's original current policy; the producer reports both corrected with actual regression evidence in frozen provider v1, pending independent review. W6 also owns a bounded forward0025 bridge that
+atomically links a policy-authorized safeguarding case to its booking, preserving
+existing immutable association and exact assigned-reviewer permissions.
+An independent Sol High reviewer verified the frozen945-file combined source and
+reported zero confirmed findings in the auth/account/provider/W5/W8 boundary scope;
+the worker was released. This bounded read-only Review ran no tests and does not
+cover pending W6/W7/W4b or final wave acceptance. Root test-only hosted ports are
+now configurable with the existing port parser and unchanged loopback/TLS/packet
+checks. Root own3319/3419/56019 placement passed all7 HTTPS journeys in each of
+Chromium, Firefox and WebKit. The Back/reauthentication test now waits for its
+fresh document response before filling; every privacy assertion is retained.
+Firefox/WebKit evidence records67 client assets without current private markers,
+real CA acceptance/wrong-CA denial and all three owned ports closed. Actual
+production-only installation/startup/shutdown proof also passed on the combined
+build. W5/W8 mirrors now take validated assigned ports and require this checkout's
+own database marker, port and runtime/owner credentials. The guard's two focused
+unit cases pass. Root current check7 passed formatting/lint/types and1227tests/73files;
+normal Chromium1 then found a default learner-role composition regression (41pass/1fail/118not-run). The minimal server-role repair preserved enabled admission onboarding and passed49 actual PostgreSQL cases; rebuilt application passed and normal Chromium2 completed145passes/1Back-snapshot protocol failure/14not-run.
+The full-HTML privacy assertion now resolves against the restored document; the
+selected19-case tail passed with one worker after correcting the remaining W8
+fixture origin. All18 admission/safeguarding Firefox/WebKit cases also passed.
+These are separate runs; no single full160pass is claimed. Earlier environment
+parameter typing failures remain in recovery evidence. No production
+application policy or provider guard was changed. W6 browser composition, final
+full-wave migrations/restore and canonical runbooks remain.
+
+Independent W6 provider-v1 review has now identified a Critical NULL-action SQL
+boundary bypass and Important final-receipt/meeting-write authority freshness
+gaps. The reviewer finished its bounded read-only task and was released. Root inspected the cited source and assigned controlled actual PostgreSQL
+reproductions and scoped corrections to the booking owner. Its prior28core and
+190regression passes did not cover these new findings. All three reproduced against
+PostgreSQL before repair. The frozen corrected v2 passed52/52 in3files with953 execution-time source entries
+unchanged, but a real reschedule browser then found a false conflict against the
+retired original interval. Frozen v3 corrects that target and reports53 PG passes;
+root verified34 frozen hashes. Independent re-review also found task/move reads
+substituting the configured policy for the booking's original policy. Frozen v4
+corrects those reads and passed58 actual PostgreSQL cases/3files, including direct
+replacement-notice clock-crossing rollback; root verified34 source hashes,
+17 evidence hashes and953 unchanged execution-time source entries. Re-review is
+active. The final Important database start-grid omission was reproduced through both direct
+runtime mutations and corrected in immutable v5. It passed64 actual PostgreSQL
+cases/3files and strict types with34 frozen files matching953 execution-time
+entries and14 evidence hashes. Direct offset-window create/move and owner-only
+fixed-date NY gap/fold and Lord Howe half-hour parity pass without widening grants.
+Independent final bounded Review found0 remaining confirmed issues across R1–R6.
+Root accepted the exact provider for consumers and imported33 changes/1identical
+file with no conflicts. Full W6 UI/build/regressions and final combined wave remain
+separate; no release or real-policy clearance follows. The reviewer was released.
+W7 now builds publication/0026 and W4b continues delivery/0027 against the accepted
+core; their never-dispatched original Tasks were superseded to remove unnecessary
+whole-task waits without marking W6 complete. Root restore guards now accept only
+the exact new booking sources and add the two immutable booking-history checks;
+0025 guard units passed61/61. Both own55919 databases applied0025 and restricted
+grants; the actual populated restore passed1/1 in5.98s with73tables/26stamps/
+68populated, exact records/schema/roles/grants/sequences, eleven immutable
+histories and preserved source. Target55519 stopped. Final0026/0027 populated
+restore remains. Root check on the bounded provider import then stopped at three
+legacy presentation-state TypeScript errors; those consumers are outside the
+bounded34 package and await W6 full source. Units were not reached. The failure
+is preserved in root recovery; no casts or duplicate UI patches were added.
+
+W1 final66-file source is verified at aggregate
+`0baceb50f5c622dd7b4c76be803f574824a27b36fcf21b2bbbfa6596da16ba25` and
+imported without conflicts. Same-agent full-scope Review passed; independent
+15-path core-v2 re-review resolved Important F1 (fresh authority after epoch-row
+wait), with no remaining confirmed core finding. Root also inspected shared
+caller/UI changes and phone/desktop captures; independent full combined-wave
+review remains pending. Current check passed985 unit/component tests; current
+15-file affected PostgreSQL run passed244 cases, including fresh/populated0021→
+0022 preservation,48 final tables,23 migrations and strict25-function grants.
+Revised production build passed. Browser evidence:4 Chromium MFA cases and8
+Firefox/WebKit MFA cases passed;32 existing admin cases have passing coverage
+from29 retained cases plus4 catalog reruns with one overlap. Earlier588/9 broad
+PG failure, affected50-case repair, browser failures and exact applicability remain
+in the worker report; no single full609 PG or32-case browser pass is invented.
+Ordinary discovery found144 Chromium and26 extra-engine cases. Final privacy scan
+found zero hits against304 owned credential patterns across132 files and70 audit
+rows. Ignored Remember saved. These are W1 local component results, not release
+or whole-wave acceptance. W5/W8 plans use feature-owned capabilities and existing
+support permission records; W3 preserves local runtime while adding selected
+hosted account composition. These workflows remain in progress, with no completed
+implementation claim.
+
+Root integration starts at2fa0294 and contains36 hash-verified source-only Neon
+setup files, this wave's plan/decision/documentation, and fourteen exact W2/W4a
+owned source/test/documentation files plus W1 exact code/tests and bounded document
+contributions. Shared tracker content is reconciled here,
+never overwritten by a child. W4a final manifest verified all eight owned hashes;
+root observed its62/62 focused tests, final typecheck and production-build logs.
+Adapter-only review/verification is complete; actual account/booking delivery,
+configuration, durable retries and browser integration remain W3/W4b work.
+W2 root-observed evidence:989 unit/component checks,40 final actual TLS PG tests,
+production build and minified real-Drizzle constructor acceptance passed. Its
+prior25 unchanged operator tests retain separate earlier evidence; these are not
+a single combined65-case run. W2 initial typecheck failure and targeted overload
+repair remain recorded. Hosted application composition remains W3 work.
+
+Integration `npm ci` and owned `npm run local:setup` passed on loopback55919,
+creating separate synthetic development/test databases with baseline22 migrations
+and local development fixtures. Private env/state was generated in this checkout;
+no main credentials, data or provider settings were copied. Existing13 dependency
+advisories remain (9 high/4 moderate), with no automatic dependency upgrade.
+Main DB55432 and production are untouched. Initial combined foundation check
+stopped at parent blueprint formatting; table delimiter/whitespace formatting was
+corrected without content changes, preserving the original accepted bytes. The
+separate rerun passed format/lint/typecheck and1051 unit/component tests in58 files
+(`root-foundation-check-2.log`). This is foundation integration evidence only;
+full-wave domain/browser completion is not claimed. After W1 import and planning-document
+formatting, the new combined provider check passed format/lint/typecheck and1062
+unit/component tests in60 files (`root-provider-check.log`). Evidence: ignored integration
+`.local/hosted-readiness-wave/` import/setup records and child source manifests.
+
+Root then applied accepted additive0022 and restricted runtime grants to both
+owned integration databases on55919; no reset was run. The full
+ordinary integration command, `LEARLI_STAGING_TEST_PORT=56019 npm run test:integration`,
+passed649 PostgreSQL cases in36 files with exit0 (`root-provider-integration-1.log`).
+All119 frozen foundation paths were rechecked afterward: only this factual tracker
+differs; application, schema, tests and dependency bytes match the accepted bundle.
+This is a fresh combined W1/W2/W4a foundation run, separate from W1's earlier
+mixed evidence. W3/W5/W8 and the downstream workflows are not included yet.
+Both heavy-job leases were released after their initial setup/foundation checks.
+Synthetic browser acceptance may use test-owned complete Next source mirrors
+with only named feature composition exports substituted; strict policy parsing,
+real routes/domain/SQL/provider checks remain unchanged. Shipped disabled behavior
+is tested separately, and these mirrors cannot establish real-policy activation.
+
+The root foundation production build passed. Its first ordinary Chromium run
+ended with98 passed,2 failed and44 dependent cases not run. Both failures were
+support-booking admin fixtures missing real MFA enrollment, confirmed by their
+security-setup redirect and actor helper source. Recovery R1 in
+`prompts/recovery/2026-10-12-hosted-foundation-browser.md` records a two-line
+test-only repair using the existing provider enrollment helper; all original
+assertions and application guards remain intact. Root same-agent scoped Review
+and formatting/lint passed; the full browser rerun passed144/144 with exit0
+(`root-provider-browser-2.log`). Original
+private logs/reports and the pre-repair source are retained. This result does not
+replace the separate verified649-case PG pass. It completes current foundation
+Chromium regression acceptance, while new domain and hosted workflow acceptance
+remains in progress. The exact two-line fixture repair was frozen and supplied
+as a supplemental source baseline to the three active builders.
+
+Root's foundation text privacy scan passed with859 current owned credential
+patterns,74 text artifacts/client assets and103 admin audit rows, zero hits.
+This is a text scan, without OCR or a claim about deleted credentials or every
+screenshot pixel. W5 supplied a hash-verified12-path early0023 schema bridge:
+seven new tables, changes only to the existing learner/link tables and an exact
+historical journal prefix. Root held that bridge before W8 import: independent
+SQL review identified authorization freshness after later unique-index waits,
+an evidence-revocation retry revision mismatch, and insufficient populated
+upgrade fixtures for the changed learner/link relations. W5 reproduced and repaired
+those findings. Root independently accepted the revised13-path schema/SQL/grants
+bridge at aggregate
+`0f3358ba0b9c6f0e2f32a11233db74b31debddaba74d2754f1798b4030a612dd`.
+Final authority checks raise an exception to roll back every effect after later
+uniqueness waits, and replay returns the original immutable request receipt.
+Observed evidence is37 passing domain cases in a retained mixed run, followed by
+one passing corrected fresh/populated migration proof and26 parser unit cases;
+these are not a single38-case run. Existing self/guardian learners, authorized
+and revoked guardian links,48 original table projections and23 prior migration
+stamps are preserved. Owned candidate repairs preserved all55 table digests.
+The accepted bridge was relayed to W8 for cumulative0024 generation with additive
+shared-file reconciliation; its domain test is evidence-only until full W5 source
+arrives. Full W5 UI/browser/check/build acceptance remains pending, and no W5
+migration/source is integrated into this root checkout yet.
+
+Root independent W5 application review is ready for verification. Its first full
+PG run passed685 of687 cases: one legacy test tried to retarget a protected learner
+owner, and one migration inventory still expected23 instead of24. The authorized
+repair changes only test fixtures/counts, preserves ownership immutability and
+negative authorization assertions, and keeps accepted0023 unchanged. That focused
+rerun passed30 cases; the next full run passed657 of687, with30 synthetic sign-in
+setup failures. A diagnostics-only rerun subsequently passed687/687 across38 files.
+A bounded fixture regression then reproduced an actual verification callback429:
+the existing synthetic setup reset sign-in counters but omitted verification.
+The accepted test-only correction resets that owned callback counter and checks
+the actual callback status and verified database state before granting fixture
+roles. The corrected focused run passed115 cases in five files; it is separate
+from the earlier full687-case run. Root imported the two hash-verified test files;
+the real application throttles are unchanged. Current code checks passed1095 cases
+and the production build passed. W5 reports six Chromium journey cases passed;
+affected Firefox/WebKit, final source and privacy checks remain pending.
+W3's pre-repair evidence is1107 unit/component cases,655 full PG cases,
+seven later focused PG cases and a worker-reported production build pass; current
+selected-account revocation handling and HTTPS browser acceptance remain in progress.
+Root found a reset-token query fallback bypass in its prospective membership guard,
+confirmed against the installed provider. The repaired guard follows the installed
+body-or-query token precedence and hosted POST rejects query parameters. Root
+verified71 frozen hashes and reviewed the correction and proof-preservation
+regressions. A later type-inference repair moved membership checks after the MFA
+hook, and root found that this allowed an eventual denial after security metadata
+had already changed. The corrected fixed plugin tuple restores membership first
+and keeps its local matcher inert. Root read the actual nine-case TLS/fixture pass:
+reset proofs/passwords are preserved, and removed selected administrators receive
+403 for three valid-password factor operations with unchanged epoch, events,
+factor, sessions and assurance receipts. Both findings are closed within that
+reviewed scope. Current checks passed1111 cases in66 files. A full PG run that
+overlapped source edits is retained but excluded from exact-source acceptance;
+the frozen rerun passed658 cases in38 files with unchanged inputs. Final
+HTTPS/build/packaging checks remain pending. Root verified all74 hashes in the
+current source freeze; generated build metadata is excluded from source imports.
+
+Cross-browser verification exposed a shared account time-zone hydration mismatch
+between Node and browser ICU data. Root reviewed and imported the scoped correction
+using the existing server-provided option convention, including persisted aliases,
+the component regression and only the minimal account-page prop/import changes.
+Root also reviewed and imported W3's frozen
+AuthForm correction: its server-rendered fields remain disabled until hydration,
+native fallback uses POST, and submitted password fields are cleared. The exact
+file is relayed to W5/W8 for current-source browser verification; earlier browser
+passes do not verify this shared revision. Both shared corrections have component
+test evidence in the current1111-case run; affected browser verification remains
+pending, with original failures retained. W5's planned list pagination also required
+completion: an initial five-page cap still stranded older assigned requests. Root
+requested bounded cursor traversal with the same current owner/reviewer predicates
+and a regression covering more than100 assigned records. Root reviewed the
+current keyset implementation and observed111 actual assigned requests traversed
+across six pages, with foreign, missing and forged cursor denial. Its final scoped
+database run passed40 cases in four files, separately from the earlier full687.
+Current-source Chromium admission journeys passed6/6; final extra engines and
+source/privacy acceptance remain pending. Safeguarding current-source checks
+passed1111 cases and the build passed, but its browser rerun passed5/7: two
+journeys encountered repeated sign-in document reloads before submission. The
+original failures are retained and isolated runtime diagnosis is in progress.
+
+W8's scoped51-case database run passed before root independent review identified
+two Important post-write freshness gaps: screening request/resubmission authority
+could expire during a later FK wait, and required screening evidence could expire
+during an approval wait. Its prospective freeze3 adds exception-backed rollback,
+current-clock eligibility and ten regression cases. The old functions reproduced
+nine behavior failures; the tenth test did not observe its intended wait. After the
+bounded repair,58 of61 combined cases passed. After correcting a resubmission SQL
+alias and making the outer test reach the actual audit wait through an approved
+profile edit, the final scoped run passed61/61 in six files. Root read the current
+SQL/service changes and all ten wait assertions and closed both findings within
+that scope. Root compared before/after digest records
+and confirmed preservation of all68 public table contents for both candidate repairs.
+W8 reports current production build success; final browser/check evidence and
+complete-source acceptance remain pending. Root verified189 freeze4 file hashes.
+Root subsequently observed the62-case scoped PG pass, including the accepted
+verification-counter regression, and the seven-case Chromium pass. Extra-engine
+attempts exposed focus setup and the shared auth/hydration issues above; they are
+not accepted as passing current-source evidence.
+The0024 provider remains held and has not been imported or given to W6.
+Previous candidate source and failed-run evidence remain retained. These are local
+software corrections; no real screening or operational policy approval is implied.
 
 ## Neon project setup — 2026-10-12
 
@@ -1777,3 +2269,7 @@ implemented local behavior without declaring real policies or launch complete.
 ### Local completion integration checkpoint — 2026-10-12 16:07 PHT
 
 B returned heavy slot1 after scoped real PostgreSQL109/109, build, static checks,18 focused units and6 Chromium cases passed; E returned slot2 after final5 Chromium cases passed plus25 final review PG/48 provider-plus-review PG, populated forward preservation and build3. Their inherited full-check17-versus19 journal-count failure remains explicitly root-owned; no worker claimed the full check passed. Final exact source manifests/settlement are being packaged. Root is adding booking-detail Add/View private synthetic review navigation, scoped admin reviews navigation, a distinct manifest-owned admin fixture without automatic moderator grants, and cross-feature notice assertions. These new root changes are authored, not yet verified. Combined22 migration/24function/21trigger/44public-table expectations await actual final PG confirmation. Payments, production and real users remain gated.
+
+### 2026-10-13 W6 full component accepted; combined validation pending
+
+Root accepted the immutable 68-file W6 handoff after exact source/evidence review and independent core review (0 remaining findings). The component evidence comprises 64 core PostgreSQL cases, 236 affected PostgreSQL cases, 1160 unit/component checks, a production build, 52 selected Chromium cases plus 5 final Chromium journeys, and 4 each Firefox/WebKit journeys in distinct runs. Full booking presentation resolves the earlier partial-import type errors; root check now passes1243/74 with unchanged source during execution. Combined PostgreSQL/browser verification remains pending. Shared discovery and the four-factory synthetic mirror are reconciled over the accepted hosted-auth and owned-database placement guards. The root actual populated restore through 0025 passed with 73 tables (68 populated), 26 migrations and 11 immutable histories; source was preserved and the restore target stopped. W7 publication and W4b transactional delivery remain active. No full-wave, live policy, deployment or email-delivery claim; payments remain idle.

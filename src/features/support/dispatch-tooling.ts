@@ -55,6 +55,10 @@ export async function provisionFixtureDispatch(
       .select({ status: table.status, source: table.source })
       .from(table)
       .where(and(eq(table.caseId, caseId), eq(person, userId)));
+    if (prior && prior.source !== "local_fixture")
+      throw new Error(
+        "Readiness authority cannot be changed through legacy tooling.",
+      );
     if (action === "revoked") {
       if (prior?.status !== "authorized") return;
       await tx

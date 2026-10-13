@@ -1,3 +1,7 @@
+import {
+  adminAssurancePredicate,
+  recheckAdminAssurance,
+} from "@/features/admin-security/assurance";
 // Node-only service, shared by server boundaries and isolated PostgreSQL tests.
 import { and, desc, eq, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
@@ -36,6 +40,7 @@ async function actor(
   const identity = await requireIdentity(runtime, headers);
   if (scope === "reviewer") {
     if (!identity.roles.includes("admin")) throw new AccessError(403);
+    await recheckAdminAssurance(runtime.db, identity);
     const [capability] = await runtime.db
       .select({ id: supportReviewers.userId })
       .from(supportReviewers)
@@ -53,13 +58,13 @@ async function actor(
 function activeAccount(userId: string) {
   return sql`EXISTS (SELECT 1 FROM "user" u JOIN user_access a ON a.user_id = u.id WHERE u.id = ${userId} AND u.email_verified = true AND u.email LIKE ${"%.test"} AND a.status = 'active')`;
 }
-function caseAccess(userId: string, scope: CaseScope): SQL {
+function caseAccess(userId: string, scope: CaseScope, sessionId: string): SQL {
   return and(
     eq(cases.source, "local_synthetic"),
     activeAccount(userId),
     scope === "requester"
       ? eq(cases.requesterUserId, userId)
-      : sql`${cases.requesterUserId} <> ${userId} AND EXISTS (
+      : sql`${adminAssurancePredicate(userId, sessionId)} AND ${cases.requesterUserId} <> ${userId} AND EXISTS (
        SELECT 1 FROM support_case_assignments a JOIN support_reviewers r ON r.user_id = a.reviewer_user_id JOIN user_roles g ON g.user_id = r.user_id
        WHERE a.case_id = ${cases.id} AND a.reviewer_user_id = ${userId} AND r.source = 'local_fixture' AND r.status = 'authorized' AND g.role = 'admin')`,
   ) as SQL;
@@ -75,7 +80,7 @@ const summary = {
 };
 async function selectCase(
   tx: Transaction,
-  userId: string,
+  identity: Awaited<ReturnType<typeof actor>>,
   caseId: string,
   scope: CaseScope,
   lock: "share" | "update",
@@ -84,7 +89,12 @@ async function selectCase(
   const [row] = await tx
     .select({ ...summary, body: cases.body })
     .from(cases)
-    .where(and(eq(cases.id, caseId), caseAccess(userId, scope)))
+    .where(
+      and(
+        eq(cases.id, caseId),
+        caseAccess(identity.userId, scope, identity.sessionId),
+      ),
+    )
     .for(lock);
   if (!row) throw new AccessError(404);
   return row;
@@ -101,7 +111,7 @@ export async function listCases(
   const rows = await runtime.db
     .select(summary)
     .from(cases)
-    .where(caseAccess(identity.userId, scope))
+    .where(caseAccess(identity.userId, scope, identity.sessionId))
     .orderBy(desc(cases.createdAt), desc(cases.id))
     .limit(21)
     .offset((page - 1) * 20);
@@ -120,13 +130,13 @@ export async function readCase(
 ) {
   const identity = await actor(runtime, headers, scope);
   return runtime.db.transaction(async (tx) => {
-    await selectCase(tx, identity.userId, caseId, scope, "share");
+    await selectCase(tx, identity, caseId, scope, "share");
     await recheckIdentity(
       tx,
       identity,
       scope === "reviewer" ? "admin" : undefined,
     );
-    const row = await selectCase(tx, identity.userId, caseId, scope, "share");
+    const row = await selectCase(tx, identity, caseId, scope, "share");
     // Return no requester/reviewer identity, report body copy, or internal notes in audit history.
     const history = await tx
       .select({
@@ -140,7 +150,14 @@ export async function readCase(
         createdAt: events.createdAt,
       })
       .from(events)
-      .where(eq(events.caseId, row.id))
+      .where(
+        and(
+          eq(events.caseId, row.id),
+          scope === "reviewer"
+            ? adminAssurancePredicate(identity.userId, identity.sessionId)
+            : sql`true`,
+        ),
+      )
       .orderBy(events.revision);
     const booking = await queryCaseBooking(tx, identity, row.id, scope);
     return { ...row, history, ...(booking === undefined ? {} : { booking }) };
@@ -245,15 +262,9 @@ export async function changeCaseStatus(
 ) {
   const identity = await actor(runtime, headers, "reviewer");
   return runtime.db.transaction(async (tx) => {
-    await selectCase(tx, identity.userId, caseId, "reviewer", "update");
+    await selectCase(tx, identity, caseId, "reviewer", "update");
     await recheckIdentity(tx, identity, "admin");
-    const row = await selectCase(
-      tx,
-      identity.userId,
-      caseId,
-      "reviewer",
-      "update",
-    );
+    const row = await selectCase(tx, identity, caseId, "reviewer", "update");
     const values = statusInput.parse(input);
     if (row.revision !== values.revision)
       throw new RuleError(
@@ -270,7 +281,12 @@ export async function changeCaseStatus(
         revision: row.revision + 1,
         updatedAt: new Date(),
       })
-      .where(and(eq(cases.id, row.id), caseAccess(identity.userId, "reviewer")))
+      .where(
+        and(
+          eq(cases.id, row.id),
+          caseAccess(identity.userId, "reviewer", identity.sessionId),
+        ),
+      )
       .returning(summary);
     if (!updated) throw new AccessError(404);
     await tx.insert(events).values({

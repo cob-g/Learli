@@ -1,11 +1,20 @@
 "use client";
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import type { TimeZoneOption } from "@/lib/time/zones";
+const subscribe = () => () => {};
 export function AccountForm({
   account,
+  timeZones,
 }: {
   account: { id: string; name: string; timezone: string };
+  timeZones: TimeZoneOption[];
 }) {
+  const ready = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false,
+  );
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
@@ -48,61 +57,60 @@ export function AccountForm({
       className="mt-8 max-w-prose space-y-6"
       onSubmit={submit}
       aria-busy={pending}
+      method="post"
+      action={`/api/account/${encodeURIComponent(account.id)}`}
     >
-      <div className="space-y-2">
-        <label htmlFor="name" className="block text-label">
-          Display name
-        </label>
-        <input
-          className="field"
-          id="name"
-          name="name"
-          autoComplete="nickname"
-          defaultValue={account.name}
-          required
-          maxLength={100}
-        />
-      </div>
-      <div className="space-y-2">
-        <label htmlFor="timezone" className="block text-label">
-          Time zone
-        </label>
-        <select
-          className="field"
-          id="timezone"
-          name="timezone"
-          defaultValue={account.timezone}
+      <noscript>Enable JavaScript to use account forms here.</noscript>
+      <fieldset disabled={!ready || pending} className="space-y-6">
+        <div className="space-y-2">
+          <label htmlFor="name" className="block text-label">
+            Display name
+          </label>
+          <input
+            className="field"
+            id="name"
+            name="name"
+            autoComplete="nickname"
+            defaultValue={account.name}
+            required
+            maxLength={100}
+          />
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="timezone" className="block text-label">
+            Time zone
+          </label>
+          <select
+            className="field"
+            id="timezone"
+            name="timezone"
+            defaultValue={account.timezone}
+          >
+            {timeZones.map((zone) => (
+              <option key={zone.value} value={zone.value}>
+                {zone.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        {message && (
+          <p
+            ref={notice}
+            tabIndex={-1}
+            role={failed ? "alert" : "status"}
+            className={failed ? "text-body text-error" : "text-body"}
+          >
+            {message}
+          </p>
+        )}
+        <button
+          className="action action-primary transition-none"
+          type="submit"
+          disabled={pending}
         >
-          {[
-            ...new Set([
-              "UTC",
-              account.timezone,
-              ...Intl.supportedValuesOf("timeZone"),
-            ]),
-          ].map((zone) => (
-            <option key={zone} value={zone}>
-              {zone.replaceAll("_", " ")}
-            </option>
-          ))}
-        </select>
-      </div>
-      {message && (
-        <p
-          ref={notice}
-          tabIndex={-1}
-          role={failed ? "alert" : "status"}
-          className={failed ? "text-body text-error" : "text-body"}
-        >
-          {message}
-        </p>
-      )}
-      <button
-        className="action action-primary"
-        type="submit"
-        disabled={pending}
-      >
-        {pending ? "Saving…" : "Save settings"}
-      </button>
+          {pending ? "Saving…" : "Save settings"}
+        </button>
+      </fieldset>
     </form>
   );
 }

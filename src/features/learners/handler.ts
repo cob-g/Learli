@@ -4,11 +4,12 @@ import { AccessError } from "@/lib/permissions/access";
 import { handleJsonMutation } from "@/lib/mutation-handler";
 import { describeLearnerIssues } from "./input";
 import {
-  createMyLearner,
-  listMyLearners,
-  readMyLearner,
-  updateMyLearner,
-} from "./service";
+  updateComposedLearner,
+  readComposedLearner,
+  listLearnerGroups,
+} from "./composition";
+import { admissionContext } from "@/features/learner-admission/context";
+import { createMyLearner, listMyLearners, readMyLearner } from "./service";
 
 export async function handleLearnerRequest(
   runtime: AuthRuntime | null,
@@ -29,7 +30,7 @@ export async function handleLearnerRequest(
       request,
       { method: "PATCH", invalid: describeLearnerIssues },
       (active, input) =>
-        updateMyLearner(active, request.headers, learnerId, input),
+        updateComposedLearner(active, request.headers, learnerId, input),
     );
   }
   if (!runtime)
@@ -39,6 +40,15 @@ export async function handleLearnerRequest(
   if (request.method !== "GET")
     return privateJson({ message: "Method not allowed." }, 405);
   try {
+    if (admissionContext(runtime).admission.authority === "synthetic_test") {
+      if (learnerId)
+        return privateJson(
+          (await readComposedLearner(runtime, request.headers, learnerId))
+            .profile,
+        );
+      const groups = await listLearnerGroups(runtime, request.headers);
+      return privateJson([...groups.demo, ...groups.readiness]);
+    }
     return privateJson(
       learnerId
         ? await readMyLearner(runtime, request.headers, learnerId)

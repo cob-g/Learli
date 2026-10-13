@@ -1,3 +1,4 @@
+import { enrollBrowserAdmin } from "../support/browser-admin-mfa";
 import { randomUUID } from "node:crypto";
 import { test, expect, type Browser, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -39,6 +40,7 @@ async function actor(browser: Browser, role = "parent") {
       })
     ).status(),
   ).toBe(200);
+  if (role === "admin") await enrollBrowserAdmin(context, password);
   return { context, id, page: await context.newPage() };
 }
 async function reservation(actorId: string, expired = false) {

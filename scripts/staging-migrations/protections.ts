@@ -28,6 +28,15 @@ const lifecycleBookingDefinitions: Record<string, string> = {
   bookings_revision_valid:
     "CHECK (((revision >= 0) AND (((revision = 0) AND (replaces_booking_id IS NULL) AND (logical_booking_id = id)) OR ((revision > 0) AND (replaces_booking_id IS NOT NULL) AND (logical_booking_id <> id)))))",
 };
+const workflowBookingDefinitions: Record<string, string> = {
+  ...lifecycleBookingDefinitions,
+  bookings_demo_state:
+    "CHECK ((((source = 'local_simulation'::text) AND (state = ANY (ARRAY['demo_reserved'::text, 'demo_expired'::text, 'demo_cancelled'::text, 'demo_replaced'::text, 'demo_confirmed'::text, 'demo_completed'::text])) AND (workflow_policy_id IS NULL) AND (admission_policy_id IS NULL) AND (workflow_revision = 0)) OR ((source = 'synthetic_readiness'::text) AND (state = ANY (ARRAY['provisional'::text, 'confirmed'::text, 'completed'::text, 'no_show'::text, 'expired'::text, 'cancelled'::text, 'replaced'::text])) AND (workflow_policy_id IS NOT NULL) AND (admission_policy_id IS NOT NULL) AND (workflow_revision >= 0))))",
+  bookings_local_source:
+    "CHECK ((source = ANY (ARRAY['local_simulation'::text, 'synthetic_readiness'::text])))",
+  bookings_tutor_no_overlap:
+    "EXCLUDE USING gist (tutor_id WITH =, tstzrange(start_at_utc, end_at_utc, '[)'::text) WITH &&) WHERE ((state = ANY (ARRAY['demo_reserved'::text, 'demo_confirmed'::text, 'provisional'::text, 'confirmed'::text])))",
+};
 // Keep grouping for mixed AND/OR expressions; removing parentheses could hide
 // a weakened revision predicate with a different logical precedence.
 const grouped = (text: string) => text.replace(/[\s"]+/g, "");
@@ -135,9 +144,14 @@ export async function verifyProtections(
   const hasLifecycle = candidate.entries
     .slice(0, applied)
     .some((entry) => entry.tag === "0017_local_booking_lifecycle");
-  const expectedBookingDefinitions = hasLifecycle
-    ? lifecycleBookingDefinitions
-    : bookingDefinitions;
+  const hasWorkflow = candidate.entries
+    .slice(0, applied)
+    .some((e) => e.tag === "0025_booking_workflows");
+  const expectedBookingDefinitions = hasWorkflow
+    ? workflowBookingDefinitions
+    : hasLifecycle
+      ? lifecycleBookingDefinitions
+      : bookingDefinitions;
   const actual = await client.query<{
     name: string;
     body: string;
@@ -223,7 +237,8 @@ export async function verifyProtections(
       constraints.rows.some(
         (row) =>
           !row.valid ||
-          (row.name === "bookings_revision_valid"
+          (row.name === "bookings_revision_valid" ||
+          (hasWorkflow && row.name === "bookings_demo_state")
             ? grouped(row.definition) !==
               grouped(expectedBookingDefinitions[row.name])
             : compact(row.definition) !==
@@ -248,7 +263,9 @@ export async function verifyProtections(
       typeof index.rows[0].predicate !== "string" ||
       compact(index.rows[0].predicate) !==
         compact(
-          "state = ANY (ARRAY['demo_reserved'::text, 'demo_confirmed'::text])",
+          hasWorkflow
+            ? "state = ANY (ARRAY['demo_reserved'::text, 'demo_confirmed'::text, 'provisional'::text, 'confirmed'::text])"
+            : "state = ANY (ARRAY['demo_reserved'::text, 'demo_confirmed'::text])",
         )
     )
       throw new MigrationFault("protection_mismatch");

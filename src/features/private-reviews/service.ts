@@ -1,3 +1,4 @@
+import { recheckAdminAssurance } from "@/features/admin-security/assurance";
 // Node-only reusable service; every protected projection rechecks current identity.
 import { sql } from "drizzle-orm";
 import { z } from "zod";
@@ -48,6 +49,7 @@ export async function listModeratorReviews(
 ) {
   const a = await actor(runtime, headers);
   if (!a.roles.includes("admin")) throw new AccessError(403);
+  await recheckAdminAssurance(runtime.db, a);
   const rows = await queryModeratorReviews(runtime.db, a);
   return {
     reviews: rows

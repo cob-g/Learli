@@ -39,7 +39,9 @@ async function assertFreePort(port: number) {
     );
   });
 }
-export async function createStagingTlsHarness() {
+export async function createStagingTlsHarness(
+  options: { neonBootstrap?: boolean } = {},
+) {
   if (process.env.APP_ENV !== "test")
     throw new Error(
       "TLS harness requires the isolated local test environment.",
@@ -178,7 +180,7 @@ export async function createStagingTlsHarness() {
       "-l",
       log,
       "-o",
-      `-h 127.0.0.1 -p ${port} -c unix_socket_directories='' -c log_statement=none -c log_min_error_statement=panic`,
+      `-h 127.0.0.1 -p ${port} -c unix_socket_directories='' -c log_statement=none -c log_min_error_statement=${options.neonBootstrap ? "error" : "panic"}`,
       "-w",
       "start",
     ]);
@@ -191,18 +193,23 @@ export async function createStagingTlsHarness() {
     "utf8",
   );
   function settings(
-    role: "learli_app" | "learli_migrator" | "tls_admin",
+    role: "learli_app" | "learli_migrator" | "tls_admin" | "neondb_owner",
     trustedCa = ca,
   ): PoolConfig {
     return {
       host: "127.0.0.1",
       port,
-      database: role === "tls_admin" ? "postgres" : "learli_staging",
+      database:
+        role === "tls_admin"
+          ? "postgres"
+          : options.neonBootstrap
+            ? "neondb"
+            : "learli_staging",
       user: role,
       password:
         role === "learli_app"
           ? runtimePassword
-          : role === "learli_migrator"
+          : ["learli_migrator", "neondb_owner"].includes(role)
             ? ownerPassword
             : adminPassword,
       ssl: { rejectUnauthorized: true, ca: trustedCa },
@@ -228,6 +235,13 @@ export async function createStagingTlsHarness() {
     await start();
     await asAdmin(async (pool) => {
       // Only generated hex credentials can reach this private synthetic SQL.
+      if (options.neonBootstrap) {
+        await pool.query(
+          `CREATE ROLE neondb_owner LOGIN PASSWORD '${ownerPassword}' NOSUPERUSER CREATEDB CREATEROLE NOREPLICATION NOBYPASSRLS`,
+        );
+        await pool.query("CREATE DATABASE neondb OWNER neondb_owner");
+        return;
+      }
       await pool.query(
         `CREATE ROLE learli_app LOGIN PASSWORD '${runtimePassword}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`,
       );
@@ -239,13 +253,15 @@ export async function createStagingTlsHarness() {
         "REVOKE ALL ON DATABASE learli_staging FROM PUBLIC; GRANT CONNECT ON DATABASE learli_staging TO learli_app",
       );
     });
-    const owner = new Pool(settings("learli_migrator"));
-    try {
-      await owner.query(
-        "REVOKE ALL ON SCHEMA public FROM PUBLIC; GRANT USAGE ON SCHEMA public TO learli_app",
-      );
-    } finally {
-      await owner.end();
+    if (!options.neonBootstrap) {
+      const owner = new Pool(settings("learli_migrator"));
+      try {
+        await owner.query(
+          "REVOKE ALL ON SCHEMA public FROM PUBLIC; GRANT USAGE ON SCHEMA public TO learli_app",
+        );
+      } finally {
+        await owner.end();
+      }
     }
     return {
       port,

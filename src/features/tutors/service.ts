@@ -58,7 +58,11 @@ export async function startTutorApplication(
 }
 
 /** One profile with its offerings, or null. Callers authorize before calling. */
-export async function loadTutorProfile(db: Database, where: SQL) {
+export async function loadTutorProfile(
+  db: Database,
+  where: SQL,
+  finalPermission?: SQL,
+) {
   const [profile] = await db
     .select({
       id: tutorProfiles.id,
@@ -88,7 +92,7 @@ export async function loadTutorProfile(db: Database, where: SQL) {
     })
     .from(tutorSubjects)
     .innerJoin(subjects, eq(subjects.id, tutorSubjects.subjectId))
-    .where(eq(tutorSubjects.tutorId, profile.id))
+    .where(and(eq(tutorSubjects.tutorId, profile.id), finalPermission))
     .orderBy(asc(subjects.name));
   return { ...profile, offerings };
 }
@@ -172,13 +176,22 @@ export async function saveOwnTutorProfile(
           .update(tutorProfiles)
           .set({
             ...fields,
-            reviewStatus,
             updatedAt: new Date(),
             ...(existing && fields.timezone !== existing.timezone
               ? { availabilityVersion: existing.availabilityVersion + 1 }
               : {}),
           })
           .where(eq(tutorProfiles.id, profileId));
+        if (existing?.reviewStatus === "rejected") {
+          const r = await tx.execute<{ allowed: boolean }>(
+            sql`SELECT public.resubmit_tutor_application(${identity.userId},${identity.sessionId},${profileId}::uuid) allowed`,
+          );
+          if (!r.rows[0]?.allowed)
+            throw new RuleError(
+              409,
+              "This application changed. Reload before submitting.",
+            );
+        }
         await tx
           .delete(tutorSubjects)
           .where(eq(tutorSubjects.tutorId, profileId));
@@ -187,14 +200,10 @@ export async function saveOwnTutorProfile(
           .select({ name: user.name })
           .from(user)
           .where(eq(user.id, identity.userId));
-        [{ id: profileId }] = await tx
-          .insert(tutorProfiles)
-          .values({
-            ...fields,
-            userId: identity.userId,
-            slug: tutorSlug(owner?.name ?? ""),
-          })
-          .returning({ id: tutorProfiles.id });
+        const inserted = await tx.execute<{ id: string }>(
+          sql`INSERT INTO tutor_profiles(user_id,slug,headline,bio,teaching_background,timezone) VALUES(${identity.userId},${tutorSlug(owner?.name ?? "")},${fields.headline},${fields.bio},${fields.teachingBackground},${fields.timezone}) RETURNING id`,
+        );
+        profileId = inserted.rows[0].id;
       }
       const tutorId = profileId;
       // Older clients omit this optional field; preserve their existing set.
@@ -218,6 +227,7 @@ export async function saveOwnTutorProfile(
         targetUserId: identity.userId,
         action: submitted ? "tutor_profile.submitted" : "tutor_profile.updated",
       });
+      await recheckIdentity(tx, identity, "tutor");
       return { submitted, reviewStatus };
     });
   } catch (error) {

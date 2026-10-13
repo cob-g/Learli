@@ -24,12 +24,22 @@ export const supportReviewers = pgTable(
     userId: text("user_id")
       .primaryKey()
       .references(() => user.id, { onDelete: "restrict" }),
-    source: text("source").$type<"local_fixture">().notNull(),
+    source: text("source")
+      .$type<"local_fixture" | "synthetic_readiness">()
+      .notNull(),
     status: text("status").$type<"authorized" | "revoked">().notNull(),
+    validUntil: timestamp("valid_until", { withTimezone: true }),
     createdAt: instant("created_at"),
   },
   (t) => [
-    check("support_reviewers_source", sql`${t.source} = 'local_fixture'`),
+    check(
+      "support_reviewers_source",
+      sql`${t.source} IN ('local_fixture','synthetic_readiness')`,
+    ),
+    check(
+      "support_reviewers_expiry",
+      sql`(${t.source}='local_fixture' AND ${t.validUntil} IS NULL) OR (${t.source}='synthetic_readiness' AND ${t.validUntil} IS NOT NULL AND isfinite(${t.validUntil}))`,
+    ),
     check(
       "support_reviewers_status",
       sql`${t.status} IN ('authorized', 'revoked')`,
@@ -45,6 +55,8 @@ export const supportReviewerEvents = pgTable(
     reviewerUserId: text("reviewer_user_id")
       .notNull()
       .references(() => supportReviewers.userId, { onDelete: "restrict" }),
+    validUntil: timestamp("valid_until", { withTimezone: true }),
+    toolingActorId: text("tooling_actor_id"),
     action: text("action").$type<"authorized" | "revoked">().notNull(),
     createdAt: instant("created_at"),
   },
@@ -60,12 +72,13 @@ export const supportCases = pgTable(
   "support_cases",
   {
     id: uuid("id").defaultRandom().primaryKey(),
+    creationTransaction: text("creation_transaction"),
     requesterUserId: text("requester_user_id")
       .notNull()
       .references(() => user.id, { onDelete: "restrict" }),
     requestKey: uuid("request_key").notNull(),
     source: text("source")
-      .$type<"local_synthetic">()
+      .$type<"local_synthetic" | "synthetic_readiness">()
       .default("local_synthetic")
       .notNull(),
     category: text("category").$type<SupportCategory>().notNull(),
@@ -83,7 +96,10 @@ export const supportCases = pgTable(
       t.createdAt,
       t.id,
     ),
-    check("support_cases_source", sql`${t.source} = 'local_synthetic'`),
+    check(
+      "support_cases_source",
+      sql`${t.source} IN ('local_synthetic','synthetic_readiness')`,
+    ),
     check(
       "support_cases_category",
       sql`${t.category} IN ('general', 'account', 'safety')`,
@@ -131,7 +147,14 @@ export const supportCaseEvents = pgTable(
       .notNull()
       .references(() => supportCases.id, { onDelete: "restrict" }),
     action: text("action")
-      .$type<"created" | "assigned" | "reassigned" | "status_changed">()
+      .$type<
+        | "created"
+        | "assigned"
+        | "reassigned"
+        | "status_changed"
+        | "acknowledged"
+        | "escalation_requested"
+      >()
       .notNull(),
     actorUserId: text("actor_user_id").references(() => user.id, {
       onDelete: "restrict",
@@ -157,6 +180,8 @@ export const supportCaseEvents = pgTable(
       sql`(
     (${t.action} = 'created' AND ${t.revision} = 0 AND ${t.actorUserId} IS NOT NULL AND ${t.previousStatus} IS NULL AND ${t.nextStatus} = 'open' AND ${t.previousReviewerId} IS NULL AND ${t.nextReviewerId} IS NULL)
     OR (${t.action} IN ('assigned','reassigned') AND ${t.revision} > 0 AND ${t.actorUserId} IS NULL AND ${t.previousStatus} IS NULL AND ${t.nextStatus} IS NULL AND ${t.nextReviewerId} IS NOT NULL AND ((${t.action} = 'assigned' AND ${t.previousReviewerId} IS NULL) OR (${t.action} = 'reassigned' AND ${t.previousReviewerId} IS NOT NULL AND ${t.previousReviewerId} <> ${t.nextReviewerId})))
+    OR (${t.action}='acknowledged' AND ${t.revision}>0 AND ${t.actorUserId} IS NOT NULL AND ${t.previousReviewerId} IS NULL AND ${t.nextReviewerId} IS NULL AND ((${t.previousStatus}='open' AND ${t.nextStatus}='in_review') OR (${t.previousStatus} IS NULL AND ${t.nextStatus} IS NULL)))
+    OR (${t.action}='escalation_requested' AND ${t.revision}>0 AND ${t.actorUserId} IS NOT NULL AND ${t.previousReviewerId} IS NULL AND ${t.nextReviewerId} IS NULL AND ${t.previousStatus} IS NULL AND ${t.nextStatus} IS NULL)
     OR (${t.action} = 'status_changed' AND ${t.revision} > 0 AND ${t.actorUserId} IS NOT NULL AND ${t.previousReviewerId} IS NULL AND ${t.nextReviewerId} IS NULL AND ((${t.previousStatus} = 'open' AND ${t.nextStatus} = 'in_review') OR (${t.previousStatus} = 'in_review' AND ${t.nextStatus} = 'closed') OR (${t.previousStatus} = 'closed' AND ${t.nextStatus} = 'in_review')))
   ) IS TRUE`,
     ),

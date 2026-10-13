@@ -1,3 +1,4 @@
+import { enrollBrowserAdmin } from "../support/browser-admin-mfa";
 import { randomUUID } from "node:crypto";
 import { test, expect, type Browser, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -40,6 +41,7 @@ async function actor(browser: Browser, admin = false) {
       })
     ).status(),
   ).toBe(200);
+  if (admin) await enrollBrowserAdmin(context, password);
   return { context, page: await context.newPage(), id };
 }
 async function setup(browser: Browser) {

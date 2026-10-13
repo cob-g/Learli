@@ -11,12 +11,18 @@ import {
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
+import { bookingWorkflowPolicies } from "./booking-workflows";
+import { learnerAdmissionPolicies } from "./learner-admission";
 import { user } from "./auth";
 import { subjects, tutorProfiles } from "./app";
 import type {
   DemoBookingState,
   DemoLifecycleEvent,
 } from "@/features/bookings/lifecycle-model";
+import type {
+  WorkflowState,
+  WorkflowEvent,
+} from "@/features/booking-workflows/model";
 import { learnerProfiles } from "./learners";
 
 export const bookings = pgTable(
@@ -28,7 +34,9 @@ export const bookings = pgTable(
       .notNull(),
     replacesBookingId: uuid("replaces_booking_id"),
     revision: integer("revision").default(0).notNull(),
-    source: text("source").$type<"local_simulation">().notNull(),
+    source: text("source")
+      .$type<"local_simulation" | "synthetic_readiness">()
+      .notNull(),
     tutorId: uuid("tutor_id")
       .notNull()
       .references(() => tutorProfiles.id, { onDelete: "restrict" }),
@@ -46,10 +54,19 @@ export const bookings = pgTable(
     displayTimezone: text("display_timezone").notNull(),
     idempotencyKey: uuid("idempotency_key").notNull(),
     requestFingerprint: text("request_fingerprint").notNull(),
-    state: text("state").$type<DemoBookingState>().notNull(),
+    state: text("state").$type<DemoBookingState | WorkflowState>().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
+    workflowPolicyId: uuid("workflow_policy_id").references(
+      () => bookingWorkflowPolicies.id,
+      { onDelete: "restrict" },
+    ),
+    admissionPolicyId: uuid("admission_policy_id").references(
+      () => learnerAdmissionPolicies.id,
+      { onDelete: "restrict" },
+    ),
+    workflowRevision: integer("workflow_revision").default(0).notNull(),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   },
   (table) => [
@@ -66,7 +83,9 @@ export const bookings = pgTable(
     unique("bookings_replaces_unique").on(table.replacesBookingId),
     uniqueIndex("bookings_logical_live_unique")
       .on(table.logicalBookingId)
-      .where(sql`${table.state} IN ('demo_reserved','demo_confirmed')`),
+      .where(
+        sql`${table.state} IN ('demo_reserved','demo_confirmed','provisional','confirmed')`,
+      ),
     check(
       "bookings_revision_valid",
       sql`${table.revision}>=0 AND ((${table.revision}=0 AND ${table.replacesBookingId} IS NULL AND ${table.logicalBookingId}=${table.id}) OR (${table.revision}>0 AND ${table.replacesBookingId} IS NOT NULL AND ${table.logicalBookingId}<>${table.id}))`,
@@ -76,10 +95,13 @@ export const bookings = pgTable(
       table.idempotencyKey,
     ),
     index("bookings_tutor_time_idx").on(table.tutorId, table.startAtUtc),
-    check("bookings_local_source", sql`${table.source} = 'local_simulation'`),
+    check(
+      "bookings_local_source",
+      sql`${table.source} IN ('local_simulation','synthetic_readiness')`,
+    ),
     check(
       "bookings_demo_state",
-      sql`${table.state} IN ('demo_reserved','demo_expired','demo_cancelled','demo_replaced','demo_confirmed','demo_completed')`,
+      sql`(${table.source}='local_simulation' AND ${table.state} IN ('demo_reserved','demo_expired','demo_cancelled','demo_replaced','demo_confirmed','demo_completed') AND ${table.workflowPolicyId} IS NULL AND ${table.admissionPolicyId} IS NULL AND ${table.workflowRevision}=0) OR (${table.source}='synthetic_readiness' AND ${table.state} IN ('provisional','confirmed','completed','no_show','expired','cancelled','replaced') AND ${table.workflowPolicyId} IS NOT NULL AND ${table.admissionPolicyId} IS NOT NULL AND ${table.workflowRevision}>=0)`,
     ),
     check(
       "bookings_interval_valid",
@@ -128,8 +150,14 @@ export const bookingLifecycleEvents = pgTable(
     logicalBookingId: uuid("logical_booking_id").notNull(),
     bookingId: uuid("booking_id").notNull(),
     replacementBookingId: uuid("replacement_booking_id"),
+    workflowPolicyId: uuid("workflow_policy_id").references(
+      () => bookingWorkflowPolicies.id,
+      { onDelete: "restrict" },
+    ),
+    workflowRevision: integer("workflow_revision"),
+    reasonCode: text("reason_code"),
     actorUserId: text("actor_user_id").notNull(),
-    event: text("event").$type<DemoLifecycleEvent>().notNull(),
+    event: text("event").$type<DemoLifecycleEvent | WorkflowEvent>().notNull(),
     requestId: uuid("request_id").notNull(),
     requestFingerprint: text("request_fingerprint").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -159,7 +187,7 @@ export const bookingLifecycleEvents = pgTable(
     }).onDelete("restrict"),
     check(
       "booking_lifecycle_events_event_check",
-      sql`${table.event} IN ('demo_cancelled','demo_rescheduled','demo_confirmed','demo_completed')`,
+      sql`(${table.workflowPolicyId} IS NULL AND ${table.event} IN ('demo_cancelled','demo_rescheduled','demo_confirmed','demo_completed') AND ${table.workflowRevision} IS NULL AND ${table.reasonCode} IS NULL) OR (${table.workflowPolicyId} IS NOT NULL AND ${table.event} IN ('workflow_provisional','workflow_confirmed','workflow_completed','workflow_no_show','workflow_expired','workflow_cancelled','workflow_rescheduled') AND ${table.workflowRevision}>=0 AND ${table.reasonCode} IN ('synthetic_request','synthetic_prerequisite_review','synthetic_completed','synthetic_no_show','synthetic_participant_change','synthetic_expiry'))`,
     ),
     check(
       "booking_lifecycle_events_request_fingerprint_check",
@@ -167,12 +195,15 @@ export const bookingLifecycleEvents = pgTable(
     ),
     check(
       "booking_lifecycle_shape",
-      sql`(${table.event}='demo_rescheduled' AND ${table.replacementBookingId} IS NOT NULL) OR (${table.event}<>'demo_rescheduled' AND ${table.replacementBookingId} IS NULL)`,
+      sql`(${table.event} IN ('demo_rescheduled','workflow_rescheduled') AND ${table.replacementBookingId} IS NOT NULL) OR (${table.event} NOT IN ('demo_rescheduled','workflow_rescheduled') AND ${table.replacementBookingId} IS NULL)`,
     ),
     unique("booking_lifecycle_actor_request_unique").on(
       table.actorUserId,
       table.requestId,
     ),
+    uniqueIndex("booking_workflow_event_revision")
+      .on(table.bookingId, table.workflowRevision)
+      .where(sql`${table.workflowPolicyId} IS NOT NULL`),
     index("booking_lifecycle_logical_idx").on(table.logicalBookingId),
   ],
 );

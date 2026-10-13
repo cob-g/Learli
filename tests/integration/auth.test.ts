@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { eq } from "drizzle-orm";
-import { createLocalAuth, type AuthRuntime } from "@/lib/auth-factory";
+import { createLocalAuth, type LocalAuthRuntime } from "@/lib/auth-factory";
 import { createDatabase } from "@/lib/db/connection";
 import {
   user,
@@ -17,7 +17,7 @@ import { handleAccountRequest } from "@/features/account/handler";
 import { requireRole } from "@/lib/permissions/access";
 import { localMailbox, type LocalMessage } from "@/lib/email/local-mail";
 
-let runtime: AuthRuntime;
+let runtime: LocalAuthRuntime;
 let owner: ReturnType<typeof createDatabase>;
 const password = "Synthetic-only-passphrase-123";
 function authRequest(

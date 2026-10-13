@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   foreignKey,
   index,
@@ -17,8 +18,11 @@ const instant = (name: string) =>
   timestamp(name, { withTimezone: true }).defaultNow().notNull();
 const grantFields = () => ({
   caseId: uuid("case_id").notNull(),
-  source: text("source").$type<"local_fixture">().notNull(),
+  source: text("source")
+    .$type<"local_fixture" | "synthetic_readiness">()
+    .notNull(),
   status: text("status").$type<"authorized" | "revoked">().notNull(),
+  validUntil: timestamp("valid_until", { withTimezone: true }),
   createdAt: instant("created_at"),
   updatedAt: instant("updated_at"),
 });
@@ -45,7 +49,11 @@ export const supportDispatchGrants = pgTable(
     }).onDelete("restrict"),
     check(
       "support_dispatch_grants_source_check",
-      sql`${t.source} = 'local_fixture'`,
+      sql`${t.source} IN ('local_fixture','synthetic_readiness')`,
+    ),
+    check(
+      "support_dispatch_grants_expiry",
+      sql`(${t.source}='local_fixture' AND ${t.validUntil} IS NULL) OR (${t.source}='synthetic_readiness' AND ${t.validUntil} IS NOT NULL AND isfinite(${t.validUntil}))`,
     ),
     check(
       "support_dispatch_grants_status_check",
@@ -58,6 +66,7 @@ export const supportReviewerChoices = pgTable(
   {
     ...grantFields(),
     reviewerUserId: text("reviewer_user_id").notNull(),
+    canEscalate: boolean("can_escalate").default(false).notNull(),
   },
   (t) => [
     primaryKey({
@@ -76,7 +85,11 @@ export const supportReviewerChoices = pgTable(
     }).onDelete("restrict"),
     check(
       "support_reviewer_choices_source_check",
-      sql`${t.source} = 'local_fixture'`,
+      sql`${t.source} IN ('local_fixture','synthetic_readiness')`,
+    ),
+    check(
+      "support_reviewer_choices_expiry",
+      sql`(${t.source}='local_fixture' AND ${t.validUntil} IS NULL) OR (${t.source}='synthetic_readiness' AND ${t.validUntil} IS NOT NULL AND isfinite(${t.validUntil}))`,
     ),
     check(
       "support_reviewer_choices_status_check",
@@ -90,7 +103,12 @@ export const supportDispatchGrantEvents = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     caseId: uuid("case_id").notNull(),
     userId: text("user_id").notNull(),
-    kind: text("kind").$type<"dispatcher" | "reviewer_choice">().notNull(),
+    validUntil: timestamp("valid_until", { withTimezone: true }),
+    canEscalate: boolean("can_escalate"),
+    toolingActorId: text("tooling_actor_id"),
+    kind: text("kind")
+      .$type<"dispatcher" | "reviewer_choice" | "escalation_choice">()
+      .notNull(),
     action: text("action").$type<"authorized" | "revoked">().notNull(),
     createdAt: instant("created_at"),
   },
@@ -107,7 +125,7 @@ export const supportDispatchGrantEvents = pgTable(
     }).onDelete("restrict"),
     check(
       "support_dispatch_grant_events_kind_check",
-      sql`${t.kind} IN ('dispatcher','reviewer_choice')`,
+      sql`${t.kind} IN ('dispatcher','reviewer_choice','escalation_choice')`,
     ),
     check(
       "support_dispatch_grant_events_action_check",

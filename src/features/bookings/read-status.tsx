@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Hourglass, TimerOff } from "lucide-react";
+import { Hourglass, TimerOff, CircleCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { demoLiveState, demoStateLabels } from "./lifecycle-model";
 import type { BookingSummary } from "./read-model";
@@ -11,7 +11,8 @@ export function BookingReadStatus({ booking }: { booking: BookingSummary }) {
   const [elapsed, setElapsed] = useState(false);
   const router = useRouter();
   useEffect(() => {
-    if (!demoLiveState(booking.state)) return;
+    if (!demoLiveState(booking.state) && booking.state !== "provisional")
+      return;
     const remaining =
       new Date(booking.expiresAtUtc).getTime() -
       new Date(booking.snapshotAtUtc).getTime();
@@ -31,23 +32,44 @@ export function BookingReadStatus({ booking }: { booking: BookingSummary }) {
   }, [booking.state, booking.expiresAtUtc, booking.snapshotAtUtc, router]);
   const expired =
     booking.state === "demo_expired" ||
-    (demoLiveState(booking.state) && elapsed);
-  const terminal = expired || !demoLiveState(booking.state);
-  const Icon = terminal ? TimerOff : Hourglass;
+    booking.state === "expired" ||
+    ((demoLiveState(booking.state) || booking.state === "provisional") &&
+      elapsed);
+  const terminal =
+    expired ||
+    (!demoLiveState(booking.state) &&
+      booking.state !== "provisional" &&
+      booking.state !== "confirmed");
+  const Icon =
+    booking.state === "confirmed"
+      ? CircleCheck
+      : terminal
+        ? TimerOff
+        : Hourglass;
   return (
     <div aria-live="polite" className="space-y-2">
       <span
-        className={`inline-flex min-h-7 items-center gap-1 rounded-tag border px-2 text-label ${terminal ? "border-control bg-subtle text-muted-foreground" : "border-warning bg-warning-soft text-warning"}`}
+        className={`inline-flex min-h-7 items-center gap-1 rounded-tag border px-2 text-label ${booking.state === "confirmed" ? "border-success bg-success-soft text-success" : terminal ? "border-control bg-subtle text-muted-foreground" : "border-warning bg-warning-soft text-warning"}`}
       >
         <Icon aria-hidden="true" size={16} />
-        {expired ? "Simulation expired" : demoStateLabels[booking.state]}
+        {expired
+          ? booking.source === "synthetic_readiness"
+            ? "Synthetic booking expired"
+            : "Simulation expired"
+          : demoStateLabels[booking.state]}
       </span>
       <p className="text-small text-muted-foreground">
-        {expired
-          ? "The simulation lifetime has elapsed. This record is retained in your history."
-          : demoLiveState(booking.state)
-            ? "This local simulation expires at the saved deadline. No lesson is confirmed."
-            : "This synthetic administrative outcome is retained in history. No payment or attendance is recorded."}
+        {booking.source === "synthetic_readiness"
+          ? booking.state === "provisional"
+            ? "Synthetic test only. Assigned prerequisite review is required before confirmation; the saved provisional deadline is finite."
+            : booking.state === "confirmed"
+              ? "Synthetic confirmation only. The original provisional deadline no longer expires this booking; no payment or attendance is established."
+              : "Synthetic administrative history only. For a disputed outcome, contact support; no attendance was observed."
+          : expired
+            ? "The simulation lifetime has elapsed. This record is retained in your history."
+            : demoLiveState(booking.state)
+              ? "This local simulation expires at the saved deadline. No lesson is confirmed."
+              : "This synthetic administrative outcome is retained in history. No payment or attendance is recorded."}
       </p>
     </div>
   );

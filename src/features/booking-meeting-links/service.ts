@@ -134,6 +134,10 @@ export async function savePrivateMeetingLink(
         actorUserId: actor.userId,
         createdAt: updatedAt,
       });
+      if (row.source === "synthetic_readiness") {
+        const fresh = await queryPrivateMeeting(tx, actor, bookingId, true);
+        if (!fresh?.live || !fresh.canEdit) throw new AccessError(404);
+      }
       return { revision };
     },
     { isolationLevel: "read committed" },

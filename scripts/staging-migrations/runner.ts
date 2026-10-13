@@ -15,6 +15,7 @@ import {
 import {
   migrationPrerequisites,
   probeRuntime,
+  probeRuntimeReadOnly,
   verifyRuntimeGrants,
 } from "./privileges";
 
@@ -23,6 +24,7 @@ export interface Connection {
   close(): Promise<void>;
 }
 export type Identity = {
+  environment?: "staging" | "development" | "production";
   database: string;
   migrationRole: string;
   targetHash: string;
@@ -85,7 +87,10 @@ export function validateApplyInputs(
     plan.targetHash !== identity.targetHash
   )
     throw new MigrationFault("plan_mismatch");
-  if (plan.state === "populated" && plan.pending.length) {
+  if (
+    identity.environment === "production" ||
+    (plan.pending.length && plan.state === "populated")
+  ) {
     const recovery = recoverySchema.safeParse(recoveryValue);
     if (
       !recovery.success ||
@@ -262,6 +267,11 @@ export async function applyPlan(options: {
         if (planHash(current) !== receipt.planHash)
           throw new MigrationFault("plan_stale");
         receipt.stage = "migrate";
+        // Historical Drizzle CREATE TABLE statements are intentionally public
+        // and unqualified. pg_catalog is still implicitly searched first for
+        // builtins; it must not be the default creation schema for this owner.
+        // This direct operator lease is destroyed on release, never app runtime.
+        await client.query("SET search_path = public");
         receipt.migrations = "unknown";
         // Use the installed migrator's exact transaction/journal behavior with
         // captured statements. No second filesystem read can swap approved SQL.
@@ -295,7 +305,11 @@ export async function applyPlan(options: {
           throw error;
         }
         receipt.stage = "runtime";
-        await runtime.withClient(probeRuntime);
+        await runtime.withClient(async (client) => {
+          if (identity.environment === "production")
+            await probeRuntimeReadOnly(client);
+          else await probeRuntime(client);
+        });
         receipt.runtime = "pass";
       } finally {
         try {

@@ -1,3 +1,4 @@
+import { enrollBrowserAdmin } from "../support/browser-admin-mfa";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { test, expect, type Browser, type Page } from "@playwright/test";
@@ -32,6 +33,7 @@ async function setup(browser: Browser) {
     data: { email, password },
   });
   expect(signin.status()).toBe(200);
+  await enrollBrowserAdmin(context, password);
   const created = await context.request.post("/api/admin/subjects", {
     headers: { origin: baseURL },
     data: { name: `Synthetic ${randomUUID()}` },

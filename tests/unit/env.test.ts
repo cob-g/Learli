@@ -6,6 +6,7 @@ describe("server environment safety", () => {
     expect(parseServerEnv({})).toEqual({
       APP_ENV: "development",
       AUTH_MODE: "disabled",
+      DATABASE_MODE: "local",
       APP_URL: "http://localhost:3000",
     });
     expect(
