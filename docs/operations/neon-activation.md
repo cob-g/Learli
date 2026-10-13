@@ -1,5 +1,15 @@
 # Neon schema activation and local development
 
+Operational closeout (2026-10-13): the reviewed source is merged and pushed, and
+the completed activation worktree has been removed under explicit user authority.
+The former port-3039 preview is stopped. Its private configuration, production
+backup and all evidence are retained in
+`.local/hosted-wave-cleanup-2026-10-13/archives/m8-neon-activation/worktree.tar.zst`;
+the adjacent manifest and verified receipt identify every preserved file. Original
+worktree paths in historical receipts must be reconciled before future use.
+Production/development Neon resources were not modified by cleanup. Main's original
+local database/settings remain unchanged. See the workflow closeout report.
+
 This operator boundary supports the explicitly authorized production schema
 migration and separate local development branch. It does not enable a production
 application, real participants, live mail, payments or deployment. The existing

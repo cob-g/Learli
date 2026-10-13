@@ -1,5 +1,35 @@
 # Learli — Progress Tracker
 
+## 2026-10-13 — remote push and completed-wave cleanup verified
+
+The user explicitly authorized pushing main and removing completed worktrees and
+branches. The reviewed main tip `00fc49a` was pushed normally to `origin/main` and
+the remote hash was verified. All 24 wave tasks were already successful. All 14
+completed feature/review/integration worktrees and their 14 local branches are
+now removed; Git and Orca both list only the main checkout. No corresponding
+feature branches existed on the remote, and no reclaimable worker remains.
+
+Before removal, every worktree was privately archived with its uncommitted source,
+environment files, handoff, test evidence, build outputs and stopped local database
+data. Full archive readback verified 966,792 regular-file hashes plus symlink
+targets and entry sets. Reproducible installed dependencies, Next.js caches and
+Git metadata pointers were excluded. The original Neon production dump hash and
+development runtime configuration were explicitly checked in the retained archive.
+Private archives and receipts are under `.local/hosted-wave-cleanup-2026-10-13/`.
+
+The worktree-owned preview on port 3039 was stopped, and local test PostgreSQL
+instances on 55919/55939 were shut down cleanly. The completed Neon agent session
+also exited. Main's local services, original environment files, generated route
+declarations and unrelated brand-kit archive are preserved; unrelated project
+workspaces remain present. Cleanup made no Neon cloud changes and did not migrate
+main's original local databases. The earlier port-3039 preview link is now inactive.
+
+Application source is unchanged from the reviewed merge. Only cleanup status
+documentation is added; no application tests were repeated for filesystem/Git
+cleanup. Main's local database/dependency preparation, deployment, live-email
+acceptance and real operating-policy requirements remain separate work. Payments
+remain paused. See `docs/operations/m8-hosted-workflows-closeout.md` for the record.
+
 ## 2026-10-13 — reviewed workflow and Neon candidate committed and merged
 
 The user explicitly authorized commit and merge. The reviewed eight-area candidate
@@ -230,9 +260,9 @@ release authorization remain open. Payments remain idle.
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.33 — Reviewed workflow and Neon candidate merged locally
+> **Version:** 1.34 — Reviewed workflow and Neon candidate pushed; worktrees cleaned up
 > **Last updated:** 2026-10-13\
-> **Current overall status:** **Eight-area candidate and Neon compatibility verified and merged locally; production/development Neon migrated; remote push, cleanup and original local database preparation remain; real-operation gates and payments are deferred**
+> **Current overall status:** **Eight-area candidate and Neon compatibility verified, merged and pushed; production/development Neon migrated; completed worktrees/branches archived and removed; original local database preparation, real-operation gates and payments remain deferred**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.

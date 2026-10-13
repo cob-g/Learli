@@ -986,5 +986,8 @@ These results do not complete Railway deployment, real email acceptance, human
 policy/safeguarding launch gates, remote CI or payments. The integration was
 subsequently committed as `c0c6cdc` and merged into local main by `07554df` under
 explicit user authorization. The merge tree exactly matches the reviewed candidate.
-Remote push, worktree cleanup and main's original local database/dependency
-preparation are separate remaining operations; retain private recovery artifacts.
+The reviewed main tip `00fc49a` was subsequently pushed under explicit user
+authorization. All 14 completed worktrees and branches were archived, verified and
+removed; private recovery artifacts remain in `.local/hosted-wave-cleanup-2026-10-13/`.
+Their port-3039 preview is stopped. Main's original local database/dependency
+preparation remains a separate operation; Neon cloud resources are unchanged.
