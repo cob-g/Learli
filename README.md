@@ -3,13 +3,33 @@
 Learli is a one-to-one tutoring marketplace and booking intermediary. Tutors
 teach through Zoom or Google Meet. The repository has a responsive app foundation
 and **synthetic identity, marketplace coordination and policy-gated workflow development**.
-The isolated readiness candidate also adds explicit hosted-synthetic account
-support. Live customer booking remains disabled.
+Hosted-synthetic account support is implemented. Live customer booking remains
+disabled.
 
 ## Run locally
 
 Use Node **24.20.0**, npm **11.19.0**, and PostgreSQL **17** (`initdb`/`pg_ctl` on
 PATH). PostgreSQL 17.11 is installed on the current development machine.
+
+The configured primary checkout uses the isolated Neon development branch with
+synthetic accounts. Follow [Daily local development](docs/operations/daily-development.md)
+for its private configuration, startup and maintenance:
+
+```sh
+npm ci
+npm run dev
+```
+
+Automated tests keep their independent `.env.test.local` and owned loopback
+`learli_test` database on port 55432. The old `.local/fixtures.json` and credential
+sheet belong to the former loopback development database, not Neon accounts.
+Do not run `local:setup`, `db:migrate` or `db:seed` as Neon setup commands.
+Production is not a development or test target; real policies and payments remain
+disabled.
+
+For a fresh checkout where you choose loopback development, use the setup below.
+It preserves existing environment files; it does not switch a configured Neon
+checkout back to loopback.
 
 ```sh
 npm ci
@@ -37,22 +57,22 @@ requires a verified, active session; role workspaces check server-side grants.
 Account settings enforce ownership even for admins. Real-minor onboarding and
 public account enrollment remain gated by project policy.
 
-Detailed setup, migration, credential and recovery instructions:
+Detailed loopback setup, migration, credential and recovery instructions:
 [Local development](docs/operations/local-development.md).
 
 ## Installed stack
 
-| Area           | Tools / actual state                                                                      |
-| -------------- | ----------------------------------------------------------------------------------------- |
-| App            | Next.js 16.4, React 19.3, strict TypeScript 6                                             |
-| UI             | Tailwind 4.3, Poppins, proposed Learli tokens, shadcn CLI/config, native controls         |
-| Local data     | PostgreSQL 17, node-postgres, Drizzle ORM/Kit, reviewed SQL migrations                    |
-| Auth           | Better Auth 1.7.7, verification/reset/sessions, TOTP and admin assurance                  |
-| Access         | Server role and ownership checks, account status, limited audit events                    |
-| Mail           | Private local capture plus pinned Resend transport; external delivery gated               |
-| Quality        | ESLint, Prettier, Vitest/Testing Library, PostgreSQL integration tests                    |
-| Browser        | Playwright Chromium/Firefox/WebKit and axe; owned local acceptance                        |
-| Hosted targets | Hosted runtime/auth adapters prepared; provider acceptance and Railway deployment pending |
+| Area             | Tools / actual state                                                                     |
+| ---------------- | ---------------------------------------------------------------------------------------- |
+| App              | Next.js 16.4, React 19.3, strict TypeScript 6                                            |
+| UI               | Tailwind 4.3, Poppins, proposed Learli tokens, shadcn CLI/config, native controls        |
+| Development data | Isolated Neon development; PostgreSQL 17 for automated tests; Drizzle migrations         |
+| Auth             | Better Auth 1.7.7, verification/reset/sessions, TOTP and admin assurance                 |
+| Access           | Server role and ownership checks, account status, limited audit events                   |
+| Mail             | Private local capture plus pinned Resend transport; external delivery gated              |
+| Quality          | ESLint, Prettier, Vitest/Testing Library, PostgreSQL integration tests                   |
+| Browser          | Playwright Chromium/Firefox/WebKit and axe; owned local acceptance                       |
+| Hosted targets   | Neon development accepted; real-user auth activation and Railway deployment remain gated |
 
 Versions and installation-script policy are pinned in package/lockfile; do not
 mix package managers or force incompatible peers. Next's automatic agent-rule
