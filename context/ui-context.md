@@ -196,13 +196,14 @@ own stroke.
 
 The owner asked on 2026-10-13 for a liquid-glass environment on the home page,
 with a LiquidButton as the reference. The flat surface rule is set aside there,
-and only there. The material is `.glass` in `home.css`: a softened, tinted
+plus the shared site header on every route (owner follow-up, 2026-10-13).
+The material is `.glass` in `site-shell.css`: a softened, tinted
 backdrop, a lit rim, a contact shadow and a glint that follows the pointer.
 
-- Glass is for layers that float above content: the header (home only), the
+- Glass is for layers that float above content: the shared header, the
   finder, the lesson tiles, the "What Learli looks after" card, the
   sample-review sheet, and the primary and outline actions. Reading sections stay solid.
-- The home header is transparent and spans the full viewport width. It takes on
+- The shared header is transparent and spans the full viewport width. It takes on
   glass only once the page has scrolled beneath it (`data-raised`), because
   pinned labels over raw content cannot hold contrast. Without scripts it is
   transparent and scrolls away with the page.
@@ -215,7 +216,7 @@ backdrop, a lit rim, a contact shadow and a glint that follows the pointer.
   scrolls beneath, so it carries an 80% tint and reads even if a browser fails
   to blur.
 - Refraction (an SVG filter as the backdrop) is a Chromium-only enhancement,
-  switched on by `HomeMotion`. Every other browser, and a page without scripts,
+  switched on by `GlassEffects`. Every other browser, and a page without scripts,
   gets the frosted sheet. Nothing may set `filter`, `opacity`, `mask`,
   `clip-path` or `isolation` above a sheet's backdrop layer.
 - `prefers-reduced-transparency`, `prefers-contrast: more`, forced colors and
@@ -316,8 +317,8 @@ so the section is preview content:
   blur. Learli's own parts are the mint sun behind the stack, the quote on glass
   in Literata, and the kit icon travelling along the track.
 - It changes by itself, at the owner's request with no pause button and one
-  control, Next. A review stays up for 2.5s plus about a third of a second per
-  word (11 to 13 seconds for the samples). The clock runs only while the
+  control, Next. A review stays up for 6 seconds, as requested by the owner on
+  2026-10-13. The clock runs only while the
   carousel is on screen in a visible tab; a review stays put while a pointer
   rests on it or keyboard focus is inside it, then for 2.5s more. Next moves on
   at once and the automatic change carries on. Reduced motion turns the
@@ -354,8 +355,8 @@ behavior. No calendar invention or business-policy change from branding.
 ## Footer
 
 Redesigned on 2026-10-13 at the owner's request (the earlier one was a logo and
-a loose list). It is shared by every page and stays flat: navy, no glass, no
-decoration of its own.
+a loose list). It is shared by every page: a flat navy reading surface below
+the landing page's diagonal accent, with no glass.
 
 - Left: the reverse wordmark (7rem, then 9rem), the tagline in the headline
   size with the mint highlight on "personal.", and the one-line descriptor.
@@ -371,11 +372,11 @@ decoration of its own.
   legal identity is an open decision and none of those exist. Add them only
   when the owner supplies them.
 
-On the public home page only, the page's last element (`.home-close`) cuts the
-footer's top edge on the hero's five-degree diagonal: a navy wedge that joins
+On every page, the shared footer's first element (`.site-footer-accent`) cuts its
+top edge on the hero's five-degree diagonal: a navy wedge that joins
 the footer, with the hero's mint stroke lying along it and its teal stop. The
-stroke is drawn on arrival and the stop travels up it as the page ends. Other
-pages meet the footer on a straight edge.
+stroke is drawn on arrival and the stop travels up it as the page ends. The
+accent and its styles load from the root layout, including on direct visits.
 
 ## Navigation, icons, assets and imagery
 
@@ -384,7 +385,7 @@ white/paper, reverse on navy; no typed placeholder, distortion or recoloring.
 Use the kit icon for browser metadata, never beside the wordmark. Respect clear
 space and minimum size. Home links have a clear accessible name. Desktop and
 mobile navigation keep all current real destinations, visible focus and Escape
-support for the mobile dialog. On the public home page only, the same header is
+support for the mobile dialog. On every page, the shared header is
 transparent and full width, turning to glass on scroll; its destinations and
 menu behavior are identical. Use the existing Lucide library for functional
 icons only. No emoji icons or decorative icon tiles.

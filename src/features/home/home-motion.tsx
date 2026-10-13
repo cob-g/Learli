@@ -15,12 +15,10 @@ const clamp = (value: number) => Math.min(1, Math.max(0, value));
  * - `[data-scrub]`: `--progress` (0 to 1) follows the element through the
  *   viewport; "through" measures the viewport's middle against its height.
  *
- * It also marks the document when the browser can refract a backdrop through
- * an SVG filter (Chromium), moves a sheet's glint to the pointer, leans each
- * `[data-tilt]` scene toward a fine pointer, and holds the hero scene's two
+ * It also leans each `[data-tilt]` scene toward a fine pointer, and holds the hero scene's two
  * halves back until both have loaded.
  *
- * Reduced motion skips the reveal, scrub, glint and tilt. No behaviour captures or locks the pointer.
+ * Reduced motion skips the reveal, scrub and tilt. No behaviour captures or locks the pointer.
  */
 export function HomeMotion({ children }: { children: ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
@@ -103,28 +101,6 @@ export function HomeMotion({ children }: { children: ReactNode }) {
         window.removeEventListener("resize", request);
         if (frame) cancelAnimationFrame(frame);
       });
-    }
-
-    // Only Chromium accepts an SVG filter as a backdrop; it is also the only
-    // engine that exposes this API. Everything else keeps the frosted sheet.
-    if ("userAgentData" in navigator) {
-      document.documentElement.dataset.glass = "liquid";
-      cleanups.push(() => delete document.documentElement.dataset.glass);
-    }
-
-    // The header sits outside this component, so the glint listens document-wide.
-    if (!still && window.matchMedia("(hover: hover)").matches) {
-      const glint = (event: PointerEvent) => {
-        const sheet = (event.target as Element).closest<HTMLElement>(
-          "[data-glint]",
-        );
-        if (!sheet) return;
-        const box = sheet.getBoundingClientRect();
-        sheet.style.setProperty("--glint-x", `${event.clientX - box.left}px`);
-        sheet.style.setProperty("--glint-y", `${event.clientY - box.top}px`);
-      };
-      document.addEventListener("pointermove", glint, { passive: true });
-      cleanups.push(() => document.removeEventListener("pointermove", glint));
     }
 
     // Depth: each `[data-tilt]` scene eases toward the pointer while it is over

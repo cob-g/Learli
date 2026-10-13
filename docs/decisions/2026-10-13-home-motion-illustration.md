@@ -266,3 +266,13 @@ keeps each state and removes the travel. The single-colour gradient used to size
 the highlight is a technique, not a visible gradient; decorative gradients stay
 prohibited. This decision changes presentation only. It approves no product
 capability, policy, launch or deployment.
+
+## Shared navigation/footer and six-second reviews
+
+The owner requested the landing page navigation and footer on all pages,
+including tutors and get-matched, and a six-second automatic review interval.
+This extends the existing full-width transparent/glass header and the footer's
+angled mint stroke and scroll motion to the shared root shell. Page content
+retains its existing styling. Shared material, refraction and footer motion
+load independently of the homepage. Hover/focus holds, hidden-tab/offscreen
+pauses, reduced motion and sample-review publication restrictions are retained.

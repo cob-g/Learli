@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowDown, ArrowRight } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
-import { GlassFilters } from "@/features/home/glass-filters";
 import { HomeMotion } from "@/features/home/home-motion";
 import { HeroScene } from "@/features/home/hero-scene";
 import { LessonTile } from "@/features/home/lesson-tile";
@@ -28,7 +27,6 @@ export default async function Home() {
   const reviews = previewContentAllowed() ? sampleReviews : [];
   return (
     <HomeMotion>
-      <GlassFilters />
       <section className="home-hero">
         {/* Source order is the phone order: headline, words, finder, scene. */}
         <div className="page-shell home-hero-grid">
@@ -387,20 +385,6 @@ export default async function Home() {
           </div>
         </div>
       </section>
-      {/* The page closes as it opened: the mint stroke, now lying along the
-          footer's edge. */}
-      <div
-        className="home-close"
-        data-reveal=""
-        data-scrub=""
-        aria-hidden="true"
-      >
-        <div className="home-close-art">
-          <span className="home-close-ribbon" />
-          <span className="home-close-stop" />
-          <span className="home-close-wedge" />
-        </div>
-      </div>
     </HomeMotion>
   );
 }

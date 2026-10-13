@@ -197,19 +197,10 @@ describe("public home catalog truth", () => {
       "data-lesson-steps",
     ])
       expect(html).not.toContain(gone);
-    // The page's close is decoration: the stroke, its stop and the wedge that
-    // joins the footer, all hidden from assistive technology.
-    expect(html).toMatch(
-      /class="home-close" data-reveal="" data-scrub="" aria-hidden="true"/,
-    );
-    for (const part of ["ribbon", "stop", "wedge"])
-      expect(
-        html.match(new RegExp(`class="home-close-${part}"`, "g")),
-      ).toHaveLength(1);
-    expect(html.trimEnd().endsWith("</div></div></div>")).toBe(true);
-    // Glass is a surface treatment: both refraction filters ship once, and the
-    // finder keeps its honest state inside the sheet.
-    expect(html.match(/<filter id="learli-glass(-fine)?"/g)).toHaveLength(2);
+    // The shared root shell now owns the footer accent and refraction filters.
+    expect(html).not.toContain("site-footer-accent");
+    expect(html).not.toContain('<filter id="learli-glass');
+    // The finder keeps its honest state inside the sheet.
     expect(html).toMatch(
       /class="glass glass-liquid[^"]*"[^>]*>.*No tutors are listed right now/s,
     );

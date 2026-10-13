@@ -22,18 +22,10 @@ export type Review = {
   image: string;
 };
 
-/**
- * How long a review stays up: time for its words to arrive and the speaker to
- * be noticed, then an unhurried read of about three words a second.
- */
-const SETTLE_MS = 2500;
-const PER_WORD_MS = 330;
-const SHORTEST_MS = 8000;
+/** Automatic reviews advance every six seconds of visible, unheld time. */
+const REVIEW_INTERVAL_MS = 6000;
 /** After a pointer or focus lets go, a review stays at least this much longer. */
 const RESUME_MS = 2500;
-
-const readingTime = (quote: string) =>
-  Math.max(SHORTEST_MS, SETTLE_MS + quote.split(" ").length * PER_WORD_MS);
 
 const idle = () => () => {};
 const stillQuery = "(prefers-reduced-motion: reduce)";
@@ -102,7 +94,6 @@ export function ReviewCarousel({ reviews }: { reviews: Review[] }) {
   }, []);
 
   const playing = live && !still && count > 1;
-  const reading = readingTime(reviews[active]?.quote ?? "");
   useEffect(() => {
     if (!playing) return;
     let elapsed = 0;
@@ -114,15 +105,15 @@ export function ReviewCarousel({ reviews }: { reviews: Review[] }) {
       // Time counts while the review can be seen. A pointer or keyboard focus
       // keeps it up as long as it rests there, and a little longer after.
       if (!away) elapsed += now - last;
-      if (held) elapsed = Math.min(elapsed, reading - RESUME_MS);
+      if (held) elapsed = Math.min(elapsed, REVIEW_INTERVAL_MS - RESUME_MS);
       last = now;
-      if (!away && elapsed >= reading) {
+      if (!away && elapsed >= REVIEW_INTERVAL_MS) {
         window.clearInterval(timer);
         step(1, false);
       }
     }, 200);
     return () => window.clearInterval(timer);
-  }, [playing, active, reading, step]);
+  }, [playing, active, step]);
 
   const place = (index: number) => {
     if (index === active) return "active";

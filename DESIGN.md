@@ -346,7 +346,7 @@ do not add resting card shadows, glass or decorative elevation.
 
 ### Public home motion
 
-The public home page is the one surface with authored motion (`home.css`,
+The public home page has authored content motion (`home.css`,
 `HomeMotion`). Four moves: the mint highlight is drawn across a headline phrase
 (760ms); hairlines above list rows are ruled left to right (900ms, staggered
 70ms, capped); a blue stroke is drawn through the three lesson steps (1100ms)
@@ -357,8 +357,7 @@ Hover and focus sweep the highlight across an index row (320ms).
 The sample review carousel (preview environments only) swings three pictures
 round a shallow 3D arc with an overshoot, `cubic-bezier(0.4, 2, 0.3, 1)` over
 800ms, and brings each quote in word by word (220ms per word, 25ms apart). It
-is the one place that advances by itself: after 2.5s plus about 330ms per word
-of the quote, waiting under a pointer or keyboard focus, and never under
+is the one place that advances by itself: every six seconds, waiting under a pointer or keyboard focus, and never under
 reduced motion. Its one control is Next.
 
 **The Complete Markup Rule.** Motion only withholds a decorative stroke that is
@@ -367,7 +366,8 @@ markup; reduced motion keeps each state and removes the travel.
 
 ### Public home liquid glass
 
-On the public home page the flat surface rule gives way to one material,
+On the public home page and the shared header on every route, the flat surface
+rule gives way to one material (in `site-shell.css`),
 `.glass`: a softened and tinted backdrop, a lit rim, a soft offset contact
 shadow and a glint that follows the pointer. It is used for floating layers
 only: the header, the finder, the lesson tiles, the card for what Learli looks
@@ -445,11 +445,15 @@ Main navigation uses Navy interface labels with minimum (3rem) height; the curre
 page is stronger and underlined. Large-screen links appear from (64rem); below
 that a named Menu button opens the native side dialog, capped at (20rem) and the
 viewport width. Escape and focus return remain native/explicit behavior. Header
-groups wrap with enlarged text. The footer sits on Navy: the reverse wordmark,
+groups wrap with enlarged text. Every route uses the full-width transparent
+header, which stays on screen in tall viewports and takes on glass after scrolling.
+The footer sits on Navy: the reverse wordmark,
 the tagline in the headline role with its mint highlight, three labelled link
 groups in White at body size with (2.75rem) targets, and a closing bar under a
-hairline with a Back to top link. On the public home page its top edge is cut
-on a five-degree diagonal with the mint stroke lying along it.
+hairline with a Back to top link. On every page its top edge is cut
+on a five-degree diagonal with the mint stroke lying along it. The shared
+`FooterAccent` draws the stroke on arrival and moves the stop with scroll,
+respecting reduced motion and leaving complete static markup without scripts.
 Admin current navigation uses Navy/White and a small teal dot with `aria-current`.
 
 ### Artwork and lesson details
@@ -492,8 +496,8 @@ interface and must not be removed for a cleaner screenshot.
 ### Don't:
 
 - **Don't** use Bright teal or Mint as ordinary text on a light surface.
-- **Don't** add card shadows, glass, decorative gradients or invented imagery outside the public home page; there, glass is for floating layers and photographs stay in the hero, illustrative and uncaptioned.
-- **Don't** animate outside the public home page beyond short state transitions, or hide content behind any animation.
+- **Don't** add card shadows, glass, decorative gradients or invented imagery outside the public home page and shared header; there, glass is for floating layers and photographs stay in the hero, illustrative and uncaptioned.
+- **Don't** animate outside the public home page and shared header/footer beyond short state transitions, or hide content behind any animation.
 - **Don't** turn kit example practice sets, messages or progress screens into product functionality.
 - **Don't** invent tutors, availability, reviews, prices or customer claims to fill a layout.
 - **Don't** hide synthetic notices, policy drafts, private-data boundaries or booking state for visual polish.

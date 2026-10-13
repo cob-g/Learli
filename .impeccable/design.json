@@ -421,7 +421,7 @@
       {
         "name": "home-glass-cast",
         "value": "0 1px 2px color-mix(in srgb, #131a3d 7%, transparent), 0 18px 36px -18px color-mix(in srgb, #131a3d 34%, transparent)",
-        "purpose": "Contact shadow under a light glass sheet on the public home page only."
+        "purpose": "Contact shadow under a light glass sheet on the home page and shared site header."
       }
     ],
     "motion": [
@@ -468,7 +468,7 @@
       {
         "name": "home-glass-action-scale-duration",
         "value": "300ms",
-        "purpose": "Glass action scaling on hover and press on the public home page."
+        "purpose": "Glass action scaling on hover and press on the home page and shared header."
       },
       {
         "name": "home-review-swing",
@@ -482,7 +482,7 @@
       },
       {
         "name": "home-review-autoplay",
-        "value": "2500ms + 330ms per word",
+        "value": "6000ms",
         "purpose": "Sample review carousel: how long a review stays up before the automatic change; waits under a pointer or keyboard focus, off under reduced motion."
       },
       {
@@ -643,11 +643,11 @@
     ],
     "donts": [
       "**Don't** use Bright teal or Mint as ordinary text on a light surface.",
-      "**Don't** add card shadows, glass, decorative gradients or invented imagery outside the public home page; there, glass is for floating layers and photographs stay in the hero, illustrative and uncaptioned.",
+      "**Don't** add card shadows, glass, decorative gradients or invented imagery outside the public home page and shared header; there, glass is for floating layers and photographs stay in the hero, illustrative and uncaptioned.",
       "**Don't** turn kit example practice sets, messages or progress screens into product functionality.",
       "**Don't** invent tutors, availability, reviews, prices or customer claims to fill a layout.",
       "**Don't** hide synthetic notices, policy drafts, private-data boundaries or booking state for visual polish.",
-      "**Don't** animate outside the public home page beyond short state transitions, or hide content behind any animation."
+      "**Don't** animate outside the public home page and shared header/footer beyond short state transitions, or hide content behind any animation."
     ]
   }
 }

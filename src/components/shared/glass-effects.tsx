@@ -1,10 +1,39 @@
-/**
- * Refraction for the home page's liquid glass: noise bends whatever is behind
- * a sheet, then a blur settles it. Browsers reference these from
- * `backdrop-filter`, which only Chromium supports for SVG filters; home.css
- * falls back to a plain frosted sheet everywhere else.
- */
-export function GlassFilters() {
+"use client";
+
+import { useEffect } from "react";
+
+/** Shared refraction filters and pointer glints, with a frosted fallback. */
+export function GlassEffects() {
+  useEffect(() => {
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const cleanups: (() => void)[] = [];
+    // Only Chromium accepts an SVG filter as a backdrop; it is also the only
+    // engine that exposes this API. Everything else keeps the frosted sheet.
+    if ("userAgentData" in navigator) {
+      document.documentElement.dataset.glass = "liquid";
+      cleanups.push(() => delete document.documentElement.dataset.glass);
+    }
+
+    // The header sits outside this component, so the glint listens document-wide.
+    if (!still && window.matchMedia("(hover: hover)").matches) {
+      const glint = (event: PointerEvent) => {
+        const sheet = (event.target as Element).closest<HTMLElement>(
+          "[data-glint]",
+        );
+        if (!sheet) return;
+        const box = sheet.getBoundingClientRect();
+        sheet.style.setProperty("--glint-x", `${event.clientX - box.left}px`);
+        sheet.style.setProperty("--glint-y", `${event.clientY - box.top}px`);
+      };
+      document.addEventListener("pointermove", glint, { passive: true });
+      cleanups.push(() => document.removeEventListener("pointermove", glint));
+    }
+
+    return () => {
+      for (const cleanup of cleanups) cleanup();
+    };
+  }, []);
+
   return (
     <svg
       aria-hidden="true"

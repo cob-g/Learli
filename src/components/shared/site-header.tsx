@@ -5,7 +5,6 @@ import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useRef, useSyncExternalStore } from "react";
 import { BrandLogo } from "@/components/shared/brand-logo";
-import { cn } from "@/lib/utils";
 
 const links = [
   ["/tutors", "Find a tutor"],
@@ -24,35 +23,27 @@ export function SiteHeader() {
   const pathname = usePathname();
   const dialog = useRef<HTMLDialogElement>(null);
   const menuTrigger = useRef<HTMLButtonElement>(null);
-  // On the public home page the header is transparent and spans the viewport.
-  // Once scripts run it stays on screen, and takes on glass (home.css) only
-  // when the page has moved beneath it, so its labels never sit on raw content.
-  const home = pathname === "/";
+  // The shared bar is transparent at the top and takes on glass over content.
   const live = useSyncExternalStore(
     idle,
     () => true,
     () => false,
   );
   const raised = useSyncExternalStore(
-    home ? onScroll : idle,
+    onScroll,
     () => window.scrollY > 8,
     () => false,
   );
 
   return (
     <header
-      className={home ? "home-header" : "border-b border-border bg-surface"}
-      data-live={home && live ? "" : undefined}
-      data-raised={home && raised ? "" : undefined}
+      className="site-header"
+      data-live={live ? "" : undefined}
+      data-raised={raised ? "" : undefined}
     >
       <div
-        className={cn(
-          "flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2",
-          home
-            ? "home-header-bar glass glass-liquid min-h-16 lg:min-h-18"
-            : "page-shell min-h-20 lg:min-h-24",
-        )}
-        data-glint={home ? "" : undefined}
+        className="site-header-bar glass glass-liquid flex min-h-16 flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2 lg:min-h-18"
+        data-glint=""
       >
         <Link href="/" className="brand-home" aria-label="Learli home">
           <BrandLogo />

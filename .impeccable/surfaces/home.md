@@ -58,3 +58,10 @@ FINISH: two inspection rounds per change (1440, 1820 and 390 wide; then reduced
 motion, no scripts, 320 and doubled text), the tutors-listed state rendered in a
 harness, a detector run per change, DESIGN.md and sidecar updated.
 The independent finish review was not run; see the progress tracker.
+
+
+Owner follow-up, 2026-10-13: the transparent/glass header and diagonal footer
+close are now shared across all routes through the root layout. Material lives
+in `src/components/shared/site-shell.css`; `GlassEffects` owns refraction/glints
+and `FooterAccent` owns the close. The sample carousel advances every six
+seconds, retaining hover/focus holds and reduced-motion behavior.

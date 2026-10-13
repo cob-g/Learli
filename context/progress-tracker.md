@@ -1,5 +1,51 @@
 # Learli — Progress Tracker
 
+## 2026-10-13 — Shared landing navigation/footer and six-second reviews
+
+Owner requested the landing header/footer across all pages and a six-second
+review interval on `feature/home-landing-motion` (PUB-01/02, NFR-02).
+Implementation is in place: root-loaded glass material/effects, one header
+variant, shared diagonal footer accent, and a fixed 6,000ms carousel dwell.
+Existing hover/focus holds, reduced motion, navigation destinations, sample
+review gating and private page boundaries remain. No database or dependency
+change. Status: **verified locally, uncommitted**.
+
+**Observed verification:**
+- `npm run lint` PASS with the inherited unused `inArray` warning in
+  `src/features/time-off/service.ts`; `npm run typecheck` PASS.
+- `npm test -- tests/components/site-header-glass.test.tsx tests/components/site-footer.test.tsx tests/components/review-carousel.test.tsx tests/components/draft-policy-page.test.tsx tests/components/public-discovery-presentation.test.tsx`
+  PASS **24 tests / 5 files**. The first run exposed obsolete assertions that
+  the footer accent/filter SVG belonged to Home; those checks now follow the
+  shared shell and the rerun passes.
+- `node scripts/with-test-env.mjs npm run build` PASS, including a final rebuild
+  after the footer seam and header accessibility fallback correction.
+- Changed-file Prettier check and `git diff --check` PASS.
+- Chromium through `.local/shared-shell/verify.mjs`: `/`, `/tutors`,
+  `/get-matched`, `/sign-in`, `/privacy` at **1440/390/320 × 900**; all 15
+  layouts fit, with identical shared shell, one copy of each glass filter,
+  seven footer links, mobile Menu/Escape/focus return, Back to top, and sticky
+  glass after scrolling. Ten header/footer axe scans report zero violations;
+  enlarged-text checks on the policy page fit at all three widths. Direct and
+  client navigation checked. Zero page errors.
+- Actual review changes measured **5953ms then 6018ms** after entering view.
+  Hover holds, resume, reduced-motion autoplay suppression and manual Next
+  passed. No-JavaScript checks on home/tutors/get-matched retained the static
+  shell and complete review list. Samples remain preview-only.
+- Desktop/phone screenshots inspected. A fractional-pixel footer wedge seam
+  was fixed and visually confirmed at 1440/390; high-contrast and forced-colors
+  header fallbacks and overflow also passed after that correction.
+- Initial browser harness attempt stopped because axe requires an explicit
+  browser context; the harness was corrected and the complete pass above ran.
+- Impeccable detector reported only the existing, owner-requested carousel
+  overshoot easing advisory; the animation was retained.
+
+Evidence is ignored under `.local/shared-shell/`. Database/integration suites,
+authenticated workspace journeys and other browser engines were not run for
+this presentation-only change. No database, production, deployment or Git
+remote operation. Next: owner visual review of the running local preview.
+
+
+
 ## 2026-10-13 — Public home page motion, illustration, layered hero photographs, liquid glass, sample review carousel and added information; uncommitted
 
 **Task:** UI only. Owner request, same day: a more engaging, professional

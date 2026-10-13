@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowUp } from "lucide-react";
+import { FooterAccent } from "@/components/shared/footer-accent";
 import { BrandLogo } from "@/components/shared/brand-logo";
 
 /** The same seven destinations as before, sorted by what a visitor is after. */
@@ -31,6 +32,7 @@ const groups = [
 export function SiteFooter() {
   return (
     <footer data-surface="inverse" className="mt-auto">
+      <FooterAccent />
       <div className="page-shell pt-10 pb-6 md:pt-20 md:pb-8">
         <div className="grid gap-8 md:gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-20">
           <div>

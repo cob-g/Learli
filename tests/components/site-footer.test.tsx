@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+import { GlassEffects } from "@/components/shared/glass-effects";
 import { SiteFooter } from "@/components/shared/site-footer";
 
 const html = renderToStaticMarkup(<SiteFooter />);
@@ -38,6 +39,15 @@ describe("site footer", () => {
 
   it("returns to the top of the page without scripts", () => {
     expect(html).toMatch(/<a href="#main-content"[^>]*>Back to top/);
+    // The landing page's close ships with every footer, complete without scripts.
+    expect(html).toContain('class="site-footer-accent" aria-hidden="true"');
+    for (const part of ["ribbon", "stop", "wedge"])
+      expect(
+        html.match(new RegExp(`class="site-footer-${part}"`, "g")),
+      ).toHaveLength(1);
+    expect(html).not.toContain('data-reveal="pending"');
+    const filters = renderToStaticMarkup(<GlassEffects />);
+    expect(filters.match(/<filter id="learli-glass(-fine)?"/g)).toHaveLength(2);
   });
 
   it("adds no company, contact or legal details that have not been decided", () => {

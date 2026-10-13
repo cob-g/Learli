@@ -12,26 +12,26 @@ const render = (pathname: string) => {
 };
 
 describe("site header glass variant", () => {
-  it("is the transparent, full-width glass bar on the public home page only", () => {
-    const home = render("/");
-    expect(home).toContain('class="home-header"');
-    expect(home).toContain("home-header-bar glass glass-liquid");
-    // Full viewport width: the bar is not held to the page shell.
-    expect(home).not.toContain("page-shell");
-    // Server markup is neither pinned nor raised; scripts add both.
-    expect(home).not.toContain("data-live");
-    expect(home).not.toContain("data-raised");
-
-    for (const pathname of ["/tutors", "/sign-in", "/parent", "/admin"]) {
-      const other = render(pathname);
-      expect(other).not.toContain("home-header");
-      expect(other).not.toContain("glass");
-      expect(other).toContain("border-b border-border bg-surface");
-      expect(other).toContain("page-shell");
+  it("uses the same transparent full-width bar on every route", () => {
+    for (const pathname of [
+      "/",
+      "/tutors",
+      "/get-matched",
+      "/sign-in",
+      "/parent",
+      "/admin",
+    ]) {
+      const html = render(pathname);
+      expect(html).toContain('class="site-header"');
+      expect(html).toContain("site-header-bar glass glass-liquid");
+      expect(html).not.toContain("page-shell");
+      // Server markup is neither pinned nor raised; scripts add both.
+      expect(html).not.toContain("data-live");
+      expect(html).not.toContain("data-raised");
     }
   });
 
-  it("keeps every destination and the menu control in both variants", () => {
+  it("keeps every destination and the menu control on every route", () => {
     for (const pathname of ["/", "/tutors"]) {
       const html = render(pathname);
       for (const href of [
