@@ -1,5 +1,31 @@
 # Learli — Progress Tracker
 
+## 2026-10-13 — production Neon migrated; development preview is separate
+
+The user subsequently authorized production schema migration while keeping the
+local app on a separate development branch. The reviewed candidate in
+`/Users/cob/orca/workspaces/learli/m8-hosted-workflows-integration` remains
+uncommitted and unmerged. Its Neon activation worker completed a PG18 backup,
+actual restore into the new schema-only `learli-local-development` branch,
+development rehearsal, and all 29 production migrations with exact runtime grants.
+Read-only acceptance confirms 78 public application tables, 29 exact ledger
+entries and eight static subjects; production has no other application rows.
+Original database ownership and provider-role definitions/memberships are preserved.
+
+The reviewed Neon-development preview is http://127.0.0.1:3039 in the
+`m8-neon-activation` worktree. Twenty-four browser/API smoke checks pass, including
+synthetic authentication, captured verification and cross-account denials.
+Successful cloud booking preview was not exercised; unassigned-role denial was.
+Main's existing http://127.0.0.1:3000 preview still uses its preserved local
+PostgreSQL database. Main/integration envs and the worker's loopback test env are
+unchanged. The older status below describes main's committed application baseline;
+it is not the current cloud schema or the unmerged integration candidate.
+
+Private acceptance receipts and independent reviews are retained in
+`.local/hosted-readiness-wave/`; the backup and private runtime configuration stay
+in the Neon worker's `.local/neon-activation/`. No application deployment, live
+email, real-policy launch, payment activation, commit, merge or push occurred.
+
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
 > **Version:** 1.30 — Main databases migrated and wave cleaned up
@@ -14,6 +40,64 @@
 **Status legend:** `Documented` = specified only · `Planned` = not verified as started · `In progress` = active work with evidence · `Blocked` = waiting on an explicit decision/dependency · `Done` = verified and linked to evidence.
 
 ---
+
+## Neon project setup — 2026-10-12
+
+Authorized bounded M8.3 operational setup on `main`, baseline
+`2fa0294c5e6cad895754b3c10a703a6c6f6ef00a`, under
+`prompts/features/m8-03-neon-project-setup.md` (**AUTHORIZED — build-feature
+delegation**). Neon CLI 8.3.5 installed globally; the original browser login
+completed and an authenticated `neon me` read succeeded. `neon skills -y`
+installed eight separate third-party skill directories under `.claude/skills/`
+plus `skills-lock.json`, preserving all canonical repository skill sources and
+symlinks. `neon mcp -y` configured the six detected global agents, using the
+CLI's default account-wide API-key authorization; existing configuration was
+privately backed up and credentials are not recorded here.
+
+The existing project `withered-grass-51575984` (Learli, `aws-ap-southeast-1`,
+PostgreSQL 18) was linked to `production` (`br-bitter-hat-az6vm3mg`).
+`--no-env-pull` protects the local loopback development/test credentials.
+`neon config init` installed pinned `@neon/config` 1.8.6 and `@neon/env` 1.5.3;
+`neon.ts` now contains exactly the user-requested `defineConfig({})`.
+The real JSON dry-run is only a branch `noop` with no conflicts/warnings;
+omitted services are preserved by the installed config diff implementation.
+`neon deploy --no-env-pull -o json` completed successfully against the exact
+project/branch and returned `dryRun: false`, one branch `noop`, no conflicts,
+no warnings and no resource mutation. Post-deploy dry-run remains a noop and
+the retried live status is equal to its pre-deploy snapshot.
+
+Both local env files are byte-identical to private baseline backups. No Drizzle
+migration, seed, application launch, payment action, commit or push is part of
+this task. Private receipts/backups and the final sanitized report belong under
+ignored `.local/neon-setup/`; full unchanged application test suites are not
+required for this operational-only setup.
+
+Same-agent read-only Review: **PASS**, no confirmed findings, recommendation
+**READY FOR VERIFICATION**. Separate scoped Verify: exact config and target/deploy
+receipt, pre/post live config, both unchanged env files, both read-only local DB
+identities with 22 migrations, all ten canonical skill symlinks, six global MCP
+registrations/settings preservation, scoped Prettier and ESLint, and
+`npm run typecheck` all **PASS**. `git diff --check`, ignored private receipts and
+configured-secret scan pass. No existing locked package version changed. Current
+`npm audit --json` exits 1 with 13 advisories (4 moderate/9 high), identical to a
+fresh audit of the baseline lockfile; no newly affected package was introduced.
+Broad unchanged application tests/build/browser checks were not rerun. All six
+MCP settings matched immediately after installation; later Claude runtime
+prompt/tip counters changed during the session and were preserved as found.
+Final settings comparison excludes only those three volatile metadata keys.
+
+The first post-deploy live status read failed at Data API OAuth authentication,
+and its empty receipt caused an evidence helper parse failure. A subsequent
+`neon me` and status retry succeeded using the same account; no second login,
+key rotation or deploy retry. Failed preparation helpers and exact unproven auth
+cause are retained in `prompts/recovery/2026-10-12-neon-status-auth-read.md` and
+private receipts. The originally successful no-op deploy is not relabeled as a
+failed deployment. All seven requested operations are complete within scope;
+resources changed by deploy: **0**. Sanitized report:
+`.local/neon-setup/report.md`; local handoff path: ignored `memory.md`. No whole M8,
+hosted application/auth/email readiness or public launch acceptance is inferred.
+Next: review the local uncommitted setup diff; any application deployment or
+production Drizzle migration requires its own explicit task and authorization.
 
 ## Main database migration and local completion cleanup — 2026-10-12
 
