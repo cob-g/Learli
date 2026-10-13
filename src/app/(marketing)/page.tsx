@@ -1,9 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowDown, ArrowRight } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
 import { HomeMotion } from "@/features/home/home-motion";
 import { HeroScene } from "@/features/home/hero-scene";
+import { LayeredScene } from "@/features/home/layered-scene";
 import { LessonTile } from "@/features/home/lesson-tile";
 import { previewContentAllowed } from "@/features/home/preview-content";
 import { ReviewCarousel } from "@/features/home/review-carousel";
@@ -272,49 +272,34 @@ export default async function Home() {
           tutor, on Zoom or Google Meet.
         </p>
         {/* The lesson in the middle, and who looks after what on either side.
-            Source order is the phone order: picture, Learli, tutor. */}
-        <div className="home-care" data-scrub="" data-tilt="">
-          <div className="home-care-photo rounded-surface">
-            <Image
-              src="/home/family-table.webp"
-              alt="A parent and a young learner sitting together at a table, the learner writing in a notebook beside a laptop."
-              width={1600}
-              height={1600}
-              quality={90}
-              sizes="(min-width: 64rem) 40rem, 100vw"
-            />
-          </div>
-          <div
-            className="glass glass-liquid home-care-card home-care-learli rounded-surface"
-            data-glint=""
-          >
-            <h3 className="text-item-title">What Learli looks after</h3>
-            <ul className="home-ruled home-ruled-closed mt-4" data-reveal="">
-              <li className="py-4">
-                Tutor profiles with the subjects and learner levels each tutor
-                teaches
-              </li>
-              <li className="py-4">Dated lesson times, in your time zone</li>
-              <li className="py-4">
-                A second availability check at the moment you book
-              </li>
-              <li className="py-4">
-                Meeting details kept with the private booking
-              </li>
-            </ul>
-          </div>
-          <div
-            className="home-care-card home-care-tutor rounded-surface"
-            data-surface="inverse"
-          >
-            <h3 className="text-item-title">What your tutor looks after</h3>
-            <ul className="home-ruled home-ruled-closed mt-4" data-reveal="">
-              <li className="py-4">The teaching, one learner at a time</li>
-              <li className="py-4">The learning materials and the method</li>
-              <li className="py-4">The Zoom or Google Meet room</li>
-            </ul>
-          </div>
-        </div>
+            The picture is square with both people in its upper half; on wide
+            screens it is nudged left so both faces sit clear of the navy card. */}
+        <LayeredScene
+          image={{
+            src: "/home/family-table.webp",
+            alt: "A parent and a young learner sitting together at a table, the learner writing in a notebook beside a laptop.",
+            width: 1600,
+            height: 1600,
+          }}
+          focus={{ stacked: "50% 30%", row: "50% 20%", wide: "62% 40%" }}
+          glass={{
+            title: "What Learli looks after",
+            items: [
+              "Tutor profiles with the subjects and learner levels each tutor teaches",
+              "Dated lesson times, in your time zone",
+              "A second availability check at the moment you book",
+              "Meeting details kept with the private booking",
+            ],
+          }}
+          navy={{
+            title: "What your tutor looks after",
+            items: [
+              "The teaching, one learner at a time",
+              "The learning materials and the method",
+              "The Zoom or Google Meet room",
+            ],
+          }}
+        />
         <div className="mt-12 grid gap-x-16 gap-y-4 md:mt-16 md:grid-cols-2">
           <p className="max-w-prose text-body text-muted-foreground">
             Parents and guardians arrange lessons for a learner they are

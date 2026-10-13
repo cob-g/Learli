@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import "../home.css";
 import {
   groupSubjects,
   learnerLevelOptions,
@@ -7,11 +8,22 @@ import {
 import { filterTutors } from "@/features/tutors/eligibility";
 import { readPublicCatalog, tutorsHref } from "@/features/tutors/public";
 import { EmptyState } from "@/components/shared/empty-state";
+import { SubjectsGuide } from "@/features/home/page-guides";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Subjects" };
 
-export default async function SubjectsPage() {
+/** The catalog, then how it is organized. */
+export default function SubjectsPage() {
+  return (
+    <>
+      <Catalog />
+      <SubjectsGuide />
+    </>
+  );
+}
+
+async function Catalog() {
   const catalog = await readPublicCatalog();
   return (
     <div className="page-shell page-space">

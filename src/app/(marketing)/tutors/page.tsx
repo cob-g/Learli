@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "../home.css";
 import Link from "next/link";
 import { X } from "lucide-react";
 import { redirect } from "next/navigation";
@@ -19,6 +20,7 @@ import {
 import { TutorList } from "@/features/tutors/tutor-card";
 import { TutorFilterForm } from "@/features/tutors/tutor-filter-form";
 import { EmptyState } from "@/components/shared/empty-state";
+import { FindATutorGuide } from "@/features/home/page-guides";
 import {
   declaredTeachingLanguages,
   teachingLanguageLabels,
@@ -27,11 +29,21 @@ import {
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Find a tutor" };
 
-export default async function TutorsPage({
-  searchParams,
-}: {
+type DirectoryProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+};
+
+/** The directory, then what it is for. The guide is the same in every state. */
+export default function TutorsPage(props: DirectoryProps) {
+  return (
+    <>
+      <Directory {...props} />
+      <FindATutorGuide />
+    </>
+  );
+}
+
+async function Directory({ searchParams }: DirectoryProps) {
   const sanitized = sanitizeDirectoryParams(await searchParams);
   if (sanitized.changed) redirect(sanitized.href);
   const { subject, level, language, page, preferences, fields, draft, optIn } =

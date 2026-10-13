@@ -18,6 +18,8 @@ kit's imagery board asks for.
 | `learner-kitchen.webp` | 2240 × 1792                     | A college-age learner in headphones taking notes at a kitchen table  |
 | `worked-problem.webp`  | 2240 × 1792, top 216 px cropped | Hands working an algebra problem in a notebook                       |
 | `family-table.webp`    | 2048 × 2048                     | A parent and a young learner at a dining table with a laptop         |
+| `tutor-desk.webp`      | 2048 × 2048                     | A tutor in a headset explaining something to a laptop at his desk    |
+| `study-desk.webp`      | 2048 × 2048                     | A still life: a notebook of algebra, books, a ruler and a compass    |
 
 Three more files are square crops of the photographs above, cut so that no
 face is in frame. They sit beside the sample reviews on the home page:
@@ -40,6 +42,14 @@ desk removed. Job IDs:
 - `learner-kitchen.webp`: `5e1c07d6-0355-4398-a58f-e88d0b9cc3c6`
 - `worked-problem.webp`: `41878f3c-9385-4d24-87ba-00ef3d1fe6b7`
 - `family-table.webp`: `06496085-ca8f-40d4-9a2e-06078cdee705`
+- `tutor-desk.webp`: `742daacf-6809-4eb8-a292-0453dfbd560b`
+- `study-desk.webp`: `01cfdf98-48fb-4373-ae8c-2597981cdd82`
+
+`tutor-desk.webp` and `study-desk.webp` were added on 2026-10-14 for the Become
+a tutor and Subjects pages, when the owner asked for landing-style content on
+the pages in the navigation. The still life shows no person. The man in
+`tutor-desk.webp` is generated: he is nobody, he is not a Learli tutor, and he
+must never be named, captioned or shown anywhere a real tutor is listed.
 
 `family-table.webp` is not a hero picture. It sits between the two lists in
 "Learli arranges the lesson", because the owner asked that the section not
