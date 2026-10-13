@@ -32,28 +32,20 @@ test("public shell is truthful, accessible, and fits the viewport", async ({
   });
 });
 
-test("navigation reaches discovery and the mobile menu supports Escape", async ({
+test("navigation reaches discovery from the bar or the small-screen dock", async ({
   page,
 }) => {
   await page.goto("/");
-  const menu = page.getByRole("button", { name: "Menu", exact: true });
-  if (await menu.isVisible()) {
-    await menu.click();
-    await expect(page.getByRole("dialog")).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(page.getByRole("dialog")).not.toBeVisible();
-    await expect(menu).toBeFocused();
-    await menu.click();
-    await page
-      .getByRole("navigation", { name: "Mobile navigation" })
-      .getByRole("link", { name: "Find a tutor", exact: true })
-      .click();
-  } else {
-    await page
-      .getByRole("navigation", { name: "Main navigation" })
-      .getByRole("link", { name: "Find a tutor", exact: true })
-      .click();
-  }
+  // One main navigation is displayed at every width: the bar on wide screens,
+  // the floating dock below them. There is no menu button to open.
+  await expect(
+    page.getByRole("button", { name: "Menu", exact: true }),
+  ).toHaveCount(0);
+  const navigation = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(navigation).toHaveCount(1);
+  await navigation
+    .getByRole("link", { name: "Find a tutor", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/tutors$/);
   await expect(
     page.getByRole("heading", { name: "No tutors are listed right now" }),
