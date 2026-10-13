@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Lexend, Literata } from "next/font/google";
 import { SiteHeader } from "@/components/shared/site-header";
 import { SiteFooter } from "@/components/shared/site-footer";
+import { GlassEffects } from "@/components/shared/glass-effects";
 import "./globals.css";
+import "@/components/shared/site-shell.css";
 
 const lexend = Lexend({
   subsets: ["latin"],
@@ -39,6 +41,7 @@ export default function RootLayout({
         <a className="skip-link" href="#main-content">
           Skip to main content
         </a>
+        <GlassEffects />
         <SiteHeader />
         <main id="main-content" tabIndex={-1}>
           {children}

@@ -5,6 +5,7 @@ const mergeClasses = extendTailwindMerge({
   extend: {
     theme: {
       text: [
+        "hero",
         "display",
         "headline",
         "lead",
@@ -21,7 +22,7 @@ const mergeClasses = extendTailwindMerge({
         "small",
         "caption",
       ],
-      radius: ["check", "tag", "control", "surface", "overlay"],
+      radius: ["check", "tag", "control", "surface", "overlay", "frame"],
       shadow: ["float", "modal"],
       ease: ["enter", "exit"],
     },

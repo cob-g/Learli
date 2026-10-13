@@ -1,6 +1,6 @@
 # Learli — UI Context
 
-Version2.0 — Brand kit adoption, 2026-10-13
+Version2.13 — Brand kit adoption, plus public home motion, illustration, layered hero photographs, liquid glass and a sample review carousel, 2026-10-13
 
 ## Authority and scope
 
@@ -26,7 +26,10 @@ not override this version's visual rules.
 One light-first theme: paper page ground, white working surfaces, navy hierarchy,
 deep-teal links and focus, restrained mint highlights and teal active accents.
 No OS-driven dark mode. The supplied reverse wordmark is used on a navy footer.
-No gradients, glass, decorative illustration, card shadows or invented imagery.
+No gradients, glass, card shadows or invented imagery. Illustration, authored
+motion, illustrative hero photographs and liquid glass exist on the public home
+page only, under the rules below and
+[this decision](../docs/decisions/2026-10-13-home-motion-illustration.md).
 Native dialogs retain a dimmed backdrop and a clear border; no resting elevation.
 
 Persuade pages explain and lead into real discovery. Operate pages lead with the
@@ -115,12 +118,114 @@ these with ellipsis. Preserve the server's date/time/zone formatting.
 
 Kit spacing:4,8,12,16,24,32,48,64px. Align related controls, use generous space
 between sections and smaller space within related groups. Standard controls48px
-high;44px minimum target. Controls10px, panels16px, photo frames12px (unused),
-existing checkbox4px, small status tags6px and dialogs18px. Pills are permitted
+high;44px minimum target. Controls10px, panels16px, image frames12px
+(`rounded-frame`, the home illustration), existing checkbox4px, small status
+tags6px and dialogs18px. Pills are permitted
 for real selection chips only; ordinary forms/buttons stay10px. Avatars circle.
 No nesting panels merely for decoration. Use rows, headings and separators for
-dense content. Motion is limited to short functional color/state transitions;
-content is visible immediately and reduced-motion preferences are respected.
+dense content. Outside the public home page, motion is limited to short
+functional color/state transitions. Everywhere, content is visible immediately
+and reduced-motion preferences are respected.
+
+### Public home motion
+
+The owner asked on 2026-10-13 for scroll animation and a more engaging home page.
+Its motion has four moves, each taken from the kit's "one highlight and one dot":
+the mint highlight is drawn across a headline phrase; hairlines above list rows
+are ruled left to right; a stroke is drawn through the three steps; and the
+kit icon's parts (a ring, two stems, one teal dot) rearrange for each
+step: a lens, a clock, then two people under one arc.
+
+**How a lesson comes together** (revised twice at the owner's request: first
+the shapes behind the tile and the filling line went, then a pinned tile that
+filled with liquid while the steps tilted past it, which the owner found odd on
+scroll). It now carries the hero's layered stroke, in blue on navy. One stroke
+falls five degrees to the right across the whole viewport, the mirror of the
+hero's, which rises; the three steps are set on it,
+each with a glass tile that the stroke passes behind, so the glass bends the
+line and the white glyph stands in front. On screens from 64rem the steps sit
+in three columns on one stroke and the process climbs it (owner's request):
+the first step, Find, is lowest at the bottom right, Choose is in the middle,
+and the last, Meet, is highest at the top left. The steps stay in order in the
+markup. A stop marks where the line starts, just before the first step. The
+stop is the hero's to the pixel (a 2.5rem dot in a
+0.375rem ring) in this section's colours, navy in white, and the stroke has
+the hero stroke's thickness at each breakpoint. Narrower screens stack the steps and give each tile its
+own stroke.
+
+- Spacing follows the screen's height from tablet widths: 16vh above and below
+  (between 6rem and 11rem) and 11vh between the heading and the steps (4rem to
+  7rem), so the section fills about one screen on a laptop. Phones use 5rem
+  and 3.5rem.
+- Its introduction is set in Lexend, like the steps beneath it, at the owner's
+  request; Literata is not used in this section.
+- From 64rem the introduction and its link sit on the left and the heading on
+  the right, its words meeting the right margin (owner's request). The heading
+  stays first in the markup, so reading order is unchanged; narrower screens
+  stack heading, then introduction.
+- The blue (`--line`) is navy lifted toward white in navy's own hue. It is not
+  a new brand colour and is used for this stroke only.
+- Text never sits on the stroke: each step's words are below its tile.
+- Nothing is pinned and nothing follows the scroll position except the stop
+  and a few pixels of drift between tiles and line. On arrival the stroke
+  is drawn from its low end at the right up to the left, and each glyph
+  assembles from the step before it as the stroke reaches its tile, once.
+  Stacked steps draw their own strokes left to right.
+- On wide screens the three steps arrive together (`data-reveal-group`), so
+  they always assemble in order whatever their height on the page.
+
+- Server markup is complete. Only `HomeMotion` sets `data-reveal="pending"`, and
+  only on an element still below the viewport, so nothing in view can vanish and
+  a failed script hides nothing.
+- Waiting is applied at once and only the release is animated, so a fast scroll
+  never catches a stroke half way into hiding.
+- Reduced motion keeps every state (the active step still changes) and removes
+  travel: no sweep, no drawn rules, no scroll-linked position.
+- Scroll-linked values are user-driven, never autoplay or looping. The review
+  carousel is the one thing that advances by itself, under the rules below.
+- A highlight may use a single-colour `linear-gradient` only so its width can be
+  animated; this and the select marker are the two permitted uses of the syntax.
+- One mint highlight per headline at most. Teal stays one dot per image, marking
+  what is next. Inactive steps on navy use the inverse-muted token, not opacity.
+- `text-hero` (40–68px) is the home headline size; other pages start at display.
+- The hero is a layered scene (see below). Its planes move by a few tens of
+  pixels each with scroll, and a fine pointer leans the stage about three
+  degrees. No pinning, no added scroll length, no pointer lock or capture.
+
+### Public home liquid glass
+
+The owner asked on 2026-10-13 for a liquid-glass environment on the home page,
+with a LiquidButton as the reference. The flat surface rule is set aside there,
+plus the shared site header on every route (owner follow-up, 2026-10-13).
+The material is `.glass` in `site-shell.css`: a softened, tinted
+backdrop, a lit rim, a contact shadow and a glint that follows the pointer.
+
+- Glass is for layers that float above content: the shared header, the
+  finder, the lesson tiles, the "What Learli looks after" card, the
+  sample-review sheet, and the primary and outline actions. Reading sections stay solid.
+- The shared header is transparent and spans the full viewport width. It takes on
+  glass only once the page has scrolled beneath it (`data-raised`), because
+  pinned labels over raw content cannot hold contrast. Without scripts it is
+  transparent and scrolls away with the page.
+- Every sheet has something of Learli's behind it to bend: the photographs, a
+  stroke, or the page scrolling under the header. No gradient blobs, and no glass over an empty ground for its
+  own sake.
+- Text on glass must hold AA over anything on the page. Light sheets keep a
+  white tint of at least 60%; sheets on navy stay dark with white text. Form
+  fields inside a sheet stay solid white. The header is the one sheet that text
+  scrolls beneath, so it carries an 80% tint and reads even if a browser fails
+  to blur.
+- Refraction (an SVG filter as the backdrop) is a Chromium-only enhancement,
+  switched on by `GlassEffects`. Every other browser, and a page without scripts,
+  gets the frosted sheet. Nothing may set `filter`, `opacity`, `mask`,
+  `clip-path` or `isolation` above a sheet's backdrop layer.
+- `prefers-reduced-transparency`, `prefers-contrast: more`, forced colors and
+  browsers without `backdrop-filter` get solid surfaces with the same content.
+- The header stays on screen only with scripts and a viewport at least 40rem
+  tall, so enlarged text never loses the page to a fixed bar; the page sets
+  `scroll-padding-top` to match. Kit radii are kept: 10px controls, 16px
+  sheets. The stage tile uses the kit icon's own corner ratio.
+- The reference's metal button and its other variants are not adopted.
 
 ## Components and states
 
@@ -142,11 +247,83 @@ URLs. Use real disabled attributes and accessible names, not styling alone.
 ### Public marketing site
 
 Paper first viewport with a large navy heading and one mint phrase highlight.
-Desktop balances factual introduction with the real finder or honest inventory
-state; mobile stacks them. Keep the finder/next action easy to reach. Actual
-tutors/subjects may appear only from current eligible catalog data. Explain the
-external Zoom/Meet lesson path with readable prose and a short ordered sequence.
-No decorative photos, stats, testimonials, fake cards or large dead-end hero.
+From 80rem the headline runs wide in two lines with the factual introduction at
+its right; below it the layered hero scene takes centre stage with the real
+finder or honest inventory state as a glass card at its right. One mint stroke,
+the headline's highlight carried on, crosses the whole viewport at a five-degree
+rise: behind the small photograph, through the main one between the room and
+the learner, under the glass finder and off the right edge. It is drawn left to
+right on load. The one teal dot is a stop on that line before the finder, ringed
+in paper so it reads against the mint, and it moves along the line as the hero
+scrolls away (wide screens only). The stroke is the single graphic allowed to
+cross a photograph, and it always passes behind the person in it. It never runs
+under text: where the words sit beside the scene it starts behind the far card.
+Between 64rem and 80rem the words and finder stack beside the scene; on phones
+the order is headline, words, finder, scene. Keep the finder/next action easy to reach.
+Actual tutors/subjects may appear only from current eligible catalog data.
+
+The home page then runs: real tutors when listed; the subject and learner-level
+index from the current catalog, each row a real directory filter; the navy
+three-step sequence (`#how-it-works`); what Learli looks after versus what the
+tutor looks after, as a layered scene (below); and two closing doors
+(Find a tutor / Get matched, and Become a tutor). Find a tutor, Get matched, Become a
+tutor and Report a concern stay reachable in every catalog state. Use ruled
+lists rather than cards. No stats, fake cards, prices, counts, verification
+claims, large dead-end hero, or testimonials presented as genuine.
+
+### Learli arranges the lesson: the layered scene
+
+The owner removed the earlier day and night diptych, found the section plain
+without it, and asked for a design. The lesson is a photograph in the middle;
+"What Learli looks after" is a liquid-glass card over its left edge and "What
+your tutor looks after" a solid navy card over its right, so the heading is
+also the picture: Learli, the lesson, your tutor.
+
+- From 64rem the three sit in a row with the cards overlapping the photograph
+  by 4.5rem, the glass card low and the navy card high. From 40rem the cards
+  sit side by side over the photograph's foot; on phones they stack beneath it.
+  Source order is picture, Learli, tutor.
+- The cards hold text, so they never move. Depth comes from the overlap and from
+  the photograph drifting a few percent inside its frame with scroll and a fine
+  pointer, which also slides the picture under the glass.
+- The cards are in normal flow and grow with their words; nothing is positioned
+  over a fixed-height stage.
+- The glass card carries a 72% tint because it holds a list.
+- The introduction is in Lexend, as in the section above.
+
+### Sample review carousel
+
+The owner asked on 2026-10-13 for a testimonials section with the animation of
+21st.dev's "circular testimonials" and natural placeholder messages "for now".
+Learli has no published reviews, and PUB-01 allows no invented ones in public,
+so the section is preview content:
+
+- It sits between the "what Learli looks after" section and the closing doors,
+  and renders only where `APP_ENV` is development, test or staging
+  (`previewContentAllowed`). In production, or with the variable unset, the
+  page has no review section at all.
+- It carries a visible "Sample reviews" tag and the sentence "Written for this
+  preview. They are not from Learli customers." Do not remove either while the
+  content is sample content.
+- The quotes in `sample-reviews.ts` name nobody and use no numbers, prices,
+  results or verification claims; each describes something the product already
+  does. Speakers are roles, because Learli publishes no reviewer names.
+- Pictures are faceless crops of the hero photographs (hands, notebooks). A face
+  is never shown beside a quote.
+- Real reviews may replace them only from the review-publication feature, once
+  its policy is approved; then the tag goes and the sample file is deleted.
+- Motion follows the reference: three pictures in a shallow 3D arc that swing
+  round with an overshoot (800ms), and the quote arriving word by word out of a
+  blur. Learli's own parts are the mint sun behind the stack, the quote on glass
+  in Literata, and the kit icon travelling along the track.
+- It changes by itself, at the owner's request with no pause button and one
+  control, Next. A review stays up for 6 seconds, as requested by the owner on
+  2026-10-13. The clock runs only while the
+  carousel is on screen in a visible tab; a review stays put while a pointer
+  rests on it or keyboard focus is inside it, then for 2.5s more. Next moves on
+  at once and the automatic change carries on. Reduced motion turns the
+  automatic change off and makes Next instant. Without scripts every review is
+  listed and there are no controls.
 
 ### Tutor directory and profiles
 
@@ -175,6 +352,32 @@ filter scopes, pagination, lifecycle history, private links and real actions.
 Availability controls retain keyboard/native operation and correct pending/error
 behavior. No calendar invention or business-policy change from branding.
 
+## Footer
+
+Redesigned on 2026-10-13 at the owner's request (the earlier one was a logo and
+a loose list). It is shared by every page: a flat navy reading surface below
+the landing page's diagonal accent, with no glass.
+
+- Left: the reverse wordmark (7rem, then 9rem), the tagline in the headline
+  size with the mint highlight on "personal.", and the one-line descriptor.
+- Right: the same seven destinations as before under three plain labels
+  (Learli, Help, Policies) in one `nav` named "Footer navigation". Links are
+  44px targets. Policy links keep the word "draft". Do not add destinations
+  that repeat the header's (Find a tutor, Sign in and so on): browser tests
+  find those by name.
+- A closing bar under a hairline: "Learli is a tutoring marketplace. Tutors
+  teach independently." and a "Back to top" link to `#main-content`, which
+  works without scripts.
+- No copyright line, company name, address, social links or newsletter: the
+  legal identity is an open decision and none of those exist. Add them only
+  when the owner supplies them.
+
+On every page, the shared footer's first element (`.site-footer-accent`) cuts its
+top edge on the hero's five-degree diagonal: a navy wedge that joins
+the footer, with the hero's mint stroke lying along it and its teal stop. The
+stroke is drawn on arrival and the stop travels up it as the page ends. The
+accent and its styles load from the root layout, including on direct visits.
+
 ## Navigation, icons, assets and imagery
 
 Use original SVGs under `public/brand/`, byte-identical to kit exports. Primary on
@@ -182,12 +385,54 @@ white/paper, reverse on navy; no typed placeholder, distortion or recoloring.
 Use the kit icon for browser metadata, never beside the wordmark. Respect clear
 space and minimum size. Home links have a clear accessible name. Desktop and
 mobile navigation keep all current real destinations, visible focus and Escape
-support for the mobile dialog. Use the existing Lucide library for functional
+support for the mobile dialog. On every page, the shared header is
+transparent and full width, turning to glass on scroll; its destinations and
+menu behavior are identical. Use the existing Lucide library for functional
 icons only. No emoji icons or decorative icon tiles.
 
-Photography remains absent until rights/consent and actual assets exist. The
-kit's [PHOTO] frames are not production media. No uploaded tutor-photo feature or
-storage service is introduced.
+Photography of real learners and tutors remains absent until rights/consent and
+actual assets exist. The kit's imagery board rules out stock and generated
+faces, and that stays the standard. The kit's [PHOTO] frames are not production
+media. No uploaded tutor-photo feature or storage service is introduced.
+
+**Owner exception, 2026-10-13: illustrative hero photographs.** The owner asked
+for images of students in the home hero, then for the image to look "HD and in
+3D" using the scroll-craft skill. Until consented photographs of real lessons
+exist, the hero carries AI-generated photographs in `public/home/`; that
+folder's README records what they are and how they were made.
+
+The lead photograph is built as a layered scene after scroll-craft's hero-depth
+method (`src/features/home/hero-scene.tsx`): a clean plate of the room, and the
+learner with her desk as one cutout in front of it, her head breaking the top
+of the frame. A second learner sits on a card behind and a worked problem on a
+card in front. This sets aside the kit's "no cut-outs" line for this one scene:
+the cutout is composited back into its own room, never onto a blank ground or a
+shape. Things that touch stay on one plane, so nothing she holds can slide.
+With scripts off or motion reduced the scene is the same composition, still.
+Photographs are served at quality 90. Rules:
+
+- Home page only: the hero, and one photograph of its own between the two
+  lists in "Learli arranges the lesson" (a parent and a young learner at a
+  table; the owner asked that it not repeat a hero picture). Never on tutor profiles, the directory, reviews or any place where a
+  picture would stand for an actual person; those keep initials avatars.
+- They follow the kit's own art direction: daylight, eyes on the work, brand
+  colour from objects in the room, no tint or overlay, rectangular 12px frames.
+- They depict no real person and no actual Learli learner, tutor or lesson. Alt
+  text describes the scene and never says otherwise; no caption, name, quote,
+  credit or testimonial may be attached to them.
+- Laptop screens face away, so no meeting software or lesson content is shown.
+- Replace them with consented photographs of real lessons when the owner has
+  them. Whether to label them as illustrative for a public launch is the
+  owner's decision and is not yet made.
+
+The home page instead uses original vector artwork in `src/features/home/`,
+drawn from the wordmark's geometry (square stems, round dots, rings) in existing
+tokens: the lesson glyph. It is inline SVG, not a raster or a stored asset. It
+depicts no actual tutor, learner, lesson time or inventory, and must not be
+mistaken for evidence of any. It never redraws, recolors or animates the
+wordmark or icon files themselves. An earlier "same table, two places" diptych
+(a learner in daylight and a tutor at night) was removed at the owner's request
+on 2026-10-13; do not bring it back.
 
 ## Responsive, privacy and accessibility verification
 
