@@ -7,6 +7,11 @@ const areas = [
   ["subjects", "/admin/subjects", "Subjects"],
   ["support", "/admin/support", "Assigned support cases"],
   ["reviews", "/admin/reviews", "Private synthetic reviews"],
+  [
+    "publication-reviews",
+    "/admin/publication-reviews",
+    "Synthetic publication reviews",
+  ],
   ["accounts", "/admin/accounts", "Authorized local accounts"],
 ] as const;
 export type AdminArea = (typeof areas)[number][0];

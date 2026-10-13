@@ -3,6 +3,7 @@ import { isAPIError } from "better-auth/api";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { AccessError, requireIdentity } from "@/lib/permissions/access";
 import { RuleError } from "@/lib/rule-error";
+import { providerHeaders } from "@/features/hosted-auth/request";
 import {
   reportedDevice,
   revokeSessionInput,
@@ -17,6 +18,7 @@ export class SessionFreshnessError extends RuleError {
 
 async function ownProviderSessions(runtime: AuthRuntime, headers: Headers) {
   const identity = await requireIdentity(runtime, headers);
+  if ("hosted" in runtime) headers = providerHeaders(runtime, headers);
   const current = await runtime.auth.api.getSession({
     headers,
     query: { disableCookieCache: true },

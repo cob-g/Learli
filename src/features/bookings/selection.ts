@@ -28,6 +28,42 @@ export type PublicBookingSelection = z.infer<
 >;
 export type SearchValues = Record<string, string | string[] | undefined>;
 
+/** Public discovery handoff before the learner's current policy/slot is known.
+ * Exact two-field shape; never downgrade a malformed time tuple to discovery. */
+const publicBookingDiscoveryInput = z.strictObject({
+  tutorSlug: publicSlugInput,
+  subjectSlug: publicSlugInput,
+});
+export type PublicBookingDiscovery = z.infer<
+  typeof publicBookingDiscoveryInput
+>;
+export function parsePublicBookingDiscovery(
+  params: SearchValues,
+): PublicBookingDiscovery | null {
+  const parsed = publicBookingDiscoveryInput.safeParse(params);
+  return parsed.success ? parsed.data : null;
+}
+export function bookingDiscoveryHref(input: PublicBookingDiscovery) {
+  const discovery = publicBookingDiscoveryInput.parse(input);
+  return `/bookings/demo?${new URLSearchParams(discovery)}`;
+}
+export function discoveryFromReturnPath(
+  next: unknown,
+): PublicBookingDiscovery | null {
+  const path = safeReturnPath(typeof next === "string" ? next : undefined);
+  const url = new URL(path, "http://learli.invalid");
+  if (
+    url.pathname !== "/bookings/demo" ||
+    url.search.length > 2048 ||
+    url.hash ||
+    [...url.searchParams.keys()].some(
+      (key) => url.searchParams.getAll(key).length !== 1,
+    )
+  )
+    return null;
+  return parsePublicBookingDiscovery(Object.fromEntries(url.searchParams));
+}
+
 export function parsePublicBookingSelection(
   params: SearchValues,
 ): PublicBookingSelection | null {
@@ -75,5 +111,7 @@ export function safeBookingReturnPath(next: unknown) {
   const url = new URL(path, "http://learli.invalid");
   if (url.pathname !== "/bookings/demo") return path;
   const choice = selectionFromReturnPath(path);
-  return choice ? bookingSelectionHref(choice) : "/bookings/demo";
+  if (choice) return bookingSelectionHref(choice);
+  const discovery = discoveryFromReturnPath(path);
+  return discovery ? bookingDiscoveryHref(discovery) : "/bookings/demo";
 }

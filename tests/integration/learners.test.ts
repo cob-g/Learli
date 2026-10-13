@@ -1,3 +1,4 @@
+import { listLearnerGroups } from "@/features/learners/composition";
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
@@ -173,6 +174,9 @@ describe("local learner ownership against PostgreSQL", () => {
   it("denies anonymous, wrong-role, and admin bypasses", async () => {
     expect((await request(undefined, learnerId)).status).toBe(401);
     for (const account of [tutor, admin, roleless]) {
+      await expect(
+        listLearnerGroups(world.runtime, account.headers),
+      ).rejects.toMatchObject({ status: 403 });
       expect((await request(account)).status).toBe(403);
       expect((await request(account, learnerId, input)).status).toBe(403);
     }

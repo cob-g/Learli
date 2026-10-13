@@ -3,9 +3,24 @@ export const runtimeGrantsSql = `
     REVOKE ALL ON SCHEMA public FROM PUBLIC;
     GRANT USAGE ON SCHEMA public TO learli_app;
     GRANT EXECUTE ON FUNCTION public.submit_private_review(text,text,uuid,integer,uuid,integer,text), public.moderate_private_review(text,text,uuid,integer,uuid,text) TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.create_learner_admission(text,text,uuid,uuid,text,text,text,text,text), public.record_learner_admission_evidence(text,text,uuid,integer,uuid,text,text), public.decide_learner_admission(text,text,uuid,integer,uuid,text), public.revoke_learner_admission_evidence(text,text,uuid,integer,uuid,uuid), public.update_admitted_learner(text,text,uuid,uuid,text,text), public.has_current_learner_authority(text,text,uuid,uuid) TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.booking_workflow_policy_current(uuid), public.expire_policy_bookings(uuid), public.has_current_booking_beneficiary(text,uuid,uuid), public.has_booking_workflow_task(text,text,uuid,text), public.create_policy_booking(text,text,uuid,uuid,uuid,uuid,uuid,timestamptz,timestamptz,text,text), public.change_policy_booking(text,text,uuid,uuid,uuid,integer,text,text,timestamptz,timestamptz,text,text) TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.booking_workflow_participant(text,text,uuid), public.create_booking_workflow_dispute(text,text,uuid,uuid,text,text,text,text) TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.assert_booking_workflow_receipt(text,text,uuid,uuid,text,uuid,boolean,text,timestamptz,timestamptz,timestamptz) TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.publication_policy_current(uuid),public.publication_completion_current(text,uuid,uuid,integer),public.publication_author_allowed(text,text,uuid,uuid,integer,uuid),public.publication_moderator_allowed(text,text,uuid,uuid),public.submit_publication_review(text,text,uuid,uuid,integer,uuid,uuid,integer,text),public.decide_publication_review(text,text,uuid,uuid,integer,uuid,text,boolean) TO learli_app;
     REVOKE ALL ON ALL TABLES IN SCHEMA public FROM learli_app;
-    GRANT SELECT, INSERT, UPDATE, DELETE ON "user", "session", "account", "verification", "rate_limit" TO learli_app;
+    GRANT SELECT ON transactional_deliveries TO learli_app;
+    GRANT UPDATE (state, claim_token, claim_until, payload, idempotency_key, payload_fingerprint, configuration_fingerprint, first_attempt_at, last_attempt_at, attempts, next_attempt_at, provider_id, failure_code, closed_at, suppressed_reason) ON transactional_deliveries TO learli_app;
+
+    GRANT SELECT, INSERT, UPDATE, DELETE ON "user", "session", "account", "verification", "rate_limit", "two_factor" TO learli_app;
+    GRANT SELECT, INSERT, UPDATE ON admin_security_epochs TO learli_app;
+    GRANT SELECT, INSERT, UPDATE, DELETE ON admin_assurance_receipts TO learli_app;
+    GRANT INSERT ON admin_security_events TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.has_admin_assurance(text,text,integer) TO learli_app;
+    GRANT SELECT ON review_publication_policies,review_publication_policy_head,publication_reviews,publication_moderator_grants,publication_review_events TO learli_app;
     GRANT SELECT ON private_booking_reviews, private_review_events, review_moderators, review_moderator_grants TO learli_app;
+    GRANT SELECT ON learner_admission_policies, learner_admission_policy_state, learner_admissions, learner_admission_reviewers, learner_admission_assignments, learner_admission_evidence, learner_admission_events TO learli_app;
+    GRANT SELECT ON booking_workflow_policies, booking_workflow_policy_head, booking_workflow_grants, booking_workflow_notice_intents TO learli_app;
     GRANT SELECT ON learner_profiles, guardian_learner_links TO learli_app;
     GRANT SELECT, INSERT ON bookings TO learli_app;
     GRANT SELECT, INSERT ON booking_meeting_links, booking_meeting_link_events TO learli_app;
@@ -19,6 +34,8 @@ export const runtimeGrantsSql = `
     GRANT SELECT ON booking_notification_deliveries TO learli_app;
     GRANT UPDATE (state, attempts, last_attempt_at, closed_at, failure_code, suppressed_reason) ON booking_notification_deliveries TO learli_app;
     GRANT UPDATE (display_name, level, timezone, updated_at) ON learner_profiles TO learli_app;
+    GRANT SELECT ON tutor_screening_policies,tutor_screening_policy_heads,tutor_screening_cases,tutor_screening_staff,tutor_screening_assignments,tutor_screening_checks,tutor_screening_decisions,tutor_screening_decision_checks,tutor_screening_events,support_response_policies,support_response_policy_heads,support_case_responses,support_response_events TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.has_current_tutor_screening(uuid,text),public.has_tutor_screening_authority(text,text,uuid,text),public.request_tutor_screening(text,text,uuid,uuid,text),public.record_tutor_screening_check(text,text,uuid,integer,uuid,text,text,text,timestamptz,timestamptz),public.decide_tutor_screening(text,text,uuid,integer,uuid,text),public.review_local_tutor_application(text,text,uuid,text),public.resubmit_tutor_application(text,text,uuid),public.has_current_support_policy(text),public.has_safeguarding_case_authority(text,text,uuid,text),public.create_safeguarding_case(text,text,uuid,text,text,text,text),public.change_safeguarding_response(text,text,uuid,integer,uuid,text,text),public.change_safeguarding_access(text,text,text,integer,text,text,uuid) TO learli_app;
     GRANT SELECT ON user_roles TO learli_app;
     GRANT SELECT ON support_reviewers, support_case_assignments TO learli_app;
     GRANT SELECT, INSERT ON support_cases, support_case_events TO learli_app;
@@ -29,7 +46,9 @@ export const runtimeGrantsSql = `
     GRANT INSERT ON audit_events TO learli_app;
     GRANT SELECT, INSERT ON subjects TO learli_app;
     GRANT UPDATE (name, is_active, updated_at) ON subjects TO learli_app;
-    GRANT SELECT, INSERT, UPDATE ON tutor_profiles TO learli_app;
+    GRANT SELECT ON tutor_profiles TO learli_app;
+    GRANT INSERT (user_id,slug,headline,bio,teaching_background,timezone) ON tutor_profiles TO learli_app;
+    GRANT UPDATE (headline,bio,teaching_background,timezone,availability_version,updated_at) ON tutor_profiles TO learli_app;
     GRANT SELECT, INSERT, UPDATE, DELETE ON tutor_subjects, tutor_availability TO learli_app;
     GRANT SELECT, INSERT, DELETE ON tutor_availability_exceptions TO learli_app;
     GRANT SELECT, INSERT, DELETE ON tutor_teaching_languages TO learli_app;

@@ -37,7 +37,11 @@ export async function queryParticipantBookings(
             SELECT 1 FROM guardian_learner_links g
             WHERE g.guardian_user_id = a.id AND g.learner_id = l.id
               AND g.status = 'authorized' AND g.source = 'local_fixture')`;
-  const active = sql`b.state IN ('demo_reserved','demo_confirmed') AND b.expires_at > a.now AND b.end_at_utc > a.now`;
+  const active = sql`(((b.source='local_simulation' AND b.state IN ('demo_reserved','demo_confirmed') AND b.expires_at>a.now) OR (b.source='synthetic_readiness' AND (b.state='confirmed' OR (b.state='provisional' AND b.expires_at>a.now)))) AND b.end_at_utc>a.now)`;
+  const readinessRelation =
+    input.scope === "tutor"
+      ? sql`tp.user_id=a.id AND public.has_current_booking_beneficiary(b.booked_by_user_id,l.id,b.admission_policy_id) AND public.has_current_tutor_screening(tp.id,'synthetic_readiness')`
+      : sql`public.has_current_learner_authority(a.id,${actor.sessionId},l.id,b.admission_policy_id)`;
   const filter =
     input.filter === "active"
       ? active
@@ -59,19 +63,19 @@ export async function queryParticipantBookings(
     ), permitted AS (
       SELECT b.id, b.start_at_utc, ${active} AS active,
         jsonb_build_object(
-          'id', b.id, 'logicalBookingId', b.logical_booking_id, 'revision', b.revision, 'currentHeadId', (SELECT head.id FROM bookings head WHERE head.logical_booking_id=b.logical_booking_id ORDER BY head.revision DESC LIMIT 1), 'tutorName', tu.name, 'tutorSlug', tp.slug,
+          'id', b.id, 'source', b.source, 'workflowRevision', b.workflow_revision, 'policyVersion', (SELECT p.version FROM booking_workflow_policies p WHERE p.id=b.workflow_policy_id), 'logicalBookingId', b.logical_booking_id, 'revision', b.revision, 'currentHeadId', (SELECT head.id FROM bookings head WHERE head.logical_booking_id=b.logical_booking_id ORDER BY head.revision DESC LIMIT 1), 'tutorName', tu.name, 'tutorSlug', tp.slug,
           'subjectName', sub.name, 'subjectSlug', sub.slug,
           'learnerId', l.id, 'learnerName', l.display_name, 'learnerLevel', l.level,
           'state', b.state, 'start', b.start_at_utc, 'end', b.end_at_utc,
           'expires', b.expires_at, 'events', ${bookingId ? sql`COALESCE((SELECT jsonb_agg(jsonb_build_object('id', e.id, 'event', e.event, 'at', e.created_at) ORDER BY e.created_at ASC, CASE e.event WHEN 'demo_reserved' THEN 0 WHEN 'demo_confirmed' THEN 1 WHEN 'demo_completed' THEN 2 ELSE 3 END ASC, e.id ASC) FROM (SELECT e.id,e.event,e.created_at FROM booking_events e JOIN bookings eb ON eb.id=e.booking_id WHERE eb.logical_booking_id=b.logical_booking_id UNION ALL SELECT le.id,le.event,le.created_at FROM booking_lifecycle_events le WHERE le.logical_booking_id=b.logical_booking_id) e), '[]'::jsonb)` : sql`'[]'::jsonb`}
         ) AS item
-      FROM actor a JOIN bookings b ON b.source = 'local_simulation'
+      FROM actor a JOIN bookings b ON b.source IN ('local_simulation','synthetic_readiness')
       JOIN learner_profiles l ON l.id = b.learner_id
-        AND l.status = 'active' AND l.source = 'local_fixture'
+        AND l.status = 'active'
       JOIN tutor_profiles tp ON tp.id = b.tutor_id
       JOIN "user" tu ON tu.id = tp.user_id
       JOIN subjects sub ON sub.id = b.subject_id
-      WHERE ${relation} AND ${filter}
+      WHERE ((b.source='local_simulation' AND l.source='local_fixture' AND ${relation}) OR (b.source='synthetic_readiness' AND l.source=b.source AND public.booking_workflow_policy_current(b.workflow_policy_id) AND ${readinessRelation})) AND ${filter}
         ${bookingId ? sql`AND b.id = ${bookingId}::uuid` : sql``}
         ${input.learnerId ? sql`AND l.id = ${input.learnerId}::uuid` : sql``}
     ), paged AS (
@@ -93,8 +97,7 @@ export async function queryParticipantBookings(
           ? sql`'[]'::jsonb`
           : sql`COALESCE((
         SELECT jsonb_agg(jsonb_build_object('id', lp.id, 'displayName', lp.display_name, 'level', lp.level) ORDER BY lp.created_at ASC, lp.id ASC)
-        FROM learner_profiles lp WHERE lp.status = 'active' AND lp.source = 'local_fixture'
-          AND ${input.scope === "student" ? sql`lp.management = 'self' AND lp.user_id = a.id AND lp.level = 'college_support'` : sql`lp.management = 'guardian' AND lp.user_id IS NULL AND EXISTS (SELECT 1 FROM guardian_learner_links gl WHERE gl.learner_id = lp.id AND gl.guardian_user_id = a.id AND gl.status = 'authorized' AND gl.source = 'local_fixture')`}
+        FROM learner_profiles lp WHERE lp.status = 'active' AND ((lp.source='synthetic_readiness' AND EXISTS(SELECT 1 FROM learner_admissions la WHERE la.learner_id=lp.id AND public.has_current_learner_authority(a.id,${actor.sessionId},lp.id,la.policy_id))) OR (lp.source = 'local_fixture' AND ${input.scope === "student" ? sql`lp.management = 'self' AND lp.user_id = a.id AND lp.level = 'college_support'` : sql`lp.management = 'guardian' AND lp.user_id IS NULL AND EXISTS (SELECT 1 FROM guardian_learner_links gl WHERE gl.learner_id = lp.id AND gl.guardian_user_id = a.id AND gl.status = 'authorized' AND gl.source = 'local_fixture')`}))
       ), '[]'::jsonb)`
       } AS learners
     FROM actor a

@@ -80,6 +80,7 @@ export async function revokeFixtureReviewer(owner: Owner, userId: string) {
         and(
           eq(supportReviewers.userId, userId),
           eq(supportReviewers.status, "authorized"),
+          eq(supportReviewers.source, "local_fixture"),
         ),
       )
       .returning();

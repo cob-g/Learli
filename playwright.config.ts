@@ -1,7 +1,18 @@
+import { screeningMirrorOrigin } from "./tests/support/readiness-placement";
+import { hostedBrowserOrigin } from "./tests/support/hosted-auth-placement";
 import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = process.env.APP_URL ?? "http://127.0.0.1:3100";
 const target = new URL(baseURL);
+const hostedBrowser = process.env.LEARLI_HOSTED_BROWSER ?? "chromium";
+if (!["chromium", "firefox", "webkit"].includes(hostedBrowser))
+  throw new Error("Unsupported owned hosted browser engine.");
+const hostedDevice =
+  hostedBrowser === "firefox"
+    ? devices["Desktop Firefox"]
+    : hostedBrowser === "webkit"
+      ? devices["Desktop Safari"]
+      : devices["Desktop Chrome"];
 if (
   target.hostname !== "127.0.0.1" ||
   target.protocol !== "http:" ||
@@ -23,6 +34,20 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [
+    {
+      name: "hosted-auth",
+      testMatch: "hosted-auth.spec.ts",
+      fullyParallel: false,
+      use: {
+        ...hostedDevice,
+        baseURL: hostedBrowserOrigin,
+        ignoreHTTPSErrors: true,
+        trace: "off",
+        screenshot: "off",
+        video: "off",
+        viewport: { width: 1440, height: 900 },
+      },
+    },
     {
       name: "desktop",
       testMatch: "foundation.spec.ts",
@@ -395,12 +420,129 @@ export default defineConfig({
         screenshot: "off",
       },
     },
+    {
+      name: "admin-security",
+      testMatch: "admin-security.spec.ts",
+      dependencies: ["local-completion-integration"],
+      fullyParallel: false,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+        trace: "off",
+        screenshot: "off",
+        video: "off",
+      },
+    },
+    {
+      name: "learner-admission",
+      testMatch: "learner-admission.spec.ts",
+      dependencies: ["admin-security"],
+      fullyParallel: false,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+        trace: "off",
+        screenshot: "off",
+        video: "off",
+      },
+    },
+    {
+      name: "screening-safeguarding",
+      timeout: 240000,
+      testMatch: ["tutor-screening.spec.ts", "safeguarding-response.spec.ts"],
+      dependencies: ["learner-admission"],
+      fullyParallel: false,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: screeningMirrorOrigin,
+        viewport: { width: 1440, height: 900 },
+        trace: "off",
+        screenshot: "off",
+        video: "off",
+      },
+    },
+    {
+      name: "policy-booking",
+      testMatch: "policy-booking.spec.ts",
+      dependencies: ["screening-safeguarding"],
+      fullyParallel: false,
+      timeout: 180000,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: screeningMirrorOrigin,
+        viewport: { width: 1440, height: 900 },
+        trace: "off",
+        screenshot: "off",
+        video: "off",
+      },
+    },
+    {
+      name: "review-publication",
+      timeout: 180000,
+      testMatch: "review-publication.spec.ts",
+      dependencies: ["policy-booking"],
+      fullyParallel: false,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: screeningMirrorOrigin,
+        viewport: { width: 1440, height: 900 },
+        trace: "off",
+        screenshot: "off",
+        video: "off",
+      },
+    },
+    {
+      name: "transactional-delivery",
+      testMatch: "transactional-delivery.spec.ts",
+      dependencies: ["review-publication"],
+      fullyParallel: false,
+      timeout: 180000,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: screeningMirrorOrigin,
+        viewport: { width: 1440, height: 900 },
+        trace: "off",
+        screenshot: "off",
+        video: "off",
+      },
+    },
+    {
+      name: "hosted-workflows-integration",
+      testMatch: "hosted-workflows-integration.spec.ts",
+      dependencies: ["transactional-delivery"],
+      fullyParallel: false,
+      timeout: 240000,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: screeningMirrorOrigin,
+        viewport: { width: 1440, height: 900 },
+        trace: "off",
+        screenshot: "off",
+        video: "off",
+      },
+    },
   ],
-  webServer: {
-    command: `npm run start -- --hostname 127.0.0.1 --port ${target.port}`,
-    url: `${baseURL}/api/health`,
-    reuseExistingServer: false,
-    env: { APP_ENV: "test", APP_URL: baseURL },
-    timeout: 60_000,
-  },
+  webServer: [
+    {
+      command: `npm run start -- --hostname 127.0.0.1 --port ${target.port}`,
+      url: `${baseURL}/api/health`,
+      reuseExistingServer: false,
+      env: { APP_ENV: "test", APP_URL: baseURL },
+      timeout: 60_000,
+    },
+    {
+      command: "node --import tsx scripts/w6-readiness-mirror.ts serve",
+      url: `${screeningMirrorOrigin}/api/health`,
+      reuseExistingServer: false,
+      timeout: 120000,
+    },
+    {
+      command: "node --import tsx tests/support/hosted-auth-app.ts",
+      url: `${hostedBrowserOrigin}/api/health`,
+      ignoreHTTPSErrors: true,
+      reuseExistingServer: false,
+      timeout: 240_000,
+      gracefulShutdown: { signal: "SIGTERM", timeout: 30_000 },
+    },
+  ],
 });

@@ -1,7 +1,7 @@
 import {
   effectiveDemoState,
-  type DemoBookingState,
-  type DemoLifecycleEvent,
+  type BookingState,
+  type BookingEvent,
 } from "./lifecycle-model";
 import type { LearnerLevel } from "@/lib/db/schema/app";
 import { formatLessonTime } from "./format-time";
@@ -10,6 +10,9 @@ import type { BookingDetail } from "./read-model";
 // Internal SQL projection; this is not the consumer read contract.
 export type StoredBookingRead = {
   id: string;
+  source?: "local_simulation" | "synthetic_readiness";
+  workflowRevision?: number;
+  policyVersion?: string;
   logicalBookingId?: string;
   revision?: number;
   currentHeadId?: string;
@@ -20,13 +23,13 @@ export type StoredBookingRead = {
   learnerId: string;
   learnerName: string;
   learnerLevel: LearnerLevel;
-  state: DemoBookingState;
+  state: BookingState;
   start: string;
   end: string;
   expires: string;
   events: {
     id: string;
-    event: "demo_reserved" | "demo_expired" | DemoLifecycleEvent;
+    event: "demo_reserved" | "demo_expired" | BookingEvent;
     at: string;
   }[];
 };
@@ -42,7 +45,9 @@ export function projectBookingRead(
     logicalBookingId: row.logicalBookingId ?? row.id,
     revision: row.revision ?? 0,
     currentHeadId: row.currentHeadId ?? row.id,
-    source: "local_simulation",
+    source: row.source ?? "local_simulation",
+    workflowRevision: row.workflowRevision ?? 0,
+    policyVersion: row.policyVersion,
     tutor: { displayName: row.tutorName, slug: row.tutorSlug },
     subject: { name: row.subjectName, slug: row.subjectSlug },
     learner: {

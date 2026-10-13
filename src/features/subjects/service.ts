@@ -1,3 +1,7 @@
+import {
+  adminAssurancePredicate,
+  recheckAdminAssurance,
+} from "@/features/admin-security/assurance";
 import { randomBytes } from "node:crypto";
 import { and, eq, ne, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -32,10 +36,11 @@ export async function listSubjectsForAdmin(
   runtime: AuthRuntime,
   headers: Headers,
 ) {
-  await requireRole(runtime, headers, "admin");
+  const identity = await requireRole(runtime, headers, "admin");
   return runtime.db
     .select({ ...columns, nameRevision: subjects.nameRevision })
-    .from(subjects);
+    .from(subjects)
+    .where(adminAssurancePredicate(identity.userId, identity.sessionId));
 }
 
 /** Stable references survive rename; the locked current name is authoritative. */
@@ -65,7 +70,7 @@ export async function renameSpecializedSubject(
           JOIN "user" u ON u.id = s.user_id
           JOIN user_access a ON a.user_id = u.id
           WHERE s.id = ${identity.sessionId} AND s.user_id = ${identity.userId}
-            AND s.expires_at > clock_timestamp() AND u.email_verified
+            AND ${adminAssurancePredicate(identity.userId, identity.sessionId)} AND s.expires_at > clock_timestamp() AND u.email_verified
             AND a.status = 'active'
             AND EXISTS (SELECT 1 FROM user_roles r
               WHERE r.user_id = u.id AND r.role = 'admin')
@@ -113,6 +118,7 @@ export async function createSpecializedSubject(
   const base = slugify(name) || "subject";
   try {
     return await runtime.db.transaction(async (tx) => {
+      await recheckAdminAssurance(tx, identity);
       const [taken] = await tx
         .select({ id: subjects.id })
         .from(subjects)
@@ -125,6 +131,7 @@ export async function createSpecializedSubject(
           category: "specialized",
         })
         .returning(columns);
+      await recheckAdminAssurance(tx, identity);
       await tx.insert(auditEvents).values({
         actorUserId: identity.userId,
         targetSubjectId: created.id,
@@ -151,6 +158,12 @@ export async function setSubjectActive(
   if (!z.uuid().safeParse(subjectId).success)
     throw new RuleError(404, "We can't find that subject.");
   return runtime.db.transaction(async (tx) => {
+    await tx
+      .select({ id: subjects.id })
+      .from(subjects)
+      .where(eq(subjects.id, subjectId))
+      .for("update");
+    await recheckAdminAssurance(tx, identity);
     const [changed] = await tx
       .update(subjects)
       .set({ isActive, updatedAt: new Date() })

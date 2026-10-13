@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getAuthRuntime } from "@/lib/auth";
+import { getAccountAuthRuntime } from "@/lib/auth";
 import { AccessError } from "@/lib/permissions/access";
 import { readAccount } from "@/features/account/service";
 import { EmailForm } from "@/features/account-email/email-form";
@@ -14,9 +14,11 @@ export const metadata: Metadata = {
 };
 export default async function AccountEmailPage() {
   let account;
+  let hosted = false;
   try {
-    const runtime = getAuthRuntime();
+    const runtime = await getAccountAuthRuntime();
     if (!runtime) throw new AccessError(503);
+    hosted = "hosted" in runtime;
     account = await readAccount(runtime, await headers());
   } catch (error) {
     if (error instanceof AccessError && error.status === 401)
@@ -32,10 +34,10 @@ export default async function AccountEmailPage() {
     <div className="page-shell page-space">
       <h1 className="text-page-title">Change account email</h1>
       <p className="mt-4 max-w-prose text-body text-muted-foreground">
-        Local synthetic accounts only. Reloading this page clears the pending
-        form; restart confirmation if needed.
+        Synthetic accounts only. Reloading this page clears the pending form;
+        restart confirmation if needed.
       </p>
-      <EmailForm currentEmail={account.email} />
+      <EmailForm currentEmail={account.email} hosted={hosted} />
       <Link href="/account" className="mt-8 inline-flex min-h-11 items-center">
         Back to account
       </Link>

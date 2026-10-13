@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { loadPrivatePage } from "@/lib/permissions/workspace";
+import { loadPrivateAccountPage } from "@/lib/permissions/workspace";
 import { requireIdentity } from "@/lib/permissions/access";
 import { SessionList } from "@/features/account-sessions/session-list";
 import { SignOut } from "@/features/auth/sign-out";
@@ -13,7 +13,10 @@ export const metadata: Metadata = {
 };
 
 export default async function AccountSessionsPage() {
-  const identity = await loadPrivatePage("/account/sessions", requireIdentity);
+  const identity = await loadPrivateAccountPage(
+    "/account/sessions",
+    requireIdentity,
+  );
   if (!identity)
     return (
       <UnavailablePage
@@ -25,8 +28,8 @@ export default async function AccountSessionsPage() {
     <div className="page-shell page-space">
       <h1 className="text-page-title">Account sessions</h1>
       <p className="mt-4 max-w-prose text-body">
-        Review your active local test sessions and sign out any other session
-        you no longer use.
+        Review your active synthetic test sessions and sign out any other
+        session you no longer use.
       </p>
       <SessionList />
       <SignOut />

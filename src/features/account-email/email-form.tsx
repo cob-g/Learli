@@ -11,7 +11,13 @@ import {
 import { emailChangeInput } from "./input";
 
 const subscribe = () => () => {};
-export function EmailForm({ currentEmail }: { currentEmail: string }) {
+export function EmailForm({
+  currentEmail,
+  hosted = false,
+}: {
+  currentEmail: string;
+  hosted?: boolean;
+}) {
   const ready = useSyncExternalStore(
     subscribe,
     () => true,
@@ -101,8 +107,9 @@ export function EmailForm({ currentEmail }: { currentEmail: string }) {
         setErrors({});
         setStage(parsed.data.action === "start" ? "current" : "new");
         setNotice({
-          message:
-            parsed.data.action === "start"
+          message: hosted
+            ? "A confirmation request was accepted. Check the requested address for its code; delivery has not been established."
+            : parsed.data.action === "start"
               ? "A current-address confirmation code is available in your private local capture. No email was sent."
               : "If the new address can be used, its code is available in your private local capture. Your current email is still unchanged.",
           failed: false,

@@ -11,6 +11,11 @@ import os from "node:os";
 import path from "node:path";
 import {
   assertPrivatePath,
+  assertAllowedProvenance,
+  assertProvenanceCoverage,
+  assertTableInventory,
+  acceptedTableInventory,
+  syntheticProvenance,
   normalizeSchema,
   readSource,
   validateRestorePort,
@@ -47,6 +52,106 @@ function fixture() {
   return { root, env, write };
 }
 describe("local backup restoration boundaries", () => {
+  it("covers every inspected source column and refuses omitted/new provenance contracts", () => {
+    const columns = syntheticProvenance.map(([table, column]) => ({
+      table,
+      column,
+    }));
+    expect(() => assertProvenanceCoverage(columns)).not.toThrow();
+    expect(() => assertProvenanceCoverage(columns.slice(1))).toThrow(
+      "provenance-coverage",
+    );
+    expect(() =>
+      assertProvenanceCoverage([
+        ...columns,
+        { table: "future_booking", column: "source" },
+      ]),
+    ).toThrow("provenance-coverage");
+    expect(() =>
+      assertAllowedProvenance("future_booking", "source", [
+        "synthetic_readiness",
+      ]),
+    ).toThrow("provenance-coverage");
+  });
+  it.each(syntheticProvenance)(
+    "accepts only the exact %s.%s synthetic provenance",
+    (table, column, allowed) => {
+      expect(() =>
+        assertAllowedProvenance(table, column, [...allowed]),
+      ).not.toThrow();
+      for (const value of [
+        "operational",
+        "approved",
+        "real_person",
+        "unknown",
+        "synthetic_other",
+        "",
+        "SYNTHETIC_READINESS",
+        "synthetic_readiness ",
+      ])
+        expect(() => assertAllowedProvenance(table, column, [value])).toThrow(
+          "synthetic-only",
+        );
+      if (!([...allowed] as (string | null)[]).includes(null))
+        expect(() => assertAllowedProvenance(table, column, [null])).toThrow(
+          "synthetic-only",
+        );
+    },
+  );
+  it("permits the accepted booking sources without promoting private reviews", () => {
+    expect(() =>
+      assertAllowedProvenance("bookings", "source", [
+        "local_simulation",
+        "synthetic_readiness",
+      ]),
+    ).not.toThrow();
+    expect(() =>
+      assertAllowedProvenance("private_booking_reviews", "source", [
+        "synthetic_readiness",
+      ]),
+    ).toThrow();
+    expect(() =>
+      assertAllowedProvenance("learner_admissions", "source", [
+        "local_fixture",
+      ]),
+    ).toThrow();
+  });
+  it("accepts only allocated review publication readiness provenance and keeps private source separate", () => {
+    assertAllowedProvenance("publication_reviews", "source", [
+      "synthetic_readiness",
+    ]);
+    assertAllowedProvenance("review_publication_policy_head", "source", [
+      "synthetic_readiness",
+    ]);
+    for (const source of ["local_synthetic", "local_fixture", "operational"]) {
+      expect(() =>
+        assertAllowedProvenance("publication_reviews", "source", [source]),
+      ).toThrow();
+    }
+    expect(() =>
+      assertAllowedProvenance("private_booking_reviews", "source", [
+        "synthetic_readiness",
+      ]),
+    ).toThrow();
+  });
+  it("derives exact accepted snapshot inventory and rejects missing/replaced/extra tables", () => {
+    const expected = acceptedTableInventory(process.cwd());
+    expect(expected).toContain("drizzle.__drizzle_migrations");
+    expect(expected).toContain("public.learner_admission_evidence");
+    expect(expected).toContain("public.tutor_screening_decision_checks");
+    expect(expected).toContain("public.booking_workflow_notice_intents");
+    expect(() =>
+      assertTableInventory(expected, [...expected].reverse()),
+    ).not.toThrow();
+    for (const actual of [
+      expected.slice(1),
+      [...expected, "public.unrecognized"],
+      ["public.replaced", ...expected.slice(1)],
+    ])
+      expect(() => assertTableInventory(expected, actual)).toThrow(
+        "table-inventory",
+      );
+  });
   it("requires matching private postmaster and live process identity before stop", () => {
     const data = "/owned/new-target/data",
       port = 55512,

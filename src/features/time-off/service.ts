@@ -1,3 +1,4 @@
+import { blockingBookingPredicate } from "@/features/booking-workflows/model";
 import { inArray, and, asc, count, eq, gt, lt, sql } from "drizzle-orm";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import {
@@ -138,8 +139,10 @@ export async function saveOwnTimeOff(
         .where(
           and(
             eq(bookings.tutorId, profile.id),
-            inArray(bookings.state, ["demo_reserved", "demo_confirmed"]),
-            gt(bookings.expiresAt, new Date(clock.rows[0].milliseconds)),
+            blockingBookingPredicate(
+              sql`bookings`,
+              new Date(clock.rows[0].milliseconds),
+            ),
             lt(bookings.startAtUtc, endAtUtc),
             gt(bookings.endAtUtc, startAtUtc),
           ),

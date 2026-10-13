@@ -1,3 +1,7 @@
+import {
+  enrollBrowserAdmin,
+  completeBrowserAdminChallenge,
+} from "../support/browser-admin-mfa";
 import { randomUUID } from "node:crypto";
 import { test, expect, type Browser, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -39,6 +43,7 @@ async function account(
       })
     ).status(),
   ).toBe(200);
+  if (role === "admin") await enrollBrowserAdmin(context, password);
   return { context, page: await context.newPage(), id, email };
 }
 async function world(browser: Browser, javaScriptEnabled = true) {
@@ -351,12 +356,18 @@ test("stale moderation, uncertain retry, session expiry and account-switch Back 
     await page.getByLabel("Test email", { exact: true }).fill(f.admin.email);
     await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await completeBrowserAdminChallenge(page, f.admin.email);
     await expect(
       page.getByRole("heading", { name: "Private review unavailable" }),
     ).toBeVisible();
     expect(await page.content()).not.toContain(token);
     await page.goBack();
-    expect(await page.content()).not.toContain(token);
+    await page.waitForLoadState("load");
+    // Locator evaluation resolves in the restored document across the navigation
+    // boundary; inspect the whole HTML, including private bootstrap scripts.
+    expect(
+      await page.locator("html").evaluate((element) => element.outerHTML),
+    ).not.toContain(token);
   } finally {
     await f.close();
   }

@@ -1,3 +1,4 @@
+import { adminAssurancePredicate } from "@/features/admin-security/assurance";
 // Node-only. Dispatcher projection deliberately has no report text or booking join.
 import { sql } from "drizzle-orm";
 import { z } from "zod";
@@ -20,7 +21,7 @@ async function actor(runtime: AuthRuntime, headers: Headers) {
   return requireRole(runtime, headers, "admin");
 }
 function current(identity: Identity) {
-  return sql`EXISTS(SELECT 1 FROM session s JOIN "user" u ON u.id=s.user_id JOIN user_access a ON a.user_id=u.id
+  return sql`${adminAssurancePredicate(identity.userId, identity.sessionId)} AND EXISTS(SELECT 1 FROM session s JOIN "user" u ON u.id=s.user_id JOIN user_access a ON a.user_id=u.id
     WHERE s.id=${identity.sessionId} AND s.user_id=${identity.userId} AND s.expires_at>statement_timestamp() AND u.email_verified
     AND u.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$' AND a.status='active'
     AND EXISTS(SELECT 1 FROM user_roles role WHERE role.user_id=u.id AND role.role='admin'))`;

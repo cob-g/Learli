@@ -1,0 +1,9 @@
+# W7 review publication software boundary
+
+Status: AUTHORIZED — build-feature delegation, dispatched2026-10-13; not human policy/blueprint approval. Parent: prompts/features/m8-10-hosted-workflows-wave.md; child: prompts/features/m5-10-review-publication.md.
+
+Delegated software choices: one immutable review per logical booking, integer1–5 rating and optional<=1000-character plain text; current exact beneficiary of actual administrative completion; manual exact assigned MFA moderator; separate pending/approved/rejected/published/withdrawn state with audited reconsideration, revisions and retry payload identity. Approval/publication explicitly attest privacy review. Anonymous allowlisted Customer/rating/text/date projection and count/average share one current eligible set; no private identifiers, names, booking schedule or meeting evidence.
+
+Forward0026 never promotes historical local/private/fixture reviews. New synthetic readiness packets require exact test-owned capability; real default composition disabled. Submission/private access requires exact current session; public visibility checks stored author current sessionless beneficiary, original immutable completed event/head/revision and current publication/booking/admission/screening/public tutor eligibility. Author logout is not relationship revocation. Production rejects synthetic policy before I/O. Exact task grants/MFA/self-exclusions and post-write current authority apply separately.
+
+Alternative rejected: adding publication state to historical private tables would blur their permanent privacy promise; public author-session checks would unpredictably hide otherwise eligible reviews on logout. No automatic moderation/replies/content surveillance, real privacy/moderation/dispute owner approval, commercial/safeguarding policy or attendance claim is supplied. Activation and root combined acceptance remain separate.

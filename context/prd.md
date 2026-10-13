@@ -1401,3 +1401,74 @@ private synthetic demonstrations, never public ratings. PUB-05 now has noindex
 draft/preparation surfaces, not finalized legal terms. PAY work stays deferred
 by the user's explicit instruction. See the local-completion-wave decision and
 parent blueprint. The isolated candidate passed local integration verification and was committed and merged into local main as `185cb94` under subsequent explicit user authorization. Both main local databases subsequently applied the reviewed migrations under explicit user authorization. No full requirement or launch acceptance is claimed.
+
+
+### Hosted workflow software scope — delegated 2026-10-12
+
+The owner authorized the eight-area software build under the hosted-workflows
+blueprint and `docs/decisions/2026-10-12-hosted-workflows-software.md`. AUTH and
+NFR controls gain mandatory current admin MFA, isolated hosted database/HTTPS
+authentication and provider-backed transactional delivery code. FAM, BKG, OPS-06
+and TUT/ADM software gains versioned policy/evidence paths, pending admission,
+explicit authorization/revocation, confirmation/outcome transitions, moderated
+publication and screening/incident ownership controls. These are implementation
+scopes, not completed requirements. Real operations remain disabled pending their
+actual policy and provider acceptance. Historical synthetic/private data is not
+operational evidence, completed means administrative outcome rather than observed
+attendance, and payments remain deferred. Local acceptance and remaining gates
+are recorded separately in progress-tracker.
+
+
+### AUTH-02/03/04 and ADM-01/02/03/04 mandatory assurance — 2026-10-12
+
+Delegated W1 makes TOTP enrollment and real second-factor verification mandatory
+for all current/new admin private reads/actions. Verified active admins may reach
+setup without assurance. Ordinary password, email/reset and role grants never
+satisfy administrator assurance. Recovery codes are provider single-use; factor
+changes require current password plus fresh factor proof once enrolled, invalidate
+prior assurance and revoke other sessions through the provider. Disable/replacement
+never leaves privileged password-only access. Lost password plus every factor/code
+requires deliberate owner-controlled operational recovery, with no automatic
+bypass. All existing exact support/target/review grants and self-review exclusions
+remain. No email/SMS or trusted-device fallback. See the W1 blueprint and decision;
+local implementation/verification are separate from hosted or launch acceptance.
+
+### BKG/MEET synthetic policy software subset — 2026-10-13
+
+W6 implements BKG-01–07 and MEET-01–03 software paths in the current isolated
+eight-area candidate: policy-bound provisional requests, exact assigned
+MFA-admin prerequisite confirmation, participant cancellation/replacement,
+administrative completion/no-show and a booking-bound safeguarding dispute.
+The same private booking and dashboard routes show source-aware state/history;
+private links end at lesson end and are retired by replacement or cancellation.
+
+Only synthetic acceptance packets exercise 60-minute lessons, 30-minute
+window/transition-anchored starts, 60-minute booking notice, a 14-day horizon,
+10-minute provisional holds and 60-minute cancellation/move cutoffs. These are
+explicit test inputs, not approved customer terms. Real guardian/screening,
+commercial confirmation/cancellation/refund/no-show and human dispute response
+policies remain open; no production activation or attendance claim follows.
+
+
+### FAM/TUT/ADM/OPS-06 delegated software behavior — 2026-10-13
+
+The isolated eight-area candidate implements policy-denied-by-default admission
+and screening paths. A pending guardian request does not grant a learner link,
+role or booking authority; exact assigned current-MFA review requires the synthetic
+policy evidence. Independent College Support has its own eligibility evidence
+without an invented guardian requirement. Evidence is fictional readiness data;
+email verification establishes control of an address, not guardian authority,
+identity checks, consent compliance or tutor qualifications.
+
+The review-publication software subset uses only a new eligible current completed
+booking source. One immutable review per logical booking, assigned current-MFA
+moderation, self-review exclusions, explicit privacy confirmation and constrained
+publish/withdraw transitions are required. Public aggregate/list derive from the
+same currently eligible set and omit private participant/booking data. Old private
+synthetic reviews are never promoted. Administrative completion does not prove
+attendance. Actual privacy/moderation/eligibility/dispute policy and staffed owners
+remain open before real publication. Implementation is not whole OPS-06 acceptance.
+
+Hosted-synthetic accounts and mocked Resend requests are restricted preparation;
+actual HTTPS ingress/provider delivery and a verified sender require separate
+acceptance. No real onboarding, commercial confirmation or payment flow is enabled.

@@ -1,5 +1,6 @@
 import {
   demoStateLabels,
+  bookingEventLabels,
   demoLiveState,
 } from "@/features/bookings/lifecycle-model";
 import { LessonTime } from "@/features/bookings/lesson-time";
@@ -29,12 +30,16 @@ export function SupportBookingSection({
       aria-labelledby="support-booking-heading"
     >
       <h2 className="text-section-title" id="support-booking-heading">
-        Related simulated booking
+        {booking.available && booking.source === "synthetic_readiness"
+          ? "Related synthetic readiness booking"
+          : "Related simulated booking"}
       </h2>
       {booking.available ? (
         <>
           <p className="mt-4 text-body">
-            Local simulation only. This is not a confirmed lesson.
+            {booking.source === "synthetic_readiness"
+              ? "Synthetic administrative record only. Confirmation does not establish payment or attendance."
+              : "Local simulation only. This is not a confirmed lesson."}
           </p>
           <dl className="mt-4 space-y-4">
             <div>
@@ -66,15 +71,21 @@ export function SupportBookingSection({
               {demoStateLabels[booking.state]}
             </span>
           </div>
-          <h3 className="mt-8 text-item-title">Saved simulation history</h3>
+          <h3 className="mt-8 text-item-title">
+            {booking.source === "synthetic_readiness"
+              ? "Saved administrative booking history"
+              : "Saved simulation history"}
+          </h3>
           {booking.events.length ? (
             <ol className="mt-4 divide-y divide-border">
               {booking.events.map((event, index) => (
                 <li className="py-4" key={index}>
                   <p className="text-body">
-                    {event.event === "demo_reserved"
-                      ? "Simulation created"
-                      : "Simulation expiry saved"}
+                    {booking.source === "synthetic_readiness"
+                      ? bookingEventLabels[event.event]
+                      : event.event === "demo_reserved"
+                        ? "Simulation created"
+                        : "Simulation expiry saved"}
                   </p>
                   <LessonTime value={event.time} />
                 </li>

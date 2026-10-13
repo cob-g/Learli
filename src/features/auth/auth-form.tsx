@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { authClient } from "@/lib/auth-client";
 import { safeBookingReturnPath } from "@/features/bookings/selection";
 
@@ -13,17 +13,25 @@ const labels: Record<Mode, string> = {
   reset: "Save new password",
   verify: "Resend verification",
 };
+const subscribe = () => () => {};
 export function AuthForm({
   mode,
   next,
   token,
   invalidToken = false,
+  hosted = false,
 }: {
   mode: Mode;
   next?: string;
   token?: string;
   invalidToken?: boolean;
+  hosted?: boolean;
 }) {
+  const ready = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false,
+  );
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
@@ -40,8 +48,13 @@ export function AuthForm({
     setPending(true);
     setMessage("");
     const data = new FormData(event.currentTarget);
+    const form = event.currentTarget;
     const email = String(data.get("email") ?? "");
     const password = String(data.get("password") ?? "");
+    const displayName = String(data.get("name") ?? "");
+    const credential =
+      form.querySelector<HTMLInputElement>('[name="password"]');
+    if (credential) credential.value = "";
     const callbackURL = `/sign-in?verified=1&next=${encodeURIComponent(returnTo)}`;
     try {
       if (mode === "sign-in") {
@@ -52,13 +65,24 @@ export function AuthForm({
             true,
           );
         else {
+          if (
+            result.data &&
+            "twoFactorRedirect" in result.data &&
+            result.data.twoFactorRedirect === true
+          ) {
+            form.reset();
+            window.location.replace(
+              `/two-factor?next=${encodeURIComponent(returnTo)}`,
+            );
+            return;
+          }
           // Clear prior private bootstrap data when reauthenticating as a
           // different account; returnTo retains the existing path validation.
           window.location.replace(returnTo);
         }
       } else if (mode === "sign-up") {
         const result = await authClient.signUp.email({
-          name: String(data.get("name") ?? ""),
+          name: displayName,
           email,
           password,
           callbackURL,
@@ -70,7 +94,9 @@ export function AuthForm({
           );
         else
           notice(
-            "If this address can be registered, a verification message is available in your local mailbox. Verify it before signing in.",
+            hosted
+              ? "If this address can be registered, a verification request was accepted. Check the address before signing in; delivery has not been established."
+              : "If this address can be registered, a verification message is available in your local mailbox. Verify it before signing in.",
           );
       } else if (mode === "forgot") {
         const result = await authClient.requestPasswordReset({
@@ -84,7 +110,9 @@ export function AuthForm({
           );
         else
           notice(
-            "If an account matches this address, a reset message is available in your local mailbox.",
+            hosted
+              ? "If an account matches this address, a reset request was accepted. Check the address for the link; delivery has not been established."
+              : "If an account matches this address, a reset message is available in your local mailbox.",
           );
       } else if (mode === "verify") {
         const result = await authClient.sendVerificationEmail({
@@ -98,7 +126,9 @@ export function AuthForm({
           );
         else
           notice(
-            "If verification is needed, a message is available in your local mailbox.",
+            hosted
+              ? "If verification is needed, a message request was accepted. Check the address; delivery has not been established."
+              : "If verification is needed, a message is available in your local mailbox.",
           );
       } else {
         const result = await authClient.resetPassword({
@@ -130,82 +160,102 @@ export function AuthForm({
     );
   return (
     <>
-      <form onSubmit={submit} className="mt-8 space-y-6" aria-busy={pending}>
-        {mode === "sign-up" && (
-          <div className="space-y-2">
-            <label className="block text-label" htmlFor="name">
-              Display name
-            </label>
-            <input
-              className="field"
-              id="name"
-              name="name"
-              autoComplete="nickname"
-              maxLength={100}
-              required
-            />
-          </div>
-        )}
-        {mode !== "reset" && (
-          <div className="space-y-2">
-            <label className="block text-label" htmlFor="email">
-              Test email
-            </label>
-            <input
-              className="field"
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              maxLength={254}
-              aria-describedby="email-help"
-            />
-            <p id="email-help" className="text-small text-muted-foreground">
-              Use a synthetic address, such as learner@example.test.
+      {!ready && (
+        <p className="mt-4 text-body">
+          Enable JavaScript to use account forms here. Account navigation
+          remains available.
+        </p>
+      )}
+      <form
+        method="post"
+        action="/api/auth/sign-in/email"
+        onSubmit={submit}
+        className="mt-8 space-y-6"
+        aria-busy={pending}
+      >
+        <fieldset disabled={!ready || pending} className="space-y-6">
+          <legend className="sr-only">Account access</legend>
+          {mode === "sign-up" && (
+            <div className="space-y-2">
+              <label className="block text-label" htmlFor="name">
+                Display name
+              </label>
+              <input
+                className="field"
+                id="name"
+                name="name"
+                autoComplete="nickname"
+                maxLength={100}
+                required
+              />
+            </div>
+          )}
+          {mode !== "reset" && (
+            <div className="space-y-2">
+              <label className="block text-label" htmlFor="email">
+                Test email
+              </label>
+              <input
+                className="field"
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                maxLength={254}
+                aria-describedby="email-help"
+              />
+              <p id="email-help" className="text-small text-muted-foreground">
+                {hosted
+                  ? "Use an explicitly configured synthetic .test account."
+                  : "Use a synthetic address, such as learner@example.test."}
+              </p>
+            </div>
+          )}
+          {["sign-in", "sign-up", "reset"].includes(mode) && (
+            <div className="space-y-2">
+              <label className="block text-label" htmlFor="password">
+                {mode === "reset" ? "New password" : "Password"}
+              </label>
+              <input
+                className="field"
+                id="password"
+                name="password"
+                type="password"
+                autoComplete={
+                  mode === "sign-in" ? "current-password" : "new-password"
+                }
+                minLength={12}
+                maxLength={128}
+                required
+                aria-describedby="password-help"
+              />
+              <p
+                id="password-help"
+                className="text-small text-muted-foreground"
+              >
+                Use 12–128 characters.
+              </p>
+            </div>
+          )}
+          {message && (
+            <p
+              ref={status}
+              tabIndex={-1}
+              role={failed ? "alert" : "status"}
+              className={failed ? "text-body text-error" : "text-body"}
+            >
+              {message}
             </p>
-          </div>
-        )}
-        {["sign-in", "sign-up", "reset"].includes(mode) && (
-          <div className="space-y-2">
-            <label className="block text-label" htmlFor="password">
-              {mode === "reset" ? "New password" : "Password"}
-            </label>
-            <input
-              className="field"
-              id="password"
-              name="password"
-              type="password"
-              autoComplete={
-                mode === "sign-in" ? "current-password" : "new-password"
-              }
-              minLength={12}
-              maxLength={128}
-              required
-              aria-describedby="password-help"
-            />
-            <p id="password-help" className="text-small text-muted-foreground">
-              Use 12–128 characters.
-            </p>
-          </div>
-        )}
-        {message && (
-          <p
-            ref={status}
-            tabIndex={-1}
-            role={failed ? "alert" : "status"}
-            className={failed ? "text-body text-error" : "text-body"}
+          )}
+          <button
+            className="action action-primary transition-none"
+            type="submit"
+            disabled={pending}
           >
-            {message}
-          </p>
-        )}
-        <button
-          className="action action-primary"
-          type="submit"
-          disabled={pending}
-        >
-          {pending ? "Please wait…" : labels[mode]}
-        </button>
+            {pending ? "Please wait…" : labels[mode]}
+          </button>
+        </fieldset>
       </form>
       <nav
         aria-label="Account help"

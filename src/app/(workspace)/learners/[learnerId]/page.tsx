@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { LearnerLink } from "@/features/learners/learner-link";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
-import { readMyLearner } from "@/features/learners/service";
+import { readComposedLearner } from "@/features/learners/composition";
 import { LearnerForm } from "@/features/learners/learner-form";
 import { listTimeZoneOptions } from "@/lib/time/zones";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
@@ -16,17 +16,18 @@ export default async function LearnerPage({
   params: Promise<{ learnerId: string }>;
 }) {
   const { learnerId } = await params;
-  const profile = await loadPrivatePage(
+  const context = await loadPrivatePage(
     `/learners/${encodeURIComponent(learnerId)}`,
-    (runtime, headers) => readMyLearner(runtime, headers, learnerId),
+    (runtime, headers) => readComposedLearner(runtime, headers, learnerId),
   );
-  if (!profile)
+  if (!context)
     return (
       <UnavailablePage
         title="Learner profile unavailable"
         message="We cannot find that learner profile on this account. Return to your account or try again later."
       />
     );
+  const { profile, reviewed } = context;
   return (
     <div className="page-shell page-space">
       <LearnerLink
@@ -43,6 +44,7 @@ export default async function LearnerPage({
       </p>
       <LearnerForm
         profile={profile}
+        reviewed={reviewed}
         zones={listTimeZoneOptions(new Date(), [profile.timezone])}
       />
     </div>

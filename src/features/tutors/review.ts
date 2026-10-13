@@ -1,16 +1,24 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { recheckAdminAssurance } from "@/features/admin-security/assurance";
+import { and, asc, eq, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import type { AuthRuntime } from "@/lib/auth-factory";
-import {
-  auditEvents,
-  tutorProfiles,
-  user,
-  type ReviewStatus,
-} from "@/lib/db/schema";
-import { requireRole } from "@/lib/permissions/access";
+import { tutorProfiles, user, type ReviewStatus } from "@/lib/db/schema";
+import { AccessError, requireRole } from "@/lib/permissions/access";
 import { RuleError } from "@/lib/rule-error";
-import { reviewActionNames, reviewActions } from "./review-rules";
+import { reviewActionNames } from "./review-rules";
 import { loadTutorProfile } from "./service";
+import { getScreeningContext } from "@/features/tutor-screening/composition";
+import { readScreening } from "@/features/tutor-screening/service";
+function assigned(
+  runtime: AuthRuntime,
+  userId: string,
+  sessionId: string,
+  tutorId: SQL | string = sql`${tutorProfiles.id}`,
+): SQL {
+  const readiness =
+    getScreeningContext(runtime).screening.mode === "synthetic_test";
+  return sql`public.has_tutor_screening_authority(${userId},${sessionId},${tutorId}, CASE WHEN EXISTS(SELECT 1 FROM tutor_screening_cases c WHERE c.tutor_id=${tutorId}) THEN 'synthetic_readiness' ELSE 'local_fixture' END) AND (${readiness} OR NOT EXISTS(SELECT 1 FROM tutor_screening_cases c WHERE c.tutor_id=${tutorId}))`;
+}
 
 export const reviewInput = z.strictObject({
   action: z.enum(reviewActionNames),
@@ -24,8 +32,11 @@ export async function listTutorApplications(
   headers: Headers,
   status?: ReviewStatus,
 ) {
-  await requireRole(runtime, headers, "admin");
-  const filter = status ? eq(tutorProfiles.reviewStatus, status) : undefined;
+  const identity = await requireRole(runtime, headers, "admin");
+  const filter = and(
+    assigned(runtime, identity.userId, identity.sessionId),
+    status ? eq(tutorProfiles.reviewStatus, status) : undefined,
+  );
   const [{ total }] = await runtime.db
     .select({ total: sql<number>`count(*)::int` })
     .from(tutorProfiles)
@@ -43,6 +54,7 @@ export async function listTutorApplications(
     .where(filter)
     .orderBy(asc(tutorProfiles.createdAt), asc(tutorProfiles.id))
     .limit(reviewQueueLimit);
+  await recheckAdminAssurance(runtime.db, identity);
   return { total, applications };
 }
 
@@ -57,11 +69,33 @@ export async function readTutorApplication(
     throw new RuleError(404, notFound);
   const profile = await loadTutorProfile(
     runtime.db,
-    eq(tutorProfiles.id, profileId),
+    and(
+      eq(tutorProfiles.id, profileId),
+      assigned(runtime, identity.userId, identity.sessionId),
+    )!,
+    assigned(runtime, identity.userId, identity.sessionId, profileId),
   );
   if (!profile) throw new RuleError(404, notFound);
+  await recheckAdminAssurance(runtime.db, identity);
+  const permission = await runtime.db.execute<{ allowed: boolean }>(
+    sql`SELECT ${assigned(runtime, identity.userId, identity.sessionId)} AS allowed FROM ${tutorProfiles} WHERE ${tutorProfiles.id}=${profileId}::uuid`,
+  );
+  if (!permission.rows[0]?.allowed) throw new RuleError(404, notFound);
   const { userId, ...application } = profile;
-  return { ...application, ownedByReviewer: userId === identity.userId };
+  const screening = await readScreening(
+    getScreeningContext(runtime),
+    headers,
+    profileId,
+  );
+  const fresh = await runtime.db.execute<{ allowed: boolean }>(
+    sql`SELECT ${assigned(runtime, identity.userId, identity.sessionId)} AS allowed FROM ${tutorProfiles} WHERE ${tutorProfiles.id}=${profileId}::uuid`,
+  );
+  if (!fresh.rows[0]?.allowed) throw new RuleError(404, notFound);
+  return {
+    ...application,
+    ownedByReviewer: userId === identity.userId,
+    screening,
+  };
 }
 
 /**
@@ -76,38 +110,24 @@ export async function reviewTutorApplication(
   input: unknown,
 ) {
   const identity = await requireRole(runtime, headers, "admin");
-  const rule = reviewActions[reviewInput.parse(input).action];
+  const { action } = reviewInput.parse(input);
   if (!z.uuid().safeParse(profileId).success)
     throw new RuleError(404, notFound);
-  return runtime.db.transaction(async (tx) => {
-    const [profile] = await tx
-      .select({ userId: tutorProfiles.userId })
-      .from(tutorProfiles)
-      .where(eq(tutorProfiles.id, profileId));
-    if (!profile) throw new RuleError(404, notFound);
-    // Holding the admin role never lets an account decide its own application.
-    if (profile.userId === identity.userId)
-      throw new RuleError(403, "You can't review your own application.");
-    const [updated] = await tx
-      .update(tutorProfiles)
-      .set({ reviewStatus: rule.to, updatedAt: new Date() })
-      .where(
-        and(
-          eq(tutorProfiles.id, profileId),
-          eq(tutorProfiles.reviewStatus, rule.from),
-        ),
-      )
-      .returning({ reviewStatus: tutorProfiles.reviewStatus });
-    if (!updated)
-      throw new RuleError(
-        409,
-        "This application changed. Reload the page and try again.",
-      );
-    await tx.insert(auditEvents).values({
-      actorUserId: identity.userId,
-      targetUserId: profile.userId,
-      action: rule.audit,
-    });
-    return updated;
-  });
+  const r = await runtime.db.execute<{
+    outcome: string;
+    status: ReviewStatus | null;
+  }>(
+    sql`SELECT * FROM public.review_local_tutor_application(${identity.userId},${identity.sessionId},${profileId}::uuid,${action})`,
+  );
+  const row = r.rows[0];
+  if (row?.outcome === "forbidden")
+    throw new RuleError(403, "This action is unavailable.");
+  if (row?.outcome === "not_found") throw new RuleError(404, notFound);
+  if (row?.outcome === "conflict")
+    throw new RuleError(
+      409,
+      "This application changed. Reload the page and try again.",
+    );
+  if (!row?.status || row.outcome !== "saved") throw new AccessError(503);
+  return { reviewStatus: row.status };
 }

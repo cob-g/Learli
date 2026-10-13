@@ -1,3 +1,4 @@
+import { enrollBrowserAdmin } from "../support/browser-admin-mfa";
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { test, expect, type Browser, type Page } from "@playwright/test";
@@ -47,6 +48,7 @@ async function actor(browser: Browser, role: "tutor" | "parent" | "admin") {
       })
     ).status(),
   ).toBe(200);
+  if (role === "admin") await enrollBrowserAdmin(context, password);
   return { id, email, context, page: await context.newPage() };
 }
 async function fixture(browser: Browser) {

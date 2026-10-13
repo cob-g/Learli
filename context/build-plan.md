@@ -889,3 +889,99 @@ surfaces. Notices/reviews consume the booking provider after acceptance.
 Parent: `prompts/features/m4-10-local-completion-wave.md`. All six Sol High builders completed their owned local slices in isolated worktrees. Root integrated them and observed independent scoped reviews with zero confirmed findings, check 974 PASS, PostgreSQL 575 PASS (affected cleanup rerun 57 PASS), build PASS, Chromium 140 PASS and actual 22-migration backup/restore PASS. Exact evidence and limitations are in the progress tracker. The user subsequently authorized commit and merge; exact feature commit `185cb94` is now on local main. Both main local databases subsequently migrated through0021 with data-preservation and grant/protection checks; the seven completed worktrees/branches were archived and removed. Launch milestone acceptance is unchanged.
 No full milestone checkbox, production policy, payment or deployment approval
 follows from this local wave. Historical summaries above retain their original scope; this local completion entry supersedes their local gaps only for the six bounded slices.
+
+
+### Eight-area hosted workflow implementation — 2026-10-12
+
+The owner authorized the remaining software areas in
+`prompts/features/m8-10-hosted-workflows-wave.md`: W1 admin MFA, W2 hosted database
+runtime, W3 hosted HTTPS auth, W4 account/committed-event Resend integration,
+W5 guardian/independent admission, W6 policy-governed booking lifecycle, W7 review
+publication, W8 tutor screening/safeguarding. These extend M2–M5 and M8 preparation;
+no full milestone is checked complete by this authorization. W4 is delivered in
+transport and integrated workflow stages. Dependency imports require accepted
+source manifests, then combined review and actual local verification. Real-user
+policies, staffed responsibilities, provider acceptance and deployment remain
+separate gates; M6/M7 payments stay deferred. See progress tracker for outcomes.
+
+
+### W1 M2.3/5/7/9 and M8.8 local software subset — 2026-10-12
+
+Scoped blueprint `prompts/features/m8-08-admin-assurance.md` is AUTHORIZED —
+build-feature delegation under M8.10 parent. Mandatory actual-provider TOTP/session
+assurance and single-use recovery controls are authored in the isolated worker,
+including actual administrative boundary/SQL integration and additive0022 only.
+Required acceptance includes real provider+owned PostgreSQL adverse/concurrency/
+partial-failure and current-after-lock cases, fresh/populated0021 preservation,
+check/build and default-discovered responsive/security browser journeys. Actual
+results are recorded separately in the tracker. No full milestone or launch box
+is promoted by planning/authoring or by isolated local success.
+
+### W6 component acceptance within M8.10 — 2026-10-13
+
+The 68-file booking lifecycle handoff is accepted for root integration after
+independent bounded provider review, full source review and observed isolated
+PostgreSQL, build, unit/component and three-engine browser evidence. It covers
+software subsets of M4.5–11 and M5.1–5/8; no milestone or real-policy gate is
+marked complete. Root combined static/unit verification passes1243 tests/74files;
+combined database/browser verification and W7/W4b consumers are still pending.
+Migration0025 extends the canonical existing records; full-wave migration and
+restore acceptance continue through the later reserved0026/0027 sequence.
+
+
+### Integrated dependencies through0026 — 2026-10-13
+
+W2/W3 account runtime, W5 admission and W8 screening/safeguarding are integrated
+with accepted W1 and W6. W7's bounded22-file provider passed independent review
+after repair of concrete stale-snapshot authorization findings, with supplied
+56 PostgreSQL cases and canonical fresh/populated migration proof. Its0026
+metadata now unblocks W4b0027 queue construction. Full W7 UI and W4b, root combined
+post-guard verification, integration journeys and final restore/review are pending.
+The repaired W5/W6 selected-booking handoff passed unchanged affected browser
+assertions. Exact counts/source scope and failures are retained in the tracker.
+No M2–M5/M8 milestone or M6/M7 business gate is checked complete by these imports.
+
+
+### M8.10 final integration continuation — 2026-10-13
+
+The root extends the integrated sequence through0028 solely to retain the public
+tutor/subject discovery pair through sign-in and admission; booking and guardian
+authority are unchanged. Acceptance includes the actual before/after PostgreSQL
+regression, strict input rejection and a new anonymous-to-admitted combined
+browser journey.0027 queue and0028 must be covered by the final exact restore,
+grants, full integration checks and independent combined review. This entry is
+sequencing, not a claim that pending checks or real operations have passed.
+
+
+### M8.10 integrated local verification — 2026-10-13
+
+The eight-area candidate through migration0028 has completed root local verification:
+1,304 unit/component cases, 889 actual PostgreSQL cases plus two focused delivery
+variants, the full 171-case normal Chromium run, affected Firefox/WebKit coverage,
+production build, current populated restore and scoped text privacy scan. The exact
+run boundaries, earlier failures and mirror applicability are in the progress tracker
+and `docs/operations/m8-hosted-workflows-verification.md`. Independent combined
+review passed with zero open findings; source remains uncommitted/unmerged. This is a software subset
+of M2–M5 and M8, not completion of real-user policies, provider acceptance, hosted
+application deployment, remote CI or payments. Separately authorized Neon activation
+must retain a development-only local connection and isolated loopback test databases.
+
+### M8.3/M8.4/M8.7 Neon database acceptance — 2026-10-13
+
+The separately authorized Neon operation has completed its reviewed production
+schema migration and isolated development connection. Actual PG18 backup and
+development restore passed before production changes; all 29 migrations and
+runtime grants passed first in development and then in production. Production
+has 78 application tables, 29 exact ledger entries and eight static subjects,
+with no customer/learner/tutor fixtures. Existing provider roles and database
+ownership are preserved. The local reviewed preview uses only the separate Neon
+development runtime role; original loopback test settings remain unchanged.
+
+Twenty-four browser/API smoke checks cover public reads, synthetic authentication,
+captured verification, ownership denials and real-email refusal on development.
+Booking-preview role denial was observed; positive cloud booking preview was not
+exercised. Root post-compatibility checks additionally pass 1,338 unit/component
+cases, 92 local browser cases, seven hosted HTTPS cases and a production build.
+These results do not complete Railway deployment, real email acceptance, human
+policy/safeguarding launch gates, remote CI or payments. The integration remains
+uncommitted and unmerged; retain both source and private recovery artifacts.

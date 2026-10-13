@@ -1,3 +1,6 @@
+import { WorkflowActionForm } from "@/features/booking-workflows/forms";
+import { publicationContext } from "@/features/review-publication/composition";
+import { readAuthorPublication } from "@/features/review-publication/service";
 import type { Metadata } from "next";
 import { readAuthorReview } from "@/features/private-reviews/service";
 import { BookingReadLink } from "@/features/bookings/read-controls";
@@ -50,6 +53,7 @@ export default async function Page({
     },
   );
   const review =
+    detail.source === "local_simulation" &&
     scope.data !== "tutor" &&
     detail.state === "demo_completed" &&
     detail.currentHeadId === detail.id
@@ -59,27 +63,105 @@ export default async function Page({
           ),
         }))
       : null;
+  const publication =
+    detail.source === "synthetic_readiness" &&
+    detail.state === "completed" &&
+    scope.data !== "tutor" &&
+    detail.currentHeadId === detail.id
+      ? await loadPrivatePage(path, async (runtime, headers) => ({
+          saved: Boolean(
+            (
+              await readAuthorPublication(
+                publicationContext(runtime),
+                headers,
+                bookingId,
+              )
+            ).review,
+          ),
+        }))
+      : null;
   return (
     <BookingDetailView
       booking={detail}
       scope={scope.data}
       reviewSection={
-        review && (
+        detail.source === "synthetic_readiness" &&
+        ["completed", "no_show", "cancelled"].includes(detail.state) ? (
           <section className="mt-8 border-t border-border pt-6">
-            <h2 className="text-section-title">Private synthetic review</h2>
-            <p className="mt-2 max-w-prose text-small text-muted-foreground">
-              This completed local fixture can have one private review. It stays
-              private after moderation and does not prove attendance.
+            {publication && (
+              <div className="mb-8">
+                <h2 className="text-section-title">
+                  Synthetic publication review
+                </h2>
+                <p className="mt-2 max-w-prose text-small">
+                  One immutable review for this administrative completion,
+                  subject to assigned manual moderation and privacy review.
+                </p>
+                <a
+                  className="mt-4 inline-flex min-h-11 items-center"
+                  href={`/bookings/${bookingId}/publication-review?scope=${scope.data}`}
+                >
+                  {publication.saved
+                    ? "View synthetic publication review"
+                    : "Add synthetic publication review"}
+                </a>
+              </div>
+            )}
+            <h2 className="text-section-title">
+              Dispute this administrative record
+            </h2>
+            <a
+              className="mt-4 inline-flex min-h-11 items-center"
+              href={`/bookings/${bookingId}/dispute`}
+            >
+              Request synthetic booking dispute
+            </a>
+            <p className="mt-2 text-small">
+              Completion and no-show are administrative states, never observed
+              attendance.
             </p>
-            <BookingReadLink
-              href={`/bookings/${bookingId}/review`}
-              label={
-                review.saved
-                  ? "View private synthetic review"
-                  : "Add private synthetic review"
-              }
-            />
           </section>
+        ) : detail.source === "synthetic_readiness" &&
+          scope.data !== "tutor" &&
+          ["provisional", "confirmed"].includes(detail.state) ? (
+          <section className="mt-8 border-t border-border pt-6">
+            <h2 className="text-section-title">Change synthetic booking</h2>
+            <a
+              className="mt-4 inline-flex min-h-11 items-center"
+              href={`/bookings/${bookingId}/reschedule?scope=${scope.data}`}
+            >
+              Move synthetic booking
+            </a>
+            <details className="mt-4">
+              <summary className="min-h-11 cursor-pointer py-2 text-action">
+                Cancel synthetic booking
+              </summary>
+              <WorkflowActionForm
+                bookingId={bookingId}
+                revision={detail.workflowRevision ?? 0}
+                action="cancel"
+                scope={scope.data}
+              />
+            </details>
+          </section>
+        ) : (
+          review && (
+            <section className="mt-8 border-t border-border pt-6">
+              <h2 className="text-section-title">Private synthetic review</h2>
+              <p className="mt-2 max-w-prose text-small text-muted-foreground">
+                This completed local fixture can have one private review. It
+                stays private after moderation and does not prove attendance.
+              </p>
+              <BookingReadLink
+                href={`/bookings/${bookingId}/review`}
+                label={
+                  review.saved
+                    ? "View private synthetic review"
+                    : "Add private synthetic review"
+                }
+              />
+            </section>
+          )
         )
       }
       meetingSection={
@@ -90,6 +172,11 @@ export default async function Page({
             "demo_cancelled",
             "demo_replaced",
             "demo_completed",
+            "cancelled",
+            "replaced",
+            "completed",
+            "no_show",
+            "expired",
           ].includes(detail.state)}
           initial={meeting ?? { state: "error" }}
         />

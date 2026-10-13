@@ -1,7 +1,7 @@
 import {
   demoStateLabels,
   demoLiveState,
-  type DemoBookingState,
+  type BookingState,
 } from "@/features/bookings/lifecycle-model";
 import Link from "next/link";
 import { Hourglass, TimerOff } from "lucide-react";
@@ -15,7 +15,7 @@ import {
 export type TutorAgendaBooking = {
   id: string;
   detailHref: string;
-  state: DemoBookingState;
+  state: BookingState;
   learnerLabel: string;
   learnerLevel: string;
   subject: string;
@@ -32,7 +32,9 @@ export function nextTutorSimulation(
   return bookings
     .filter(
       (booking) =>
-        demoLiveState(booking.state) &&
+        (demoLiveState(booking.state) ||
+          booking.state === "confirmed" ||
+          booking.state === "provisional") &&
         new Date(booking.time.startAtUtc).getTime() > now,
     )
     .toSorted(
@@ -43,7 +45,8 @@ export function nextTutorSimulation(
 }
 
 function SimulationStatus({ state }: { state: TutorAgendaBooking["state"] }) {
-  const expired = !demoLiveState(state);
+  const expired =
+    !demoLiveState(state) && state !== "provisional" && state !== "confirmed";
   const Icon = expired ? TimerOff : Hourglass;
   return (
     <span className="inline-flex min-h-7 items-center gap-1 rounded-tag border border-control bg-subtle px-2 text-label">
@@ -79,11 +82,15 @@ function Expiry({ booking }: { booking: TutorAgendaBooking }) {
   return (
     <div className="mt-2">
       <p className="text-small text-muted-foreground">
-        {booking.state === "demo_expired"
-          ? "Simulation expired at"
-          : demoLiveState(booking.state)
-            ? "Simulation expires at"
-            : "Original simulation deadline"}
+        {booking.state === "confirmed"
+          ? "Original provisional deadline (confirmation does not expire)"
+          : booking.state === "provisional"
+            ? "Provisional hold expires at"
+            : booking.state === "demo_expired"
+              ? "Simulation expired at"
+              : demoLiveState(booking.state)
+                ? "Simulation expires at"
+                : "Original simulation deadline"}
       </p>
       <LessonTime value={booking.expiry} />
     </div>

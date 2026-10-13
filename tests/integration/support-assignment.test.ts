@@ -1,3 +1,5 @@
+import { password } from "./support";
+import { refreshTestAdmin } from "../support/admin-mfa";
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
@@ -504,6 +506,11 @@ describe("case-scoped support assignment on real PostgreSQL", () => {
           "UPDATE session SET expires_at=now()+interval '1 day' WHERE user_id=$1",
           [dispatcher.id],
         );
+        await world.owner.pool.query(
+          "UPDATE rate_limit SET count=0 WHERE key LIKE '%/two-factor/%'",
+        );
+        await refreshTestAdmin(world.runtime, dispatcher, password);
+        await refreshTestAdmin(world.runtime, reviewer, password);
       }
     },
   );

@@ -161,7 +161,23 @@ const safeCategory = (error: unknown) => {
         : "apply_failed";
   return categories.has(code) ? code : "apply_failed";
 };
-export async function stagingMain(argv: string[], root = process.cwd()) {
+export async function runDatabaseMain<
+  C extends import("../src/lib/db/verified-config").VerifiedDatabaseConfig,
+>(
+  argv: string[],
+  root: string,
+  configure: (
+    value: unknown,
+    target: unknown,
+    purpose: StagingPurpose,
+  ) => {
+    runtime: C;
+    owner: C;
+    identity: import("./staging-migrations/runner").Identity;
+    summary: Record<string, unknown>;
+  },
+  connect: (config: C) => Promise<Connection>,
+) {
   let owner: Connection | undefined, runtime: Connection | undefined;
   let result: Record<string, unknown> = {
     version: 1,
@@ -206,7 +222,7 @@ export async function stagingMain(argv: string[], root = process.cwd()) {
       (operation === "apply" && (!values["--plan"] || !values["--plan-hash"]))
     )
       throw new MigrationFault("arguments_invalid");
-    const config = inspectConfiguration(
+    const config = configure(
       readPrivateJson(root, values["--config"]),
       readPrivateJson(root, values["--target"]),
       operation === "apply" ? "migrate" : "inspect",
@@ -230,9 +246,9 @@ export async function stagingMain(argv: string[], root = process.cwd()) {
         recovery,
       );
     if (operation === "plan") privatePath(root, values["--out"]);
-    owner = await openStagingConnection(config.owner);
+    owner = await connect(config.owner);
     if (operation === "apply") {
-      runtime = await openStagingConnection(config.runtime);
+      runtime = await connect(config.runtime);
       result = await applyPlan({
         owner,
         runtime,
@@ -247,7 +263,7 @@ export async function stagingMain(argv: string[], root = process.cwd()) {
       const planned = await inspectTarget(owner, candidate, config.identity);
       if (operation === "inspect" && planned.pending.length === 0) {
         await owner.withClient(verifyRuntimeGrants);
-        runtime = await openStagingConnection(config.runtime);
+        runtime = await connect(config.runtime);
         await runtime.withClient(async () => {});
       }
       if (operation === "plan")
@@ -279,6 +295,14 @@ export async function stagingMain(argv: string[], root = process.cwd()) {
       result = { ...result, status: "FAIL", category: "cleanup_failed" };
   }
   return result;
+}
+export function stagingMain(argv: string[], root = process.cwd()) {
+  return runDatabaseMain(
+    argv,
+    root,
+    inspectConfiguration,
+    openStagingConnection,
+  );
 }
 if (
   process.argv[1] &&

@@ -1,3 +1,4 @@
+import { enrollBrowserAdmin } from "../support/browser-admin-mfa";
 import { randomUUID } from "node:crypto";
 import { mkdir, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
@@ -58,6 +59,7 @@ async function actor(browser: Browser, roles: string[]) {
       [id, role],
     );
   expect((await login(context, email)).status()).toBe(200);
+  if (roles.includes("admin")) await enrollBrowserAdmin(context, password);
   return { context, page: await context.newPage(), email, id };
 }
 async function code(

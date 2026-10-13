@@ -1,4 +1,4 @@
-import type { DemoBookingState, DemoLifecycleEvent } from "./lifecycle-model";
+import type { BookingState, BookingEvent } from "./lifecycle-model";
 // Public client-safe read contract. Mutation inputs and identities stay private.
 import type { LearnerLevel } from "@/lib/db/schema/app";
 import type { LessonTimeValue } from "./lesson-time";
@@ -16,15 +16,17 @@ export function bookingDetailPath(id: string, scope: BookingReadScope) {
 }
 export type BookingSummary = {
   id: string;
-  source: "local_simulation";
+  source: "local_simulation" | "synthetic_readiness";
+  workflowRevision?: number;
+  policyVersion?: string;
   logicalBookingId?: string;
   revision?: number;
   currentHeadId?: string;
   tutor: { displayName: string; slug: string };
   subject: { name: string; slug: string };
   learner: { id: string; displayName: string; level: LearnerLevel };
-  state: DemoBookingState;
-  persistedState: DemoBookingState;
+  state: BookingState;
+  persistedState: BookingState;
   snapshotAtUtc: string;
   expiresAtUtc: string;
   expiryMaterialized: boolean;
@@ -35,7 +37,7 @@ export type BookingSummary = {
 export type BookingDetail = BookingSummary & {
   events: {
     id: string;
-    event: "demo_reserved" | "demo_expired" | DemoLifecycleEvent;
+    event: "demo_reserved" | "demo_expired" | BookingEvent;
     occurredAtUtc: string;
     time: LessonTimeValue;
   }[];

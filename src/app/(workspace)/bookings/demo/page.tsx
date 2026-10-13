@@ -1,10 +1,15 @@
+import { bookingWorkflowContext } from "@/features/booking-workflows/composition";
+import { WorkflowBookingPage } from "@/features/booking-workflows/page";
 import type { Metadata } from "next";
+import { AdmissionDetour } from "@/features/learner-admission/detour";
 import Link from "next/link";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { loadDemoBookingResume } from "@/features/bookings/resume";
 import {
   parsePublicBookingSelection,
   bookingSelectionHref,
+  parsePublicBookingDiscovery,
+  bookingDiscoveryHref,
   type SearchValues,
 } from "@/features/bookings/selection";
 import { DemoBookingForm } from "@/features/bookings/demo-booking-form";
@@ -22,16 +27,38 @@ export default async function DemoBookingPage({
 }) {
   const params = await searchParams;
   const choice = parsePublicBookingSelection(params);
-  const resumed = await loadPrivatePage(
-    choice ? bookingSelectionHref(choice) : "/bookings/demo",
-    (runtime, headers) => loadDemoBookingResume(runtime, headers, choice),
+  const discovery = parsePublicBookingDiscovery(params);
+  const returnTo = choice
+    ? bookingSelectionHref(choice)
+    : discovery
+      ? bookingDiscoveryHref(discovery)
+      : "/bookings/demo";
+  const policyPage = await loadPrivatePage(
+    returnTo,
+    async (runtime, headers) =>
+      bookingWorkflowContext(runtime).booking.authority !== "disabled"
+        ? {
+            page: await WorkflowBookingPage({
+              runtime,
+              headers,
+              query: params,
+            }),
+          }
+        : null,
+  );
+  if (policyPage) return policyPage.page;
+  const resumed = await loadPrivatePage(returnTo, (runtime, headers) =>
+    loadDemoBookingResume(runtime, headers, choice),
   );
   if (!resumed)
     return (
-      <UnavailablePage
-        title="Simulated bookings unavailable"
-        message="We cannot open simulated bookings on this account. Return to your account or try again later."
-      />
+      <>
+        <UnavailablePage
+          title="Simulated bookings unavailable"
+          message="We cannot open simulated bookings on this account. Return to your account or try again later."
+        />
+        <AdmissionDetour choice={choice} discovery={discovery} />
+      </>
     );
   return (
     <div className="page-shell page-space">
@@ -40,6 +67,9 @@ export default async function DemoBookingPage({
         Local testing with fictional accounts only. This creates a temporary
         simulated reservation, with no confirmed lesson or payment.
       </p>
+      {!resumed.options.learners.length && (
+        <AdmissionDetour choice={choice} discovery={discovery} />
+      )}
       <DemoBookingForm
         options={resumed.options}
         prefill={resumed.choice}

@@ -155,6 +155,55 @@
       "when": 1791792786473,
       "tag": "0021_local_lifecycle_notices",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1791800706644,
+      "tag": "0022_admin_assurance",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1791805477957,
+      "tag": "0023_learner_admission",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1791808243049,
+      "tag": "0024_screening_safeguarding",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1791819241000,
+      "tag": "0025_booking_workflows",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1791823994507,
+      "tag": "0026_review_publication",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1791826844159,
+      "tag": "0027_transactional_delivery",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1791829357533,
+      "tag": "0028_booking_discovery_return",
+      "breakpoints": true
     }
   ]
 }

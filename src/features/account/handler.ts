@@ -3,7 +3,7 @@ import type { AuthRuntime } from "@/lib/auth-factory";
 import {
   privateJson,
   readSmallJson,
-  sameLocalOrigin,
+  sameAccountOrigin,
 } from "@/lib/auth-handler";
 import { AccessError } from "@/lib/permissions/access";
 import { readAccount, updateAccount } from "./service";
@@ -15,7 +15,7 @@ export async function handleAccountRequest(
 ) {
   if (!runtime)
     return privateJson({ message: "Account service is unavailable." }, 503);
-  if (!sameLocalOrigin(request, runtime))
+  if (!sameAccountOrigin(request, runtime))
     return privateJson({ message: "Request origin is not allowed." }, 403);
   try {
     if (request.method === "GET")

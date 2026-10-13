@@ -9,11 +9,13 @@ export function LifecycleHeading({ booking }: { booking: BookingDetail }) {
     booking.state === "demo_completed" ||
     (booking.revision ?? 0) > 0;
   const label =
-    booking.state === "demo_reserved" && (booking.revision ?? 0) > 0
-      ? "Simulation rescheduled"
-      : changed
-        ? demoStateLabels[booking.state]
-        : "Booking details";
+    booking.source === "synthetic_readiness"
+      ? demoStateLabels[booking.state]
+      : booking.state === "demo_reserved" && (booking.revision ?? 0) > 0
+        ? "Simulation rescheduled"
+        : changed
+          ? demoStateLabels[booking.state]
+          : "Booking details";
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     if (changed) heading.current?.focus();

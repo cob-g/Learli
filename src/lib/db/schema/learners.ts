@@ -19,7 +19,9 @@ export const learnerProfiles = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     fixtureKey: text("fixture_key").notNull().unique(),
-    source: text("source").$type<"local_fixture">().notNull(),
+    source: text("source")
+      .$type<"local_fixture" | "synthetic_readiness">()
+      .notNull(),
     management: text("management").$type<"guardian" | "self">().notNull(),
     userId: text("user_id")
       .unique()
@@ -43,7 +45,15 @@ export const learnerProfiles = pgTable(
       table.id,
       table.management,
     ),
-    check("learner_profiles_source", sql`${table.source} = 'local_fixture'`),
+    unique("learner_profiles_id_management_source_unique").on(
+      table.id,
+      table.management,
+      table.source,
+    ),
+    check(
+      "learner_profiles_source",
+      sql`${table.source} IN ('local_fixture', 'synthetic_readiness')`,
+    ),
     check(
       "learner_profiles_management",
       sql`(${table.management} = 'guardian' AND ${table.userId} IS NULL) OR (${table.management} = 'self' AND ${table.userId} IS NOT NULL AND ${table.level} = 'college_support')`,
@@ -78,7 +88,9 @@ export const guardianLearnerLinks = pgTable(
       .$type<"guardian">()
       .default("guardian")
       .notNull(),
-    source: text("source").$type<"local_fixture">().notNull(),
+    source: text("source")
+      .$type<"local_fixture" | "synthetic_readiness">()
+      .notNull(),
     status: text("status").$type<"authorized" | "revoked">().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -94,13 +106,22 @@ export const guardianLearnerLinks = pgTable(
       columns: [table.learnerId, table.management],
       foreignColumns: [learnerProfiles.id, learnerProfiles.management],
     }).onDelete("restrict"),
+    foreignKey({
+      name: "guardian_learner_links_source_fk",
+      columns: [table.learnerId, table.management, table.source],
+      foreignColumns: [
+        learnerProfiles.id,
+        learnerProfiles.management,
+        learnerProfiles.source,
+      ],
+    }).onDelete("restrict"),
     check(
       "guardian_learner_links_management",
       sql`${table.management} = 'guardian'`,
     ),
     check(
       "guardian_learner_links_source",
-      sql`${table.source} = 'local_fixture'`,
+      sql`${table.source} IN ('local_fixture', 'synthetic_readiness')`,
     ),
     check(
       "guardian_learner_links_status",

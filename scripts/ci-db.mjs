@@ -1,6 +1,6 @@
 // Prepares only an ephemeral loopback PostgreSQL service inside a CI job.
 import { randomBytes } from "node:crypto";
-import { writeFileSync } from "node:fs";
+import { writeFileSync, mkdirSync, realpathSync } from "node:fs";
 import pg from "pg";
 if (process.env.CI !== "true" || !process.env.LOCAL_CI_OWNER_PASSWORD)
   throw new Error("CI-local setup only.");
@@ -24,6 +24,20 @@ try {
   writeFileSync(
     ".env.test.local",
     `APP_ENV=test\nAUTH_MODE=local\nAPP_URL=http://127.0.0.1:3100\nBETTER_AUTH_URL=http://127.0.0.1:3100\nBETTER_AUTH_SECRET=${randomBytes(48).toString("hex")}\nDATABASE_URL=postgresql://learli_app:${appPassword}@127.0.0.1:55432/learli_test\nDATABASE_URL_DIRECT=postgresql://learli_owner:${encodeURIComponent(ownerPassword)}@127.0.0.1:55432/learli_test\n`,
+    { mode: 0o600, flag: "wx" },
+  );
+  // This receipt grants test-fixture placement only. Do not create local-db's
+  // pg_ctl ownership marker: the container service belongs to the CI runner.
+  mkdirSync(".local", { recursive: true, mode: 0o700 });
+  writeFileSync(
+    ".local/ci-database.json",
+    JSON.stringify({
+      kind: "learli-disposable-ci-service",
+      sourceRoot: realpathSync("."),
+      ports: { database: 55432 },
+      ownerPassword,
+      appPassword,
+    }),
     { mode: 0o600, flag: "wx" },
   );
   console.log("Ephemeral loopback CI database prepared.");

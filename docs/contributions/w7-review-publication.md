@@ -1,0 +1,33 @@
+# W7 review publication — scoped canonical context contribution
+
+Authority: AUTHORIZED — build-feature delegation. Root owns reconciliation into the canonical architecture, PRD, UI context and build plan. This contribution records software behavior, not real privacy/moderation policy, guardian/screening/legal approval or launch authorization.
+
+## Architecture contribution
+
+A separate review-publication domain stores versioned synthetic readiness policies and their current head, immutable logical-booking reviews, exact moderator assignments and append-only state events. Forward0026 adds five tables, nine functions and four triggers; three accepted0025 booking mutation functions are replaced only to reject non-READ-COMMITTED transactions before reading data. Historical0000–0025 SQL remains immutable. Runtime has narrowly scoped reads and six function EXECUTE grants; direct mutation and PUBLIC access stay denied.
+
+Submission and private author reads require the exact current session, beneficiary authority and administratively completed current logical head/event/provenance. Manual decisions require current exact assignment and MFA, current SQL authority at request/projection/post-lock/post-audit boundaries, revision and request-payload identity. Public visibility checks stored author/current beneficiary relation and immutable completion provenance without requiring the author to remain signed in. One materialized eligibility set supplies both anonymous rows and count/average, checking current publication/booking/admission/screening policies and current public tutor eligibility. Withdrawal and eligibility revocation remove both rows and aggregate contribution. Existing private demo reviews are a separate source and remain permanently private.
+
+Default composition is disabled. Synthetic publication is available only through the exact test-owned, versioned capability in a checkout/source-validated local mirror; it is rejected outside test mode. No public production synthetic records are enabled. Rollback is disabling the new composition/head, with owned restore rehearsal; no destructive down migration is proposed.
+
+## PRD and build-plan contribution
+
+Scope maps to OPS-06, PUB-04, BR-13/14 and NFR-05; primary M5.10 with M3.4/7/8 and M8.10. One eligible author submits one immutable integer1–5 rating and optional trimmed plain text of at most1,000 characters per logical booking. States: pending→approved/rejected; approved→published/pending; published→withdrawn; rejected/withdrawn→pending. Approval/publication require explicit privacy confirmation. Current exact moderator may withdraw after completion visibility is lost. No automatic moderation, replies, review editing, hard deletion, private-review backfill or verified attendance claim.
+
+Public fields are only Customer, integer rating, approved plain text and UTC date; no learner/account/booking/review/policy/private identifiers, private history or meeting data. Zero reviews is truthful; enabled read failure is distinct from zero, and disabled publication renders no section. Actual same-domain/PG synthetic software acceptance is separate from human operating evidence and whole-wave integration. Real operating publication/moderation/privacy/dispute-owner policy remains a launch gate.
+
+## UI contribution
+
+Use existing native navy/teal typography, field/action/focus tokens and responsive AdminShell. Private author page is under booking publication-review; exact assigned moderator list/detail is separate from existing private synthetic reviews. Every new page/section explains synthetic readiness and administrative completion without attendance claims. Native POST/no-JS forms stay inert until hydration and do not put text in URLs. Submission retains the same immutable request payload across uncertain retries, blocks pending duplicate controls and focuses safe inline errors; successful mutation replaces the browser document. Private responses are no-store/noindex, and existing document-lifetime boundaries remain intact.
+
+The local marked profile section displays anonymous reviews and actual unrounded mean/count; withdrawal removes all contribution. Public rendering escapes submitted markup. Explicit original/private source branching prevents demo approvals being promoted. Normal Playwright and Vitest discovery include new unique tests; the accepted W6 single four-factory mirror gains the allocated publication factory and exact source/override inventory checks. Root will compose W4b later and must reconcile the explicit factory inventory rather than permitting arbitrary overrides.
+
+## Verification and remaining ownership
+
+Bounded22-file provider-v2 is independently accepted by root, aggregate a4309c4baea4ea2e66e52b5411952d520ff9f851ab8161f557ef521125f63827. Its actual56 PostgreSQL tests include canonical fresh27 and populated0025→0026 preservation, permission/protection and direct-SQL isolation cases. Full worker verification, recovered attempts and final source/evidence hashes are recorded in the ignored final report; root independently reviews and verifies the combined wave. No software result grants human policy approval, provider delivery, attendance, physical-device/screen-reader accessibility or production release.
+
+### Final profile source repair and evidence boundary
+
+Root R13 source review found an enabled readiness profile still invoked the historical demo picker. The repaired page skips legacy preview entirely for enabled readiness and enabled read failure, and uses the existing W6 booking handoff with only actual public tutor/subject choices. Ordinary disabled profiles retain their prior preview; three meaningful actual-page tests cover all branches. Browser Enter now operates author/retry/manual moderation/profile handoff and current W6 time-load controls. Root owns strict anonymous two-field continuation through shared sign-in/admission; worker signed-in handoff evidence does not establish that separate path.
+
+Final worker normal check passes1,273tests/78files plus formatting/lint/types, production build passes, Chromium/Firefox/WebKit each pass four scoped scenarios against identical current application bytes. Final WebKit additionally verifies genuine committed Back and fresh HTML free of all private needles after the existing restored-document guard; original180s load-wait failure is retained. Core56canonical PG and93scoped private/W6 RC regressions remain separately evidenced. Exact test-only Back delta after Chrome/Firefox is disclosed, and root authorized affected WebKit plus final check without a broad repeat. No hardware/device/screen-reader/zoom/real policy/whole-wave/release result is implied.

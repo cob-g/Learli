@@ -36,7 +36,8 @@ export type DashboardData = {
 };
 
 export function StatusBadge({ state }: { state: ReservationView["state"] }) {
-  const expired = !demoLiveState(state);
+  const expired =
+    !demoLiveState(state) && state !== "provisional" && state !== "confirmed";
   const Icon = expired ? TimerOff : TriangleAlert;
   return (
     <span
@@ -121,11 +122,15 @@ function Expiry({ row }: { row: ReservationView }) {
   return (
     <details className="mt-2">
       <summary className="min-h-11 cursor-pointer py-2 text-small text-primary underline">
-        {row.state === "demo_expired"
-          ? "Simulation expired at"
-          : demoLiveState(row.state)
-            ? "Simulation expires at"
-            : "Original simulation deadline"}
+        {row.state === "confirmed"
+          ? "Original provisional deadline (confirmation does not expire)"
+          : row.state === "provisional"
+            ? "Provisional hold expires at"
+            : row.state === "demo_expired"
+              ? "Simulation expired at"
+              : demoLiveState(row.state)
+                ? "Simulation expires at"
+                : "Original simulation deadline"}
       </summary>
       <LessonTime value={row.expiry} />
     </details>
@@ -241,11 +246,12 @@ export function FamilyDashboard({ data }: { data: DashboardData }) {
       : selectedLearner
         ? `Bookings for ${selectedLearner.displayName}`
         : "Bookings";
-  const earliestExpiry = active.length
-    ? active.reduce(
+  const timedActive = active.filter((row) => row.state !== "confirmed");
+  const earliestExpiry = timedActive.length
+    ? timedActive.reduce(
         (earliest, row) =>
           row.expiresAt < earliest ? row.expiresAt : earliest,
-        active[0].expiresAt,
+        timedActive[0].expiresAt,
       )
     : null;
   return (

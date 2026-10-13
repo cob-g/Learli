@@ -3,7 +3,7 @@ import type { AuthRuntime } from "@/lib/auth-factory";
 import {
   privateJson,
   readSmallJson,
-  sameLocalOrigin,
+  sameAccountOrigin,
 } from "@/lib/auth-handler";
 import { AccessError } from "@/lib/permissions/access";
 import { RuleError } from "@/lib/rule-error";
@@ -73,7 +73,7 @@ export async function handleAccountEmail(
 ) {
   if (!runtime)
     return privateJson({ message: "Account service is unavailable." }, 503);
-  if (!sameLocalOrigin(request, runtime))
+  if (!sameAccountOrigin(request, runtime))
     return privateJson({ message: "Request origin is not allowed." }, 403);
   if (request.method !== "POST")
     return privateJson({ message: "Method not allowed." }, 405);

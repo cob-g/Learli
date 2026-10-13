@@ -1,3 +1,5 @@
+import { provisionScreeningAssignment } from "../../src/features/tutor-screening/fixture-tooling";
+import { enrollBrowserAdmin } from "../support/browser-admin-mfa";
 import { test, expect, type Browser, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { randomUUID } from "node:crypto";
@@ -58,6 +60,7 @@ async function createSession(browser: Browser, name: string, roles: string[]) {
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL("/account");
+  if (roles.includes("admin")) await enrollBrowserAdmin(context, password);
   const state = await context.storageState();
   await context.close();
   return state;
@@ -168,7 +171,7 @@ test("an admin manages subjects and a deactivated subject leaves the tutor form"
     .getByRole("button", { name: `Deactivate ${subjectName}` })
     .click();
   await expect(
-    admin.getByRole("button", { name: `Activate ${subjectName}` }),
+    admin.getByRole("button", { name: `Activate ${subjectName}`, exact: true }),
   ).toBeVisible();
   await tutor.reload();
   await expect(tutor.getByRole("group", { name: "Math" })).toBeVisible();
@@ -236,6 +239,22 @@ test("a tutor applies, an admin decides, and each sees the stored result", async
   await expect(math.getByLabel("Middle School")).not.toBeChecked();
 
   const admin = await open(browser, "admin");
+  const assignedProfile = (
+    await owner.pool.query(
+      'SELECT t.id FROM tutor_profiles t JOIN "user" u ON u.id=t.user_id WHERE u.name=$1',
+      [tutorName],
+    )
+  ).rows[0].id;
+  const assignedAdmin = (
+    await (await admin.request.get("/api/auth/get-session")).json()
+  ).user.id;
+  await provisionScreeningAssignment(
+    owner,
+    assignedProfile,
+    assignedAdmin,
+    "local_fixture",
+    new Date(Date.now() + 3600000),
+  );
   await admin.goto("/admin");
   await admin.getByRole("link", { name: "Tutor review queue" }).click();
   await expect(

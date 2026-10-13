@@ -13,7 +13,7 @@ export function safeReturnPath(value: string | null | undefined) {
     const url = new URL(value, "http://learli.invalid");
     if (
       url.origin !== "http://learli.invalid" ||
-      /^\/(?:api|sign-in|sign-up|verify-email|forgot-password|reset-password)(?:\/|$)/.test(
+      /^\/(?:api|sign-in|sign-up|verify-email|forgot-password|reset-password|two-factor)(?:\/|$)/.test(
         url.pathname,
       )
     )

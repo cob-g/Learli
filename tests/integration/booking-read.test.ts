@@ -815,17 +815,31 @@ describe("real PostgreSQL participant reads", () => {
     await world.owner.db
       .insert(userRoles)
       .values({ userId: self.id, role: "student" });
-    await world.owner.db
-      .update(learnerProfiles)
-      .set({ userId: admin.id })
-      .where(eq(learnerProfiles.id, selfId));
     await expect(
-      readParticipantBooking(world.runtime, self.headers, row.id, "student"),
-    ).rejects.toMatchObject({ status: 404 });
-    await world.owner.db
-      .update(learnerProfiles)
-      .set({ userId: self.id })
+      world.owner.db
+        .update(learnerProfiles)
+        .set({ userId: admin.id })
+        .where(eq(learnerProfiles.id, selfId)),
+    ).rejects.toMatchObject({ cause: { code: "42501" } });
+    const [unchanged] = await world.owner.db
+      .select({ userId: learnerProfiles.userId })
+      .from(learnerProfiles)
       .where(eq(learnerProfiles.id, selfId));
+    expect(unchanged.userId).toBe(self.id);
+    const foreignSelf = await fixtureLearner(admin, true);
+    const foreignBooking = await storedBooking({
+      learner: foreignSelf,
+      expired: true,
+      booker: self.id,
+    });
+    await expect(
+      readParticipantBooking(
+        world.runtime,
+        self.headers,
+        foreignBooking.id,
+        "student",
+      ),
+    ).rejects.toMatchObject({ status: 404 });
     await world.owner.db
       .update(tutorProfiles)
       .set({ userId: otherTutor.id })

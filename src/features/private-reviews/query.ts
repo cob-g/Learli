@@ -1,3 +1,4 @@
+import { adminAssurancePredicate } from "@/features/admin-security/assurance";
 import { sql } from "drizzle-orm";
 import type { Database } from "@/lib/db/connection";
 import type { Identity } from "@/lib/permissions/access";
@@ -50,6 +51,6 @@ export async function queryModeratorReviews(
  JOIN public.review_moderator_grants g ON g.moderator_user_id=a.id AND g.status='authorized'
  JOIN public.private_booking_reviews v ON v.id=g.review_id AND v.source='local_synthetic' AND v.author_user_id<>a.id
  JOIN public.bookings b ON b.id=v.booking_id JOIN public.tutor_profiles tp ON tp.id=b.tutor_id AND tp.user_id<>a.id
- WHERE EXISTS(SELECT 1 FROM public.user_roles r WHERE r.user_id=a.id AND r.role='admin') ${reviewId ? sql`AND v.id=${reviewId}::uuid` : sql``} ORDER BY v.created_at DESC,v.id LIMIT 21`);
+ WHERE ${adminAssurancePredicate(a.userId, a.sessionId)} AND EXISTS(SELECT 1 FROM public.user_roles r WHERE r.user_id=a.id AND r.role='admin') ${reviewId ? sql`AND v.id=${reviewId}::uuid` : sql``} ORDER BY v.created_at DESC,v.id LIMIT 21`);
   return r.rows;
 }

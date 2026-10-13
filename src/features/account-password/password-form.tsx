@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+} from "react";
 import { passwordChangeInput } from "./input";
 
 type Field = "currentPassword" | "newPassword" | "confirmPassword";
@@ -37,6 +43,9 @@ export function PasswordForm() {
   }>();
   const message = useRef<HTMLParagraphElement>(null);
   const submitting = useRef(false);
+  useEffect(() => {
+    if (notice) message.current?.focus();
+  }, [notice]);
   const invalidFields = fields.filter((field) => errors[field.name]);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -130,7 +139,6 @@ export function PasswordForm() {
     } finally {
       submitting.current = false;
       setPending(false);
-      requestAnimationFrame(() => message.current?.focus());
     }
   }
   return (

@@ -3,6 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  // Local mail proofs, database state and credentials never belong in deployment traces.
+  outputFileTracingExcludes: {
+    "/*": ["./.local/**/*", "./.env.local", "./.env.*.local"],
+  },
   // Preserve the repository's maintained agent contract when starting dev.
   agentRules: false,
   // Verification/reset URLs contain private tokens.

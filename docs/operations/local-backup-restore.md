@@ -13,14 +13,18 @@ coordinator owns acceptance and any later integration. Run with pinned Node
 `initdb`, `pg_ctl`) on PATH; optional `PG_BIN` selects their installed directory.
 Use existing local setup with assigned `LEARLI_DB_PORT`, `LEARLI_DEV_PORT`,
 `LEARLI_TEST_PORT`; do not inherit another checkout's credentials or data.
-For Worker 2 these are 55502/3062/3162; restore port is 55512.
+Use the current checkout's recorded ports; the examples below use an explicitly
+assigned free restore port. Never reuse a former worker's database by its number.
 
 The script reads its own private `.env.test.local` and `.local/database.json`.
 It requires APP_ENV=test, AUTH_MODE=local, exact loopback `learli_test` URLs and
 setup credentials/ownership marker. It checks actual running server data path,
 listen address, port, PostgreSQL major version and postmaster identity. It rejects
 remote, dev, peer and malformed configuration; runtime connection rules stay
-unchanged. It rejects non-`.test` users and non-synthetic learner/booking sources.
+unchanged. It rejects non-`.test` users and values outside the exact reviewed
+source/provenance inventory. The accepted inventory currently covers0024; new
+provenance columns fail closed until separately reviewed and integrated. This is
+not blanket permission to restore every value labelled synthetic.
 Only source reads occur. Pause migrations and other test writers for the rehearsal;
 ordinary row writes are captured at the exported consistent snapshot, but schema
 changes and sequence updates should not run concurrently with the drill.
@@ -28,10 +32,15 @@ changes and sequence updates should not run concurrently with the drill.
 ## Execute and collect evidence
 
 The source must already have reviewed migrations and a synthetic active booking.
-The dedicated test supplies and removes only its exact fixtures. Unit discovery uses the normal glob; restoration uses the dedicated
+The dedicated test creates both legacy and readiness synthetic fixtures. It removes
+only the exact legacy fixture identifiers it owns. Readiness policy, admission,
+screening and response histories are append-only and remain in that owned source
+database; the test does not disable protection to erase them. Unit discovery uses
+the normal glob; restoration uses the dedicated
 vitest.restore.config.ts operations configuration. Docker CI owns a different
 fixture contract and cannot satisfy local cluster ownership; no guard is weakened.
-Root may register a package command later; these direct commands already work:
+The registered `npm run test:restore` command and these direct commands run the
+same dedicated operations suite:
 
 ```sh
 npm test -- tests/unit/local-backup-restore.test.ts

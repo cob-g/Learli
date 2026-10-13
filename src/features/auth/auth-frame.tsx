@@ -1,19 +1,32 @@
 import type { ReactNode } from "react";
 import { getServerEnv } from "@/lib/env/server";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
+import { getAccountAuthRuntime } from "@/lib/auth";
+import { headers } from "next/headers";
+import { accountHeadersAllowed } from "@/features/hosted-auth/request";
 
-export function AuthFrame({
+export async function AuthFrame({
   title,
   children,
 }: {
   title: string;
   children: ReactNode;
 }) {
-  if (getServerEnv().AUTH_MODE !== "local")
+  const mode = getServerEnv().AUTH_MODE;
+  let available = mode === "local";
+  if (mode === "hosted-synthetic") {
+    try {
+      const runtime = await getAccountAuthRuntime();
+      available = !!runtime && accountHeadersAllowed(runtime, await headers());
+    } catch {
+      available = false;
+    }
+  }
+  if (!available)
     return (
       <UnavailablePage
         title="Accounts are not open yet"
-        message="Local account testing has not been configured."
+        message="Account testing is unavailable. Try again later."
       />
     );
   return (
@@ -21,8 +34,9 @@ export function AuthFrame({
       <div className="max-w-prose">
         <h1 className="text-page-title">{title}</h1>
         <p className="mt-4 text-body text-muted-foreground">
-          Local testing only. Use a made-up name and an email ending in .test.
-          Messages stay in your local mailbox.
+          {mode === "local"
+            ? "Local testing only. Use a made-up name and an email ending in .test. Messages stay in your local mailbox."
+            : "Hosted synthetic testing only. Use an explicitly configured fictional account. Message requests do not establish delivery or real account eligibility."}
         </p>
         {children}
       </div>

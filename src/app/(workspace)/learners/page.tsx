@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LearnerLink } from "@/features/learners/learner-link";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
-import { listMyLearners } from "@/features/learners/service";
+import { listLearnerGroups } from "@/features/learners/composition";
 import { levelNames } from "@/features/subjects/catalog";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 export const dynamic = "force-dynamic";
@@ -11,14 +11,15 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 export default async function LearnersPage() {
-  const learners = await loadPrivatePage("/learners", listMyLearners);
-  if (!learners)
+  const groups = await loadPrivatePage("/learners", listLearnerGroups);
+  if (!groups)
     return (
       <UnavailablePage
         title="Learner profiles unavailable"
         message="We cannot open learner profiles on this account. Return to your account or try again later."
       />
     );
+  const learners = [...groups.demo, ...groups.readiness];
   return (
     <div className="page-shell page-space">
       <h1 className="text-page-title">Your learners</h1>
@@ -36,6 +37,11 @@ export default async function LearnersPage() {
                 <h2 className="text-item-title wrap-anywhere">
                   {learner.displayName}
                 </h2>
+                <p className="mt-2 text-caption">
+                  {groups.readiness.some((row) => row.id === learner.id)
+                    ? "Synthetic reviewed admission"
+                    : "Local demonstration"}
+                </p>
                 <p className="mt-2 text-body">
                   {levelNames([learner.level]).join()}
                 </p>
@@ -58,11 +64,20 @@ export default async function LearnersPage() {
           </p>
         </section>
       )}
-      <LearnerLink
-        className="action action-primary mt-8"
-        href="/learners/new"
-        label="Create a local learner"
-      />
+      {groups.demoAllowed && (
+        <LearnerLink
+          className="action action-primary mt-8"
+          href="/learners/new"
+          label="Create a local learner"
+        />
+      )}
+      {groups.admissionEnabled && (
+        <LearnerLink
+          href="/learner-admission/new"
+          className="action action-outline ms-4 mt-8"
+          label="Request admission review"
+        />
+      )}
       <Link
         className="ms-4 mt-8 inline-flex min-h-11 items-center"
         href="/account"

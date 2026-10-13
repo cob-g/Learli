@@ -1,3 +1,6 @@
+import { WorkflowActionForm } from "@/features/booking-workflows/forms";
+import { bookingWorkflowContext } from "@/features/booking-workflows/composition";
+import { readWorkflowMoveCandidates } from "@/features/booking-workflows/service";
 import type { Metadata } from "next";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { AccessError } from "@/lib/permissions/access";
@@ -38,11 +41,14 @@ export default async function Page({
         bookingId,
         scope.data,
       );
-      const times = await readDemoRescheduleCandidates(
-        runtime,
-        headers,
-        bookingId,
-      );
+      const times =
+        booking.source === "synthetic_readiness"
+          ? await readWorkflowMoveCandidates(
+              bookingWorkflowContext(runtime),
+              headers,
+              bookingId,
+            )
+          : await readDemoRescheduleCandidates(runtime, headers, bookingId);
       return {
         booking,
         times: times.map((t) =>
@@ -71,11 +77,21 @@ export default async function Page({
         <h2 className="text-item-title">Original scheduled time</h2>
         <LessonTime value={data.booking.time} />
       </section>
-      <DemoRescheduleForm
-        booking={data.booking}
-        scope={scope.data}
-        times={data.times}
-      />
+      {data.booking.source === "synthetic_readiness" ? (
+        <WorkflowActionForm
+          bookingId={bookingId}
+          revision={data.booking.workflowRevision ?? 0}
+          action="reschedule"
+          scope={scope.data}
+          times={data.times}
+        />
+      ) : (
+        <DemoRescheduleForm
+          booking={data.booking}
+          scope={scope.data}
+          times={data.times}
+        />
+      )}
     </div>
   );
 }
