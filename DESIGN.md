@@ -335,7 +335,7 @@ scroll regions are used for wide administrative tables.
 
 Depth comes from White against Paper or Mist, thin borders and spacing. The
 implemented floating and modal shadow tokens are `none`. The native confirmation
-dialog and mobile menu use a dimmed scrim, not a cast shadow. Content appears
+dialog uses a dimmed scrim, not a cast shadow. Content appears
 immediately. Shared actions use a short color transition (150ms); pending spinners
 are limited by motion-safe or reduced-motion utilities where used. The declared
 enter/exit curves are retained in the sidecar as source tokens, not evidence that
@@ -443,10 +443,12 @@ and focus.
 
 Main navigation uses Navy interface labels with minimum (3rem) height; the current
 page is stronger and underlined. Large-screen links appear from (64rem); below
-that a named Menu button opens the native side dialog, capped at (20rem) and the
-viewport width. Escape and focus return remain native/explicit behavior. Header
-groups wrap with enlarged text. Every route uses the full-width transparent
-header, which stays on screen in tall viewports and takes on glass after scrolling.
+that the navigation is a floating glass dock at the foot of the screen, at most
+(26rem) wide with the full radius: five tabs, each an icon over one word in
+the caption role, the current one filled Navy with White text. There is no menu
+button. Header groups wrap with enlarged text. Every route uses the full-width
+transparent header; on wide, tall viewports it stays on screen and takes on
+glass after scrolling, and below (64rem) it scrolls away with the page.
 The footer sits on Navy: the reverse wordmark,
 the tagline in the headline role with its mint highlight, three labelled link
 groups in White at body size with (2.75rem) targets, and a closing bar under a

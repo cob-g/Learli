@@ -172,6 +172,40 @@ with a laptop. It depicts a generated adult and child and follows the same
 limits as the other photographs. The photograph rule now covers this one use
 as well as the hero.
 
+## Content on the pages in the navigation (2026-10-14)
+
+The owner asked for content on each page in the navigation, using the landing
+page as the reference. Find a tutor, Get matched, Subjects and Become a tutor
+each gained a guide beneath their working area, built from the landing page's
+blocks. The directory, the matching questions, the catalog and the application
+are unchanged.
+
+This extends two home-only allowances to those four pages by owner request:
+the landing page's motion and glass, and photographs. Two photographs were
+generated with the owner's Higgsfield account (about 6 credits): a still life
+for Subjects and a tutor at a desk for Become a tutor. The directory and
+matching carry none, since that is where real tutors appear. The tutor in the
+photograph is generated and represents no Learli tutor; whether to keep a
+person's picture on the recruitment page is the owner's call.
+
+The copy states only what the product does today, and says nothing about tutor
+pay, prices or lesson terms, which remain open decisions.
+
+## Small-screen navigation: a floating dock instead of a menu (2026-10-14)
+
+The owner asked: "I don't want the burger bar. I want a bottom floating
+navigation that is modern right now." Below the wide breakpoint the Menu button
+and its side dialog are removed, and the main navigation is a glass dock
+floating at the foot of the screen with five tabs: Home, Find, Match, Subjects
+and Teach.
+
+Two choices were made with it. Home was added, and the top bar now scrolls away
+on small screens instead of staying pinned, so a phone carries one fixed bar
+and not two. Sign in stays in the top bar.
+
+Three browser tests opened the old menu; they were rewritten for the dock but
+could not be run here.
+
 ## Footer redesigned
 
 The owner found the footer plain and unprofessional and asked for a design. The
