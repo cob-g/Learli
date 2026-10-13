@@ -1,12 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { StartApplication } from "@/features/tutors/start-application";
+import { BecomeATutorGuide } from "@/features/home/page-guides";
+import "../home.css";
 
 export const metadata: Metadata = { title: "Become a tutor" };
 export default function Page() {
   return (
+    <>
+      <Application />
+      <BecomeATutorGuide />
+    </>
+  );
+}
+
+function Application() {
+  return (
     <div className="page-shell page-space">
-      <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
         <div>
           <h1 className="text-headline">Become a tutor</h1>
           <p className="mt-6 max-w-prose font-reading text-reading">
@@ -21,7 +32,7 @@ export default function Page() {
           </p>
           <StartApplication />
         </div>
-        <section className="rounded-surface border border-border bg-surface p-6 md:p-8">
+        <section className="rounded-surface border border-border bg-surface p-6 wrap-anywhere md:p-8">
           <h2 className="text-section-title">How applying works</h2>
           <ol className="mt-6 list-decimal space-y-6 ps-6 text-body">
             <li>Sign in and start a tutor application.</li>

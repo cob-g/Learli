@@ -1,4 +1,8 @@
-/* Public home page: illustration and scroll motion.
+/* Public home page, and the content sections of the other public pages
+   (find a tutor, get matched, subjects, become a tutor), which reuse its
+   line, its layered scene and its lists inside the same `.home` wrapper.
+
+   Illustration and scroll motion.
 
    Everything here is presentation. The markup is complete and readable without
    scripts: [data-reveal="pending"] is only ever set by HomeMotion, and only on
@@ -690,6 +694,43 @@
     }
   }
 
+  /* The same band on the other public pages, turned the hero's way: the line
+     rises to the right and the steps read left to right as they climb it. The
+     heading stays on the left. */
+  .home-rise .home-steps > li::before {
+    rotate: -5deg;
+  }
+  /* A step's number, for a sequence whose order matters to the reader. */
+  .home-tile-number {
+    color: var(--text-inverse);
+    font-size: calc(var(--tile) * 0.46);
+    font-weight: 600;
+    line-height: 1;
+  }
+  @media (min-width: 64rem) {
+    .home-rise .home-lesson-head {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    }
+    .home-rise .home-lesson-head > h2 {
+      order: 0;
+      justify-self: start;
+    }
+    .home-rise .home-steps > li:nth-child(1) {
+      grid-column: 1;
+    }
+    .home-rise .home-steps > li:nth-child(3) {
+      grid-column: 3;
+      margin-top: 0;
+    }
+    .home-rise .home-line {
+      rotate: -5deg;
+    }
+    /* The stop sits past the last step and moves on up the line. */
+    .home-rise .home-line-bead {
+      translate: calc(max(0, var(--progress) - 0.5) * 14rem) 0;
+    }
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     .home-depth-space {
       transform: rotateX(calc(var(--tilt-y) * -2.6deg))
@@ -765,6 +806,10 @@
     .home-lesson[data-reveal="pending"] .home-line {
       clip-path: inset(0 0 0 100%);
       transition: none;
+    }
+    /* Rising, it is drawn from its low end at the left. */
+    .home-rise .home-lesson[data-reveal="pending"] .home-line {
+      clip-path: inset(0 100% 0 0);
     }
     .home-steps > li:nth-child(1) {
       --glyph-delay: 400ms;
@@ -909,9 +954,8 @@
     max-width: none;
     height: 112%;
     object-fit: cover;
-    /* The picture is square, with both people in its upper half. Each frame
-       shape is given the band that keeps their faces in it. */
-    object-position: 50% 30%;
+    /* Each scene says where its subject sits for each frame shape. */
+    object-position: var(--focus, 50% 50%);
   }
   .home-care-card {
     position: relative;
@@ -943,7 +987,7 @@
       aspect-ratio: 16 / 9;
     }
     .home-care-photo img {
-      object-position: 50% 20%;
+      object-position: var(--focus-row, var(--focus, 50% 50%));
     }
     .home-care-learli {
       margin: -5rem 0 0 1.5rem;
@@ -966,9 +1010,8 @@
       grid-row: 1;
       aspect-ratio: 4 / 5;
     }
-    /* Nudged left, so both faces sit clear of the navy card. */
     .home-care-photo img {
-      object-position: 62% 40%;
+      object-position: var(--focus-wide, var(--focus, 50% 50%));
     }
     .home-care-learli {
       grid-column: 1;

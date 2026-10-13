@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "../home.css";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAuthRuntime } from "@/lib/auth";
@@ -22,6 +23,7 @@ import { readPublicCatalog } from "@/features/tutors/public";
 import { publicProfileHref } from "@/features/public-availability/links";
 import { EmptyState } from "@/components/shared/empty-state";
 import { demoBookingPolicy } from "@/features/bookings/demo-policy";
+import { GetMatchedGuide } from "@/features/home/page-guides";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Get matched" };
@@ -55,11 +57,19 @@ function LoadFailure({
   );
 }
 
-export default async function GetMatchedPage({
-  searchParams,
-}: {
-  searchParams: Promise<MatchParams>;
-}) {
+type MatchingProps = { searchParams: Promise<MatchParams> };
+
+/** The questions or their results, then how matching works. */
+export default function GetMatchedPage(props: MatchingProps) {
+  return (
+    <>
+      <Matching {...props} />
+      <GetMatchedGuide />
+    </>
+  );
+}
+
+async function Matching({ searchParams }: MatchingProps) {
   const safe = sanitizeMatchParams(await searchParams);
   if (safe.changed) redirect(safe.href);
   const catalog = await readPublicCatalog();

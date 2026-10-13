@@ -1,5 +1,131 @@
 # Learli — Progress Tracker
 
+## 2026-10-14 — Navigation page content and small-screen dock: commit, merge into main and push
+
+The owner explicitly asked for this work to be committed, merged into `main`
+and pushed ("commit and merge this into main and push it"). It is committed on
+`feature/nav-page-content` as two feature commits (the navigation pages'
+content; the small-screen dock) and this documentation commit, merged into
+`main` with a merge commit, and pushed to `origin/main`. `main` matched
+`origin/main` at `5c8af5d` beforehand, so the merge had no conflicts.
+
+The merged tree is the one verified in the two entries below: `npm run check`
+(1,374 tests / 90 files) and `npm run build` pass. **The Playwright suite was
+not run before this merge**, including the three specs rewritten for the dock.
+
+No deployment: the owner's Railway account has no Learli project (checked
+2026-10-14), so the push starts none. No database, migration or environment
+change. The feature branch is kept locally and was not pushed.
+
+## 2026-10-14 — Small-screen dock replaces the burger menu
+
+**Task:** UI only. Owner request: no burger menu on mobile; a modern floating
+bottom navigation instead. Same branch as the entry below
+(`feature/nav-page-content`). Status: **Ready for QA**; integrated as recorded
+in the entry above.
+
+**Changed:**
+
+- `site-header.tsx`: the Menu button and its dialog are removed. Below 64rem a
+  second nav, the dock, is displayed: Home, Find, Match, Subjects, Teach, each
+  a Lucide icon over one word, the current one filled navy. The desktop bar is
+  unchanged.
+- `site-shell.css`: the dock's styles; the top bar is pinned only from 64rem,
+  so on small screens it scrolls away; the footer pads its foot and the page
+  sets `scroll-padding-bottom` below 64rem. `globals.css`: the unused
+  `.mobile-menu` rules are removed.
+- No dependency, API, service, schema, migration or environment change.
+
+**Verified on the final source:**
+
+- `npm run check` PASS: formatting, lint (the one inherited unused-import
+  warning), type checking, **1,374 tests / 90 files**; the header component
+  test was rewritten (three tests: one bar on every route, no menu button or
+  dialog, five named dock tabs with the current one marked).
+- `npm run build` PASS.
+- Chromium against the owner's preview: the dock at 320, 360, 390, 430 and 820
+  wide with no sideways scroll and no clipped label (five words from 360; the
+  current word only at 320); every tab at least 49 by 54px; the right tab
+  current on each of the five pages and none on `/sign-in`; a tap on Subjects
+  navigated and moved the current tab; the footer's last link clears the dock
+  at the foot of the page; the dock hides while a text field has focus; doubled
+  text at 390 and 320 gives five icons with no overflow; at 1440 the dock is
+  absent and the bar is pinned as before; scripts off shows the dock with the
+  current tab. Zero axe violations on `/tutors` at 390.
+
+**Not run / not verified:**
+
+- **Three Playwright specs were edited to match and not run**
+  (`foundation.spec.ts`, `booking-history.spec.ts`,
+  `cross-browser-acceptance.spec.ts`); the suite still cannot start here.
+- A real phone: the dock over the on-screen keyboard, the home-indicator area
+  on iPhones, and Safari's collapsing toolbar were not seen. No
+  `viewport-fit=cover` was set, so the safe-area inset currently resolves to
+  zero.
+- Signed-in workspace pages on a phone were not viewed; they get the same dock.
+
+## 2026-10-14 — Content on the four pages in the navigation
+
+**Task:** UI only. Owner request: "add content on each pages in nav ... you can
+use landing page as reference". Branch `feature/nav-page-content` from `main`
+at `5c8af5d`. PRD: PUB-01, PUB-02, PUB-03, MATCH-01, QA-01. Status: **Ready for
+QA**; integrated as recorded in the first entry of this file.
+
+**Changed:**
+
+- `/tutors`, `/get-matched`, `/subjects`, `/become-a-tutor` each render a guide
+  under their existing working area. The directory, filters, matching
+  questions, catalog and application control are untouched; each page function
+  was split into its existing body plus the guide.
+- New in `src/features/home/`: `page-guides.tsx` (the four guides),
+  `steps-line.tsx` (the navy line with three tiles, rising to the right),
+  `layered-scene.tsx` (photograph with a glass card and a navy card; the
+  landing page now uses it too, with the same markup), `page-sections.tsx`
+  (`Facts`, `TwoDoors`). `home.css` gained the rising line variant and the
+  numbered tile, and takes each scene's photograph focus from the scene.
+- Two photographs in `public/home/` (AI-generated, about 6 Higgsfield credits,
+  provenance in its README): `study-desk.webp` (a still life, Subjects) and
+  `tutor-desk.webp` (a generated adult teaching, Become a tutor). None on the
+  directory or matching.
+- Also fixed: `/become-a-tutor` scrolled sideways by 45px at 320 wide with
+  doubled text (an existing fault in the application panel); and
+  `.impeccable/surfaces/home.md` failed the format check on `main`, which
+  stopped `npm run check`.
+- No dependency, API, service, schema, migration or environment change.
+
+**Verified on the final source:**
+
+- `npm run check` PASS: formatting, lint (the one inherited unused-import
+  warning), type checking, **1,373 tests / 90 files** (twelve new guide tests:
+  no page heading, form, alert or status added; no unapproved claims; doors to
+  real routes; numbering only on the matching questions; every level a real
+  filter; no photographs on the directory or matching).
+- `npm run build` PASS. Impeccable detector: only the known advisory on the
+  review carousel's easing.
+- Chromium, against a temporary preview on port 3010 (the owner's preview was
+  not running), zero-tutor catalog: each of the four pages at 1440, 820, 390
+  and 320 wide. One `h1` and no form on each; no horizontal overflow, including
+  doubled text at 390 and 320; zero axe violations; no console errors or broken
+  images; nothing left withheld after scrolling. Reduced motion and scripts
+  off: the same sections, static.
+- Landing page regression at 1440, 390 and 320, reduced motion and scripts
+  off: no overflow, zero axe violations, the photograph scene's framing and the
+  lesson steps' order unchanged after moving them onto the shared components.
+
+**Not run / not verified:**
+
+- **Playwright suite not run** (the `DATABASE_MODE` conflict). The guides were
+  written to avoid every locator those specs use on these pages (no new page
+  heading, form, status or alert; no link or heading names the specs look up
+  unscoped), but that is a reading of the specs, not a run of them.
+- The pages were only seen with zero tutors listed. The with-tutors states
+  (filters, results, matching questions) render the same guide beneath them but
+  were not viewed.
+- Real Safari and Firefox; motion judged from still frames.
+
+**Open decisions / risks:** whether to keep a generated person's photograph on
+Become a tutor. Not deployed; nothing pushed.
+
 ## 2026-10-13 — Landing feature committed and merged locally
 
 The owner explicitly authorized committing `feature/home-landing-motion` and

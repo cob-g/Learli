@@ -1,6 +1,6 @@
 # Learli — UI Context
 
-Version2.13 — Brand kit adoption, plus public home motion, illustration, layered hero photographs, liquid glass and a sample review carousel, 2026-10-13
+Version2.15 — Brand kit adoption, plus public home motion, illustration, layered hero photographs, liquid glass and a sample review carousel, 2026-10-13
 
 ## Authority and scope
 
@@ -291,6 +291,31 @@ also the picture: Learli, the lesson, your tutor.
 - The glass card carries a 72% tint because it holds a list.
 - The introduction is in Lexend, as in the section above.
 
+### Content on the pages in the navigation
+
+On 2026-10-14 the owner asked for content on each page in the navigation, with
+the landing page as the reference. Find a tutor, Get matched, Subjects and
+Become a tutor each carry a guide (`src/features/home/page-guides.tsx`) built
+from the landing page's blocks and loaded with its stylesheet.
+
+- A guide sits under the page's working area (the directory, the matching
+  questions, the catalog, the application) and never replaces or restyles it.
+  It adds no page heading, form, alert or status region, so each page keeps the
+  structure its browser tests rely on.
+- Blocks: the navy line with three glass tiles (`StepsLine`), the photograph
+  with a glass card and a navy card (`LayeredScene`), a highlighted heading
+  beside a ruled list (`Facts`), and two closing doors (`TwoDoors`).
+- On these pages the line rises to the right, as in the hero, and the steps
+  read left to right as they climb it. The landing page keeps its own
+  arrangement.
+- A tile shows a number only where the order is information: the three matching
+  questions. The directory's steps use the lesson glyphs. Nothing else is
+  numbered.
+- Every sentence describes what the product does today. No prices, counts,
+  results, reviews or verification claims, and nothing about tutor pay.
+- The directory and matching carry no photographs, because that is where real
+  tutors appear.
+
 ### Sample review carousel
 
 The owner asked on 2026-10-13 for a testimonials section with the animation of
@@ -384,11 +409,34 @@ Use original SVGs under `public/brand/`, byte-identical to kit exports. Primary 
 white/paper, reverse on navy; no typed placeholder, distortion or recoloring.
 Use the kit icon for browser metadata, never beside the wordmark. Respect clear
 space and minimum size. Home links have a clear accessible name. Desktop and
-mobile navigation keep all current real destinations, visible focus and Escape
-support for the mobile dialog. On every page, the shared header is
-transparent and full width, turning to glass on scroll; its destinations and
-menu behavior are identical. Use the existing Lucide library for functional
-icons only. No emoji icons or decorative icon tiles.
+mobile navigation keep all current real destinations and visible focus. On
+every page, the shared header is transparent and full width, turning to glass
+on scroll. Use the existing Lucide library for functional icons only. No emoji
+icons or decorative icon tiles.
+
+### Small-screen dock
+
+On 2026-10-14 the owner asked to replace the burger menu on mobile with a
+modern floating bottom navigation. Below 64rem the main navigation is a dock
+(`.site-dock` in `site-shell.css`, rendered by `site-header.tsx`): a glass bar
+floating 12px above the foot of the screen, at most 26rem wide. There is no
+menu button and no dialog.
+
+- Five tabs: Home, Find, Match, Subjects, Teach. Each is a Lucide icon over one
+  word. The tab for the current page, or for the section a deeper page belongs
+  to, is filled navy with white text and carries `aria-current`.
+- Names come from the words, not from `aria-label`: "Find" is completed for
+  assistive technology as "Find a tutor". Both navs are named "Main
+  navigation"; styles display exactly one at any width.
+- Below the wide breakpoint the top bar holds only the wordmark and Sign in,
+  and scrolls away with the page instead of staying pinned.
+- When five words do not fit (about 320px, or enlarged text) the current tab
+  keeps its word and the others show icons only; at very large text all five
+  are icons. Hidden words stay available to assistive technology. The row
+  never widens the page.
+- Targets are at least 44 by 52px. The footer pads its foot and the page sets
+  `scroll-padding-bottom`, so nothing rests or receives focus under the dock.
+- The dock steps aside while a text field has focus, and is not printed.
 
 Photography of real learners and tutors remains absent until rights/consent and
 actual assets exist. The kit's imagery board rules out stock and generated
@@ -411,10 +459,12 @@ shape. Things that touch stay on one plane, so nothing she holds can slide.
 With scripts off or motion reduced the scene is the same composition, still.
 Photographs are served at quality 90. Rules:
 
-- Home page only: the hero, and one photograph of its own between the two
-  lists in "Learli arranges the lesson" (a parent and a young learner at a
-  table; the owner asked that it not repeat a hero picture). Never on tutor profiles, the directory, reviews or any place where a
-  picture would stand for an actual person; those keep initials avatars.
+- On the home page: the hero, and one photograph of its own between the two
+  lists in "Learli arranges the lesson". On Subjects: a still life with no
+  person in it. On Become a tutor: one generated adult teaching at a desk.
+  Never on the tutor directory, matching, tutor profiles, reviews or any place
+  where a picture would stand for an actual person; those keep initials
+  avatars.
 - They follow the kit's own art direction: daylight, eyes on the work, brand
   colour from objects in the room, no tint or overlay, rectangular 12px frames.
 - They depict no real person and no actual Learli learner, tutor or lesson. Alt
@@ -446,8 +496,7 @@ Chromium evidence does not imply Firefox/WebKit; report engines explicitly.
 Allow the header to wrap when enlarged text needs another row. Fieldsets and
 native controls have explicit width bounds; choice labels, status badges and
 complete lesson-time text can shrink and wrap within their containers. Never
-reduce enlarged type or hide overflow to make a viewport check pass. Closing the
-native mobile dialog explicitly restores focus to its menu trigger.
+reduce enlarged type or hide overflow to make a viewport check pass.
 
 PrivateDocumentBoundary and all server authorization remain intact. Do not expose
 private synthetic credentials/meeting links in shareable screenshots; local QA

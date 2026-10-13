@@ -102,7 +102,7 @@ async function privateFixture(wave: CrossBrowserWorld) {
   };
 }
 
-test("branded navigation supports enlarged text and restores mobile menu focus", async ({
+test("branded navigation supports enlarged text and keeps the small-screen dock in view", async ({
   page,
 }) => {
   await privateGoto(page, "/sign-in");
@@ -119,16 +119,19 @@ test("branded navigation supports enlarged text and restores mobile menu focus",
     ).toBe(true);
   }
   await page.setViewportSize({ width: 390, height: 844 });
-  const menu = page.getByRole("button", { name: "Menu", exact: true });
-  await menu.click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).not.toBeVisible();
-  await expect(menu).toBeFocused();
-  await menu.click();
-  await page.getByRole("button", { name: "Close menu", exact: true }).click();
-  await expect(page.getByRole("dialog")).not.toBeVisible();
-  await expect(menu).toBeFocused();
+  await expect(
+    page.getByRole("button", { name: "Menu", exact: true }),
+  ).toHaveCount(0);
+  // At this text size the dock shows icons only; every tab keeps its name.
+  const dock = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(dock).toBeVisible();
+  const box = await dock.boundingBox();
+  expect(box && box.x >= 0 && box.x + box.width <= 390).toBe(true);
+  const find = dock.getByRole("link", { name: "Find a tutor", exact: true });
+  await find.focus();
+  await expect(find).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/tutors$/);
 });
 
 test("public discovery, real matching, denied tutors and responsive keyboard controls", async ({
