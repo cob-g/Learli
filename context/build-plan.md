@@ -983,5 +983,8 @@ Booking-preview role denial was observed; positive cloud booking preview was not
 exercised. Root post-compatibility checks additionally pass 1,338 unit/component
 cases, 92 local browser cases, seven hosted HTTPS cases and a production build.
 These results do not complete Railway deployment, real email acceptance, human
-policy/safeguarding launch gates, remote CI or payments. The integration remains
-uncommitted and unmerged; retain both source and private recovery artifacts.
+policy/safeguarding launch gates, remote CI or payments. The integration was
+subsequently committed as `c0c6cdc` and merged into local main by `07554df` under
+explicit user authorization. The merge tree exactly matches the reviewed candidate.
+Remote push, worktree cleanup and main's original local database/dependency
+preparation are separate remaining operations; retain private recovery artifacts.

@@ -1,5 +1,35 @@
 # Learli — Progress Tracker
 
+## 2026-10-13 — reviewed workflow and Neon candidate committed and merged
+
+The user explicitly authorized commit and merge. The reviewed eight-area candidate
+and accepted Neon compatibility/operator work are committed as `c0c6cdc` and merged
+into local `main` by `07554df`. The original Neon setup and root handoff were
+preserved first in `6680b58`. Two documentation overlaps were resolved using the
+accepted integration versions; the resulting merge tree exactly equals the
+reviewed candidate tree (1,057 files and ten symlinks).
+
+The prior independent reviews and separately executed verification remain
+applicable: all implementation, dependency, migration and test bytes match their
+accepted manifests. Only factual status documents are updated after the merge.
+No test suite was rerun solely for this Git operation. Detailed scopes and the
+distinction between pre-Neon full-suite evidence and post-Neon regression evidence
+remain recorded below and in the operations reports.
+
+This is a local source merge. The remote has not been pushed, worktrees and private
+recovery artifacts remain retained, and no application deployment occurred.
+Main's environment files, generated development route declarations and unrelated
+brand-kit archive are preserved. This merge does not upgrade the original local
+PostgreSQL databases or install main's changed dependencies. The separate Neon
+development preview remains the previously verified runtime; production and Neon
+development already received all 29 migrations during the earlier authorized
+operation. Real-policy flows and payments remain disabled.
+
+Private merge evidence is retained under
+`.local/hosted-readiness-wave/merge-2026-10-13/`. Next closeout operations are a
+remote push and safe worktree/branch cleanup when requested; using main's original
+local database additionally requires its own migration/dependency preparation.
+
 ## 2026-10-13 — Neon production migrated; separate development preview verified
 
 Under the explicit production-migration/development-separation authorization,
@@ -200,9 +230,9 @@ release authorization remain open. Payments remain idle.
 
 > **Project:** Learli (`learli` visual brand)  
 > **Document:** `progress-tracker.md`
-> **Version:** 1.32 — Eight-area local candidate verified; Neon activation in progress
+> **Version:** 1.33 — Reviewed workflow and Neon candidate merged locally
 > **Last updated:** 2026-10-13\
-> **Current overall status:** **Eight-area local candidate verified and independently reviewed, uncommitted/unmerged; authorized Neon activation in progress; real-operation gates and payments remain deferred**
+> **Current overall status:** **Eight-area candidate and Neon compatibility verified and merged locally; production/development Neon migrated; remote push, cleanup and original local database preparation remain; real-operation gates and payments are deferred**
 > **Source documents:** [`project-overview.md`](./project-overview.md) · [`prd.md`](./prd.md) · [`architecture.md`](./architecture.md) · [`AGENTS.md`](../AGENTS.md) · [`code-standards.md`](./code-standards.md) · [`build-plan.md`](./build-plan.md)
 
 **Purpose:** Keep a factual, resumable record of Learli development. Update this file **after every meaningful implementation change**, approved product decision, or verified deployment. This is a tracker, **not** a second PRD or permission to implement undecided business rules.
