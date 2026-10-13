@@ -1,5 +1,25 @@
 # Learli — Progress Tracker
 
+## 2026-10-13 — development readiness committed, merged and pushed
+
+The owner explicitly authorized merge and push. The nine reviewed feature files
+were committed as `5e0e9d1` and merged into `main` without conflicts as `3d4db95`.
+A normal push to `origin/main` succeeded; an independent remote-ref readback
+matched `3d4db953a7d946e39b2b419ffaf1f6ca8395ac9e` exactly. This publication record
+is a documentation-only follow-up to that verified source merge.
+
+Every merged candidate file matched its pre-commit SHA256. Original generated
+`next-env.d.ts`, unrelated brand archive and private development/test environment
+files matched their pre-merge hashes and were excluded from the commit. Existing
+check/build/integration/Neon evidence below remains applicable; no source changed
+or conflict arose to justify repeating those suites. The nine unpatched upstream
+development-tool audit entries remain disclosed; runtime-only audit has zero.
+
+The two completed review worktrees and their branches remain retained. This
+operation did not perform cleanup or additional database work. Main now contains
+the verified daily-development preparation. Broader feature/launch gates and
+paused payments remain as recorded below.
+
 ## 2026-10-13 — daily development preparation verified; source uncommitted
 
 The owner requested dependency maintenance, complete Neon development acceptance

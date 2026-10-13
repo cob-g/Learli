@@ -1003,5 +1003,6 @@ records completed local preparation: check 1,338, selected PostgreSQL 198,
 build/offline generation, 17 direct-loader checks and aggregate Neon development
 acceptance (43 successful core assertions plus a 24-assertion follow-up, with
 overlap). Nine high development-tool audit entries remain unpatched upstream.
-Source is uncommitted on the review branch. This does not close real-policy,
-provider-email, deployment or payment milestones.
+The verified source was committed as `5e0e9d1`, merged into main as `3d4db95`
+and pushed with an exact remote-ref readback under subsequent owner authority.
+This does not close real-policy, provider-email, deployment or payment milestones.

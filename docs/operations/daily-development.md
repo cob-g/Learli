@@ -95,7 +95,9 @@ using production credentials or blindly repeating uncertain writes.
 
 The broader Firefox/WebKit coverage gap, real-user policy activation, production
 authentication, live email and deployment remain separate work. Payments remain
-paused. This preparation does not merge, push or deploy the source branch.
+paused. The owner subsequently authorized publication: the reviewed source was
+committed as `5e0e9d1`, merged into main as `3d4db95`, and pushed with an exact
+remote-ref readback. That Git operation performed no additional database work.
 
 ## Dependency maintenance, 2026-10-13
 
