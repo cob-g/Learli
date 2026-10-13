@@ -29,12 +29,33 @@ export function MatchQuestions({
   };
   return (
     <div className="page-shell page-space">
-      <div className="mx-auto max-w-xl">
+      <div className="max-w-2xl">
         <h1 className="text-page-title">Get matched</h1>
         <p className="mt-4 text-small text-muted-foreground">
           Question{" "}
           {match.step === "level" ? 1 : match.step === "subject" ? 2 : 3} of 3
         </p>
+        <ol
+          aria-label="Matching steps"
+          className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-b border-border pb-6 text-small"
+        >
+          {(["level", "subject", "when"] as const).map((step, index) => (
+            <li
+              key={step}
+              aria-current={match.step === step ? "step" : undefined}
+              className={
+                match.step === step ? "text-deep-teal" : "text-muted-foreground"
+              }
+            >
+              {index + 1}.{" "}
+              {step === "level"
+                ? "Learner level"
+                : step === "subject"
+                  ? "Subject"
+                  : "Available time"}
+            </li>
+          ))}
+        </ol>
         {match.step === "when" ? (
           <WhenForm
             key={JSON.stringify(params)}
@@ -49,7 +70,7 @@ export function MatchQuestions({
             )}
           />
         ) : (
-          <form method="get" className="mt-2">
+          <form method="get" className="mt-6">
             <input
               type="hidden"
               name="change"
@@ -71,7 +92,7 @@ export function MatchQuestions({
                   ? "Which level is the learner at?"
                   : "Which subject do you need help with?"}
               </legend>
-              <div className="mt-2">
+              <div className="mt-6">
                 <ChoiceError
                   id="choice-error"
                   message={match.error}
@@ -79,21 +100,25 @@ export function MatchQuestions({
                 />
               </div>
               {match.step === "level" ? (
-                <div className="mt-2 flex flex-col">
+                <div className="mt-6 flex flex-col gap-3">
                   {learnerLevelOptions.map(([value, label]) => (
                     <label
                       key={value}
-                      className="inline-flex min-h-11 items-center gap-2 text-body"
+                      className="group flex min-h-12 cursor-pointer items-center gap-3 rounded-control border border-control bg-surface px-4 py-3 text-body has-checked:border-primary has-checked:bg-primary has-checked:text-on-inverse has-checked:[--focus-ring:var(--focus-ring-inverse)] has-checked:[&_.text-muted-foreground]:text-on-inverse"
                     >
                       <input
                         type="radio"
-                        className="size-5"
+                        className="size-5 shrink-0"
                         name="level"
                         value={value}
                         defaultChecked={match.level === value}
                         required
                       />
-                      {label}
+                      <span className="min-w-0 wrap-anywhere">{label}</span>
+                      <span
+                        aria-hidden="true"
+                        className="ms-auto hidden size-2 shrink-0 rounded-full bg-brand-teal group-has-checked:block"
+                      />
                     </label>
                   ))}
                 </div>
@@ -103,21 +128,27 @@ export function MatchQuestions({
                     <h2 className="text-label text-muted-foreground">
                       {group.label}
                     </h2>
-                    <div className="flex flex-col">
+                    <div className="mt-3 flex flex-col gap-3">
                       {group.subjects.map((subject) => (
                         <label
                           key={subject.slug}
-                          className="inline-flex min-h-11 items-center gap-2 text-body"
+                          className="group flex min-h-12 cursor-pointer items-center gap-3 rounded-control border border-control bg-surface px-4 py-3 text-body has-checked:border-primary has-checked:bg-primary has-checked:text-on-inverse has-checked:[--focus-ring:var(--focus-ring-inverse)] has-checked:[&_.text-muted-foreground]:text-on-inverse"
                         >
                           <input
                             type="radio"
-                            className="size-5"
+                            className="size-5 shrink-0"
                             name="subject"
                             value={subject.slug}
                             defaultChecked={match.subject === subject.slug}
                             required
                           />
-                          {subject.name}
+                          <span className="min-w-0 wrap-anywhere">
+                            {subject.name}
+                          </span>
+                          <span
+                            aria-hidden="true"
+                            className="ms-auto hidden size-2 shrink-0 rounded-full bg-brand-teal group-has-checked:block"
+                          />
                         </label>
                       ))}
                     </div>

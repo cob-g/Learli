@@ -54,7 +54,7 @@ export function AccountForm({
   }
   return (
     <form
-      className="mt-8 max-w-prose space-y-6"
+      className="mt-6 max-w-prose space-y-6"
       onSubmit={submit}
       aria-busy={pending}
       method="post"
@@ -98,13 +98,17 @@ export function AccountForm({
             ref={notice}
             tabIndex={-1}
             role={failed ? "alert" : "status"}
-            className={failed ? "text-body text-error" : "text-body"}
+            className={
+              failed
+                ? "rounded-control border border-error p-4 text-body text-error"
+                : "rounded-control border border-border bg-subtle p-4 text-body"
+            }
           >
             {message}
           </p>
         )}
         <button
-          className="action action-primary transition-none"
+          className="action action-primary w-full transition-none sm:w-auto"
           type="submit"
           disabled={pending}
         >

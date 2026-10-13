@@ -29,13 +29,13 @@ export function MatchResultList({
   profileHref: (match: AvailableMatch) => string;
 }) {
   return (
-    <ul className="@container divide-y divide-border rounded-surface border border-border bg-surface px-4 md:px-6">
+    <ul className="@container divide-y divide-border border-y border-border">
       {matches.map(({ tutor, nextTime }) => (
         <li
           key={tutor.slug}
-          className="relative grid grid-cols-1 gap-4 py-4 @3xl:grid-cols-[minmax(0,1fr)_13rem_auto] @3xl:items-start"
+          className="relative grid grid-cols-1 gap-6 py-6 @3xl:grid-cols-[minmax(0,1fr)_13rem_auto] @3xl:items-start"
         >
-          <div className="flex min-w-0 gap-3">
+          <div className="flex min-w-0 gap-4">
             <InitialsAvatar name={tutor.displayName} />
             <div className="min-w-0">
               <h2 className="text-item-title wrap-anywhere">
@@ -60,7 +60,7 @@ export function MatchResultList({
               </p>
             </div>
           </div>
-          <div className="min-w-0 shrink-0 @3xl:w-52">
+          <div className="min-w-0 shrink-0 rounded-control bg-surface p-4 @3xl:w-52">
             <p className="mb-2 text-label">Next open time</p>
             <LessonTime
               value={formatLessonTime(

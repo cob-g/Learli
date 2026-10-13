@@ -104,7 +104,10 @@ export function SessionList() {
   }
 
   return (
-    <section className="mt-8 max-w-5xl" aria-label="Active account sessions">
+    <section
+      className="mt-8 max-w-5xl rounded-surface border border-border bg-surface p-6 sm:p-8"
+      aria-label="Active account sessions"
+    >
       <p className="max-w-prose text-small text-muted-foreground">
         Browser details are reported by the browser and may be missing or
         inaccurate. Session refresh time does not show your last activity.
@@ -148,9 +151,9 @@ export function SessionList() {
       ) : (
         <>
           {sessions.length ? (
-            <ul className="mt-4 divide-y divide-border">
+            <ul className="mt-6 divide-y divide-border border-t border-border">
               {sessions.map((session, index) => (
-                <li key={session.id} className="min-w-0 py-4">
+                <li key={session.id} className="min-w-0 py-6">
                   <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
                     <h2 className="flex items-center gap-2 text-item-title">
                       {session.current && (
@@ -183,7 +186,7 @@ export function SessionList() {
                   <p className="mt-2 text-body">
                     Reported browser: {session.reportedDevice}
                   </p>
-                  <dl className="mt-4 grid gap-4 md:grid-cols-3">
+                  <dl className="mt-4 grid gap-4 sm:grid-cols-3">
                     {(
                       [
                         ["Signed in", session.createdAt],
@@ -195,7 +198,7 @@ export function SessionList() {
                         <dt className="text-label text-muted-foreground">
                           {label}
                         </dt>
-                        <dd className="mt-2 text-body wrap-anywhere">
+                        <dd className="mt-2 text-small wrap-anywhere tabular-nums">
                           {zone ? (
                             <time dateTime={instant}>
                               {sessionTimestamp(instant, zone)}

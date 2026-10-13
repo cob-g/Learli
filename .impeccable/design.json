@@ -1,0 +1,583 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-13T08:47:53+00:00",
+  "title": "Design System: Learli",
+  "extensions": {
+    "colorMeta": {
+      "brand-navy": {
+        "role": "primary",
+        "displayName": "Brand navy",
+        "tonalRamp": [
+          "oklch(15% 0.13286 270.47)",
+          "oklch(26% 0.13286 270.47)",
+          "oklch(38% 0.13286 270.47)",
+          "oklch(49% 0.13286 270.47)",
+          "oklch(61% 0.13286 270.47)",
+          "oklch(72% 0.13286 270.47)",
+          "oklch(84% 0.13286 270.47)",
+          "oklch(95% 0.13286 270.47)"
+        ]
+      },
+      "brand-navy-hover": {
+        "role": "primary",
+        "displayName": "Brand navy hover",
+        "tonalRamp": [
+          "oklch(15% 0.10980 271.34)",
+          "oklch(26% 0.10980 271.34)",
+          "oklch(38% 0.10980 271.34)",
+          "oklch(49% 0.10980 271.34)",
+          "oklch(61% 0.10980 271.34)",
+          "oklch(72% 0.10980 271.34)",
+          "oklch(84% 0.10980 271.34)",
+          "oklch(95% 0.10980 271.34)"
+        ]
+      },
+      "brand-navy-active": {
+        "role": "primary",
+        "displayName": "Brand navy active",
+        "tonalRamp": [
+          "oklch(15% 0.06738 271.73)",
+          "oklch(26% 0.06738 271.73)",
+          "oklch(38% 0.06738 271.73)",
+          "oklch(49% 0.06738 271.73)",
+          "oklch(61% 0.06738 271.73)",
+          "oklch(72% 0.06738 271.73)",
+          "oklch(84% 0.06738 271.73)",
+          "oklch(95% 0.06738 271.73)"
+        ]
+      },
+      "accent-primary": {
+        "role": "secondary",
+        "displayName": "Accent primary",
+        "tonalRamp": [
+          "oklch(15% 0.13150 177.26)",
+          "oklch(26% 0.13150 177.26)",
+          "oklch(38% 0.13150 177.26)",
+          "oklch(49% 0.13150 177.26)",
+          "oklch(61% 0.13150 177.26)",
+          "oklch(72% 0.13150 177.26)",
+          "oklch(84% 0.13150 177.26)",
+          "oklch(95% 0.13150 177.26)"
+        ]
+      },
+      "brand-mint": {
+        "role": "secondary",
+        "displayName": "Brand mint",
+        "tonalRamp": [
+          "oklch(15% 0.05960 173.13)",
+          "oklch(26% 0.05960 173.13)",
+          "oklch(38% 0.05960 173.13)",
+          "oklch(49% 0.05960 173.13)",
+          "oklch(61% 0.05960 173.13)",
+          "oklch(72% 0.05960 173.13)",
+          "oklch(84% 0.05960 173.13)",
+          "oklch(95% 0.05960 173.13)"
+        ]
+      },
+      "accent-strong": {
+        "role": "secondary",
+        "displayName": "Accent strong",
+        "tonalRamp": [
+          "oklch(15% 0.08962 179.49)",
+          "oklch(26% 0.08962 179.49)",
+          "oklch(38% 0.08962 179.49)",
+          "oklch(49% 0.08962 179.49)",
+          "oklch(61% 0.08962 179.49)",
+          "oklch(72% 0.08962 179.49)",
+          "oklch(84% 0.08962 179.49)",
+          "oklch(95% 0.08962 179.49)"
+        ]
+      },
+      "bg-base": {
+        "role": "neutral",
+        "displayName": "Bg base",
+        "tonalRamp": [
+          "oklch(15% 0.00412 157.18)",
+          "oklch(26% 0.00412 157.18)",
+          "oklch(38% 0.00412 157.18)",
+          "oklch(49% 0.00412 157.18)",
+          "oklch(61% 0.00412 157.18)",
+          "oklch(72% 0.00412 157.18)",
+          "oklch(84% 0.00412 157.18)",
+          "oklch(95% 0.00412 157.18)"
+        ]
+      },
+      "bg-surface": {
+        "role": "neutral",
+        "displayName": "Bg surface",
+        "tonalRamp": [
+          "oklch(15% 0.00000 89.88)",
+          "oklch(26% 0.00000 89.88)",
+          "oklch(38% 0.00000 89.88)",
+          "oklch(49% 0.00000 89.88)",
+          "oklch(61% 0.00000 89.88)",
+          "oklch(72% 0.00000 89.88)",
+          "oklch(84% 0.00000 89.88)",
+          "oklch(95% 0.00000 89.88)"
+        ]
+      },
+      "bg-subtle": {
+        "role": "neutral",
+        "displayName": "Bg subtle",
+        "tonalRamp": [
+          "oklch(15% 0.00832 157.08)",
+          "oklch(26% 0.00832 157.08)",
+          "oklch(38% 0.00832 157.08)",
+          "oklch(49% 0.00832 157.08)",
+          "oklch(61% 0.00832 157.08)",
+          "oklch(72% 0.00832 157.08)",
+          "oklch(84% 0.00832 157.08)",
+          "oklch(95% 0.00832 157.08)"
+        ]
+      },
+      "border-default": {
+        "role": "neutral",
+        "displayName": "Border default",
+        "tonalRamp": [
+          "oklch(15% 0.01282 164.75)",
+          "oklch(26% 0.01282 164.75)",
+          "oklch(38% 0.01282 164.75)",
+          "oklch(49% 0.01282 164.75)",
+          "oklch(61% 0.01282 164.75)",
+          "oklch(72% 0.01282 164.75)",
+          "oklch(84% 0.01282 164.75)",
+          "oklch(95% 0.01282 164.75)"
+        ]
+      },
+      "border-control": {
+        "role": "neutral",
+        "displayName": "Border control",
+        "tonalRamp": [
+          "oklch(15% 0.01445 177.50)",
+          "oklch(26% 0.01445 177.50)",
+          "oklch(38% 0.01445 177.50)",
+          "oklch(49% 0.01445 177.50)",
+          "oklch(61% 0.01445 177.50)",
+          "oklch(72% 0.01445 177.50)",
+          "oklch(84% 0.01445 177.50)",
+          "oklch(95% 0.01445 177.50)"
+        ]
+      },
+      "text-primary": {
+        "role": "neutral",
+        "displayName": "Text primary",
+        "tonalRamp": [
+          "oklch(15% 0.06738 271.73)",
+          "oklch(26% 0.06738 271.73)",
+          "oklch(38% 0.06738 271.73)",
+          "oklch(49% 0.06738 271.73)",
+          "oklch(61% 0.06738 271.73)",
+          "oklch(72% 0.06738 271.73)",
+          "oklch(84% 0.06738 271.73)",
+          "oklch(95% 0.06738 271.73)"
+        ]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Text muted",
+        "tonalRamp": [
+          "oklch(15% 0.01445 177.50)",
+          "oklch(26% 0.01445 177.50)",
+          "oklch(38% 0.01445 177.50)",
+          "oklch(49% 0.01445 177.50)",
+          "oklch(61% 0.01445 177.50)",
+          "oklch(72% 0.01445 177.50)",
+          "oklch(84% 0.01445 177.50)",
+          "oklch(95% 0.01445 177.50)"
+        ]
+      },
+      "text-inverse": {
+        "role": "neutral",
+        "displayName": "Text inverse",
+        "tonalRamp": [
+          "oklch(15% 0.00000 89.88)",
+          "oklch(26% 0.00000 89.88)",
+          "oklch(38% 0.00000 89.88)",
+          "oklch(49% 0.00000 89.88)",
+          "oklch(61% 0.00000 89.88)",
+          "oklch(72% 0.00000 89.88)",
+          "oklch(84% 0.00000 89.88)",
+          "oklch(95% 0.00000 89.88)"
+        ]
+      },
+      "text-inverse-muted": {
+        "role": "neutral",
+        "displayName": "Text inverse muted",
+        "tonalRamp": [
+          "oklch(15% 0.01282 164.75)",
+          "oklch(26% 0.01282 164.75)",
+          "oklch(38% 0.01282 164.75)",
+          "oklch(49% 0.01282 164.75)",
+          "oklch(61% 0.01282 164.75)",
+          "oklch(72% 0.01282 164.75)",
+          "oklch(84% 0.01282 164.75)",
+          "oklch(95% 0.01282 164.75)"
+        ]
+      },
+      "focus-ring": {
+        "role": "neutral",
+        "displayName": "Focus ring",
+        "tonalRamp": [
+          "oklch(15% 0.08962 179.49)",
+          "oklch(26% 0.08962 179.49)",
+          "oklch(38% 0.08962 179.49)",
+          "oklch(49% 0.08962 179.49)",
+          "oklch(61% 0.08962 179.49)",
+          "oklch(72% 0.08962 179.49)",
+          "oklch(84% 0.08962 179.49)",
+          "oklch(95% 0.08962 179.49)"
+        ]
+      },
+      "focus-ring-inverse": {
+        "role": "neutral",
+        "displayName": "Focus ring inverse",
+        "tonalRamp": [
+          "oklch(15% 0.00000 89.88)",
+          "oklch(26% 0.00000 89.88)",
+          "oklch(38% 0.00000 89.88)",
+          "oklch(49% 0.00000 89.88)",
+          "oklch(61% 0.00000 89.88)",
+          "oklch(72% 0.00000 89.88)",
+          "oklch(84% 0.00000 89.88)",
+          "oklch(95% 0.00000 89.88)"
+        ]
+      },
+      "state-success": {
+        "role": "neutral",
+        "displayName": "State success",
+        "tonalRamp": [
+          "oklch(15% 0.08962 179.49)",
+          "oklch(26% 0.08962 179.49)",
+          "oklch(38% 0.08962 179.49)",
+          "oklch(49% 0.08962 179.49)",
+          "oklch(61% 0.08962 179.49)",
+          "oklch(72% 0.08962 179.49)",
+          "oklch(84% 0.08962 179.49)",
+          "oklch(95% 0.08962 179.49)"
+        ]
+      },
+      "state-success-soft": {
+        "role": "neutral",
+        "displayName": "State success soft",
+        "tonalRamp": [
+          "oklch(15% 0.00832 157.08)",
+          "oklch(26% 0.00832 157.08)",
+          "oklch(38% 0.00832 157.08)",
+          "oklch(49% 0.00832 157.08)",
+          "oklch(61% 0.00832 157.08)",
+          "oklch(72% 0.00832 157.08)",
+          "oklch(84% 0.00832 157.08)",
+          "oklch(95% 0.00832 157.08)"
+        ]
+      },
+      "state-warning": {
+        "role": "neutral",
+        "displayName": "State warning",
+        "tonalRamp": [
+          "oklch(15% 0.10925 66.91)",
+          "oklch(26% 0.10925 66.91)",
+          "oklch(38% 0.10925 66.91)",
+          "oklch(49% 0.10925 66.91)",
+          "oklch(61% 0.10925 66.91)",
+          "oklch(72% 0.10925 66.91)",
+          "oklch(84% 0.10925 66.91)",
+          "oklch(95% 0.10925 66.91)"
+        ]
+      },
+      "state-warning-soft": {
+        "role": "neutral",
+        "displayName": "State warning soft",
+        "tonalRamp": [
+          "oklch(15% 0.03239 85.48)",
+          "oklch(26% 0.03239 85.48)",
+          "oklch(38% 0.03239 85.48)",
+          "oklch(49% 0.03239 85.48)",
+          "oklch(61% 0.03239 85.48)",
+          "oklch(72% 0.03239 85.48)",
+          "oklch(84% 0.03239 85.48)",
+          "oklch(95% 0.03239 85.48)"
+        ]
+      },
+      "state-error": {
+        "role": "neutral",
+        "displayName": "State error",
+        "tonalRamp": [
+          "oklch(15% 0.18205 29.51)",
+          "oklch(26% 0.18205 29.51)",
+          "oklch(38% 0.18205 29.51)",
+          "oklch(49% 0.18205 29.51)",
+          "oklch(61% 0.18205 29.51)",
+          "oklch(72% 0.18205 29.51)",
+          "oklch(84% 0.18205 29.51)",
+          "oklch(95% 0.18205 29.51)"
+        ]
+      },
+      "state-error-soft": {
+        "role": "neutral",
+        "displayName": "State error soft",
+        "tonalRamp": [
+          "oklch(15% 0.01405 17.40)",
+          "oklch(26% 0.01405 17.40)",
+          "oklch(38% 0.01405 17.40)",
+          "oklch(49% 0.01405 17.40)",
+          "oklch(61% 0.01405 17.40)",
+          "oklch(72% 0.01405 17.40)",
+          "oklch(84% 0.01405 17.40)",
+          "oklch(95% 0.01405 17.40)"
+        ]
+      },
+      "scrim": {
+        "role": "neutral",
+        "displayName": "Scrim",
+        "tonalRamp": [
+          "oklch(15% 0.08386 270.27 / 0.5)",
+          "oklch(26% 0.08386 270.27 / 0.5)",
+          "oklch(38% 0.08386 270.27 / 0.5)",
+          "oklch(49% 0.08386 270.27 / 0.5)",
+          "oklch(61% 0.08386 270.27 / 0.5)",
+          "oklch(72% 0.08386 270.27 / 0.5)",
+          "oklch(84% 0.08386 270.27 / 0.5)",
+          "oklch(95% 0.08386 270.27 / 0.5)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Implemented Lexend display role."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Implemented Lexend headline role."
+      },
+      "page-title": {
+        "displayName": "Page title",
+        "purpose": "Implemented Lexend page title role."
+      },
+      "section-title": {
+        "displayName": "Section title",
+        "purpose": "Implemented Lexend section title role."
+      },
+      "item-title": {
+        "displayName": "Item title",
+        "purpose": "Implemented Lexend item title role."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "Implemented Lexend lead role."
+      },
+      "reading": {
+        "displayName": "Reading",
+        "purpose": "Explicit Literata reading passages."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Implemented Lexend body role."
+      },
+      "prose": {
+        "displayName": "Prose",
+        "purpose": "Implemented Lexend prose role."
+      },
+      "action": {
+        "displayName": "Action",
+        "purpose": "Implemented Lexend action role."
+      },
+      "time": {
+        "displayName": "Time",
+        "purpose": "Implemented Lexend time role."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Implemented Lexend label role."
+      },
+      "label-strong": {
+        "displayName": "Label strong",
+        "purpose": "Implemented Lexend label strong role."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Implemented Lexend small role."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Implemented Lexend caption role."
+      }
+    },
+    "shadows": [
+      {
+        "name": "float",
+        "value": "none",
+        "purpose": "Declared flat floating-surface token."
+      },
+      {
+        "name": "modal",
+        "value": "none",
+        "purpose": "Native dialog and mobile menu use border and scrim."
+      }
+    ],
+    "motion": [
+      {
+        "name": "action-color-duration",
+        "value": "150ms",
+        "purpose": "Shared action color-state transition."
+      },
+      {
+        "name": "ease-enter",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Declared source token, not a universal entrance animation."
+      },
+      {
+        "name": "ease-exit",
+        "value": "cubic-bezier(0.4, 0, 1, 1)",
+        "purpose": "Declared source token, not a universal exit animation."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "40rem"
+      },
+      {
+        "name": "md",
+        "value": "48rem"
+      },
+      {
+        "name": "lg",
+        "value": "64rem"
+      },
+      {
+        "name": "container-3xl",
+        "value": "48rem"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Shared wrapping action with source hover/focus states; destructive has no separate hover color.",
+      "html": "<button type=\"button\" class=\"ds-button-primary\">Find a tutor</button>",
+      "css": ".ds-button-primary{display:inline-flex;min-height:3rem;min-width:2.75rem;max-width:100%;align-items:center;justify-content:center;gap:.5rem;border-radius:var(--radius-control,.625rem);padding:.5rem 1rem;font-family:var(--font-lexend,Lexend),\"Avenir Next\",Verdana,sans-serif;font-size:1rem;font-weight:600;line-height:1.5rem;overflow-wrap:anywhere;text-decoration:none;transition:color 150ms,background-color 150ms,border-color 150ms;background:var(--brand-navy,#1e2a78);color:var(--text-inverse,#ffffff);border:0;}.ds-button-primary:hover{background:var(--brand-navy-hover,#192260);}.ds-button-primary:active{background:var(--brand-navy-active,#131a3d);}.ds-button-primary:focus-visible{outline:2px solid var(--focus-ring,#0a7566);outline-offset:2px;}.ds-button-primary:disabled{cursor:not-allowed;border:1px solid var(--border-control,#55605d);background:var(--bg-subtle,#e6ece8);color:var(--text-muted,#55605d);}"
+    },
+    {
+      "name": "Outline action",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Shared wrapping action with source hover/focus states; destructive has no separate hover color.",
+      "html": "<button type=\"button\" class=\"ds-button-outline\">View profile</button>",
+      "css": ".ds-button-outline{display:inline-flex;min-height:3rem;min-width:2.75rem;max-width:100%;align-items:center;justify-content:center;gap:.5rem;border-radius:var(--radius-control,.625rem);padding:.5rem 1rem;font-family:var(--font-lexend,Lexend),\"Avenir Next\",Verdana,sans-serif;font-size:1rem;font-weight:600;line-height:1.5rem;overflow-wrap:anywhere;text-decoration:none;transition:color 150ms,background-color 150ms,border-color 150ms;background:var(--bg-surface,#ffffff);color:var(--brand-navy,#1e2a78);border:1px solid var(--brand-navy,#1e2a78);}.ds-button-outline:hover{background:var(--bg-subtle,#e6ece8);}.ds-button-outline:focus-visible{outline:2px solid var(--focus-ring,#0a7566);outline-offset:2px;}.ds-button-outline:disabled{cursor:not-allowed;border:1px solid var(--border-control,#55605d);background:var(--bg-subtle,#e6ece8);color:var(--text-muted,#55605d);}"
+    },
+    {
+      "name": "Inverse action",
+      "kind": "button",
+      "refersTo": "button-inverse",
+      "description": "Shared wrapping action with source hover/focus states; destructive has no separate hover color.",
+      "html": "<div class=\"ds-inverse\"><button type=\"button\" class=\"ds-button-inverse\">Continue</button></div>",
+      "css": ".ds-inverse{background:var(--bg-inverse,#1e2a78);padding:1.5rem;--focus-ring:var(--focus-ring-inverse,#fff);}.ds-button-inverse{display:inline-flex;min-height:3rem;min-width:2.75rem;max-width:100%;align-items:center;justify-content:center;gap:.5rem;border-radius:var(--radius-control,.625rem);padding:.5rem 1rem;font-family:var(--font-lexend,Lexend),\"Avenir Next\",Verdana,sans-serif;font-size:1rem;font-weight:600;line-height:1.5rem;overflow-wrap:anywhere;text-decoration:none;transition:color 150ms,background-color 150ms,border-color 150ms;background:var(--accent-primary,#2eccb0);color:var(--text-primary,#131a3d);border:0;}.ds-button-inverse:hover{background:var(--bg-subtle,#e6ece8);}.ds-button-inverse:focus-visible{outline:2px solid var(--focus-ring,#0a7566);outline-offset:2px;}.ds-button-inverse:disabled{cursor:not-allowed;border:1px solid var(--border-control,#55605d);background:var(--bg-subtle,#e6ece8);color:var(--text-muted,#55605d);}"
+    },
+    {
+      "name": "Destructive action",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "Shared wrapping action with source hover/focus states; destructive has no separate hover color.",
+      "html": "<button type=\"button\" class=\"ds-button-destructive\">Confirm restriction</button>",
+      "css": ".ds-button-destructive{display:inline-flex;min-height:3rem;min-width:2.75rem;max-width:100%;align-items:center;justify-content:center;gap:.5rem;border-radius:var(--radius-control,.625rem);padding:.5rem 1rem;font-family:var(--font-lexend,Lexend),\"Avenir Next\",Verdana,sans-serif;font-size:1rem;font-weight:600;line-height:1.5rem;overflow-wrap:anywhere;text-decoration:none;transition:color 150ms,background-color 150ms,border-color 150ms;background:var(--state-error,#b42318);color:var(--text-inverse,#ffffff);border:0;}.ds-button-destructive:focus-visible{outline:2px solid var(--focus-ring,#0a7566);outline-offset:2px;}.ds-button-destructive:disabled{cursor:not-allowed;border:1px solid var(--border-control,#55605d);background:var(--bg-subtle,#e6ece8);color:var(--text-muted,#55605d);}"
+    },
+    {
+      "name": "Labelled field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Native input with a visible label and Slate boundary.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-name\">Name</label><input class=\"ds-field\" id=\"ds-name\" autocomplete=\"name\" placeholder=\"Your name\">",
+      "css": ".ds-field-label{font-family:var(--font-lexend,Lexend),\"Avenir Next\",Verdana,sans-serif;display:block;font-size:.875rem;line-height:1.25rem;font-weight:500;color:var(--text-primary,#131a3d);margin-bottom:.5rem;}.ds-field{display:block;min-height:3rem;width:100%;max-width:100%;min-width:0;border-radius:var(--radius-control,.625rem);border:1px solid var(--border-control,#55605d);background:var(--bg-surface,#ffffff);color:var(--text-primary,#131a3d);padding:.5rem .75rem;font-family:var(--font-lexend,Lexend),\"Avenir Next\",Verdana,sans-serif;font-size:1rem;font-weight:400;line-height:1.625rem;}.ds-field::placeholder{color:var(--text-muted,#55605d);opacity:1;}.ds-field:focus-visible{outline:2px solid var(--focus-ring,#0a7566);outline-offset:2px;}"
+    },
+    {
+      "name": "Native select",
+      "kind": "input",
+      "refersTo": "native-select",
+      "description": "Single-value native select with shared sizing and a flat CSS marker.",
+      "html": "<label class=\"ds-select-label\" for=\"ds-subject\">Subject</label><select class=\"ds-select\" id=\"ds-subject\" name=\"subject\"><option>Any subject</option><option>Math</option><option>English</option></select>",
+      "css": ".ds-select-label{font-family:var(--font-lexend,Lexend),\"Avenir Next\",Verdana,sans-serif;display:block;font-size:.875rem;line-height:1.25rem;font-weight:500;color:var(--text-primary,#131a3d);margin-bottom:.5rem;}.ds-select{display:block;min-height:3rem;width:100%;max-width:100%;min-width:0;border-radius:var(--radius-control,.625rem);border:1px solid var(--border-control,#55605d);background:var(--bg-surface,#ffffff);color:var(--text-primary,#131a3d);padding:.5rem .75rem;font-family:var(--font-lexend,Lexend),\"Avenir Next\",Verdana,sans-serif;font-size:1rem;font-weight:400;line-height:1.625rem;appearance:none;padding-inline-end:2rem;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 1.25rem) center,calc(100% - .75rem) center;background-size:.5rem .5rem,.5rem .5rem;background-repeat:no-repeat;}.ds-select:focus-visible{outline:2px solid var(--focus-ring,#0a7566);outline-offset:2px;}.ds-select:disabled{cursor:not-allowed;color:var(--text-muted,#55605d);background-color:var(--bg-subtle,#e6ece8);border-color:var(--border-default,#c9d3ce);}@media(forced-colors:active){.ds-select{appearance:auto;background-image:none;}}"
+    },
+    {
+      "name": "Current navigation",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Current destination gains weight and an underline.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Example navigation\"><a class=\"ds-nav-link\" href=\"#tutors\" aria-current=\"page\">Find a tutor</a><a class=\"ds-nav-link\" href=\"#subjects\">Subjects</a></nav>",
+      "css": ".ds-nav{display:flex;flex-wrap:wrap;gap:1.5rem;}.ds-nav-link{display:inline-flex;min-height:3rem;min-width:2.75rem;align-items:center;font-family:var(--font-lexend,Lexend),\"Avenir Next\",Verdana,sans-serif;font-size:.875rem;line-height:1.25rem;font-weight:500;color:var(--brand-navy,#1e2a78);text-decoration:none;text-underline-offset:.2em;}.ds-nav-link[aria-current=\"page\"]{font-weight:600;text-decoration:underline;text-decoration-thickness:2px;}.ds-nav-link:hover{text-decoration:underline;}.ds-nav-link:focus-visible{outline:2px solid var(--focus-ring,#0a7566);outline-offset:2px;}"
+    },
+    {
+      "name": "Status tag",
+      "kind": "chip",
+      "refersTo": "status-tag",
+      "description": "Static factual status; no interactive hover state.",
+      "html": "<span class=\"ds-status\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m9 12 2 2 4-4\"/></svg><span class=\"ds-status-label\">Synthetic outcome recorded</span></span>",
+      "css": ".ds-status{display:inline-flex;min-height:1.75rem;max-width:100%;align-items:center;gap:.25rem;border-radius:var(--radius-tag,.375rem);border:1px solid var(--border-control,#55605d);padding:0 .5rem;background:var(--bg-subtle,#e6ece8);color:var(--text-muted,#55605d);font-family:var(--font-lexend,Lexend),\"Avenir Next\",Verdana,sans-serif;font-size:.875rem;font-weight:500;line-height:1.25rem;}.ds-status svg{flex-shrink:0;}.ds-status-label{min-width:0;overflow-wrap:anywhere;}"
+    },
+    {
+      "name": "Native selection row",
+      "kind": "custom",
+      "refersTo": "choice",
+      "description": "Native checked radio row with White focus and a small teal signal.",
+      "html": "<label class=\"ds-choice\"><input class=\"ds-choice-input\" type=\"radio\" name=\"ds-level\" checked><span class=\"ds-choice-label\">College Support</span><span class=\"ds-choice-dot\" aria-hidden=\"true\"></span></label>",
+      "css": ".ds-choice{display:flex;min-height:3rem;align-items:center;gap:.75rem;cursor:pointer;border-radius:var(--radius-control,.625rem);border:1px solid var(--border-control,#55605d);background:var(--bg-surface,#ffffff);color:var(--text-primary,#131a3d);padding:.75rem 1rem;font-family:var(--font-lexend,Lexend),\"Avenir Next\",Verdana,sans-serif;font-size:1rem;line-height:1.625rem;font-weight:400;}.ds-choice:has(:checked){border-color:var(--brand-navy,#1e2a78);background:var(--brand-navy,#1e2a78);color:var(--text-inverse,#ffffff);--focus-ring:var(--focus-ring-inverse,#fff);}.ds-choice-input{width:1.25rem;height:1.25rem;flex-shrink:0;accent-color:var(--brand-navy,#1e2a78);}.ds-choice-input:focus-visible{outline:2px solid var(--focus-ring,#0a7566);outline-offset:2px;}.ds-choice-label{min-width:0;overflow-wrap:anywhere;}.ds-choice-dot{display:none;width:.5rem;height:.5rem;border-radius:calc(infinity * 1px);margin-inline-start:auto;flex-shrink:0;background:var(--accent-primary,#2eccb0);}.ds-choice:has(:checked) .ds-choice-dot{display:block;}"
+    },
+    {
+      "name": "Working panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Flat White surface with a truthful recovery state.",
+      "html": "<section class=\"ds-panel\"><h2 class=\"ds-panel-title\">Tutor search is unavailable</h2><p class=\"ds-panel-body\">Try again, or contact support if this keeps happening.</p><a class=\"ds-panel-link\" href=\"#retry\">Try again</a></section>",
+      "css": ".ds-panel{border:1px solid var(--border-default,#c9d3ce);border-radius:var(--radius-surface,1rem);background:var(--bg-surface,#ffffff);color:var(--text-primary,#131a3d);padding:1.5rem;box-shadow:none;font-family:var(--font-lexend,Lexend),\"Avenir Next\",Verdana,sans-serif;}.ds-panel-title{font-size:1.5rem;line-height:2rem;font-weight:600;color:var(--brand-navy,#1e2a78);overflow-wrap:anywhere;margin:0;}.ds-panel-body{font-size:1rem;line-height:1.625rem;font-weight:400;margin:1rem 0;}.ds-panel-link{display:inline-flex;min-height:3rem;align-items:center;color:var(--accent-strong,#0a7566);text-decoration:underline;text-underline-offset:.2em;}.ds-panel-link:hover{text-decoration-thickness:2px;}.ds-panel-link:focus-visible{outline:2px solid var(--focus-ring,#0a7566);outline-offset:2px;}@media(min-width:40rem){.ds-panel{padding:2rem;}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Paper, navy and one useful signal",
+    "overview": "Learli's implemented brand kit 2.0 combines a paper ground, white working surfaces,\nnavy hierarchy and a restrained mint phrase highlight. Lexend makes the interface\ndirect and readable; Literata gives longer explanations and tutor biographies a\ndistinct reading voice. The original wordmark supplies the identity rather than\na newly drawn logo or decorative imagery.\n\nThe same flat materials carry public discovery, account forms and private lesson\ncoordination. Borders and spacing group work; native controls expose real choices\nand current state. Synthetic testing notices, unavailable states and policy draft\nlabels remain visible. This is a derived reference for the current implementation,\nnot evidence of release, completed browser verification or real-user readiness.\nCanonical authority remains [UI context](context/ui-context.md) and the product,\narchitecture and PRD documents referenced by [PRODUCT.md](PRODUCT.md).",
+    "keyCharacteristics": [
+      "Paper and white surfaces with navy hierarchy.",
+      "Lexend interface and explicit Literata reading passages.",
+      "Flat bordered panels and native accessible controls.",
+      "Mint highlights and small teal selection signals.",
+      "Truthful states, readable lesson details and responsive wrapping."
+    ],
+    "rules": [
+      {
+        "name": "The Readable Signal Rule",
+        "body": "Bright teal and Mint are fills or accents on light surfaces; body text and links use Ink, Navy, Slate or Deep teal. Never put white text on Bright teal.",
+        "section": "colors"
+      },
+      {
+        "name": "The Surface Focus Rule",
+        "body": "Focus is a two-pixel outline with a two-pixel offset; light surfaces use Deep teal, navy fields and checked matching choices use White. Text selection also reverses between navy-on-white and white-on-navy contexts.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Voices Rule",
+        "body": "Use Lexend for headings, forms, names, dates and lesson times. Apply Literata explicitly to longer explanations or biographies; the `prose` size token alone does not switch font family.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Surface Rule",
+        "body": "Group work with borders, tonal surfaces and spacing; do not add resting card shadows, glass or decorative elevation.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** use the shared semantic colors and type roles from the implemented CSS.",
+      "**Do** preserve original wordmarks and the icon, with reverse artwork on Navy.",
+      "**Do** keep native controls, visible labels, focus and truthful state text.",
+      "**Do** let actions, names, lesson times and time-zone context wrap on narrow or enlarged layouts.",
+      "**Do** use borders and spacing to group work on White and Paper surfaces."
+    ],
+    "donts": [
+      "**Don't** use Bright teal or Mint as ordinary text on a light surface.",
+      "**Don't** add card shadows, glass, decorative gradients or invented imagery.",
+      "**Don't** turn kit example practice sets, messages or progress screens into product functionality.",
+      "**Don't** invent tutors, availability, reviews, prices or customer claims to fill a layout.",
+      "**Don't** hide synthetic notices, policy drafts, private-data boundaries or booking state for visual polish."
+    ]
+  }
+}

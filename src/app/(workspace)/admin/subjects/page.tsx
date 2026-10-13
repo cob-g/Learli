@@ -30,23 +30,25 @@ export default async function AdminSubjectsPage() {
   return (
     <AdminShell current="subjects">
       <h1 className="text-page-title">Subjects</h1>
-      <p className="mt-4 max-w-prose text-body text-muted-foreground">
+      <p className="mt-3 max-w-prose text-small text-muted-foreground">
         Tutors choose from the active subjects. Deactivating a subject stops
         tutors from offering it and keeps existing records.
       </p>
       {groupSubjects(subjects).map((group) => (
-        <section key={group.category} className="mt-8 max-w-xl">
-          <h2 className="text-item-title">{group.label}</h2>
-          <ul className="mt-2 border-t border-border">
+        <section key={group.category} className="mt-8 max-w-3xl">
+          <h2 className="text-section-title">{group.label}</h2>
+          <ul className="mt-4 border-t border-border">
             {group.subjects.map((subject) => {
               const Icon = subject.isActive ? CircleCheck : Ban;
               return (
                 <li
                   key={subject.id}
-                  className="flex items-start justify-between gap-4 border-b border-border py-2"
+                  className="flex flex-col items-start justify-between gap-4 border-b border-border py-6 sm:flex-row"
                 >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-body wrap-anywhere">{subject.name}</p>
+                  <div className="w-full min-w-0 flex-1">
+                    <p className="text-item-title wrap-anywhere text-primary">
+                      {subject.name}
+                    </p>
                     <p
                       className={
                         subject.isActive
@@ -68,7 +70,10 @@ export default async function AdminSubjectsPage() {
           </ul>
         </section>
       ))}
-      <section aria-labelledby="add-subject-title" className="mt-12">
+      <section
+        aria-labelledby="add-subject-title"
+        className="mt-12 max-w-3xl border-t border-border pt-8"
+      >
         <h2 id="add-subject-title" className="text-section-title">
           Add a specialized subject
         </h2>

@@ -47,39 +47,41 @@ export default async function Page({
         Synthetic readiness only. No real guardian consent, age or eligibility
         is established.
       </p>
-      {rows.length ? (
-        <ul className="mt-8 divide-y divide-border">
-          {rows.map((row) => (
-            <li key={row.id} className="py-4">
-              <p className="text-body">
-                {row.management === "self"
-                  ? "Independent College Support"
-                  : "Guardian-managed request"}
-                . {row.state}.
-              </p>
-              <p className="mt-2 text-caption">
-                Policy: {row.policyVersion}. Requested{" "}
-                {new Intl.DateTimeFormat("en-US", {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                  timeZone: "UTC",
-                }).format(row.createdAt)}{" "}
-                UTC.
-              </p>
-              <LearnerLink
-                href={`/learner-admission/${row.id}`}
-                className="mt-2 inline-flex min-h-11 items-center"
-                label="Open request"
-              />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-8 text-body">No admission requests are available.</p>
-      )}
+      <div className="mt-6 max-w-5xl rounded-surface border border-border bg-surface p-6 sm:p-8">
+        {rows.length ? (
+          <ul className="divide-y divide-border">
+            {rows.map((row) => (
+              <li key={row.id} className="min-w-0 py-4 first:pt-0 last:pb-0">
+                <p className="text-body">
+                  {row.management === "self"
+                    ? "Independent College Support"
+                    : "Guardian-managed request"}
+                  . {row.state}.
+                </p>
+                <p className="mt-2 text-caption">
+                  Policy: {row.policyVersion}. Requested{" "}
+                  {new Intl.DateTimeFormat("en-US", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                    timeZone: "UTC",
+                  }).format(row.createdAt)}{" "}
+                  UTC.
+                </p>
+                <LearnerLink
+                  href={`/learner-admission/${row.id}`}
+                  className="mt-2 inline-flex min-h-11 items-center"
+                  label="Open request"
+                />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-body">No admission requests are available.</p>
+        )}
+      </div>
       <LearnerLink
         href="/learner-admission/new"
-        className="action action-primary mt-8"
+        className="action action-primary mt-6 w-full sm:w-auto"
         label="Request admission review"
       />
       <nav aria-label="Admission list pages" className="mt-8 flex gap-6">
@@ -100,7 +102,7 @@ export default async function Page({
       </nav>
       <LearnerLink
         href="/account"
-        className="ms-4 mt-8 inline-flex min-h-11 items-center"
+        className="me-6 mt-8 inline-flex min-h-11 items-center"
         label="Your account"
       />
     </div>

@@ -68,7 +68,7 @@ export default async function GetMatchedPage({
     return (
       <div className="page-shell page-space">
         <h1 className="text-page-title">Get matched</h1>
-        <div className="mt-8">
+        <div className="mt-8 border-t border-border pt-8">
           <EmptyState
             title="No tutors are listed right now"
             href="/become-a-tutor"
@@ -116,7 +116,7 @@ export default async function GetMatchedPage({
   );
   return (
     <div className="page-shell page-space">
-      <div className="max-w-5xl">
+      <div className="max-w-6xl">
         <h1 className="text-page-title">Get matched</h1>
         <p className="mt-4 max-w-prose text-small text-muted-foreground">
           Local demo search: {demoBookingPolicy.durationMinutes}-minute times in{" "}
@@ -125,7 +125,7 @@ export default async function GetMatchedPage({
           {demoBookingPolicy.horizonDays} days. These are simulated options;
           live lesson terms are not set. Times can change before a reservation.
         </p>
-        <div className="mt-8">
+        <div className="mt-8 border-t border-border pt-8">
           {total === 0 ? (
             <EmptyState
               title="No tutors match your answers"
@@ -151,7 +151,7 @@ export default async function GetMatchedPage({
               <p className="mt-2 max-w-prose text-small text-muted-foreground">
                 Ordered by the earliest matching time, then tutor name.
               </p>
-              <div className="mt-4">
+              <div className="mt-6">
                 <MatchResultList
                   matches={matches}
                   preferences={match.preferences}

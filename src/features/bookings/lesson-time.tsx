@@ -16,13 +16,16 @@ export function LessonTime({
 }) {
   if (variant === "time-only")
     return (
-      <time dateTime={value.startAtUtc} className="block text-time">
+      <time
+        dateTime={value.startAtUtc}
+        className="block min-w-0 text-time wrap-anywhere"
+      >
         {value.time || value.date}
       </time>
     );
   const role = variant === "prominent" ? "text-section-title" : "text-time";
   return (
-    <span className="block space-y-1">
+    <span className="block max-w-full min-w-0 space-y-1 wrap-anywhere">
       <time dateTime={value.startAtUtc} className={`block ${role}`}>
         {value.date}
       </time>

@@ -52,38 +52,38 @@ export function BookingDetailView({
   return (
     <div className="page-shell page-space">
       <LifecycleHeading booking={booking} />
-      <p className="mt-4 text-body text-muted-foreground">
+      <p className="mt-3 max-w-prose text-small text-muted-foreground">
         {booking.source === "synthetic_readiness"
           ? "Synthetic readiness booking. Confirmation and outcomes exercise software only; no payment or attendance is established."
           : "Local simulated booking. No payment or meeting is arranged."}
       </p>
-      <div className="mt-6 max-w-5xl rounded-surface border border-border bg-surface p-4 sm:p-6">
+      <div className="mt-8 max-w-5xl rounded-surface border border-border bg-surface p-6 sm:p-8">
         <BookingReadStatus booking={booking} />
-        <dl className="mt-6 grid min-w-0 gap-6 md:grid-cols-2">
+        <dl className="mt-6 grid min-w-0 gap-8 md:grid-cols-2">
+          <div className="min-w-0 border-b border-border pb-6 md:col-span-2">
+            <dt className="text-label text-muted-foreground">
+              Lesson time in your time zone
+            </dt>
+            <dd className="mt-3">
+              <LessonTime value={booking.time} variant="prominent" />
+            </dd>
+          </div>
           <div>
             <dt className="text-label text-muted-foreground">Tutor</dt>
-            <dd className="mt-1 text-item-title wrap-anywhere">
+            <dd className="mt-2 text-item-title wrap-anywhere text-primary">
               {booking.tutor.displayName}
             </dd>
           </div>
           <div>
             <dt className="text-label text-muted-foreground">Learner</dt>
-            <dd className="mt-1 text-body wrap-anywhere">
+            <dd className="mt-2 text-body wrap-anywhere">
               {booking.learner.displayName} ·{" "}
               {levelNames([booking.learner.level]).join()}
             </dd>
           </div>
           <div>
             <dt className="text-label text-muted-foreground">Subject</dt>
-            <dd className="mt-1 text-body">{booking.subject.name}</dd>
-          </div>
-          <div>
-            <dt className="text-label text-muted-foreground">
-              Lesson time in your time zone
-            </dt>
-            <dd className="mt-2">
-              <LessonTime value={booking.time} />
-            </dd>
+            <dd className="mt-2 text-body">{booking.subject.name}</dd>
           </div>
           <div>
             <dt className="text-label text-muted-foreground">
@@ -113,7 +113,7 @@ export function BookingDetailView({
             View current simulation
           </a>
         )}
-        <section className="mt-8 border-t border-border pt-6">
+        <section className="mt-8 border-t border-border pt-8">
           <h2 className="text-section-title">Saved booking history</h2>
           <p className="mt-2 text-small text-muted-foreground">
             Only saved events appear below. An elapsed deadline can display
@@ -122,7 +122,10 @@ export function BookingDetailView({
           {booking.events.length ? (
             <ol className="mt-4 divide-y divide-border">
               {booking.events.map((event) => (
-                <li key={event.id} className="py-4">
+                <li
+                  key={event.id}
+                  className="grid min-w-0 gap-3 py-6 sm:grid-cols-2"
+                >
                   <h3 className="mb-2 text-item-title">
                     {bookingEventLabels[event.event]}
                   </h3>
@@ -139,7 +142,7 @@ export function BookingDetailView({
       </div>
       <nav
         aria-label="Booking navigation"
-        className="mt-6 flex flex-wrap gap-x-6"
+        className="mt-6 flex flex-wrap gap-x-6 gap-y-2 border-t border-border pt-4"
       >
         <Link
           className="inline-flex min-h-11 items-center"
@@ -171,7 +174,7 @@ export function BookingHistoryView({
       <h1 className="text-page-title">
         {selected ? `Bookings for ${selected.displayName}` : "Your bookings"}
       </h1>
-      <p className="mt-4 max-w-prose text-body text-muted-foreground">
+      <p className="mt-3 max-w-prose text-small text-muted-foreground">
         Local simulated bookings for{" "}
         {result.scope === "tutor"
           ? "your assigned learners"
@@ -188,17 +191,17 @@ export function BookingHistoryView({
         learnerId={learnerId}
       />
       {result.items.length ? (
-        <ul className="mt-6 max-w-5xl divide-y divide-border rounded-surface border border-border bg-surface px-4 sm:px-6">
+        <ul className="mt-8 max-w-5xl divide-y divide-border rounded-surface border border-border bg-surface px-6 sm:px-8">
           {result.items.map((booking) => (
             <li
               key={booking.id}
-              className="flex min-w-0 flex-col gap-4 py-6 md:flex-row"
+              className="flex min-w-0 flex-col gap-6 py-6 md:flex-row"
             >
               <div className="shrink-0 md:w-44">
                 <LessonTime value={booking.time} />
               </div>
               <div className="min-w-0 flex-1">
-                <h2 className="text-item-title wrap-anywhere">
+                <h2 className="text-item-title wrap-anywhere text-primary">
                   {booking.tutor.displayName}
                 </h2>
                 <p className="mt-2 text-body wrap-anywhere">
@@ -219,7 +222,7 @@ export function BookingHistoryView({
           ))}
         </ul>
       ) : (
-        <section className="mt-8 max-w-prose">
+        <section className="mt-8 max-w-prose rounded-surface border border-border bg-surface p-6 sm:p-8">
           <h2 className="text-item-title">No bookings in this view</h2>
           <p className="mt-2 text-body">
             Only bookings you can currently access appear here. Choose another

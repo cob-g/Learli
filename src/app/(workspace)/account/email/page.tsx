@@ -33,11 +33,13 @@ export default async function AccountEmailPage() {
   return (
     <div className="page-shell page-space">
       <h1 className="text-page-title">Change account email</h1>
-      <p className="mt-4 max-w-prose text-body text-muted-foreground">
+      <p className="mt-4 max-w-prose rounded-control border border-border bg-subtle p-4 text-small text-muted-foreground">
         Synthetic accounts only. Reloading this page clears the pending form;
         restart confirmation if needed.
       </p>
-      <EmailForm currentEmail={account.email} hosted={hosted} />
+      <div className="mt-6 max-w-xl rounded-surface border border-border bg-surface p-6 sm:p-8">
+        <EmailForm currentEmail={account.email} hosted={hosted} />
+      </div>
       <Link href="/account" className="mt-8 inline-flex min-h-11 items-center">
         Back to account
       </Link>

@@ -222,18 +222,22 @@ export function WhenForm({
         ).map(([value, label]) => (
           <label
             key={value}
-            className="flex min-h-11 items-center gap-2 text-body"
+            className="group mt-3 flex min-h-12 cursor-pointer items-center gap-3 rounded-control border border-control bg-surface px-4 py-3 text-body has-checked:border-primary has-checked:bg-primary has-checked:text-on-inverse has-checked:[--focus-ring:var(--focus-ring-inverse)] has-checked:[&_.text-muted-foreground]:text-on-inverse"
           >
             <input
               type="radio"
               name="when"
               value={value}
-              className="size-5"
+              className="size-5 shrink-0"
               checked={when === value}
               onChange={() => setWhen(value)}
               required
             />
-            {label}
+            <span className="min-w-0 wrap-anywhere">{label}</span>
+            <span
+              aria-hidden="true"
+              className="ms-auto hidden size-2 shrink-0 rounded-full bg-brand-teal group-has-checked:block"
+            />
           </label>
         ))}
       </fieldset>
@@ -247,17 +251,17 @@ export function WhenForm({
       >
         <legend className="text-label">Preferred weekdays</legend>
         <ChoiceError id="days-error" message={fields.days} />
-        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2">
+        <div className="mt-2 grid grid-cols-1 gap-x-3 sm:grid-cols-2">
           {weekdayOptions.map(([value, label]) => (
             <label
               key={value}
-              className="flex min-h-11 items-center gap-2 text-body"
+              className="group mt-3 flex min-h-12 cursor-pointer items-center gap-3 rounded-control border border-control bg-surface px-4 py-3 text-body has-checked:border-primary has-checked:bg-primary has-checked:text-on-inverse has-checked:[--focus-ring:var(--focus-ring-inverse)] has-checked:[&_.text-muted-foreground]:text-on-inverse"
             >
               <input
                 type="checkbox"
                 name="days"
                 value={value}
-                className="size-5"
+                className="size-5 shrink-0"
                 checked={days.includes(value)}
                 onChange={(event) =>
                   setDays((previous) =>
@@ -268,7 +272,11 @@ export function WhenForm({
                 }
                 aria-invalid={!!fields.days}
               />
-              {label}
+              <span className="min-w-0 wrap-anywhere">{label}</span>
+              <span
+                aria-hidden="true"
+                className="ms-auto hidden size-2 shrink-0 rounded-full bg-brand-teal group-has-checked:block"
+              />
             </label>
           ))}
         </div>
@@ -289,17 +297,21 @@ export function WhenForm({
         {timeRangeOptions.map((option) => (
           <label
             key={option.value}
-            className="flex min-h-11 items-center gap-2 text-body"
+            className="group mt-3 flex min-h-12 cursor-pointer items-center gap-3 rounded-control border border-control bg-surface px-4 py-3 text-body has-checked:border-primary has-checked:bg-primary has-checked:text-on-inverse has-checked:[--focus-ring:var(--focus-ring-inverse)] has-checked:[&_.text-muted-foreground]:text-on-inverse"
           >
             <input
               type="radio"
               name="range"
               value={option.value}
-              className="size-5"
+              className="size-5 shrink-0"
               checked={range === option.value}
               onChange={() => setRange(option.value)}
             />
-            {option.label}
+            <span className="min-w-0 wrap-anywhere">{option.label}</span>
+            <span
+              aria-hidden="true"
+              className="ms-auto hidden size-2 shrink-0 rounded-full bg-brand-teal group-has-checked:block"
+            />
           </label>
         ))}
         <p
@@ -317,7 +329,7 @@ export function WhenForm({
           </p>
         )}
         <button
-          className="action action-primary min-w-64"
+          className="action action-primary w-full sm:w-auto"
           type="submit"
           aria-disabled={pending}
         >

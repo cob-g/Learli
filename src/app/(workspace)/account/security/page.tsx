@@ -28,7 +28,10 @@ export default async function SecurityPage() {
           ? "Administrator verification is current. Your task permissions still determine which records and actions are available."
           : "Verify an authenticator or saved recovery code before viewing administrative records or taking administrative actions."}
       </p>
-      <AdminSecurityForm enrolled={state.enrolled} />
+      <div className="mt-6 max-w-xl rounded-surface border border-border bg-surface p-6 sm:p-8">
+        <h2 className="text-section-title">Authenticator and recovery</h2>
+        <AdminSecurityForm enrolled={state.enrolled} />
+      </div>
     </div>
   );
 }

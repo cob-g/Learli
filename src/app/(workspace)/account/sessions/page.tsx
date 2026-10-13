@@ -26,16 +26,21 @@ export default async function AccountSessionsPage() {
     );
   return (
     <div className="page-shell page-space">
-      <h1 className="text-page-title">Account sessions</h1>
-      <p className="mt-4 max-w-prose text-body">
-        Review your active synthetic test sessions and sign out any other
-        session you no longer use.
-      </p>
-      <SessionList />
-      <SignOut />
-      <Link className="mt-8 inline-flex min-h-11 items-center" href="/account">
-        Account settings
-      </Link>
+      <div className="max-w-5xl">
+        <h1 className="text-page-title">Account sessions</h1>
+        <p className="mt-4 max-w-prose text-body">
+          Review your active synthetic test sessions and sign out any other
+          session you no longer use.
+        </p>
+        <SessionList />
+        <SignOut />
+        <Link
+          className="mt-8 inline-flex min-h-11 items-center"
+          href="/account"
+        >
+          Account settings
+        </Link>
+      </div>
     </div>
   );
 }

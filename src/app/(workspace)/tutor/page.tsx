@@ -47,11 +47,11 @@ export default async function TutorWorkspacePage() {
       <div className="mt-4">
         <TutorWorkspaceNavigation />
       </div>
-      <p className="mt-4 max-w-prose text-body text-muted-foreground">
+      <p className="mt-3 max-w-prose text-small text-muted-foreground">
         Local simulated bookings assigned to you. Times use your current account
         time zone.
       </p>
-      <div className="mt-4">
+      <div className="mt-6 border-y border-border py-3">
         <TutorBookingRefresh />
       </div>
       <div className="mt-8">
@@ -73,7 +73,7 @@ export default async function TutorWorkspacePage() {
       <SignOut />
       <nav
         aria-label="Workspace support"
-        className="mt-12 flex flex-wrap gap-4 text-small"
+        className="mt-12 flex flex-wrap gap-4 border-t border-border pt-6 text-small"
       >
         <Link className="inline-flex min-h-11 items-center" href="/contact">
           Contact support

@@ -43,7 +43,7 @@ export default async function TutorApplicationPage({
       <p className="mt-4">
         <ReviewStatusBadge status={application.reviewStatus} />
       </p>
-      <p className="mt-4 max-w-prose text-body text-muted-foreground">
+      <p className="mt-4 max-w-prose text-small text-muted-foreground">
         The tutor wrote everything below. Learli has not checked it, and the
         screening process is not decided.
       </p>
@@ -53,7 +53,10 @@ export default async function TutorApplicationPage({
           timeZone={timeZoneLabel(application.timezone)}
         />
       </div>
-      <section aria-labelledby="review-title" className="mt-12">
+      <section
+        aria-labelledby="review-title"
+        className="mt-12 max-w-3xl border-t border-border pt-8"
+      >
         <h2 id="review-title" className="text-section-title">
           Review
         </h2>

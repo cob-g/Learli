@@ -50,12 +50,15 @@ export default async function TutorReviewQueuePage({
   return (
     <AdminShell current="tutors">
       <h1 className="text-page-title">Tutor review queue</h1>
-      <p className="mt-4 max-w-prose text-body text-muted-foreground">
+      <p className="mt-3 max-w-prose text-small text-muted-foreground">
         Local test data only. The tutor screening process is not decided.
         Approving an application lists the tutor publicly.
       </p>
-      <form method="get" className="mt-8 flex flex-wrap items-end gap-4">
-        <div className="space-y-2">
+      <form
+        method="get"
+        className="mt-6 flex flex-wrap items-end gap-4 rounded-surface border border-border bg-surface p-4 sm:p-6"
+      >
+        <div className="w-full min-w-0 space-y-2 sm:w-64">
           <label htmlFor="status" className="block text-label">
             Status
           </label>
@@ -95,19 +98,19 @@ export default async function TutorReviewQueuePage({
               {total > applications.length &&
                 `. Showing the ${reviewQueueLimit} oldest. Choose a status to narrow the list.`}
             </p>
-            <table className="mt-4 w-full border-collapse text-left text-small">
+            <table className="mt-4 w-full table-fixed border-collapse bg-surface text-left text-small">
               <caption className="sr-only">Tutor applications</caption>
               <thead>
-                <tr className="border-b border-border bg-subtle">
-                  <th scope="col" className="px-3 py-3 text-label">
+                <tr className="border-y border-border bg-subtle">
+                  <th scope="col" className="w-1/2 px-3 py-4 text-label">
                     Tutor
                   </th>
-                  <th scope="col" className="px-3 py-3 text-label">
+                  <th scope="col" className="px-3 py-4 text-label">
                     Status
                   </th>
                   <th
                     scope="col"
-                    className="hidden px-3 py-3 text-label md:table-cell"
+                    className="hidden px-3 py-4 text-label md:table-cell"
                   >
                     Submitted
                   </th>
@@ -116,7 +119,7 @@ export default async function TutorReviewQueuePage({
               <tbody>
                 {applications.map((application) => (
                   <tr key={application.id} className="border-b border-border">
-                    <td className="px-3 py-2 wrap-anywhere">
+                    <td className="px-3 py-4 wrap-anywhere">
                       <Link
                         className="inline-flex min-h-11 items-center"
                         href={`/admin/tutors/${application.id}`}
@@ -133,10 +136,10 @@ export default async function TutorReviewQueuePage({
                         </time>
                       </p>
                     </td>
-                    <td className="px-3 py-3 align-top">
+                    <td className="px-3 py-4 align-top">
                       <ReviewStatusBadge status={application.reviewStatus} />
                     </td>
-                    <td className="hidden px-3 py-3 align-top md:table-cell">
+                    <td className="hidden px-3 py-4 align-top md:table-cell">
                       <time dateTime={application.createdAt.toISOString()}>
                         {date.format(application.createdAt)}
                       </time>

@@ -151,10 +151,29 @@ export function EmailForm({
         ? "Confirm current address"
         : "Confirm new address";
   return (
-    <section
-      aria-labelledby="email-confirm-heading"
-      className="mt-8 max-w-prose"
-    >
+    <section aria-labelledby="email-confirm-heading" className="max-w-prose">
+      <ol
+        aria-label="Email confirmation progress"
+        className="mb-6 grid gap-3 border-b border-border pb-4 text-small sm:grid-cols-3"
+      >
+        {[
+          ["start", "1. Confirm ownership"],
+          ["current", "2. Verify current address"],
+          ["new", "3. Verify new address"],
+        ].map(([step, label]) => (
+          <li
+            key={step}
+            aria-current={stage === step ? "step" : undefined}
+            className={
+              stage === step
+                ? "font-medium text-primary"
+                : "text-muted-foreground"
+            }
+          >
+            {label}
+          </li>
+        ))}
+      </ol>
       <h2 id="email-confirm-heading" className="text-section-title">
         {stage === "start"
           ? "Confirm ownership"
@@ -162,11 +181,11 @@ export function EmailForm({
             ? "Verify current address"
             : "Verify new address"}
       </h2>
-      <p className="mt-4 text-body break-words">
+      <p className="mt-4 text-body wrap-anywhere">
         Current email: {currentEmail}
       </p>
       {stage === "new" && (
-        <p className="mt-2 text-body break-words">
+        <p className="mt-2 text-body wrap-anywhere">
           Pending new email: {newEmail}
         </p>
       )}
@@ -257,7 +276,7 @@ export function EmailForm({
           )}
           <button
             type="submit"
-            className="action action-primary transition-none"
+            className="action action-primary w-full transition-none sm:w-auto"
           >
             {pending ? "Confirming…" : label}
           </button>
@@ -272,7 +291,11 @@ export function EmailForm({
             ref={message}
             tabIndex={-1}
             role={notice.failed ? "alert" : "status"}
-            className={notice.failed ? "text-body text-error" : "text-body"}
+            className={
+              notice.failed
+                ? "rounded-control border border-error p-4 text-body text-error"
+                : "rounded-control border border-border bg-subtle p-4 text-body"
+            }
           >
             {notice.message}
           </p>

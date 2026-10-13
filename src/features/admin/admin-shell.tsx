@@ -28,23 +28,29 @@ export function AdminShell({
     <div className="page-shell page-space lg:flex lg:gap-8">
       <nav
         aria-label="Admin work areas"
-        className="mb-8 border border-border bg-subtle p-4 lg:mb-0 lg:w-60 lg:shrink-0 lg:self-start"
+        className="mb-8 rounded-surface border border-border bg-surface p-3 lg:mb-0 lg:w-64 lg:shrink-0 lg:self-start"
       >
         <ul className="flex flex-wrap gap-2 lg:flex-col">
           {areas.map(([area, href, label]) => (
-            <li key={area}>
+            <li key={area} className="max-w-full min-w-0">
               <Link
                 href={href}
                 prefetch={false}
                 aria-current={current === area ? "page" : undefined}
                 className={cn(
-                  "flex min-h-11 items-center rounded-control border px-3 no-underline hover:bg-surface",
+                  "flex min-h-12 items-center gap-3 rounded-control border px-3 py-2 no-underline transition-colors",
                   current === area
-                    ? "border-control bg-surface text-label-strong text-primary"
-                    : "border-transparent text-label text-foreground",
+                    ? "border-primary bg-primary text-label-strong text-on-inverse"
+                    : "border-transparent text-label text-foreground hover:bg-subtle",
                 )}
               >
-                {label}
+                {current === area && (
+                  <span
+                    aria-hidden="true"
+                    className="size-2 shrink-0 rounded-full bg-brand-teal"
+                  />
+                )}
+                <span className="min-w-0 wrap-anywhere">{label}</span>
               </Link>
             </li>
           ))}

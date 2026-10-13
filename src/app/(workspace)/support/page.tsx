@@ -27,12 +27,17 @@ export default async function Page({
     );
   return (
     <div className="page-shell page-space">
-      <h1 className="text-page-title">Your reports</h1>
-      <DemoNotice />
-      <CaseRows result={result} reviewer={false} />
-      <Link className="action action-primary mt-4" href="/contact">
-        Create fictional report
-      </Link>
+      <div className="max-w-5xl">
+        <h1 className="text-page-title">Your reports</h1>
+        <DemoNotice />
+        <Link
+          className="action action-primary mt-6 w-full sm:w-auto"
+          href="/contact"
+        >
+          Create fictional report
+        </Link>
+        <CaseRows result={result} reviewer={false} />
+      </div>
     </div>
   );
 }

@@ -1,5 +1,70 @@
 # Learli — Progress Tracker
 
+## 2026-10-13 — Brand kit 2.0 frontend verified; uncommitted
+
+Implemented on `feature/brand-kit-ui` from `f5f316a` under
+`prompts/features/m1-10-brand-kit-ui.md` — AUTHORIZED — build-feature delegation.
+Seven GPT-6.1 SOL High agents handled three isolated implementation workstreams,
+source review, rendered verification, independent Impeccable finish review and
+design documentation. Impeccable 4.5.2 was already installed; Codex now discovers
+that same maintained installation through `.agents/skills/impeccable`.
+
+The original SVG artwork, Lexend interface/Literata reading typography and the
+paper/navy/teal/mint system now cover shared navigation, public discovery and
+matching, account/requester forms, and parent/tutor/admin/booking workspaces.
+Mobile navigation explicitly restores focus; enlarged text and complete labels
+wrap without clipping. Native forms, privacy boundaries, server authorization,
+booking rules, simulation notices and policy gates are preserved. No application
+API/service/schema/migration/dependency change was introduced.
+
+**Review and verification:**
+
+- Independent source Review: plan alignment and unintended-change audit PASS;
+  final recommendation READY FOR VERIFICATION, zero remaining confirmed findings.
+- Separate final Impeccable verdict: `ship` for the frontend scope. All four
+  material fix categories resolved. One mechanical detector run on 61 initially
+  changed source targets returned no findings; later review-directed repairs were
+  source-reviewed and rendered, without repeating the detector.
+- `npm run check` PASS: formatting, lint (one inherited unused-import warning),
+  type checking and **1,341 tests / 85 files** after the shared reflow repairs.
+  The final profile-only wrapping class subsequently passed scoped lint,
+  production build, formatting/diff checks and targeted browser confirmation.
+- Production build PASS on the final application source.
+- **150 unique selected Chromium cases have passing aggregate evidence**:
+  initial 81 on the R3 candidate; continuation 56, admission 6 and clean
+  notification/integration 7 on R4. This was not one uninterrupted suite pass.
+  Initial failures and recovery runs remain recorded. The final profile-only
+  class was separately confirmed at normal and enlarged sizes.
+- **20 Firefox/WebKit cases PASS** (10 per engine), covering public discovery,
+  authentication, bookings, retries, ownership/privacy, session history and the
+  new enlarged-text/menu-focus regression. Final shell smoke also passed.
+- Eleven representative screens inspected at desktop/mobile with zero observed
+  axe violations; normal widths 320/390/768/1024/1440 fit. Enlarged 200% text at
+  320/390 fits after review-directed repairs. Thirty-one captures were inspected;
+  final profile captures and text-range measurements confirm complete wrapping.
+  Admin keyboard navigation with actual test MFA passed at 390/1440.
+
+Recovery retained footer/selected-state contrast findings, enlarged-text defects,
+WebKit native-dialog focus behavior, an isolated CLI/mirror ownership-manifest
+mismatch, a status locator made ambiguous by a wrapping span, stale failed-test
+fixtures and one admin capture timeout with unproven cause. Final targeted admin
+focus/Enter/Back checks passed without changing application navigation. See
+`prompts/recovery/2026-10-13-brand-kit-ui.md` and ignored `.local/brand-ui/` evidence,
+especially `browser-aggregate.json` and `visual-evidence-complete.json`.
+
+**Documentation and preservation:** `context/ui-context.md` now owns the adopted
+2.0 system; build-plan status, decision, blueprint, derived PRODUCT.md, DESIGN.md
+and Impeccable token sidecar are aligned. The source brand archive, original
+pre-existing `next-env.d.ts`, and both primary private environment files match
+baseline hashes. Verification used a newly owned loopback test cluster on 55543;
+no Neon/production or original test database work occurred. The temporary 3113
+preview and owned cluster are stopped; synthetic evidence/data are preserved.
+The earlier daily preview remains stopped. Three implementation worktrees and
+branches are retained. No commit, merge, push or deployment was performed.
+
+Next: owner review of the frontend candidate, then commit/merge when requested.
+Existing real-user launch, hosted-provider and paused-payment gates remain separate.
+
 ## 2026-10-13 — development readiness committed, merged and pushed
 
 The owner explicitly authorized merge and push. The nine reviewed feature files

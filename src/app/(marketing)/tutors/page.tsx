@@ -122,8 +122,12 @@ export default async function TutorsPage({
   return (
     <div className="page-shell page-space">
       <h1 className="text-page-title">Find a tutor</h1>
-      <div className="mt-8 lg:flex lg:gap-8">
-        <div className="mb-8 lg:mb-0 lg:w-64 lg:shrink-0">
+      <p className="mt-4 max-w-prose text-body text-muted-foreground">
+        Compare tutors by the subjects and levels they teach. Add a time
+        preference to see times that fit.
+      </p>
+      <div className="mt-8 lg:flex lg:gap-12">
+        <div className="mb-8 self-start rounded-surface border border-border bg-surface p-6 lg:mb-0 lg:w-72 lg:shrink-0">
           <TutorFilterForm
             key={sanitized.href}
             variant="filters"
@@ -222,7 +226,7 @@ export default async function TutorsPage({
                   </Link>
                 ))}
               </div>
-              <div className="mt-4">
+              <div className="mt-6">
                 <TutorList
                   tutors={shown}
                   nextTimes={nextTimes}

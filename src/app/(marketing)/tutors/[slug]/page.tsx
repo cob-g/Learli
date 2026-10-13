@@ -62,9 +62,12 @@ export default async function TutorPage({
       : null;
   return (
     <div className="page-shell page-space">
-      <div className="flex items-start gap-4">
+      <Link className="mb-6 inline-flex min-h-12 items-center" href="/tutors">
+        Browse all tutors
+      </Link>
+      <div className="flex items-start gap-4 border-b border-border pb-8 md:gap-6">
         <InitialsAvatar name={tutor.displayName} large />
-        <div className="min-w-0">
+        <div className="min-w-0 wrap-anywhere">
           <h1 className="text-page-title wrap-anywhere">{tutor.displayName}</h1>
           <p className="mt-2 max-w-prose text-body wrap-anywhere">
             {tutor.headline}
@@ -79,72 +82,79 @@ export default async function TutorPage({
           </p>
         </div>
       </div>
-      {preview ? (
-        <ProfilePicker
-          tutor={tutor}
-          preview={preview}
-          zones={listTimeZoneOptions(new Date(), [preview.timezone])}
-        />
-      ) : (
-        <PublicationBookingHandoff
-          slug={tutor.slug}
-          subjectSlug={tutor.offerings[0]?.subjectSlug}
-        />
-      )}
-      <section aria-labelledby="subjects-title" className="mt-8">
-        <h2 id="subjects-title" className="text-section-title">
-          Subjects and levels
-        </h2>
-        <ul className="mt-4 space-y-2">
-          {tutor.offerings.map((offering) => (
-            <li key={offering.subjectSlug}>
-              <p className="text-body">{offering.subjectName}</p>
-              <p className="text-small text-muted-foreground">
-                {levelNames(offering.levels).join(" · ")}
+      <div className="mt-8 grid items-start gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
+        <aside className="rounded-surface border border-border bg-surface p-6 md:p-8 lg:order-2">
+          {preview ? (
+            <ProfilePicker
+              tutor={tutor}
+              preview={preview}
+              zones={listTimeZoneOptions(new Date(), [preview.timezone])}
+            />
+          ) : (
+            <PublicationBookingHandoff
+              slug={tutor.slug}
+              subjectSlug={tutor.offerings[0]?.subjectSlug}
+            />
+          )}
+        </aside>
+        <div className="min-w-0 lg:order-1">
+          <section aria-labelledby="subjects-title">
+            <h2 id="subjects-title" className="text-section-title">
+              Subjects and levels
+            </h2>
+            <ul className="mt-6 divide-y divide-border border-y border-border">
+              {tutor.offerings.map((offering) => (
+                <li key={offering.subjectSlug} className="py-4">
+                  <p className="text-body">{offering.subjectName}</p>
+                  <p className="text-small text-muted-foreground">
+                    {levelNames(offering.levels).join(" · ")}
+                  </p>
+                  {offering.specialty && (
+                    <p className="text-small wrap-anywhere text-muted-foreground">
+                      Specialty: {offering.specialty}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section aria-labelledby="languages-title" className="mt-8">
+            <h2 id="languages-title" className="text-section-title">
+              Teaching languages
+            </h2>
+            <p className="mt-4 max-w-prose text-body">
+              {teachingLanguageNames(tutor.teachingLanguages).join(" · ") ||
+                "No teaching languages listed"}
+            </p>
+            {tutor.teachingLanguages.length > 0 && (
+              <p className="mt-2 max-w-prose text-small text-muted-foreground">
+                Declared by the tutor. Learli has not checked language
+                proficiency.
               </p>
-              {offering.specialty && (
-                <p className="text-small wrap-anywhere text-muted-foreground">
-                  Specialty: {offering.specialty}
-                </p>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
-      <section aria-labelledby="languages-title" className="mt-8">
-        <h2 id="languages-title" className="text-section-title">
-          Teaching languages
-        </h2>
-        <p className="mt-4 max-w-prose text-body">
-          {teachingLanguageNames(tutor.teachingLanguages).join(" · ") ||
-            "No teaching languages listed"}
-        </p>
-        {tutor.teachingLanguages.length > 0 && (
-          <p className="mt-2 max-w-prose text-small text-muted-foreground">
-            Declared by the tutor. Learli has not checked language proficiency.
-          </p>
-        )}
-      </section>
-      <section aria-labelledby="introduction-title" className="mt-12">
-        <h2 id="introduction-title" className="text-section-title">
-          Introduction
-        </h2>
-        <p className="mt-4 max-w-prose text-prose wrap-anywhere whitespace-pre-line">
-          {tutor.bio}
-        </p>
-      </section>
-      <PublicReviewSection result={reviews} />
-      <section aria-labelledby="background-title" className="mt-12">
-        <h2 id="background-title" className="text-section-title">
-          Teaching background
-        </h2>
-        <p className="mt-2 max-w-prose text-small text-muted-foreground">
-          Written by the tutor. Learli has not checked these details.
-        </p>
-        <p className="mt-4 max-w-prose text-prose wrap-anywhere whitespace-pre-line">
-          {tutor.teachingBackground}
-        </p>
-      </section>
+            )}
+          </section>
+          <section aria-labelledby="introduction-title" className="mt-12">
+            <h2 id="introduction-title" className="text-section-title">
+              Introduction
+            </h2>
+            <p className="mt-4 max-w-prose font-reading text-reading wrap-anywhere whitespace-pre-line">
+              {tutor.bio}
+            </p>
+          </section>
+          <PublicReviewSection result={reviews} />
+          <section aria-labelledby="background-title" className="mt-12">
+            <h2 id="background-title" className="text-section-title">
+              Teaching background
+            </h2>
+            <p className="mt-2 max-w-prose text-small text-muted-foreground">
+              Written by the tutor. Learli has not checked these details.
+            </p>
+            <p className="mt-4 max-w-prose font-reading text-reading wrap-anywhere whitespace-pre-line">
+              {tutor.teachingBackground}
+            </p>
+          </section>
+        </div>
+      </div>
     </div>
   );
 }

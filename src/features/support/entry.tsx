@@ -44,7 +44,9 @@ export async function SupportEntry({
       {available ? (
         <>
           {booking && <SupportBookingSection booking={booking} />}
-          <CaseForm concern={concern} bookingId={bookingId} />
+          <div className="mt-6 max-w-xl rounded-surface border border-border bg-surface p-6 sm:p-8">
+            <CaseForm concern={concern} bookingId={bookingId} />
+          </div>
           <Link
             href="/support"
             className="mt-8 inline-flex min-h-11 items-center"
@@ -53,7 +55,7 @@ export async function SupportEntry({
           </Link>
         </>
       ) : (
-        <section className="mt-8 max-w-prose">
+        <section className="mt-6 max-w-prose rounded-surface border border-border bg-surface p-6">
           <h2 className="text-item-title">
             {bookingId !== undefined && !anonymous
               ? "Booking context unavailable"

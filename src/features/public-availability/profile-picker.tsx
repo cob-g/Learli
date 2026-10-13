@@ -32,7 +32,7 @@ export function ProfilePicker({
   const days = [...new Set(times.map(localDate))];
   const level = publicLevelInput.safeParse(preview.level);
   return (
-    <section className="mt-8" aria-labelledby="choose-time-title">
+    <section aria-labelledby="choose-time-title">
       <h2 id="choose-time-title" className="text-section-title">
         Choose a time
       </h2>
@@ -139,7 +139,7 @@ export function ProfilePicker({
         <form
           action="/bookings/demo"
           method="get"
-          className="mt-8 space-y-8"
+          className="mt-6 space-y-6"
           aria-describedby="preview-zone"
         >
           <input type="hidden" name="tutorSlug" value={tutor.slug} />
@@ -150,17 +150,17 @@ export function ProfilePicker({
             name="displayTimezone"
             value={preview.timezone}
           />
-          <div className="space-y-8 border-s border-border ps-4">
+          <div className="space-y-6">
             {days.slice(0, 3).map((date) => (
-              <fieldset key={date} className="space-y-4">
+              <fieldset key={date} className="max-w-full min-w-0 space-y-4">
                 <legend className="mb-4 text-item-title">{date}</legend>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                   {times
                     .filter((time) => localDate(time) === date)
                     .map((time) => (
                       <label
                         key={time.startAtUtc}
-                        className="group relative flex min-h-11 items-start gap-2 rounded-control border border-control bg-surface px-4 py-4 text-body has-checked:border-primary has-checked:bg-primary has-checked:text-on-inverse"
+                        className="group relative flex min-h-11 items-start gap-2 rounded-control border border-control bg-surface px-4 py-4 text-body has-checked:border-primary has-checked:bg-primary has-checked:text-on-inverse has-checked:[--focus-ring:var(--focus-ring-inverse)] has-checked:[&_.text-muted-foreground]:text-on-inverse"
                       >
                         <input
                           required
@@ -170,10 +170,10 @@ export function ProfilePicker({
                             time.startAtUtc === preview.selectedStart
                           }
                           value={`${time.startAtUtc}|${time.endAtUtc}`}
-                          className="peer mt-1"
+                          className="peer mt-1 shrink-0"
                           aria-label={`${date} ${time.time || time.date} ${time.zone}`}
                         />
-                        <span className="min-w-0">
+                        <span className="min-w-0 wrap-anywhere">
                           <time
                             dateTime={time.startAtUtc}
                             className="block text-time"
@@ -205,14 +205,14 @@ export function ProfilePicker({
               </summary>
               <div className="mt-4 space-y-8">
                 {days.slice(3).map((date) => (
-                  <fieldset key={date} className="space-y-4">
+                  <fieldset key={date} className="max-w-full min-w-0 space-y-4">
                     <legend className="mb-4 text-item-title">{date}</legend>
                     {times
                       .filter((time) => localDate(time) === date)
                       .map((time) => (
                         <label
                           key={time.startAtUtc}
-                          className="flex min-h-11 items-start gap-4 rounded-control border border-control bg-surface px-4 py-4"
+                          className="flex min-h-12 items-start gap-4 rounded-control border border-control bg-surface px-4 py-4 has-checked:border-primary has-checked:bg-primary has-checked:text-on-inverse has-checked:[--focus-ring:var(--focus-ring-inverse)] has-checked:[&_.text-muted-foreground]:text-on-inverse"
                         >
                           <input
                             required
@@ -222,7 +222,7 @@ export function ProfilePicker({
                               time.startAtUtc === preview.selectedStart
                             }
                             value={`${time.startAtUtc}|${time.endAtUtc}`}
-                            className="mt-1"
+                            className="mt-1 shrink-0"
                           />
                           <LessonTime value={time} />
                         </label>
@@ -232,7 +232,7 @@ export function ProfilePicker({
               </div>
             </details>
           )}
-          <button className="action action-primary" type="submit">
+          <button className="action action-primary w-full" type="submit">
             Review simulated booking
           </button>
           <p className="text-small">

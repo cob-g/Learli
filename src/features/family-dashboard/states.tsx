@@ -12,7 +12,7 @@ export function DashboardUnavailable({
       <h1 className="text-page-title">Bookings unavailable</h1>
       <div
         role="alert"
-        className="mt-4 flex max-w-prose gap-2 rounded-surface border border-error bg-error-soft p-4"
+        className="mt-6 flex max-w-prose gap-3 rounded-surface border border-error bg-error-soft p-6"
       >
         <CircleAlert
           className="size-5 shrink-0 text-error"
@@ -23,7 +23,7 @@ export function DashboardUnavailable({
           support if this keeps happening.
         </p>
       </div>
-      <div className="mt-4 flex flex-wrap gap-4">
+      <div className="mt-6 flex flex-wrap gap-4">
         <Link href={`/${workspace}`} className="action action-outline">
           Try again
         </Link>
@@ -38,7 +38,7 @@ export function DashboardUnavailable({
 
 export function DashboardHelp() {
   return (
-    <footer className="mt-12 flex flex-wrap gap-x-6 gap-y-2 text-small">
+    <footer className="mt-12 flex flex-wrap gap-x-6 gap-y-2 border-t border-border pt-6 text-small">
       <Link className="inline-flex min-h-11 items-center" href="/contact">
         Contact support
       </Link>

@@ -41,10 +41,10 @@ export function StatusBadge({ state }: { state: ReservationView["state"] }) {
   const Icon = expired ? TimerOff : TriangleAlert;
   return (
     <span
-      className={`inline-flex min-h-7 items-center gap-1 rounded-tag border px-2 text-label ${expired ? "border-control bg-subtle text-muted-foreground" : "border-warning bg-warning-soft text-warning"}`}
+      className={`inline-flex min-h-7 max-w-full items-center gap-1 rounded-tag border px-2 text-label ${expired ? "border-control bg-subtle text-muted-foreground" : "border-warning bg-warning-soft text-warning"}`}
     >
       <Icon className="size-4 shrink-0" aria-hidden="true" />
-      {demoStateLabels[state]}
+      <span className="min-w-0 wrap-anywhere">{demoStateLabels[state]}</span>
     </span>
   );
 }
@@ -68,10 +68,11 @@ function LearnerSelector({
           {options.map((learner) => (
             <label
               key={learner.id}
-              className="group flex min-h-11 min-w-11 cursor-pointer items-center gap-2 rounded-control border border-control bg-surface px-4 py-2 text-body has-checked:border-primary has-checked:bg-primary has-checked:text-on-inverse"
+              className="group flex min-h-11 max-w-full min-w-11 cursor-pointer items-center gap-2 rounded-control border border-control bg-surface px-4 py-2 text-body has-checked:border-primary has-checked:bg-primary has-checked:text-on-inverse has-checked:[--focus-ring:var(--focus-ring-inverse)]"
             >
               <input
                 type="radio"
+                className="shrink-0"
                 name="learner"
                 value={learner.id}
                 defaultChecked={(selected ?? "") === learner.id}
@@ -145,18 +146,18 @@ function Agenda({
   workspace: FamilyWorkspace;
 }) {
   return (
-    <div className="mt-4 space-y-8">
+    <div className="mt-6 space-y-8">
       {groupByDate(rows).map((group) => (
         <section key={group.key}>
-          <h3 className="text-item-title">{group.date}</h3>
-          <p className="mt-2 text-small text-muted-foreground">
+          <h3 className="text-item-title text-primary">{group.date}</h3>
+          <p className="mt-1 text-small text-muted-foreground">
             Times shown in {group.zone}.
           </p>
-          <ul className="mt-4 divide-y divide-border">
+          <ul className="mt-4 divide-y divide-border border-y border-border">
             {group.reservations.map((row) => (
               <li
                 key={row.id}
-                className="flex min-h-16 min-w-0 flex-col gap-4 py-4 md:flex-row"
+                className="flex min-h-16 min-w-0 flex-col gap-4 py-6 md:flex-row"
               >
                 <div className="min-w-0 md:w-44 md:shrink-0">
                   <LessonTime value={row.when} variant="time-only" />
@@ -277,32 +278,37 @@ export function FamilyDashboard({ data }: { data: DashboardData }) {
           </Link>
         </nav>
         <h1 className="text-page-title wrap-anywhere">{title}</h1>
-        <p className="mt-4 max-w-prose text-body">
+        <p className="mt-3 max-w-prose text-small text-muted-foreground">
           Local simulation only. Reservations expire after ten minutes and do
           not confirm a lesson.
         </p>
         {workspace === "parent" && learners.length > 1 && (
           <LearnerSelector learners={learners} selected={selectedLearner?.id} />
         )}
-        <p className="mt-4 text-small text-muted-foreground">
-          Times shown in {data.checkedAt.zone}.
-        </p>
-        <Link href="/account" className="inline-flex min-h-11 items-center">
-          Change time zone in account settings
-        </Link>
-        <div className="mt-2 text-small text-muted-foreground">
-          <details>
-            <summary className="min-h-11 cursor-pointer py-2">
-              Status checked at
-            </summary>
-            <LessonTime value={data.checkedAt} />
-          </details>
-          <DashboardLink href={dashboardHref(workspace, data.query)}>
-            Refresh bookings
-          </DashboardLink>
+        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-1 border-y border-border py-3">
+          <p className="text-small text-muted-foreground">
+            Times shown in {data.checkedAt.zone}.
+          </p>
+          <Link
+            href="/account"
+            className="inline-flex min-h-11 items-center text-small"
+          >
+            Change time zone in account settings
+          </Link>
+          <div className="flex flex-wrap items-center gap-x-6 text-small text-muted-foreground">
+            <details>
+              <summary className="min-h-11 cursor-pointer py-2">
+                Status checked at
+              </summary>
+              <LessonTime value={data.checkedAt} />
+            </details>
+            <DashboardLink href={dashboardHref(workspace, data.query)}>
+              Refresh bookings
+            </DashboardLink>
+          </div>
         </div>
         {!learners.length ? (
-          <section className="mt-8">
+          <section className="mt-8 rounded-surface border border-border bg-surface p-6 sm:p-8">
             <h2 className="text-item-title">No authorized learner available</h2>
             <p className="mt-2 max-w-prose text-body">
               This account has no eligible local learner profile. Create a
@@ -318,30 +324,34 @@ export function FamilyDashboard({ data }: { data: DashboardData }) {
           <>
             {next && (
               <section
-                className="mt-8 rounded-surface border border-border bg-surface p-4 md:p-6"
+                className="mt-8 rounded-surface border border-border bg-surface p-6 md:p-8"
                 aria-labelledby="next-reservation"
               >
-                <h2 id="next-reservation" className="text-item-title">
+                <h2 id="next-reservation" className="text-section-title">
                   Next simulated reservation
                 </h2>
-                <div className="mt-4">
-                  <LessonTime value={next.when} variant="prominent" />
+                <div className="mt-6 grid min-w-0 gap-6 md:grid-cols-2">
+                  <div className="min-w-0">
+                    <LessonTime value={next.when} variant="prominent" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-item-title wrap-anywhere text-primary">
+                      {next.subjectName} with {next.tutorName}
+                    </p>
+                    {workspace === "parent" && (
+                      <p className="mt-2 text-body wrap-anywhere">
+                        For {next.learner.displayName}
+                      </p>
+                    )}
+                    <p className="mt-2 text-small">
+                      {next.durationMinutes} minutes
+                    </p>
+                    <div className="mt-4">
+                      <StatusBadge state={next.state} />
+                    </div>
+                  </div>
                 </div>
-                <p className="mt-4 text-body wrap-anywhere">
-                  {next.subjectName} with {next.tutorName}
-                </p>
-                {workspace === "parent" && (
-                  <p className="mt-2 text-body wrap-anywhere">
-                    For {next.learner.displayName}
-                  </p>
-                )}
-                <p className="mt-2 text-small">
-                  {next.durationMinutes} minutes
-                </p>
-                <div className="mt-4">
-                  <StatusBadge state={next.state} />
-                </div>
-                <p className="mt-2 max-w-prose text-body">
+                <p className="mt-6 max-w-prose border-t border-border pt-6 text-small text-muted-foreground">
                   This is a temporary local reservation. Refresh bookings to
                   check its current status.
                 </p>

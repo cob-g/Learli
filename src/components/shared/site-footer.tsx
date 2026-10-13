@@ -1,21 +1,24 @@
 import Link from "next/link";
+import { BrandLogo } from "@/components/shared/brand-logo";
 
 export function SiteFooter() {
   return (
     <footer data-surface="inverse" className="mt-auto">
-      <div className="page-shell flex flex-col gap-8 py-8 md:flex-row md:justify-between md:py-12">
+      <div className="page-shell flex flex-col gap-8 py-12 md:flex-row md:justify-between md:gap-16 md:py-16">
         <div>
-          {/* Development placeholder; reversed brand artwork is still required. */}
-          <Link href="/" className="nav-link text-item-title">
-            Learli
+          <Link href="/" className="brand-home" aria-label="Learli home">
+            <BrandLogo reverse />
           </Link>
-          <p className="mt-2 max-w-prose text-small text-on-inverse-muted">
+          <p className="mt-4 font-reading text-reading">
+            Learning made personal.
+          </p>
+          <p className="mt-3 max-w-prose text-small text-on-inverse-muted">
             One-to-one tutoring. Lessons on Zoom or Google Meet.
           </p>
         </div>
         <nav
           aria-label="Footer navigation"
-          className="flex max-w-prose flex-wrap gap-x-6 gap-y-2"
+          className="grid grid-cols-2 content-start gap-x-8 gap-y-2 sm:gap-x-12"
         >
           <Link className="nav-link" href="/how-it-works">
             How it works

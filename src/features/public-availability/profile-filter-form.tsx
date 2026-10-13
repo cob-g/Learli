@@ -22,7 +22,7 @@ export function ProfileFilterForm({
       method="get"
       onSubmit={() => flushSync(() => setPending(true))}
       aria-busy={pending}
-      className="mt-4 flex max-w-xl flex-col gap-4"
+      className="mt-6 flex max-w-xl flex-col gap-4 border-b border-border pb-6"
     >
       {children}
       <button

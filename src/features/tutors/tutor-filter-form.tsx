@@ -76,7 +76,7 @@ export function TutorFilterForm({
       aria-label={finder ? "Find a tutor" : "Filter tutors"}
       className={
         finder
-          ? "flex flex-col gap-4 md:flex-row md:items-end"
+          ? "flex flex-col gap-4"
           : "flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end lg:flex-col lg:items-stretch"
       }
     >
@@ -121,7 +121,7 @@ export function TutorFilterForm({
         </select>
       </div>
       {finder ? (
-        <button className="action action-inverse" type="submit">
+        <button className="action action-primary w-full" type="submit">
           Find a tutor
         </button>
       ) : (

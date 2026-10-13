@@ -85,7 +85,7 @@ export function CaseForm({
   }
   return (
     <form
-      className="mt-8 max-w-xl space-y-4"
+      className="max-w-xl space-y-6"
       method="post"
       onSubmit={save}
       noValidate
@@ -182,7 +182,7 @@ export function CaseForm({
       )}
       <button
         type="submit"
-        className="action action-primary transition-none"
+        className="action action-primary w-full transition-none sm:w-auto"
         disabled={!hydrated}
         aria-disabled={!hydrated || pending}
       >

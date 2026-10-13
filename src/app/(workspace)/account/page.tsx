@@ -34,58 +34,90 @@ export default async function AccountPage() {
   }
   return (
     <div className="page-shell page-space">
-      <h1 className="text-page-title">Your account</h1>
-      <p className="mt-4 text-body">Signed in as {account.email}</p>
-      <p className="mt-2 max-w-prose text-body text-muted-foreground">
-        This is a synthetic test account. Real lessons are not available here.
-      </p>
-      {account.roles.length ? (
-        <nav
-          aria-label="Your workspaces"
-          className="mt-4 flex flex-wrap gap-x-6 gap-y-2"
-        >
-          {account.roles.map((role) => (
-            <Link
-              className="inline-flex min-h-11 items-center"
-              key={role}
-              href={`/${role}`}
-            >
-              {role.charAt(0).toUpperCase() + role.slice(1)} workspace
-            </Link>
-          ))}
-        </nav>
-      ) : (
-        <p className="mt-4 text-body">
-          No workspace role has been assigned to this account.
+      <div className="max-w-5xl">
+        <h1 className="text-page-title">Your account</h1>
+        <p className="mt-4 text-body wrap-anywhere">
+          Signed in as {account.email}
         </p>
-      )}
-      <AdmissionEntry />
-      <AccountForm
-        account={account}
-        timeZones={listTimeZoneOptions(new Date(), [account.timezone])}
-      />
-      {account.roles.includes("admin") && (
-        <Link
-          className="mt-8 inline-flex min-h-11 items-center"
-          href="/account/security"
-        >
-          Administrator security
-        </Link>
-      )}
-      <PasswordForm />
-      <Link
-        className="me-6 mt-8 inline-flex min-h-11 items-center"
-        href="/account/email"
-      >
-        Change account email
-      </Link>
-      <Link
-        className="mt-8 inline-flex min-h-11 items-center"
-        href="/account/sessions"
-      >
-        Manage account sessions
-      </Link>
-      <SignOut />
+        <p className="mt-4 max-w-prose rounded-control border border-border bg-subtle p-4 text-small text-muted-foreground">
+          This is a synthetic test account. Real lessons are not available here.
+        </p>
+        <div className="mt-8 grid items-start gap-8 lg:grid-cols-3">
+          <div className="min-w-0 lg:col-span-2">
+            <section
+              aria-labelledby="account-profile-heading"
+              className="rounded-surface border border-border bg-surface p-6 sm:p-8"
+            >
+              <h2 id="account-profile-heading" className="text-section-title">
+                Profile settings
+              </h2>
+              <AccountForm
+                account={account}
+                timeZones={listTimeZoneOptions(new Date(), [account.timezone])}
+              />
+            </section>
+            <PasswordForm />
+          </div>
+          <aside className="min-w-0 rounded-surface border border-border bg-surface p-6">
+            <h2 className="text-item-title">Your workspaces</h2>
+            {account.roles.length ? (
+              <nav
+                aria-label="Your workspaces"
+                className="mt-3 flex flex-col items-start gap-1"
+              >
+                {account.roles.map((role) => (
+                  <Link
+                    className="inline-flex min-h-11 items-center"
+                    key={role}
+                    href={`/${role}`}
+                  >
+                    {role.charAt(0).toUpperCase() + role.slice(1)} workspace
+                  </Link>
+                ))}
+              </nav>
+            ) : (
+              <p className="mt-4 text-small text-muted-foreground">
+                No workspace role has been assigned to this account.
+              </p>
+            )}
+            <AdmissionEntry />
+            <section
+              className="mt-6 border-t border-border pt-6"
+              aria-labelledby="account-access-heading"
+            >
+              <h2 id="account-access-heading" className="text-item-title">
+                Account access
+              </h2>
+              <nav
+                aria-label="Account settings"
+                className="mt-3 flex flex-col items-start gap-1"
+              >
+                <Link
+                  className="inline-flex min-h-11 items-center"
+                  href="/account/email"
+                >
+                  Change account email
+                </Link>
+                <Link
+                  className="inline-flex min-h-11 items-center"
+                  href="/account/sessions"
+                >
+                  Manage account sessions
+                </Link>
+                {account.roles.includes("admin") && (
+                  <Link
+                    className="inline-flex min-h-11 items-center"
+                    href="/account/security"
+                  >
+                    Administrator security
+                  </Link>
+                )}
+              </nav>
+              <SignOut />
+            </section>
+          </aside>
+        </div>
+      </div>
     </div>
   );
 }

@@ -170,7 +170,7 @@ export function AuthForm({
         method="post"
         action="/api/auth/sign-in/email"
         onSubmit={submit}
-        className="mt-8 space-y-6"
+        className="space-y-6 [p+&]:mt-6 [section+&]:mt-6"
         aria-busy={pending}
       >
         <fieldset disabled={!ready || pending} className="space-y-6">
@@ -205,7 +205,10 @@ export function AuthForm({
                 maxLength={254}
                 aria-describedby="email-help"
               />
-              <p id="email-help" className="text-small text-muted-foreground">
+              <p
+                id="email-help"
+                className="text-small wrap-anywhere text-muted-foreground"
+              >
                 {hosted
                   ? "Use an explicitly configured synthetic .test account."
                   : "Use a synthetic address, such as learner@example.test."}
@@ -243,13 +246,17 @@ export function AuthForm({
               ref={status}
               tabIndex={-1}
               role={failed ? "alert" : "status"}
-              className={failed ? "text-body text-error" : "text-body"}
+              className={
+                failed
+                  ? "rounded-control border border-error p-4 text-body text-error"
+                  : "rounded-control border border-border bg-subtle p-4 text-body"
+              }
             >
               {message}
             </p>
           )}
           <button
-            className="action action-primary transition-none"
+            className="action action-primary w-full transition-none"
             type="submit"
             disabled={pending}
           >
@@ -259,7 +266,7 @@ export function AuthForm({
       </form>
       <nav
         aria-label="Account help"
-        className="mt-8 flex flex-wrap gap-x-6 gap-y-2"
+        className="mt-6 flex flex-wrap gap-x-6 gap-y-2 border-t border-border pt-4 text-small"
       >
         {mode !== "sign-in" && (
           <Link

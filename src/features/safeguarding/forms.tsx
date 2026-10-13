@@ -15,7 +15,7 @@ export function SafeguardingReportForm() {
     <form
       method="post"
       action="/api/safeguarding/cases"
-      className="mt-6 max-w-2xl space-y-4"
+      className="max-w-xl space-y-6"
       onChange={() => {
         key.current = null;
       }}
@@ -50,7 +50,7 @@ export function SafeguardingReportForm() {
         }
       }}
     >
-      <p className="max-w-prose text-body">
+      <p className="max-w-prose rounded-control border border-border bg-subtle p-4 text-small">
         Synthetic response exercise. Use fictional text only. No actual human
         response service or emergency monitoring is active.
       </p>
@@ -62,7 +62,7 @@ export function SafeguardingReportForm() {
         Concern
         <textarea
           name="body"
-          className="field mt-2"
+          className="field mt-2 min-h-40"
           required
           maxLength={2000}
         />
@@ -71,12 +71,12 @@ export function SafeguardingReportForm() {
         ref={alert}
         role="alert"
         tabIndex={-1}
-        className="max-w-prose text-body"
+        className="max-w-prose text-body text-error"
       >
         {message}
       </p>
       <button
-        className="action action-primary"
+        className="action action-primary w-full sm:w-auto"
         disabled={!ready || busy}
         aria-busy={busy}
       >

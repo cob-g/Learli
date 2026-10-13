@@ -27,7 +27,9 @@ export default async function Page({
     );
   return (
     <div className="page-shell page-space">
-      <CaseView detail={detail} reviewer={false} />
+      <div className="max-w-5xl">
+        <CaseView detail={detail} reviewer={false} />
+      </div>
     </div>
   );
 }

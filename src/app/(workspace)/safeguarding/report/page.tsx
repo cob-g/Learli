@@ -19,7 +19,9 @@ export default async function Page() {
     <section className="page-shell page-space">
       <h1 className="text-page-title">Report a concern</h1>
       {enabled ? (
-        <SafeguardingReportForm />
+        <div className="mt-6 max-w-xl rounded-surface border border-border bg-surface p-6 sm:p-8">
+          <SafeguardingReportForm />
+        </div>
       ) : (
         <p className="mt-4 max-w-prose text-body">
           New safeguarding intake is disabled. Actual responsible human owners,
