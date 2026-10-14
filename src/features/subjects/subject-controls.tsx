@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, useTransition, type FormEvent } from "react";
 
 const unreachable =
   "We couldn't reach Learli. Check your connection, then try again.";
@@ -14,10 +14,14 @@ async function send(url: string, method: "POST" | "PATCH", body: unknown) {
       body: JSON.stringify(body),
     });
     if (response.ok) return null;
-    const failure: { message?: string } = await response
-      .json()
-      .catch(() => ({}));
-    return failure.message ?? "That change wasn't saved. Try again.";
+    const failure: unknown = await response.json().catch(() => null);
+    return typeof failure === "object" &&
+      failure !== null &&
+      "message" in failure &&
+      typeof failure.message === "string" &&
+      failure.message
+      ? failure.message
+      : "That change wasn't saved. Try again.";
   } catch {
     return unreachable;
   }
@@ -93,13 +97,15 @@ export function SubjectStateButton({
   subject: { id: string; name: string; isActive: boolean };
 }) {
   const router = useRouter();
-  const [pending, setPending] = useState(false);
+  const [refreshing, startRefresh] = useTransition();
+  const [saving, setSaving] = useState(false);
+  const pending = saving || refreshing;
   const [error, setError] = useState("");
   const verb = subject.isActive ? "Deactivate" : "Activate";
 
   async function toggle() {
     if (pending) return;
-    setPending(true);
+    setSaving(true);
     setError("");
     const failure = await send(
       `/api/admin/subjects/${encodeURIComponent(subject.id)}`,
@@ -107,8 +113,8 @@ export function SubjectStateButton({
       { isActive: !subject.isActive },
     );
     if (failure) setError(failure);
-    else router.refresh();
-    setPending(false);
+    else startRefresh(() => router.refresh());
+    setSaving(false);
   }
 
   return (
@@ -120,7 +126,7 @@ export function SubjectStateButton({
         aria-disabled={pending}
         onClick={toggle}
       >
-        {verb}
+        {pending && !error ? "Updating…" : verb}
       </button>
       {error && (
         <p role="alert" className="text-small text-error">

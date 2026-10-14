@@ -17,6 +17,9 @@ export function ChangeAccessForm({
   revision: number;
 }) {
   const [reading, startReading] = useTransition();
+  // A save's follow-up refresh keeps the controls busy without the manual
+  // reload's "Loading account…" status beside the result.
+  const [refreshing, startRefresh] = useTransition();
   const router = useRouter(),
     dialog = useRef<HTMLDialogElement>(null),
     notice = useRef<HTMLParagraphElement>(null),
@@ -26,15 +29,16 @@ export function ChangeAccessForm({
     null,
   );
   const [reason, setReason] = useState<Reason>(),
-    [pending, setPending] = useState(false),
+    [saving, setSaving] = useState(false),
     [message, setMessage] = useState(""),
     [failed, setFailed] = useState(false),
     [reasonError, setReasonError] = useState(false);
+  const pending = saving || reading || refreshing;
   const next = status === "active" ? "suspended" : "active",
     verb = next === "suspended" ? "Suspend" : "Restore";
   function prepare(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy.current) return;
+    if (busy.current || reading || refreshing) return;
     const selected = new FormData(event.currentTarget).get("reason");
     if (
       typeof selected !== "string" ||
@@ -49,9 +53,9 @@ export function ChangeAccessForm({
     dialog.current?.showModal();
   }
   async function confirm() {
-    if (busy.current || !reason) return;
+    if (busy.current || reading || refreshing || !reason) return;
     busy.current = true;
-    setPending(true);
+    setSaving(true);
     setMessage("");
     const fingerprint = JSON.stringify({ revision, status: next, reason });
     if (retry.current?.fingerprint !== fingerprint)
@@ -70,7 +74,7 @@ export function ChangeAccessForm({
           }),
         },
       );
-      const result: unknown = await response.json();
+      const result: unknown = await response.json().catch(() => null);
       const safeMessage =
         typeof result === "object" &&
         result !== null &&
@@ -87,7 +91,7 @@ export function ChangeAccessForm({
       );
       if (response.ok) {
         retry.current = null;
-        router.refresh();
+        startRefresh(() => router.refresh());
       }
     } catch {
       setFailed(true);
@@ -96,7 +100,7 @@ export function ChangeAccessForm({
       );
     } finally {
       busy.current = false;
-      setPending(false);
+      setSaving(false);
       dialog.current?.close();
       requestAnimationFrame(() => notice.current?.focus());
     }

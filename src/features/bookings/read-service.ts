@@ -104,6 +104,9 @@ export async function listParticipantBookingOverview(
       { ...values, filter: "history" },
       snapshot.historyItems,
     ),
+    earliestExpiryAtUtc: snapshot.earliestExpiry
+      ? new Date(snapshot.earliestExpiry).toISOString()
+      : null,
   };
 }
 

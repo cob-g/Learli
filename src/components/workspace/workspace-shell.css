@@ -62,6 +62,16 @@
   .workspace-sidebar[data-open] {
     display: block;
   }
+  /* Without scripts the Menu button cannot open the sidebar, so narrow screens
+     show it in place and every workspace destination stays reachable. */
+  @media (scripting: none) {
+    .workspace-menu-toggle {
+      display: none;
+    }
+    .workspace-sidebar {
+      display: block;
+    }
+  }
   .workspace-brand {
     display: inline-flex;
     align-items: center;

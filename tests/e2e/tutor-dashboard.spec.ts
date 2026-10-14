@@ -184,6 +184,9 @@ test("assigned tutor sees truthful next simulation, agenda/history and private a
     path: info.outputPath("tutor-forced-reflow.png"),
     fullPage: true,
   });
+  // At this width the work areas sit behind the workspace menu.
+  await actor.page.getByRole("button", { name: "Workspace menu" }).focus();
+  await actor.page.keyboard.press("Enter");
   await actor.page.getByRole("link", { name: "Time off", exact: true }).focus();
   await actor.page.keyboard.press("Enter");
   await expect(actor.page).toHaveURL(/\/tutor\/time-off$/);

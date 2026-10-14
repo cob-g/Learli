@@ -53,4 +53,9 @@ export type BookingPage = {
   viewerTimezone: string;
   snapshotAtUtc: string;
 };
-export type BookingOverview = { active: BookingPage; history: BookingPage };
+export type BookingOverview = {
+  active: BookingPage;
+  history: BookingPage;
+  /** Earliest expiry over all active timed reservations in scope, not one page. */
+  earliestExpiryAtUtc: string | null;
+};

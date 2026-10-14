@@ -257,13 +257,35 @@ test("delayed or failed identity reads keep content geometry stable and discard 
     const gate = new Promise<void>((resolve) => {
       release = resolve;
     });
+    let accountReads = 0;
     const hold = async (route: Route) => {
+      accountReads++;
       await gate;
       await route.continue();
     };
     await page.route("**/api/account/*", hold);
+    // The first document carries the server's account: full sidebar at once.
     await page.goto("/parent");
-    await expect(page.getByText("Checking workspace access…")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Account Workspace test account" }),
+    ).toBeVisible();
+    // Phones keep the sidebar in a closed menu, so check the markup itself.
+    await expect(
+      page.locator('.workspace-sidebar nav[aria-label="Parent work areas"]'),
+    ).toBeAttached();
+    expect(accountReads).toBe(0);
+    // A later destination still waits for its own guarded read.
+    await menu(page);
+    await page
+      .locator(".workspace-sidebar")
+      .getByRole("link", { name: "Learners" })
+      .click();
+    await expect(page).toHaveURL("/learners");
+    // The validated name stays visible while the destination's read is held.
+    await expect(
+      page.getByRole("button", { name: "Account Workspace test account" }),
+    ).toBeVisible();
+    await expect(page.getByText("Checking workspace access…")).toHaveCount(0);
     await page.evaluate(() => document.fonts.ready);
     const before = await page.locator(".workspace-topbar").boundingBox();
     const mainBefore = await page.getByRole("main").boundingBox();
@@ -278,10 +300,15 @@ test("delayed or failed identity reads keep content geometry stable and discard 
     measurements.push({ width, before, after, mainBefore, mainAfter });
     await page.unroute("**/api/account/*", hold);
   }
+  await page.goto("/parent");
   await page.route("**/api/account/*", (route) =>
     route.fulfill({ status: 503, contentType: "application/json", body: "{}" }),
   );
-  await page.goto("/parent");
+  await menu(page);
+  await page
+    .locator(".workspace-sidebar")
+    .getByRole("link", { name: "Learners" })
+    .click();
   await expect(
     page.getByText("Workspace access unavailable.", { exact: true }),
   ).toBeVisible();
@@ -312,13 +339,9 @@ test("tutor sidebar link content stays stable through held requests, shared page
     "INSERT INTO tutor_profiles(user_id,slug,headline,bio,teaching_background,timezone) VALUES($1,$2,'Synthetic tutor','Synthetic biography','Synthetic experience','Asia/Manila')",
     [actor.id, `sidebar-${randomUUID()}`],
   );
-  const labels = [
-    "Bookings",
-    "Availability",
-    "Time off",
-    "Profile",
-    "Tutor screening",
-  ];
+  // The auth project runs the shipped deployment, where screening is disabled
+  // and the sidebar omits the screening destination.
+  const labels = ["Bookings", "Availability", "Time off", "Profile"];
   const observations: unknown[] = [];
   for (const width of [320, 390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
@@ -397,14 +420,11 @@ test("tutor sidebar link content stays stable through held requests, shared page
               .click();
           }
           await expect(page).toHaveURL(target);
-          await expect(
-            page.getByText("Checking workspace access…", { exact: true }),
-          ).toBeVisible();
+          await expect(page.locator(".workspace-account bdi")).toBeVisible();
           await expect(links).toHaveText(labels);
           await expect(page.locator(".workspace-current")).toHaveText(
             "Tutor workspace",
           );
-          await expect(page.locator(".workspace-account bdi")).toHaveCount(0);
           if (width < 1024)
             await expect(
               page.getByRole("button", { name: "Workspace menu" }),
@@ -542,12 +562,12 @@ test("multi-role switching preserves chosen shared context and successful provid
     await page.evaluate(() =>
       window.dispatchEvent(new Event("learli:account-updated")),
     );
-    await expect(
-      page.getByText("Checking account…", { exact: true }),
-    ).toBeVisible();
+    // The same user/session keeps its name and links during the refresh.
+    await expect(page.locator(".workspace-account bdi")).toBeVisible();
     await expect(
       page.locator('.workspace-sidebar nav[aria-label$="work areas"]'),
-    ).toHaveCount(0);
+    ).toHaveCount(1);
+    await expect(page.locator(".workspace-current")).toHaveText(title);
     release();
     await expect(page.locator(".workspace-account bdi")).toBeVisible();
     await expect(page.locator(".workspace-current")).toHaveText(title);

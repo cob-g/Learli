@@ -249,6 +249,8 @@ async function Directory({ searchParams }: DirectoryProps) {
                   tutors={shown}
                   nextTimes={nextTimes}
                   timezone={preferences?.timezone}
+                  subject={subject}
+                  level={level}
                 />
               </div>
               {pages > 1 && (

@@ -39,3 +39,31 @@ refresh within the same user/session, but no name or granted-role links display
 until fresh guarded account data validates it. Error/denial and identity/session
 changes clear the context. Shared booking current-page markers require the exact
 matching scope; query scope never grants or selects an arbitrary workspace.
+
+## Amendment, 2026-10-14: full sidebar at first paint
+
+The owner reported that the admin sidebar first appeared with only the shared
+links and filled in after a delay, and asked for one complete sidebar at once.
+Cause: role links waited for two browser requests in sequence (provider session,
+then the guarded account GET), about 1.2 s on the development database. The
+workspace layout now performs the same guarded account read on the server
+(`readShellAccount`), so the first paint has the full sidebar and name and that
+first visit needs no account GET. The server's account is shown only while the
+provider session first loads and is kept only if it settles to the same user
+and session; sign-out, errors, another user or session discard it. Later
+destinations recheck as before. Better Auth also flags its first load as
+refetching; only a refresh of a settled session discards the shown account.
+
+## Amendment, 2026-10-14: no flicker during re-checks
+
+The owner approved keeping the account name and role links visible while a
+re-check of the same user and session is pending: a sidebar navigation's guarded
+account read, a provider refresh on tab focus, visibility or online, the
+account-updated event, and the public header's per-navigation session refetch.
+Previously the name disappeared for 0.7–1.3 s on every sidebar click, and the
+role links vanished on every tab return. A settled read replaces what is shown;
+a failed or denied read, a provider error, sign-out or a different user or
+session still clears it at once. Server guards remain authoritative, so a link
+shown for about a second after a role is revoked cannot grant anything. This
+supersedes the "only display links survive navigation waits" and "no name or
+granted-role links display until fresh data validates it" rules above.

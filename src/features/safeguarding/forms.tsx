@@ -1,10 +1,19 @@
 "use client";
-import { useSyncExternalStore, useRef, useState } from "react";
+import { useSyncExternalStore, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { SafeguardingDetail } from "./service";
 const subscribe = () => () => {};
 const clientSnapshot = () => true;
 const serverSnapshot = () => false;
+function friendly(result: unknown) {
+  return typeof result === "object" &&
+    result !== null &&
+    "message" in result &&
+    typeof result.message === "string" &&
+    result.message
+    ? result.message
+    : undefined;
+}
 export function SafeguardingReportForm() {
   const ready = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot),
     [busy, setBusy] = useState(false),
@@ -35,16 +44,23 @@ export function SafeguardingReportForm() {
               requestKey: key.current,
             }),
           });
-          const result = await r.json();
-          if (!r.ok) throw new Error(result.message);
+          const result: unknown = await r.json().catch(() => null);
+          const text = friendly(result);
+          const id =
+            typeof result === "object" && result !== null && "id" in result
+              ? result.id
+              : undefined;
+          if (!r.ok || typeof id !== "string") {
+            setMessage(text ?? "Report could not be saved.");
+            setBusy(false);
+            requestAnimationFrame(() => alert.current?.focus());
+            return;
+          }
           window.location.replace(
-            new URL(`/safeguarding/cases/${result.id}`, window.location.origin)
-              .href,
+            new URL(`/safeguarding/cases/${id}`, window.location.origin).href,
           );
-        } catch (e) {
-          setMessage(
-            e instanceof Error ? e.message : "Report could not be saved.",
-          );
+        } catch {
+          setMessage("Report could not be saved.");
           setBusy(false);
           requestAnimationFrame(() => alert.current?.focus());
         }
@@ -99,11 +115,14 @@ export function ResponseForm({
 }) {
   const router = useRouter(),
     ready = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot),
-    [busy, setBusy] = useState(false),
+    [refreshing, startRefresh] = useTransition(),
+    [saving, setBusy] = useState(false),
     [message, setMessage] = useState(""),
     alert = useRef<HTMLParagraphElement>(null),
     key = useRef<string | null>(null);
+  const busy = saving || refreshing;
   async function save(action: string, targetId?: string) {
+    if (busy) return;
     setBusy(true);
     key.current ??= crypto.randomUUID();
     try {
@@ -117,13 +136,16 @@ export function ResponseForm({
           ...(targetId ? { targetId } : {}),
         }),
       });
-      const result = await r.json();
-      if (!r.ok) throw new Error(result.message);
+      const result: unknown = await r.json().catch(() => null);
+      if (!r.ok) {
+        setMessage(friendly(result) ?? "Action could not be saved.");
+        return;
+      }
       key.current = null;
-      router.refresh();
+      startRefresh(() => router.refresh());
       setMessage("Synthetic response action saved.");
-    } catch (e) {
-      setMessage(e instanceof Error ? e.message : "Action could not be saved.");
+    } catch {
+      setMessage("Action could not be saved.");
     } finally {
       setBusy(false);
       requestAnimationFrame(() => alert.current?.focus());

@@ -484,11 +484,12 @@ test("native GET and detail-link pending feedback retain content and stay access
   const id = await actor.booking();
   await actor.page.goto("/bookings?scope=guardian");
   await actor.page.setViewportSize({ width: 320, height: 720 });
-  // The floating dock is the navigation at this width; it must not cover the
-  // controls this test submits.
+  // Private pages use the workspace menu, not the public floating dock, so
+  // nothing floats over the controls this test submits.
   await expect(
-    actor.page.getByRole("navigation", { name: "Main navigation" }),
+    actor.page.getByRole("button", { name: "Workspace menu" }),
   ).toBeVisible();
+  await expect(actor.page.locator(".site-dock")).toHaveCount(0);
   let release!: () => void;
   const gate = new Promise<void>((resolve) => {
     release = resolve;

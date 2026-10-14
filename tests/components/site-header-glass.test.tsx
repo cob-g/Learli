@@ -98,5 +98,17 @@ describe("site header glass variant", () => {
     expect(profile).not.toContain('aria-current="page"');
     // Pages outside the five light nothing.
     expect(dock("/sign-in")).not.toContain("aria-current");
+    // The top bar follows the same rule as the dock.
+    const bar = (pathname: string) => {
+      const html = render(pathname);
+      return html.slice(
+        html.indexOf('class="site-header-navigation"'),
+        html.indexOf('class="site-header-account"'),
+      );
+    };
+    expect(bar("/tutors/some-tutor")).toMatch(
+      /aria-current="true"[^>]*href="\/tutors"|href="\/tutors"[^>]*aria-current="true"/,
+    );
+    expect(bar("/tutors")).toContain('aria-current="page"');
   });
 });

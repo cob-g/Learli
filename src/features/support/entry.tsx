@@ -1,5 +1,6 @@
 import "server-only";
 import Link from "next/link";
+import { z } from "zod";
 import { headers } from "next/headers";
 import { getAuthRuntime } from "@/lib/auth";
 import { AccessError } from "@/lib/permissions/access";
@@ -35,6 +36,12 @@ export async function SupportEntry({
   } catch (error) {
     anonymous = error instanceof AccessError && error.status === 401;
   }
+  const base = concern ? "/report-a-concern" : "/contact";
+  // Same uuid rule the booking lookup applies; anything else is dropped.
+  const returnTo =
+    bookingId !== undefined && z.uuid().safeParse(bookingId).success
+      ? `${base}?bookingId=${encodeURIComponent(bookingId)}`
+      : base;
   return (
     <div className="page-shell page-space">
       <h1 className="text-page-title">
@@ -73,7 +80,7 @@ export async function SupportEntry({
           {anonymous && (
             <Link
               className="action action-primary mt-4"
-              href={`/sign-in?next=${encodeURIComponent(concern ? "/report-a-concern" : "/contact")}`}
+              href={`/sign-in?next=${encodeURIComponent(returnTo)}`}
             >
               Sign in
             </Link>

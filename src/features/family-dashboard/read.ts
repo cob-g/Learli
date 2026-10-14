@@ -51,16 +51,13 @@ export async function readFamilyDashboard(
     throw new AccessError(404);
   const query = parsed.data;
   const scope = workspace === "parent" ? "guardian" : "student";
-  const { active, history } = await listParticipantBookingOverview(
-    runtime,
-    headers,
-    {
+  const { active, history, earliestExpiryAtUtc } =
+    await listParticipantBookingOverview(runtime, headers, {
       scope,
       learnerId: query.learner,
       page: query.historyPage ?? 1,
       pageSize: 20,
-    },
-  );
+    });
   const learners = history.learners;
   const selectedLearner =
     workspace === "parent"
@@ -80,6 +77,7 @@ export async function readFamilyDashboard(
     active: active.items.map(view),
     history: history.items.map(view),
     activeHasNext: active.hasNext,
+    earliestExpiry: earliestExpiryAtUtc,
     historyHasNext: history.hasNext,
     checkedAt: formatLessonTime(snapshot, snapshot, history.viewerTimezone),
   };

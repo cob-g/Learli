@@ -104,6 +104,30 @@ describe("family dashboard UI states", () => {
       screen.getByRole("link", { name: /View booking for/ }),
     ).toHaveAttribute("href", `/bookings/${row.id}?scope=student`);
   });
+  it("does not call a confirmed next booking temporary or expiring", () => {
+    const confirmed = { ...row, state: "confirmed" as const };
+    const checkedAt = formatLessonTime(
+      new Date("2026-10-16T07:00:00Z"),
+      new Date("2026-10-16T08:00:00Z"),
+      "Asia/Manila",
+    );
+    const view = render(
+      <FamilyDashboard data={{ ...data, checkedAt, active: [confirmed] }} />,
+    );
+    const card = screen
+      .getByRole("heading", { name: "Next simulated reservation" })
+      .closest("section")!;
+    expect(card).toHaveTextContent("confirmed and does not expire");
+    expect(card).not.toHaveTextContent("temporary local reservation");
+    expect(card).not.toHaveTextContent("Simulation expires at");
+    view.unmount();
+    render(<FamilyDashboard data={{ ...data, checkedAt }} />);
+    const live = screen
+      .getByRole("heading", { name: "Next simulated reservation" })
+      .closest("section")!;
+    expect(live).toHaveTextContent("temporary local reservation");
+    expect(live).toHaveTextContent("Simulation expires at");
+  });
   it("distinguishes no learner, no reservations and load error", () => {
     const empty = render(
       <FamilyDashboard data={{ ...data, learners: [], active: [] }} />,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Hourglass, TimerOff, CircleCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { demoLiveState, demoStateLabels } from "./lifecycle-model";
@@ -10,6 +10,8 @@ import type { BookingSummary } from "./read-model";
 export function BookingReadStatus({ booking }: { booking: BookingSummary }) {
   const [elapsed, setElapsed] = useState(false);
   const router = useRouter();
+  // Refresh once per deadline so a lagging server snapshot cannot loop.
+  const refreshedFor = useRef<string>(null);
   useEffect(() => {
     if (!demoLiveState(booking.state) && booking.state !== "provisional")
       return;
@@ -19,9 +21,17 @@ export function BookingReadStatus({ booking }: { booking: BookingSummary }) {
     // Device wall-clock skew cannot shorten or renew authoritative server state.
     const delay = Math.max(0, remaining);
     const started = performance.now();
-    const timer = window.setTimeout(() => setElapsed(true), delay);
+    const expire = () => {
+      setElapsed(true);
+      if (refreshedFor.current === booking.expiresAtUtc) return;
+      refreshedFor.current = booking.expiresAtUtc;
+      // Server-rendered actions (meeting link, reschedule, cancel) must be
+      // replaced by the server's expired state.
+      router.refresh();
+    };
+    const timer = window.setTimeout(expire, delay);
     const check = () => {
-      if (performance.now() - started >= delay) setElapsed(true);
+      if (performance.now() - started >= delay) expire();
       if (document.visibilityState === "visible") router.refresh();
     };
     document.addEventListener("visibilitychange", check);

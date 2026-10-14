@@ -4,6 +4,7 @@ import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { listCases } from "@/features/support/service";
 import { DemoNotice, CaseRows } from "@/features/support/presentation";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
+import { safePage } from "@/features/support/input";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Your reports",
@@ -14,7 +15,7 @@ export default async function Page({
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
-  const page = (await searchParams).page ?? 1;
+  const page = safePage((await searchParams).page);
   const result = await loadPrivatePage("/support", (runtime, headers) =>
     listCases(runtime, headers, "requester", page),
   );

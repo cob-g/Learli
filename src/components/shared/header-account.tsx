@@ -13,6 +13,17 @@ export function HeaderAccount() {
   const { data, isPending, isRefetching, error, refetch } =
     authClient.useSession();
   const previousPath = useRef(pathname);
+  // After a failure the provider clears its error as a retry starts while still
+  // holding old data. Stay neutral until a refetch settles cleanly.
+  const [failed, setFailed] = useState(false);
+  if (error && !failed) setFailed(true);
+  if (failed && !error && !isPending && !isRefetching) setFailed(false);
+  // Better Auth reports a refetch without a session as pending too, so a
+  // signed-out visitor would see "Checking account…" on every navigation.
+  // Once a clean result has settled, keep showing it while a refetch runs.
+  const [settled, setSettled] = useState(false);
+  if (!settled && !error && !isPending && !isRefetching) setSettled(true);
+  const pending = isPending && !(settled && isRefetching);
 
   useEffect(() => {
     if (previousPath.current === pathname) return;
@@ -22,7 +33,9 @@ export function HeaderAccount() {
     void refetch();
   }, [pathname, refetch]);
 
-  if (error || isPending || isRefetching) {
+  // A refetch keeps the last settled rendering (signed-in chip or Sign in), so
+  // the header does not flicker on navigation or tab focus.
+  if (error || pending || failed) {
     return (
       <div className="header-account-fallback">
         {/* Native navigation always reauthorizes the account document. */}

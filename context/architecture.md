@@ -1738,10 +1738,16 @@ public/auth chrome from the workspace route group. Workspace pages retain
 PrivateDocumentBoundary and no-index metadata, with one main landmark and no
 marketing header/dock/footer. Auth pages retain PublicAuthDocumentBoundary.
 Current shell identity/roles come from the existing provider session and guarded
-account GET. Per-destination account reads reauthorize the server session/account/
+account GET. The workspace layout performs the same guarded account read on the
+server for each new document, so the first paint already has the full sidebar
+and that first visit needs no account GET; it is kept only while the provider
+session first loads and then only if it settles to the same user and session.
+Per-destination account reads reauthorize the server session/account/
 roles without an extra route-triggered provider refetch. Stale requests are
-cancelled; only display links survive same-identity navigation waits, not names.
-Provider refresh/error or identity/session changes and denied reads clear evidence.
+cancelled. While a re-check of the same user and session is pending (navigation
+or provider refresh such as tab focus), the last validated name and links stay
+visible (owner decision 2026-10-14); a failed or denied read, a provider error,
+and identity/session changes clear them.
 Explicit granted role routes win; shared routes retain a same-document selected
 role or use a sole actual grant. Fresh ambiguous multi-role entries remain neutral;
 context is never stored durably. Navigation is presentation only; page guards,
@@ -1750,8 +1756,8 @@ replacement remain unchanged. No new endpoint, schema or business rule.
 See docs/decisions/2026-10-14-workspace-shell.md and the M1.5 blueprint.
 
 
-Sidebar refresh detail: a selected role enum may survive an ordinary provider
-refresh within the same user/session, but no name or granted-role links display
-until fresh guarded account data validates it. Error/denial and identity/session
+Sidebar refresh detail: an ordinary provider refresh within the same user/session
+keeps the shown name and granted-role links until the following guarded account
+read settles, which then updates or clears them. Error/denial and identity/session
 changes clear the context. Shared booking current-page markers require the exact
 matching scope; query scope never grants or selects an arbitrary workspace.

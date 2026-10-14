@@ -14,7 +14,10 @@ const props = {
   timezone: "UTC",
   zones: [{ value: "UTC", label: "UTC (GMT)" }],
 };
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  window.sessionStorage.clear();
+});
 async function fill() {
   const user = userEvent.setup();
   await user.type(screen.getByLabelText("Display name"), "Synthetic learner");
@@ -22,6 +25,63 @@ async function fill() {
   return user;
 }
 describe("local learner creation form", () => {
+  it("reuses the uncertain request id after a reload and clears it on success", async () => {
+    const fetch = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce(Response.json({ id }))
+      .mockResolvedValueOnce(Response.json({ id }));
+    vi.stubGlobal("fetch", fetch);
+    const first = render(<CreateLearnerForm {...props} />);
+    const user = await fill();
+    await user.click(
+      screen.getByRole("button", { name: "Create local learner" }),
+    );
+    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
+    first.unmount();
+    const reloadedId = "11111111-1111-4111-8111-111111111111";
+    const second = render(
+      <CreateLearnerForm {...props} requestId={reloadedId} />,
+    );
+    const again = await fill();
+    await again.click(
+      screen.getByRole("button", { name: "Create local learner" }),
+    );
+    await waitFor(() => expect(screen.getByRole("status")).toBeInTheDocument());
+    expect(JSON.parse(fetch.mock.calls[1][1].body).requestId).toBe(requestId);
+    second.unmount();
+    render(<CreateLearnerForm {...props} requestId={reloadedId} />);
+    const third = await fill();
+    await third.click(
+      screen.getByRole("button", { name: "Create local learner" }),
+    );
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(3));
+    expect(JSON.parse(fetch.mock.calls[2][1].body).requestId).toBe(reloadedId);
+  });
+  it("uses a fresh id when the fields changed after an uncertain attempt", async () => {
+    const fetch = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce(Response.json({ id }));
+    vi.stubGlobal("fetch", fetch);
+    const first = render(<CreateLearnerForm {...props} />);
+    const user = await fill();
+    await user.click(
+      screen.getByRole("button", { name: "Create local learner" }),
+    );
+    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
+    first.unmount();
+    const freshId = "22222222-2222-4222-8222-222222222222";
+    render(<CreateLearnerForm {...props} requestId={freshId} />);
+    const again = userEvent.setup();
+    await again.type(screen.getByLabelText("Display name"), "Someone else");
+    await again.selectOptions(screen.getByLabelText("Level"), "elementary");
+    await again.click(
+      screen.getByRole("button", { name: "Create local learner" }),
+    );
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2));
+    expect(JSON.parse(fetch.mock.calls[1][1].body).requestId).toBe(freshId);
+  });
   it("retains input and request identity after network uncertainty and focuses completion", async () => {
     const fetch = vi
       .fn()

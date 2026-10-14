@@ -26,6 +26,7 @@ import {
 import {
   listTutorApplications,
   readTutorApplication,
+  reviewQueueLimit,
 } from "@/features/tutors/review";
 import { readOwnTutorProfile } from "@/features/tutors/service";
 import {
@@ -654,6 +655,24 @@ describe("admin review", () => {
       "pending",
     );
     expect(queue.total).toBe(1);
+    expect(queue).toMatchObject({ page: 1, hasMore: false });
+    const beyond = await listTutorApplications(
+      world.runtime,
+      admin.headers,
+      "pending",
+      2,
+    );
+    expect(beyond).toMatchObject({ page: 2, hasMore: false, applications: [] });
+    expect(
+      (
+        await listTutorApplications(
+          world.runtime,
+          admin.headers,
+          "pending",
+          Number.NaN,
+        )
+      ).page,
+    ).toBe(1);
     expect(queue.applications).toEqual([
       {
         id: pending.profileId,
@@ -685,6 +704,77 @@ describe("admin review", () => {
     await expect(
       readTutorApplication(world.runtime, admin.headers, randomUUID()),
     ).rejects.toMatchObject({ status: 404 });
+  });
+});
+
+describe("review queue pagination", () => {
+  it("pages past the 50-row cap, oldest first, keeping the status filter", async () => {
+    const admin = await createAccount(world, ["admin"]);
+    // 52 pending + 3 approved synthetic applications; every fifth pair shares
+    // a timestamp so the id tiebreaker is exercised. The beforeEach TRUNCATE
+    // of "user" cascades these away.
+    await world.owner.pool.query(`
+      INSERT INTO "user" (id, name, email, email_verified)
+      SELECT 'bulk-' || n, 'Bulk tutor ' || n, 'bulk-' || n || '@learli.test', true
+      FROM generate_series(1, 55) n`);
+    await world.owner.pool.query(`
+      INSERT INTO user_access (user_id, status)
+      SELECT 'bulk-' || n, 'active' FROM generate_series(1, 55) n
+      ON CONFLICT (user_id) DO NOTHING`);
+    await world.owner.pool.query(`
+      INSERT INTO user_roles (user_id, role)
+      SELECT 'bulk-' || n, 'tutor' FROM generate_series(1, 55) n
+      ON CONFLICT DO NOTHING`);
+    await world.owner.pool.query(`
+      INSERT INTO tutor_profiles
+        (user_id, slug, headline, bio, teaching_background, timezone, review_status, created_at)
+      SELECT 'bulk-' || n, 'bulk-tutor-' || n, 'Synthetic tutor', 'Synthetic bio',
+        'Synthetic background', 'UTC',
+        CASE WHEN n > 52 THEN 'approved' ELSE 'pending' END,
+        now() - interval '1 day' + (n / 5) * interval '1 minute'
+      FROM generate_series(1, 55) n`);
+    // The queue shows only applications this admin holds an assignment for.
+    const profiles = await world.owner.pool.query<{ id: string }>(
+      "SELECT id FROM tutor_profiles WHERE user_id LIKE 'bulk-%'",
+    );
+    for (const row of profiles.rows) await exactReview(admin, row.id);
+    const list = (status: ReviewStatus | undefined, page: number) =>
+      listTutorApplications(world.runtime, admin.headers, status, page);
+
+    const first = await list("pending", 1);
+    const second = await list("pending", 2);
+    expect(first.total).toBe(52);
+    expect(first.applications).toHaveLength(reviewQueueLimit);
+    expect(first.hasMore).toBe(true);
+    expect(second.page).toBe(2);
+    expect(second.applications).toHaveLength(2);
+    expect(second.hasMore).toBe(false);
+    expect(
+      second.applications.every((row) => row.reviewStatus === "pending"),
+    ).toBe(true);
+
+    const ids = [...first.applications, ...second.applications].map(
+      (row) => row.id,
+    );
+    expect(new Set(ids).size).toBe(52);
+    const times = [...first.applications, ...second.applications].map((row) =>
+      row.createdAt.getTime(),
+    );
+    expect(times).toEqual([...times].sort((a, b) => a - b));
+    expect(first.applications.at(-1)!.createdAt.getTime()).toBeLessThanOrEqual(
+      second.applications[0]!.createdAt.getTime(),
+    );
+
+    const all1 = await list(undefined, 1);
+    const all2 = await list(undefined, 2);
+    expect(all1.total).toBe(55);
+    expect(all1.hasMore).toBe(true);
+    expect(all2.applications).toHaveLength(5);
+    expect(all2.hasMore).toBe(false);
+    const approved = await list("approved", 1);
+    expect(approved.applications).toHaveLength(3);
+    expect(approved.hasMore).toBe(false);
+    expect((await list("approved", 2)).applications).toEqual([]);
   });
 });
 

@@ -160,7 +160,7 @@ describe("tutor simulation presentation", () => {
     const reset = vi.fn();
     render(<TutorBookingsError reset={reset} />);
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "We couldn't load your bookings.",
+      "We couldn't load this page.",
     );
     const button = screen.getByRole("button", { name: "Try again" });
     button.focus();
