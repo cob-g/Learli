@@ -79,7 +79,7 @@ export function SiteHeader() {
                 key={href}
                 href={href}
                 className="nav-link"
-                aria-current={pathname === href ? "page" : undefined}
+                aria-current={current(href)}
               >
                 {label}
               </Link>

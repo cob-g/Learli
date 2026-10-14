@@ -2,6 +2,7 @@ import Link from "next/link";
 import { levelNames } from "@/features/subjects/catalog";
 import { learnerLevels } from "@/lib/db/schema/app";
 import { cn } from "@/lib/utils";
+import { publicProfileHref } from "@/features/public-availability/links";
 import type { PublicTutor } from "./eligibility";
 import { teachingLanguageNames } from "./teaching-languages";
 import {
@@ -48,6 +49,41 @@ export function tutorLevels(tutor: PublicTutor) {
 }
 
 /**
+ * Profile link that keeps the visitor's filter context. The shared builder
+ * validates every value; anything it rejects falls back to the plain link so a
+ * bad filter can never break the directory.
+ */
+function profileHref(
+  slug: string,
+  subject: string | undefined,
+  level: string | undefined,
+  timezone: string | undefined,
+  next: LessonTimeValue | undefined,
+) {
+  const plain = `/tutors/${slug}${timezone ? `?displayTimezone=${encodeURIComponent(timezone)}` : ""}`;
+  if (!subject || !level || !timezone) return plain;
+  const base = {
+    tutorSlug: slug,
+    subjectSlug: subject,
+    level,
+    displayTimezone: timezone,
+  } as Parameters<typeof publicProfileHref>[0];
+  try {
+    return publicProfileHref(
+      next
+        ? { ...base, startAtUtc: next.startAtUtc, endAtUtc: next.endAtUtc }
+        : base,
+    );
+  } catch {
+    try {
+      return publicProfileHref(base);
+    } catch {
+      return plain;
+    }
+  }
+}
+
+/**
  * Directory rows optionally show an actual dated, viewer-local open time.
  */
 export function TutorList({
@@ -55,11 +91,16 @@ export function TutorList({
   heading: Heading = "h2",
   nextTimes,
   timezone,
+  subject,
+  level,
 }: {
   tutors: PublicTutor[];
   heading?: "h2" | "h3";
   nextTimes?: Record<string, LessonTimeValue>;
   timezone?: string;
+  /** Visitor-selected filters, carried to the profile when both are valid. */
+  subject?: string;
+  level?: string;
 }) {
   return (
     <ul className="@container divide-y divide-border border-y border-border">
@@ -102,7 +143,13 @@ export function TutorList({
               </div>
             </div>
             <Link
-              href={`/tutors/${tutor.slug}${timezone ? `?displayTimezone=${encodeURIComponent(timezone)}` : ""}`}
+              href={profileHref(
+                tutor.slug,
+                subject,
+                level,
+                timezone,
+                nextTimes?.[tutor.slug],
+              )}
               aria-label={`View profile: ${tutor.displayName}`}
               className="action action-outline w-full shrink-0 after:absolute after:inset-0 @3xl:w-auto"
             >

@@ -6,6 +6,7 @@ import { listCases } from "@/features/support/service";
 import { DemoNotice, CaseRows } from "@/features/support/presentation";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { AdminShell } from "@/features/admin/admin-shell";
+import { safePage } from "@/features/support/input";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Assigned support cases",
@@ -16,7 +17,7 @@ export default async function Page({
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
-  const page = (await searchParams).page ?? 1;
+  const page = safePage((await searchParams).page);
   const result = await loadPrivatePage(
     "/admin/support",
     async (runtime, headers) => {

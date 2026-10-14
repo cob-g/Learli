@@ -47,9 +47,11 @@ export function DemoCancelControl({
         }),
       });
       if (!response.ok) {
-        const body = await response.json();
+        const body: { message?: string } | null = await response
+          .json()
+          .catch(() => null);
         setNotice(
-          body.message ??
+          body?.message ??
             "This simulation could not be changed. Reload booking details.",
         );
         return;
@@ -170,10 +172,12 @@ export function DemoRescheduleForm({
           displayTimezone: booking.viewerTimezone,
         }),
       });
-      const body = await response.json();
-      if (!response.ok) {
+      const body: { message?: string; id?: string } | null = await response
+        .json()
+        .catch(() => null);
+      if (!response.ok || typeof body?.id !== "string") {
         setNotice(
-          body.message ??
+          (!response.ok ? body?.message : undefined) ??
             "This simulation could not be moved. Reload current times.",
         );
         return;

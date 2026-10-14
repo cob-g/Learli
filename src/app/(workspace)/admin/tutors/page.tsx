@@ -10,6 +10,7 @@ import {
 } from "@/features/tutors/review";
 import { reviewStatusLabels } from "@/features/tutors/review-rules";
 import { ReviewStatusBadge } from "@/features/tutors/review-status";
+import { safePage } from "@/features/support/input";
 import { EmptyState } from "@/components/shared/empty-state";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 export const dynamic = "force-dynamic";
@@ -20,9 +21,11 @@ export const metadata: Metadata = {
 export default async function TutorReviewQueuePage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; page?: string }>;
 }) {
-  const requested = (await searchParams).status ?? "pending";
+  const params = await searchParams;
+  const requested = params.status ?? "pending";
+  const requestedPage = safePage(params.page);
   // An unknown value falls back to the working queue instead of an error.
   const status =
     requested === "all"
@@ -31,7 +34,12 @@ export default async function TutorReviewQueuePage({
   const data = await loadPrivatePage(
     "/admin/tutors",
     async (runtime, headers) => ({
-      queue: await listTutorApplications(runtime, headers, status),
+      queue: await listTutorApplications(
+        runtime,
+        headers,
+        status,
+        requestedPage,
+      ),
       account: await readAccount(runtime, headers),
     }),
   );
@@ -42,7 +50,9 @@ export default async function TutorReviewQueuePage({
         message="This workspace is not available to your current account. Return to your account to see your assigned access."
       />
     );
-  const { total, applications } = data.queue;
+  const { total, applications, page, hasMore } = data.queue;
+  const pageHref = (target: number) =>
+    `/admin/tutors?status=${status ?? "all"}&page=${target}`;
   const date = new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeZone: data.account.timezone,
@@ -81,7 +91,7 @@ export default async function TutorReviewQueuePage({
         </button>
       </form>
       <div className="mt-8">
-        {applications.length === 0 ? (
+        {applications.length === 0 && page === 1 ? (
           <EmptyState
             title={
               status
@@ -95,8 +105,8 @@ export default async function TutorReviewQueuePage({
           <>
             <p role="status" className="text-body">
               {total === 1 ? "1 application" : `${total} applications`}
-              {total > applications.length &&
-                `. Showing the ${reviewQueueLimit} oldest. Choose a status to narrow the list.`}
+              {total > reviewQueueLimit &&
+                `. Page ${page}, oldest first, ${reviewQueueLimit} per page.`}
             </p>
             <table className="mt-4 w-full table-fixed border-collapse bg-surface text-left text-small">
               <caption className="sr-only">Tutor applications</caption>
@@ -148,6 +158,27 @@ export default async function TutorReviewQueuePage({
                 ))}
               </tbody>
             </table>
+            <nav
+              aria-label="Application pages"
+              className="mt-6 flex flex-wrap gap-3"
+            >
+              {page > 1 && (
+                <Link
+                  className="action action-outline"
+                  href={pageHref(page - 1)}
+                >
+                  Previous applications
+                </Link>
+              )}
+              {hasMore && (
+                <Link
+                  className="action action-outline"
+                  href={pageHref(page + 1)}
+                >
+                  More applications
+                </Link>
+              )}
+            </nav>
           </>
         )}
       </div>

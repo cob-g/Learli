@@ -45,8 +45,10 @@ let fixture: z.infer<typeof workflowFixture>,
   parentContext: BrowserContext,
   secret: string;
 async function login(browser: Browser, email: string, secondFactor?: string) {
+  // Late in a full run every page's session check has accumulated on the one
+  // loopback address, so reset /get-session too or the shell cannot load roles.
   await owner.pool.query(
-    "UPDATE rate_limit SET count=0 WHERE key LIKE '%/sign-in/email%' OR key LIKE '%/two-factor/%'",
+    "UPDATE rate_limit SET count=0 WHERE key LIKE '%/sign-in/email%' OR key LIKE '%/two-factor/%' OR key LIKE '%/get-session%'",
   );
   const context = await browser.newContext({ baseURL: screeningMirrorOrigin }),
     page = await context.newPage();

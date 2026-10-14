@@ -35,7 +35,15 @@ export function TimeOffForm({
     });
   }
   async function mutate(input: unknown, action: string) {
-    if (pending) return;
+    // Buttons stay focusable while busy (aria-disabled), so say why a click
+    // during another change does nothing instead of ignoring it silently.
+    if (pending) {
+      setNotice({
+        text: "Wait for the current change to finish.",
+        failed: false,
+      });
+      return;
+    }
     const parsed = timeOffInput.safeParse(input);
     if (!parsed.success) {
       const issue = describeTimeOffIssues(parsed.error);

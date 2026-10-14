@@ -10,7 +10,14 @@ import { z } from "zod";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
 import { describeLearnerIssues } from "@/features/learners/input";
 import { admissionInput } from "./input";
+import {
+  clearRequestId,
+  rememberRequestId,
+  requestFingerprint,
+  reusableRequestId,
+} from "@/features/learners/pending-request";
 import type { ReviewerAdmissionDetail } from "./service";
+const admissionScope = "learner-admission";
 const responseMessage = z.object({
   message: z.string().max(500).optional(),
   fields: z.record(z.string(), z.string().max(500)).optional(),
@@ -46,7 +53,11 @@ function useSubmission() {
       : null;
     (target ?? notice.current)?.focus();
   }, [message, fields]);
-  async function submit(url: string, body: unknown) {
+  async function submit(
+    url: string,
+    body: unknown,
+    track?: { fingerprint: string; id: string },
+  ) {
     setPending(true);
     setMessage("");
     setFields({});
@@ -56,6 +67,10 @@ function useSubmission() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       });
+      if (track) {
+        if (response.status < 500) clearRequestId(admissionScope);
+        else rememberRequestId(admissionScope, track.fingerprint, track.id);
+      }
       const value: unknown = await response.json();
       if (!response.ok) {
         const parsed = responseMessage.safeParse(value);
@@ -69,6 +84,7 @@ function useSubmission() {
       }
       return responseId.parse(value);
     } catch {
+      if (track) rememberRequestId(admissionScope, track.fingerprint, track.id);
       setUncertain(true);
       setMessage(
         "The result is uncertain. Reload the current status before another request.",
@@ -126,8 +142,7 @@ export function AdmissionForm({
     event.preventDefault();
     const form = event.currentTarget;
     const fd = new FormData(form);
-    const input = {
-      requestId,
+    const fields = {
       policyVersion,
       policyDigest,
       management,
@@ -136,6 +151,9 @@ export function AdmissionForm({
       timezone: fd.get("timezone"),
       ...(next ? { next } : {}),
     };
+    const fingerprint = requestFingerprint(fields);
+    const id = reusableRequestId(admissionScope, fingerprint, requestId);
+    const input = { requestId: id, ...fields };
     const parsed = admissionInput.safeParse(input);
     if (!parsed.success) {
       const issues = describeLearnerIssues(parsed.error);
@@ -145,7 +163,10 @@ export function AdmissionForm({
       form.querySelector<HTMLElement>(`[name="${first}"]`)?.focus();
       return;
     }
-    const result = await state.submit("/api/learner-admission", parsed.data);
+    const result = await state.submit("/api/learner-admission", parsed.data, {
+      fingerprint,
+      id,
+    });
     if (result) window.location.replace(`/learner-admission/${result.id}`);
   }
   return (

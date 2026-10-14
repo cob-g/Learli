@@ -44,7 +44,17 @@ function parseAccount(value: unknown, userId: string): Account | null {
 }
 
 /** Presentation only. Every page and endpoint retains its existing server guard. */
-export function WorkspaceShell({ children }: { children: ReactNode }) {
+export function WorkspaceShell({
+  children,
+  initialAccount = null,
+  screeningEnabled = false,
+}: {
+  children: ReactNode;
+  /** The server's guarded account read for this document, if it succeeded. */
+  initialAccount?: (Account & { sessionId: string }) | null;
+  /** Deployment-level screening switch decided by the server layout. */
+  screeningEnabled?: boolean;
+}) {
   const pathname = usePathname();
   const scope = useSearchParams().get("scope");
   const session = authClient.useSession();
@@ -57,21 +67,43 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
   const waiting = session.isPending || session.isRefetching;
   const userId =
     !session.isPending && !session.error ? session.data?.user.id : undefined;
+  // Until the provider session first settles, show the account the server read
+  // for this document so the first paint has the full sidebar. A settled
+  // session for the same user and session keeps it (same key, no remount);
+  // anything else discards it.
+  const initial =
+    initialAccount && parseAccount(initialAccount, initialAccount.id);
+  const chromeUser =
+    userId ?? (session.isPending && initial ? initial.id : undefined);
+  const chromeSession = userId
+    ? session.data?.session.id
+    : initialAccount?.sessionId;
   return (
     <div className="workspace-shell">
-      {userId ? (
+      {chromeUser ? (
         <AccountChrome
-          key={`${userId}:${session.data?.session.id}`}
+          key={`${chromeUser}:${chromeSession}`}
           pathname={pathname}
           scope={scope}
-          userId={userId}
-          refreshing={session.isRefetching}
+          userId={chromeUser}
+          screeningEnabled={screeningEnabled}
+          // Better Auth also flags its first load as refetching; only a
+          // refresh of a settled session discards the shown account.
+          refreshing={session.isRefetching && !session.isPending}
+          confirmed={Boolean(userId)}
+          initial={
+            initial?.id === chromeUser &&
+            initialAccount?.sessionId === chromeSession
+              ? initial
+              : null
+          }
         />
       ) : (
         <WorkspaceChrome
           pathname={pathname}
           account={null}
           roles={null}
+          screeningEnabled={screeningEnabled}
           message={
             session.error
               ? "Account status unavailable."
@@ -94,11 +126,18 @@ function AccountChrome({
   userId,
   scope,
   refreshing,
+  confirmed,
+  initial,
+  screeningEnabled,
 }: {
   pathname: string;
   userId: string;
   scope: string | null;
   refreshing: boolean;
+  /** False while only the server's read vouches for this user and session. */
+  confirmed: boolean;
+  initial: Account | null;
+  screeningEnabled: boolean;
 }) {
   const [attempt, setAttempt] = useState(0);
   const pathKey = JSON.stringify([pathname, scope, refreshing]);
@@ -107,15 +146,20 @@ function AccountChrome({
     setVisit({ pathKey, revision: visit.revision + 1 });
   // A -> B -> A is a new read too, even when B has not finished loading.
   const requestKey = JSON.stringify([pathKey, visit.revision, attempt]);
+  // The server already read this account for the document's first visit, so
+  // that visit needs no repeat GET. Every later visit reads again as before.
+  const [seed] = useState(() => (initial ? requestKey : null));
   const [result, setResult] = useState<{
     key: string;
     account: Account | null;
-  } | null>(null);
-  if (refreshing && result) setResult(null);
+  } | null>(() => (seed && initial ? { key: seed, account: initial } : null));
+  // The shown account stays through navigation and provider refreshes of this
+  // same user and session; it is replaced only by a settled read (new data or a
+  // failure). A different user or session remounts this component via its key.
   const pending = result?.key !== requestKey;
   const failed = !pending && !result?.account;
   useEffect(() => {
-    if (refreshing) return;
+    if (refreshing || !confirmed || requestKey === seed) return;
     const abort = new AbortController();
     async function load() {
       try {
@@ -137,16 +181,17 @@ function AccountChrome({
     }
     void load();
     return () => abort.abort();
-  }, [userId, requestKey, refreshing]);
-  // Navigation revalidates through this guarded GET (including server session
-  // and current grants). Only link presentation survives that wait, never names.
-  // Provider refresh discards evidence; errors/identity changes unmount it.
-  // The selected role enum may survive a refresh, but needs fresh grants to show.
+  }, [userId, requestKey, refreshing, confirmed, seed]);
+  // Navigation and provider refreshes revalidate through this guarded GET. The
+  // last validated name and roles stay visible while it is pending (display
+  // only; server guards stay authoritative) and are replaced when it resolves or
+  // dropped when it fails. Identity changes unmount this component.
   return (
     <WorkspaceChrome
       pathname={pathname}
       scope={scope}
-      account={pending ? null : (result?.account ?? null)}
+      screeningEnabled={screeningEnabled}
+      account={result?.account ?? null}
       roles={result?.account?.roles ?? null}
       preserveContext={result === null}
       message={
@@ -173,6 +218,7 @@ function WorkspaceChrome({
   canSignOut = false,
   scope,
   preserveContext = false,
+  screeningEnabled = false,
 }: {
   pathname: string;
   account: Account | null;
@@ -182,6 +228,7 @@ function WorkspaceChrome({
   canSignOut?: boolean;
   scope?: string | null;
   preserveContext?: boolean;
+  screeningEnabled?: boolean;
 }) {
   const routeKey = JSON.stringify([pathname, scope]);
   const [openRoute, setOpenRoute] = useState<string | null>(null);
@@ -199,7 +246,7 @@ function WorkspaceChrome({
   useEffect(() => {
     if (open) panel.current?.querySelector<HTMLElement>("a, summary")?.focus();
   }, [open]);
-  const links = workspaceLinks(role);
+  const links = workspaceLinks(role, { screening: screeningEnabled });
   const common = [
     ...(role === null
       ? (roles ?? [])
@@ -224,6 +271,13 @@ function WorkspaceChrome({
             aria-expanded={open}
             aria-controls={panelId}
             onClick={() => setOpenRoute(open ? null : routeKey)}
+            onKeyDown={(event) => {
+              // The toggle sits outside the sidebar, so it handles Escape itself.
+              if (event.key === "Escape" && open) {
+                event.preventDefault();
+                setOpenRoute(null);
+              }
+            }}
           >
             {open ? (
               <X size={20} aria-hidden="true" />

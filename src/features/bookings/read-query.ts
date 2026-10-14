@@ -13,6 +13,8 @@ export type ReadSnapshot = {
   learners: BookingLearnerSummary[];
   activeItems: StoredBookingRead[];
   historyItems: StoredBookingRead[];
+  /** Overview only: earliest expiry over ALL permitted active timed rows, not one page. */
+  earliestExpiry?: string | Date | null;
 };
 
 /**
@@ -61,7 +63,7 @@ export async function queryParticipantBookings(
         AND EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id = u.id AND r.role = ${role})
         ${input.scope === "tutor" ? sql`AND EXISTS (SELECT 1 FROM tutor_profiles own WHERE own.user_id = u.id AND own.review_status <> 'suspended')` : sql``}
     ), permitted AS (
-      SELECT b.id, b.start_at_utc, ${active} AS active,
+      SELECT b.id, b.start_at_utc, ${active} AS active, b.state AS booking_state, b.expires_at AS booking_expires_at,
         jsonb_build_object(
           'id', b.id, 'source', b.source, 'workflowRevision', b.workflow_revision, 'policyVersion', (SELECT p.version FROM booking_workflow_policies p WHERE p.id=b.workflow_policy_id), 'logicalBookingId', b.logical_booking_id, 'revision', b.revision, 'currentHeadId', (SELECT head.id FROM bookings head WHERE head.logical_booking_id=b.logical_booking_id ORDER BY head.revision DESC LIMIT 1), 'tutorName', tu.name, 'tutorSlug', tp.slug,
           'subjectName', sub.name, 'subjectSlug', sub.slug,
@@ -92,6 +94,7 @@ export async function queryParticipantBookings(
       ${overview ? sql`'[]'::jsonb` : sql`COALESCE((SELECT jsonb_agg(item ORDER BY start_at_utc ${order}, id ${order}) FROM paged), '[]'::jsonb)`} AS items,
       ${overview ? sql`COALESCE((SELECT jsonb_agg(item ORDER BY start_at_utc ASC, id ASC) FROM active_paged), '[]'::jsonb)` : sql`'[]'::jsonb`} AS "activeItems",
       ${overview ? sql`COALESCE((SELECT jsonb_agg(item ORDER BY start_at_utc DESC, id DESC) FROM history_paged), '[]'::jsonb)` : sql`'[]'::jsonb`} AS "historyItems",
+      ${overview ? sql`(SELECT MIN(booking_expires_at) FROM permitted WHERE active AND booking_state <> 'confirmed')` : sql`NULL::timestamptz`} AS "earliestExpiry",
       ${
         input.scope === "tutor"
           ? sql`'[]'::jsonb`

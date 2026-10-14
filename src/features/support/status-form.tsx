@@ -1,5 +1,11 @@
 "use client";
-import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import {
+  useRef,
+  useState,
+  useSyncExternalStore,
+  useTransition,
+  type FormEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { statusLabels, transitions, type CaseStatus } from "./input";
@@ -25,14 +31,16 @@ export function StatusForm({
   );
   const busy = useRef(false);
   const notice = useRef<HTMLParagraphElement>(null);
-  const [pending, setPending] = useState(false);
+  const [refreshing, startRefresh] = useTransition();
+  const [saving, setSaving] = useState(false);
+  const pending = saving || refreshing;
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy.current || !hydrated) return;
+    if (busy.current || !hydrated || refreshing) return;
     busy.current = true;
-    setPending(true);
+    setSaving(true);
     setMessage("");
     try {
       const response = await fetch(`/api/admin/support/${caseId}/status`, {
@@ -43,16 +51,22 @@ export function StatusForm({
           status: new FormData(event.currentTarget).get("status"),
         }),
       });
-      const result = await response.json();
+      const result: unknown = await response.json().catch(() => null);
+      const safeMessage =
+        typeof result === "object" &&
+        result !== null &&
+        "message" in result &&
+        typeof result.message === "string" &&
+        result.message
+          ? result.message
+          : undefined;
       setFailed(!response.ok);
       setMessage(
         response.ok
           ? "Case status saved"
-          : typeof result.message === "string"
-            ? result.message
-            : "Case status could not be saved.",
+          : (safeMessage ?? "Case status could not be saved."),
       );
-      if (response.ok) router.refresh();
+      if (response.ok) startRefresh(() => router.refresh());
     } catch {
       setFailed(true);
       setMessage(
@@ -60,7 +74,7 @@ export function StatusForm({
       );
     } finally {
       busy.current = false;
-      setPending(false);
+      setSaving(false);
       requestAnimationFrame(() => notice.current?.focus());
     }
   }

@@ -44,9 +44,9 @@ const response = (
   name = "Current account name",
   id = "owner",
 ) => ({ ok: true, json: async () => ({ id, name, roles }) });
-function shell() {
+function shell(screeningEnabled = true) {
   return render(
-    <WorkspaceShell>
+    <WorkspaceShell screeningEnabled={screeningEnabled}>
       <h1>Private page content</h1>
     </WorkspaceShell>,
   );
@@ -173,7 +173,7 @@ describe("dedicated workspace presentation", () => {
     );
     expect(screen.getByRole("button", { name: "Sign out" })).toBeVisible();
   });
-  it("drops names and roles while provider revalidation is pending or failed", async () => {
+  it("keeps names and roles during provider refresh, then drops them on failure", async () => {
     const view = shell();
     await screen.findByRole("button", { name: /^Account Current/ });
     state.session.isRefetching = true;
@@ -183,9 +183,9 @@ describe("dedicated workspace presentation", () => {
       </WorkspaceShell>,
     );
     expect(
-      screen.queryByRole("button", { name: /^Account Current/ }),
-    ).toBeNull();
-    expect(screen.queryByText("Parent workspace")).toBeNull();
+      screen.getByRole("button", { name: /^Account Current/ }),
+    ).toBeVisible();
+    expect(screen.getByText("Parent workspace")).toBeVisible();
     state.session.isRefetching = false;
     state.session.error = new Error("Offline");
     view.rerender(
@@ -195,6 +195,43 @@ describe("dedicated workspace presentation", () => {
     );
     expect(screen.getByText("Account status unavailable.")).toBeVisible();
     expect(screen.queryByText("Parent workspace")).toBeNull();
+  });
+  it("shows the renamed account after a refresh settles", async () => {
+    const view = shell();
+    await screen.findByRole("button", { name: "Account Current account name" });
+    state.session.isRefetching = true;
+    view.rerender(
+      <WorkspaceShell>
+        <h1>Private page content</h1>
+      </WorkspaceShell>,
+    );
+    fetchMock.mockResolvedValue(response(["parent"], "Renamed account"));
+    state.session.isRefetching = false;
+    view.rerender(
+      <WorkspaceShell>
+        <h1>Private page content</h1>
+      </WorkspaceShell>,
+    );
+    await screen.findByRole("button", { name: "Account Renamed account" });
+  });
+  it("clears a kept account when the re-read fails", async () => {
+    const view = shell();
+    await screen.findByRole("button", { name: /^Account Current/ });
+    fetchMock.mockResolvedValue({ ok: false, status: 503 });
+    reroute(view, "/parent/bookings");
+    await screen.findByText("Workspace access unavailable.");
+    expect(screen.queryByText("Parent workspace")).toBeNull();
+  });
+  it("closes the mobile menu on Escape from the toggle and keeps focus there", async () => {
+    shell();
+    await screen.findByRole("button", { name: /^Account Current/ });
+    const trigger = screen.getByRole("button", { name: "Workspace menu" });
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    trigger.focus();
+    fireEvent.keyDown(trigger, { key: "Escape" });
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    expect(trigger).toHaveFocus();
   });
   it("aborts an old account read and ignores its late result after account switching", async () => {
     let resolve!: (value: ReturnType<typeof response>) => void;
@@ -259,7 +296,7 @@ it("marks assigned admin case details separately from dispatch details", () => {
 function reroute(view: ReturnType<typeof shell>, pathname: string) {
   state.pathname = pathname;
   view.rerender(
-    <WorkspaceShell>
+    <WorkspaceShell screeningEnabled>
       <h1>Current private page</h1>
     </WorkspaceShell>,
   );
@@ -272,7 +309,7 @@ function deferredResponse() {
   return { promise, resolve };
 }
 
-it("keeps the exact tutor links through destination revalidation without retaining an unchecked name", async () => {
+it("keeps the exact tutor links through destination revalidation and keeps the validated name", async () => {
   state.pathname = "/tutor/availability";
   fetchMock.mockResolvedValue(response(["tutor"]));
   const view = shell();
@@ -300,9 +337,8 @@ it("keeps the exact tutor links through destination revalidation without retaini
     reroute(view, path);
     expect(links()).toEqual(expected);
     expect(
-      screen.queryByRole("button", { name: /^Account Current/ }),
-    ).toBeNull();
-    expect(screen.getByText("Checking workspace access…")).toBeVisible();
+      screen.getByRole("button", { name: /^Account Current/ }),
+    ).toBeVisible();
     await act(async () => request.resolve(response(["tutor"])));
     expect(links()).toEqual(expected);
     expect(screen.getByText("Tutor workspace")).toBeVisible();
@@ -350,7 +386,9 @@ it("revalidates a rapid A to B to A transition and ignores both late responses",
   fetchMock.mockReturnValueOnce(second.promise);
   reroute(view, "/tutor");
   expect(firstSignal.aborted).toBe(true);
-  expect(screen.queryByRole("button", { name: /^Account Current/ })).toBeNull();
+  expect(
+    screen.getByRole("button", { name: /^Account Current/ }),
+  ).toBeVisible();
   expect(fetchMock).toHaveBeenCalledTimes(3);
   await act(async () => first.resolve(response(["admin"], "Late account")));
   expect(screen.queryByText("Late account")).toBeNull();
@@ -358,7 +396,8 @@ it("revalidates a rapid A to B to A transition and ignores both late responses",
   reroute(view, "/tutor");
   await act(async () => second.resolve(response(["tutor"], "Late tutor")));
   expect(screen.queryByText("Late tutor")).toBeNull();
-  expect(screen.queryByRole("navigation", { name: /work areas/ })).toBeNull();
+  // The validated account is kept; only a settled read may replace it.
+  expect(screen.getByText("Current account name")).toBeVisible();
 });
 
 it("clears revoked grants and account failures, and retries without reviving stale links", async () => {
@@ -419,7 +458,7 @@ it("closes the mobile menu on link activation and subsequent navigation", async 
   expect(trigger).toHaveAttribute("aria-expanded", "false");
 });
 
-it("revalidates selected multi-role intent after same-session refresh without displaying stale grants", async () => {
+it("keeps selected multi-role intent through a same-session refresh and applies the re-read grants", async () => {
   state.pathname = "/tutor";
   fetchMock.mockResolvedValue(response(["tutor", "parent"]));
   const view = shell();
@@ -429,15 +468,12 @@ it("revalidates selected multi-role intent after same-session refresh without di
   state.session.isRefetching = true;
   reroute(view, "/account");
   expect(
-    screen.queryByRole("navigation", { name: "Tutor work areas" }),
-  ).toBeNull();
+    screen.getByRole("navigation", { name: "Tutor work areas" }),
+  ).toBeVisible();
   const refresh = deferredResponse();
   fetchMock.mockReturnValueOnce(refresh.promise);
   state.session.isRefetching = false;
   reroute(view, "/account");
-  expect(
-    screen.queryByRole("navigation", { name: "Tutor work areas" }),
-  ).toBeNull();
   await act(async () => refresh.resolve(response(["parent", "tutor"])));
   expect(
     screen.getByRole("navigation", { name: "Tutor work areas" }),
@@ -483,4 +519,111 @@ it("closes the native workspace chooser on role selection without losing keyboar
   expect(
     screen.getByText("Switch workspace").closest("details"),
   ).not.toHaveAttribute("open");
+});
+
+describe("first render from the server's account read", () => {
+  const serverAccount = {
+    id: "owner",
+    name: "Server account name",
+    roles: ["admin" as const],
+    sessionId: "session",
+  };
+  function seeded(account = serverAccount) {
+    return (
+      <WorkspaceShell initialAccount={account}>
+        <h1>Private page content</h1>
+      </WorkspaceShell>
+    );
+  }
+  beforeEach(() => {
+    state.pathname = "/admin";
+    // Better Auth flags its first session load as both pending and refetching.
+    state.session.isPending = true;
+    state.session.isRefetching = true;
+    state.session.data = null;
+  });
+  it("shows the full role sidebar and name before the session settles, with no repeat read", () => {
+    const view = render(seeded());
+    expect(
+      screen.getByRole("navigation", { name: "Admin work areas" }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Account Server account name" }),
+    ).toBeVisible();
+    state.session.isPending = false;
+    state.session.isRefetching = false;
+    state.session.data = {
+      user: { id: "owner", name: "Provider name" },
+      session: { id: "session" },
+    };
+    view.rerender(seeded());
+    expect(
+      screen.getByRole("navigation", { name: "Admin work areas" }),
+    ).toBeVisible();
+    expect(fetchMock).not.toHaveBeenCalled();
+    state.pathname = "/admin/subjects";
+    view.rerender(seeded());
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+  it("keeps links and name on a navigation before the session settles", () => {
+    const view = render(seeded());
+    state.pathname = "/admin/tutors";
+    view.rerender(seeded());
+    expect(
+      screen.getByRole("navigation", { name: "Admin work areas" }),
+    ).toBeVisible();
+    expect(screen.getByText("Server account name")).toBeVisible();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+  it("discards the server's account when another session or no session settles", async () => {
+    const view = render(seeded());
+    state.session.isPending = false;
+    state.session.isRefetching = false;
+    state.session.data = {
+      user: { id: "owner", name: "Provider name" },
+      session: { id: "replacement-session" },
+    };
+    fetchMock.mockResolvedValue(response(["parent"], "Current account name"));
+    view.rerender(seeded());
+    expect(screen.queryByText("Server account name")).toBeNull();
+    await screen.findByRole("button", { name: "Account Current account name" });
+    expect(
+      screen.queryByRole("navigation", { name: "Admin work areas" }),
+    ).toBeNull();
+    view.unmount();
+    state.session.isPending = true;
+    state.session.data = null;
+    const signedOut = render(seeded());
+    state.session.isPending = false;
+    state.session.isRefetching = false;
+    signedOut.rerender(seeded());
+    expect(screen.getByText("Sign in to open your workspace.")).toBeVisible();
+    expect(screen.queryByText("Server account name")).toBeNull();
+    expect(
+      screen.queryByRole("navigation", { name: "Admin work areas" }),
+    ).toBeNull();
+  });
+  it("does not use the server's account after a provider error", () => {
+    const view = render(seeded());
+    state.session.isPending = false;
+    state.session.isRefetching = false;
+    state.session.error = new Error("Offline");
+    view.rerender(seeded());
+    expect(screen.getByText("Account status unavailable.")).toBeVisible();
+    expect(screen.queryByText("Server account name")).toBeNull();
+  });
+});
+
+it("lists tutor screening only when the deployment enables it", () => {
+  const hrefs = (screening?: boolean) =>
+    workspaceLinks("tutor", { screening }).map((link) => link.href);
+  expect(hrefs(true)).toContain("/tutor/screening");
+  expect(hrefs(false)).not.toContain("/tutor/screening");
+  expect(hrefs()).not.toContain("/tutor/screening");
+});
+
+it("renders no screening item on the first paint when disabled", () => {
+  state.pathname = "/tutor";
+  shell(false);
+  expect(screen.queryByRole("link", { name: "Tutor screening" })).toBeNull();
 });

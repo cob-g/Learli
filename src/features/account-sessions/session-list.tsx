@@ -14,10 +14,12 @@ async function requestSessions(signal?: AbortSignal): Promise<SessionLoad> {
   try {
     const response = await fetch(endpoint, { cache: "no-store", signal });
     if (!response.ok) {
-      const body: { message?: string } = await response.json();
+      const body: { message?: string } | null = await response
+        .json()
+        .catch(() => null);
       return {
         error: {
-          text: body.message ?? "Sessions could not be loaded. Try again.",
+          text: body?.message ?? "Sessions could not be loaded. Try again.",
           failed: true,
           signIn: response.status === 401,
         },
@@ -56,16 +58,31 @@ export function SessionList() {
     }
   }, []);
 
+  // Only the latest load may apply; an older response must not resurrect a
+  // session that was just ended.
+  const latest = useRef(0);
+  const unmounted = useRef(false);
+
   function refresh() {
+    const id = ++latest.current;
     setSessions(null);
     setLoadError(undefined);
-    return requestSessions().then(applyLoad);
+    return requestSessions().then((loaded) => {
+      if (id === latest.current && !unmounted.current) applyLoad(loaded);
+    });
   }
 
   useEffect(() => {
+    unmounted.current = false;
     const controller = new AbortController();
-    void requestSessions(controller.signal).then(applyLoad);
-    return () => controller.abort();
+    const id = ++latest.current;
+    void requestSessions(controller.signal).then((loaded) => {
+      if (id === latest.current) applyLoad(loaded);
+    });
+    return () => {
+      unmounted.current = true;
+      controller.abort();
+    };
   }, [applyLoad]);
 
   async function confirm() {
@@ -82,10 +99,12 @@ export function SessionList() {
         setNotice({ text: "Session ended.", failed: false });
         await refresh();
       } else {
-        const body: { message?: string } = await response.json();
+        const body: { message?: string } | null = await response
+          .json()
+          .catch(() => null);
         setNotice({
           text:
-            body.message ??
+            body?.message ??
             "Session could not be ended. Refresh and try again.",
           failed: true,
           signIn: response.status === 401,

@@ -1,5 +1,5 @@
 "use client";
-import { useSyncExternalStore, useRef, useState } from "react";
+import { useSyncExternalStore, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { ScreeningDetail } from "./service";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -16,16 +16,19 @@ export function ScreeningForm({
 }) {
   const router = useRouter(),
     ready = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot),
-    [busy, setBusy] = useState(false),
+    [refreshing, startRefresh] = useTransition(),
+    [saving, setBusy] = useState(false),
     [message, setMessage] = useState(""),
     alert = useRef<HTMLParagraphElement>(null),
     key = useRef<string | null>(null);
+  const busy = saving || refreshing;
   const dialog = useRef<HTMLDialogElement>(null),
     [action, setAction] = useState<(typeof screeningActions)[number]>();
   async function save(
     input: Record<string, unknown>,
     kind: "checks" | "decision",
   ) {
+    if (busy) return;
     setBusy(true);
     setMessage("");
     key.current ??= crypto.randomUUID();
@@ -42,16 +45,24 @@ export function ScreeningForm({
           }),
         },
       );
-      const result = await r.json();
-      if (!r.ok)
-        throw new Error(result.message ?? "Screening could not be saved.");
+      const result: unknown = await r.json().catch(() => null);
+      if (!r.ok) {
+        setMessage(
+          typeof result === "object" &&
+            result !== null &&
+            "message" in result &&
+            typeof result.message === "string" &&
+            result.message
+            ? result.message
+            : "Screening could not be saved.",
+        );
+        return;
+      }
       key.current = null;
-      router.refresh();
+      startRefresh(() => router.refresh());
       setMessage("Synthetic screening record saved.");
-    } catch (e) {
-      setMessage(
-        e instanceof Error ? e.message : "Screening could not be saved.",
-      );
+    } catch {
+      setMessage("Screening could not be saved.");
     } finally {
       setBusy(false);
       if (kind === "decision") dialog.current?.close();

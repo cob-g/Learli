@@ -195,6 +195,9 @@ for (const [label, width, height] of [
       const admin = f.admin.page;
       await admin.setViewportSize({ width, height });
       await admin.goto("/admin");
+      // Narrow screens keep the admin work areas behind the workspace menu.
+      const menu = admin.getByRole("button", { name: "Workspace menu" });
+      if (await menu.isVisible()) await menu.click();
       await admin
         .getByRole("link", { name: "Private synthetic reviews", exact: true })
         .click();

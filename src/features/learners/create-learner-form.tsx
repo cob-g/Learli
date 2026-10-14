@@ -10,6 +10,14 @@ import Link from "next/link";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
 import type { TimeZoneOption } from "@/lib/time/zones";
+import {
+  clearRequestId,
+  rememberRequestId,
+  requestFingerprint,
+  reusableRequestId,
+} from "./pending-request";
+
+const pendingScope = "create-learner";
 
 const subscribeHydration = () => () => {};
 const clientReady = () => true;
@@ -53,6 +61,14 @@ export function CreateLearnerForm({
     event.preventDefault();
     if (busy.current || !ready) return;
     const data = new FormData(event.currentTarget);
+    const payload = {
+      management,
+      displayName: data.get("displayName"),
+      level: data.get("level"),
+      timezone: data.get("timezone"),
+    };
+    const fingerprint = requestFingerprint(payload);
+    const id = reusableRequestId(pendingScope, fingerprint, requestId);
     busy.current = true;
     setPending(true);
     setNotice("");
@@ -61,14 +77,10 @@ export function CreateLearnerForm({
       const response = await fetch("/api/learners", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          requestId,
-          management,
-          displayName: data.get("displayName"),
-          level: data.get("level"),
-          timezone: data.get("timezone"),
-        }),
+        body: JSON.stringify({ requestId: id, ...payload }),
       });
+      if (response.status < 500) clearRequestId(pendingScope);
+      else rememberRequestId(pendingScope, fingerprint, id);
       const result = await response.json();
       if (
         response.ok &&
@@ -91,6 +103,7 @@ export function CreateLearnerForm({
         busy.current = false;
       }
     } catch {
+      rememberRequestId(pendingScope, fingerprint, id);
       setNotice(
         "We could not confirm creation. Keep these fields and retry this request, or check your learners first.",
       );

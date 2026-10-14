@@ -32,6 +32,8 @@ export type DashboardData = {
   activeHasNext: boolean;
   historyHasNext: boolean;
   checkedAt: LessonTimeValue;
+  /** Server aggregate over every active timed reservation; absent = page rows only. */
+  earliestExpiry?: string | null;
 };
 
 export function StatusBadge({ state }: { state: ReservationView["state"] }) {
@@ -118,19 +120,23 @@ function ViewBooking({
   );
 }
 
+function expiryLabel(row: ReservationView) {
+  return row.state === "confirmed"
+    ? "Original provisional deadline (confirmation does not expire)"
+    : row.state === "provisional"
+      ? "Provisional hold expires at"
+      : row.state === "demo_expired"
+        ? "Simulation expired at"
+        : demoLiveState(row.state)
+          ? "Simulation expires at"
+          : "Original simulation deadline";
+}
+
 function Expiry({ row }: { row: ReservationView }) {
   return (
     <details className="mt-2">
       <summary className="min-h-11 cursor-pointer py-2 text-small text-primary underline">
-        {row.state === "confirmed"
-          ? "Original provisional deadline (confirmation does not expire)"
-          : row.state === "provisional"
-            ? "Provisional hold expires at"
-            : row.state === "demo_expired"
-              ? "Simulation expired at"
-              : demoLiveState(row.state)
-                ? "Simulation expires at"
-                : "Original simulation deadline"}
+        {expiryLabel(row)}
       </summary>
       <LessonTime value={row.expiry} />
     </details>
@@ -247,13 +253,16 @@ export function FamilyDashboard({ data }: { data: DashboardData }) {
         ? `Bookings for ${selectedLearner.displayName}`
         : "Bookings";
   const timedActive = active.filter((row) => row.state !== "confirmed");
-  const earliestExpiry = timedActive.length
-    ? timedActive.reduce(
-        (earliest, row) =>
-          row.expiresAt < earliest ? row.expiresAt : earliest,
-        timedActive[0].expiresAt,
-      )
-    : null;
+  const earliestExpiry =
+    data.earliestExpiry !== undefined
+      ? data.earliestExpiry
+      : timedActive.length
+        ? timedActive.reduce(
+            (earliest, row) =>
+              row.expiresAt < earliest ? row.expiresAt : earliest,
+            timedActive[0].expiresAt,
+          )
+        : null;
   return (
     <div className="page-shell page-space">
       <div className="max-w-5xl">
@@ -332,10 +341,11 @@ export function FamilyDashboard({ data }: { data: DashboardData }) {
                   </div>
                 </div>
                 <p className="mt-6 max-w-prose border-t border-border pt-6 text-small text-muted-foreground">
-                  This is a temporary local reservation. Refresh bookings to
-                  check its current status.
+                  {next.state === "confirmed"
+                    ? "This booking is confirmed and does not expire. Refresh bookings to check its current status."
+                    : "This is a temporary local reservation. Refresh bookings to check its current status."}
                 </p>
-                <p className="mt-4 text-label">Simulation expires at</p>
+                <p className="mt-4 text-label">{expiryLabel(next)}</p>
                 <LessonTime value={next.expiry} />
                 <div className="mt-4">
                   <ViewBooking row={next} workspace={workspace} />

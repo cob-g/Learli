@@ -6,6 +6,7 @@ import { DemoNotice, CaseStatusLabel } from "@/features/support/presentation";
 import { categoryLabels } from "@/features/support/input";
 import { AdminShell } from "@/features/admin/admin-shell";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
+import { safePage } from "@/features/support/input";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Local case assignment",
@@ -24,7 +25,7 @@ export default async function Page({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { caseId } = await params,
-    page = (await searchParams).page ?? 1;
+    page = safePage((await searchParams).page);
   const detail = await loadPrivatePage(
     `/admin/support/dispatch/${caseId}`,
     (runtime, headers) => readDispatchCase(runtime, headers, caseId, page),

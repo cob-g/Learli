@@ -18,6 +18,19 @@ import { bookingDetailPath } from "./read-model";
 import { BookingReadLink } from "./read-controls";
 import type { LessonTimeValue } from "./lesson-time";
 
+// App 5xx messages that are thrown before any reservation transaction starts
+// (no runtime, no actor, no policy). The generic "This service is unavailable.
+// Try again later." 503 is deliberately absent: it also covers a failure while
+// committing, which may have saved the reservation.
+const notCommittedMessages = new Set([
+  "This service is unavailable.",
+  "Account service is unavailable. Try again later.",
+  "Booking policy is unavailable. Contact support.",
+  "Booking workflows unavailable.",
+]);
+const unknownMessage =
+  "The request result is unknown. Retry the same request to recover its saved result.";
+
 export function DemoBookingForm({
   options,
   zones,
@@ -163,10 +176,25 @@ export function DemoBookingForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(attempt.current),
       });
-      const data = await response.json();
-      if (!response.ok) {
-        setNotice(data.message);
-        setUnknown(response.status >= 500);
+      const data = await response.json().catch(() => null);
+      const message: string | null =
+        typeof data?.message === "string" ? data.message : null;
+      // Only a proven rejection may unlock the form. Anything that could follow
+      // a commit, or that did not come from the app, keeps the same request id.
+      const definite = response.ok
+        ? !!data && !message
+        : response.status < 500
+          ? ![408, 499].includes(response.status)
+          : !!message && notCommittedMessages.has(message);
+      if (!definite) {
+        setUnknown(true);
+        setNotice(unknownMessage);
+        focusNotice();
+      } else if (!response.ok) {
+        setNotice(
+          message ?? "The reservation could not be created. Try again.",
+        );
+        setUnknown(false);
         if (response.status === 409) {
           setSelected("");
           try {
@@ -193,9 +221,7 @@ export function DemoBookingForm({
       }
     } catch {
       setUnknown(true);
-      setNotice(
-        "The request result is unknown. Retry the same request to recover its saved result.",
-      );
+      setNotice(unknownMessage);
       focusNotice();
     } finally {
       setPending(null);
@@ -441,10 +467,17 @@ export function DemoBookingForm({
         </p>
       )}
       {unknown && (
-        <p className="text-body">
-          Your original choices are kept until the same request returns a
-          result.
-        </p>
+        <div className="space-y-4">
+          <p className="text-body">
+            Your original choices are kept until the same request returns a
+            result. You can also check whether the reservation was saved.
+          </p>
+          <BookingReadLink
+            href={`/bookings?scope=${learner?.management === "guardian" ? "guardian" : "student"}`}
+            label="Check my bookings"
+            pendingLabel="Loading bookings…"
+          />
+        </div>
       )}
       {!result && (
         <button

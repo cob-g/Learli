@@ -1,6 +1,124 @@
 # Learli — Progress Tracker
 
 
+## 2026-10-14 — Four follow-up fixes from the bug sweep (verified locally, uncommitted)
+
+Owner asked to fix the four items left for decision; four Sonnet (high) workers
+on disjoint files, reviewed by the orchestrator.
+
+- Admin tutor queue pages 50 at a time (`listTutorApplications(..., page)`,
+  oldest first with id tiebreak, LIMIT+1 for has-more), Previous/More links keep
+  the status, malformed `?page=` falls back to 1. Guards unchanged.
+- Demo booking form: only proven-uncommitted failures unlock the form (4xx except
+  408/499, and the exact pre-transaction 503 messages). The generic 503 from
+  `mutation-handler.ts` can follow a commit, so it, fetch rejection, proxy and
+  non-JSON responses stay "unknown" with Retry same request plus a "Check my
+  bookings" link. Fail-closed by design. Follow-up: a server marker on
+  pre-transaction errors instead of message matching.
+- Family dashboard expiry refresh uses a server `MIN(expires_at)` over the same
+  scoped active predicate (`BookingOverview.earliestExpiryAtUtc`), so an
+  expiring reservation beyond page 1 or for a filtered learner refreshes the page.
+  Other booking readers unchanged.
+- "Tutor screening" appears in the tutor sidebar only when screening is enabled;
+  the workspace layout reads the same deployment-level `getScreeningContext`
+  decision the page uses (shipped default: disabled). The URL still works.
+
+- `npm run check` PASS **1,510 tests / 104 files** (inherited `inArray` warning).
+- Integration tutor-catalog (incl. a 55-application boundary test), booking-read
+  (earliest expiry beyond page 1, learner filter), auth, admin-security
+  **101/101**.
+- Production build PASS. Playwright via the repo config, 38 projects (all but
+  hosted-auth, hosted-workflows-integration, transactional-delivery):
+  **192/192 PASS**.
+- The review-publication "foreign actor… document lifetime" failure seen in two
+  full runs was rate limiting, not flake: the spec reset only sign-in and
+  two-factor counters, so late in a full run `127.0.0.1|/get-session` passed
+  Better Auth's 100/60 s limit and the shell could not load roles. Its login
+  helper now also resets `/get-session`. Note for launch: every page view's
+  session check counts against that per-IP limit; confirm client-IP detection
+  behind the hosting proxy so users do not share one bucket.
+
+
+## 2026-10-14 — Repo-wide UI bug sweep (verified locally, uncommitted)
+
+Owner request: analyze the whole UI for bugs like the late sidebar and fix them,
+with Haiku explorers and Sonnet (high) workers. Eight read-only Haiku explorers
+covered shell, auth/account, parent/student, tutor, bookings, admin, public and
+client patterns. The orchestrator verified each finding in code; five Sonnet
+workers fixed confirmed bugs on disjoint files. Owner decision: keep name and
+role links visible during re-checks of the same user/session (decision record
+amended; architecture and UI context updated).
+
+Fixed:
+- Shell: name no longer blanks on every sidebar click; role links and title no
+  longer vanish on tab return; Escape closes the phone menu from its button.
+  Public header keeps the signed-in chip while re-checking.
+- Public/auth: tutor card "View profile" keeps subject, level and shown time;
+  top bar and dock mark the same section; sign-in shows email-verified and
+  expired-link notices; support sign-in keeps the booking id. The public
+  header also keeps "Sign in" for signed-out visitors while it re-checks.
+- Admin: forms stay busy until refreshed data arrives (no stale-revision 409);
+  no raw parser text or blank alerts; malformed `?page=` falls back to page 1
+  (also user support list and account detail).
+- Bookings/tutor: expiry refreshes the booking page so expired actions go away;
+  non-JSON refusals no longer lock Cancel/Reschedule as "uncertain"; meeting-link
+  save is confirmed even if the reload fails; tutor error page copy is generic;
+  learner-admission error pages can retry; a time-off click during another
+  save says to wait (buttons stay aria-disabled and focusable); session list
+  ignores stale responses.
+- Parent/student: confirmed bookings no longer say "expires"; the create button
+  is hidden when creation is impossible; an uncertain learner/admission create
+  reuses its request id after reload (server replays it), avoiding duplicates.
+
+- Found by the browser suite: on narrow screens without JavaScript the
+  workspace sidebar was unreachable (Menu needs scripts); `@media (scripting:
+  none)` now shows it in place. Account-restriction saves briefly showed
+  "Loading account…" beside the result; the post-save refresh has its own
+  transition. Stale specs from the earlier shell work updated: booking-history
+  (workspace menu, no public dock), tutor-dashboard and private-reviews (open
+  the workspace menu at narrow widths).
+- Reverted a false positive: the "Sign out, then sign in again" copy on the
+  password and email forms is correct (SESSION_NOT_FRESH while signed in; the
+  page has Sign out).
+
+Not changed (reported): tutor queue lacks pagination beyond 50 (feature); demo
+create treats 5xx as unknown (deliberate idempotency safety); dashboard expiry
+timer covers the first 20 rows only; screening nav shows while the feature is
+disabled; time-off saves bump the availability version.
+
+- `npm run check` PASS **1,500 tests / 102 files** (inherited `inArray` warning).
+- Production build PASS. Playwright via the repo config, 38 projects (all but
+  hosted-auth, hosted-workflows-integration, transactional-delivery): final
+  full run 191/192; the review-publication failure was later traced to
+  `/get-session` rate limiting and fixed in the spec (see the entry above).
+
+
+## 2026-10-14 — Full workspace sidebar at first paint (verified locally, uncommitted)
+
+Owner report: after signing in, the admin sidebar first showed only the shared
+links, then the admin links appeared after a delay. Cause: the role links waited
+for two browser requests in sequence (`get-session`, then the guarded account
+GET), ~1.2 s on Neon development; the server HTML had only the five shared
+links. Fix: the workspace layout reads the shell account on the server
+(`readShellAccount` in `src/lib/permissions/workspace.ts`, same guarded path as
+`readAccount`) and `WorkspaceShell` renders it until the provider session first
+settles, keeping it only for the same user and session; that first visit makes
+no account GET. Better Auth also flags its first load as refetching, which had
+been discarding the seed; only a refresh of a settled session counts now.
+Decision amended in `docs/decisions/2026-10-14-workspace-shell.md`; architecture
+and UI context updated. On local `main` working tree; not committed.
+
+- Measured before → after, full document load: Neon dev tutor (owner's running
+  preview) 6 links, then 11 about 1.2 s later → all 11 links and name at first
+  paint, no account GET. Test-env admin: 6 → 16 links → 16 at first paint.
+- `npm run check` PASS **1,461 tests / 96 files** (4 new shell tests; two fail
+  without the refetch fix). Integration auth + admin-security **48/48**.
+- Production build + `next start` on 3100: `workspace-shell.spec.ts` +
+  `admin-security.spec.ts` **19/19**. The delayed/failed-read case now checks the
+  full first paint with the account GET held (0 reads) and runs the held and
+  503 reads on a sidebar navigation instead.
+
+
 ## 2026-10-14 — Today's verified slices: commit and merge into local main
 
 The owner asked for the work to be committed and merged into `main` ("ok add

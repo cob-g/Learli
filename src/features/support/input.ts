@@ -40,6 +40,11 @@ export const statusInput = z.strictObject({
   status: z.enum(["open", "in_review", "closed"]),
 });
 export const pageInput = z.coerce.number().int().min(1).max(1000).default(1);
+/** Invalid, non-integer or out-of-range `?page=` values fall back to page 1. */
+export function safePage(raw: unknown) {
+  const parsed = pageInput.safeParse(raw ?? undefined);
+  return parsed.success ? parsed.data : 1;
+}
 export function describeSupportIssues(error: z.ZodError) {
   const fields: Record<string, string> = {};
   for (const issue of error.issues) {

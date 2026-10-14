@@ -4,8 +4,10 @@ import { redirect } from "next/navigation";
 import { getAuthRuntime, getAccountAuthRuntime } from "../auth";
 import type { AuthRuntime, DevelopmentAuthRuntime } from "../auth-factory";
 import { accountHeadersAllowed } from "@/features/hosted-auth/request";
+import type { Role } from "../db/schema";
 import { AccessError, requireIdentity } from "./access";
 import { recheckAdminAssurance } from "@/features/admin-security/assurance";
+import { readAccount } from "@/features/account/service";
 
 /**
  * Runs a guarded read for a private page. Anonymous visitors go to sign-in with
@@ -47,6 +49,37 @@ export async function loadPrivatePage<T>(
   } catch (error) {
     if (error instanceof AccessError && error.status === 401)
       redirect(`/sign-in?next=${encodeURIComponent(path)}`);
+    return null;
+  }
+}
+export type ShellAccount = {
+  id: string;
+  name: string;
+  roles: Role[];
+  sessionId: string;
+};
+/**
+ * The account the workspace shell shows on its first render, read the same
+ * guarded way as GET /api/account/[userId]. Pages already read the identity in
+ * this render, so it costs one name query. Null on any refusal or failure; the
+ * shell then falls back to its own client checks. Display only: every page and
+ * endpoint keeps its own guard.
+ */
+export async function readShellAccount(): Promise<ShellAccount | null> {
+  const requestHeaders = await headers();
+  try {
+    const runtime = await getAccountAuthRuntime();
+    if (!runtime || !accountHeadersAllowed(runtime, requestHeaders))
+      return null;
+    const identity = await requireIdentity(runtime, requestHeaders);
+    const account = await readAccount(runtime, requestHeaders);
+    return {
+      id: account.id,
+      name: account.name,
+      roles: account.roles,
+      sessionId: identity.sessionId,
+    };
+  } catch {
     return null;
   }
 }

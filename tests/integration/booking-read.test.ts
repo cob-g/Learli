@@ -18,6 +18,7 @@ import {
   listParticipantBookingOverview,
   readParticipantBooking,
 } from "@/features/bookings/read-service";
+import { queryParticipantBookings } from "@/features/bookings/read-query";
 import { handleBookingRead } from "@/features/bookings/read-handler";
 import { readDemoCandidates } from "@/features/bookings/service";
 import { readSimulationNoticeRecipient } from "@/features/bookings/read-notice";
@@ -1041,5 +1042,66 @@ describe("real PostgreSQL participant reads", () => {
         )
       ).status,
     ).toBe(401);
+  });
+});
+
+describe("overview earliest-expiry aggregate", () => {
+  it("covers every active reservation beyond the first page and honours the learner filter", async () => {
+    const crowded = await fixtureLearner(parent);
+    const quiet = await fixtureLearner(parent);
+    const base = Date.now() + 400 * 86400000;
+    const rows = [];
+    // Creation order = expiry order; start order is reversed, so the earliest
+    // expiry sits on the last (beyond-first-page) start position.
+    for (let i = 0; i < 22; i++)
+      rows.push(
+        await storedBooking({
+          learner: crowded,
+          start: new Date(base + (22 - i) * 86400000),
+        }),
+      );
+    const later = await storedBooking({
+      learner: quiet,
+      start: new Date(base + 99 * 86400000),
+    });
+    const [sess] = await world.owner.db
+      .select()
+      .from(session)
+      .where(eq(session.userId, parent.id))
+      .limit(1);
+    const actor = { userId: parent.id, sessionId: sess.id };
+    const read = (learnerId?: string) =>
+      queryParticipantBookings(
+        world.runtime.db,
+        actor,
+        { scope: "guardian", filter: "all", page: 1, pageSize: 20, learnerId },
+        undefined,
+        true,
+      );
+    const filtered = await read(crowded);
+    expect(filtered?.activeItems.map((r) => r.id)).not.toContain(rows[0].id);
+    expect(new Date(filtered!.earliestExpiry!).getTime()).toBe(
+      rows[0].expiresAt.getTime(),
+    );
+    const viaService = await listParticipantBookingOverview(
+      world.runtime,
+      parent.headers,
+      { scope: "guardian", learnerId: crowded, pageSize: 20, page: 1 },
+    );
+    expect(viaService.earliestExpiryAtUtc).toBe(
+      rows[0].expiresAt.toISOString(),
+    );
+    const viaServiceQuiet = await listParticipantBookingOverview(
+      world.runtime,
+      parent.headers,
+      { scope: "guardian", learnerId: quiet, pageSize: 20, page: 1 },
+    );
+    expect(viaServiceQuiet.earliestExpiryAtUtc).toBe(
+      later.expiresAt.toISOString(),
+    );
+    const single = await read(quiet);
+    expect(new Date(single!.earliestExpiry!).getTime()).toBe(
+      later.expiresAt.getTime(),
+    );
   });
 });

@@ -105,8 +105,12 @@ export function BookingMeetingSection({
           );
         return;
       }
-      if (await reload())
-        setMessage("Test meeting link saved. No meeting was arranged.");
+      const saved = "Test meeting link saved. No meeting was arranged.";
+      if (await reload()) setMessage(saved);
+      else
+        setMessage(
+          `${saved} The latest link could not be reloaded; use Reload meeting link to check it.`,
+        );
     } catch {
       setMessage(
         "The save could not be confirmed. Retry with the same entered link or reload.",

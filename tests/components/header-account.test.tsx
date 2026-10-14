@@ -74,6 +74,35 @@ describe("shared header account", () => {
     expect(screen.queryByRole("status")).toBeNull();
   });
 
+  it("keeps the signed-in account while a refetch runs, then follows its result", () => {
+    signedIn();
+    const { rerender } = render(<HeaderAccount />);
+    mocks.session.isRefetching = true;
+    rerender(<HeaderAccount />);
+    expect(screen.getByText("Alex Rivera")).toBeVisible();
+    expect(screen.queryByText("Checking account…")).toBeNull();
+    mocks.session.data = null;
+    rerender(<HeaderAccount />);
+    expect(screen.getByRole("link", { name: "Sign in" })).toBeVisible();
+  });
+
+  it("keeps Sign in for a signed-out visitor while a refetch runs", () => {
+    // Better Auth's first load is pending and refetching: stay neutral.
+    mocks.session.isRefetching = true;
+    const { rerender } = render(<HeaderAccount />);
+    expect(screen.getByText("Checking account…")).toBeVisible();
+    mocks.session.isPending = false;
+    mocks.session.isRefetching = false;
+    rerender(<HeaderAccount />);
+    expect(screen.getByRole("link", { name: "Sign in" })).toBeVisible();
+    // A later refetch without a session reports pending again; keep Sign in.
+    mocks.session.isPending = true;
+    mocks.session.isRefetching = true;
+    rerender(<HeaderAccount />);
+    expect(screen.getByRole("link", { name: "Sign in" })).toBeVisible();
+    expect(screen.queryByText("Checking account…")).toBeNull();
+  });
+
   it("only shows Sign in after a successful absent-session response", () => {
     mocks.session.isPending = false;
     mocks.pathname = "/sign-in";

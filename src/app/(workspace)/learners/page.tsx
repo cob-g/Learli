@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LearnerLink } from "@/features/learners/learner-link";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
+import { readLearnerCreationContext } from "@/features/learners/service";
 import { listLearnerGroups } from "@/features/learners/composition";
 import { levelNames } from "@/features/subjects/catalog";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
@@ -11,7 +12,20 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 export default async function LearnersPage() {
-  const groups = await loadPrivatePage("/learners", listLearnerGroups);
+  const groups = await loadPrivatePage(
+    "/learners",
+    async (runtime, headers) => {
+      const base = await listLearnerGroups(runtime, headers);
+      // Same mode check /learners/new uses, so the button only leads
+      // somewhere it can create a profile.
+      const createModes = base.demoAllowed
+        ? await readLearnerCreationContext(runtime, headers)
+            .then((context) => context.modes)
+            .catch(() => [])
+        : [];
+      return { ...base, createModes };
+    },
+  );
   if (!groups)
     return (
       <UnavailablePage
@@ -20,6 +34,7 @@ export default async function LearnersPage() {
       />
     );
   const learners = [...groups.demo, ...groups.readiness];
+  const canCreate = groups.demoAllowed && groups.createModes.length > 0;
   return (
     <div className="page-shell page-space">
       <h1 className="text-page-title">Your learners</h1>
@@ -64,7 +79,7 @@ export default async function LearnersPage() {
           </p>
         </section>
       )}
-      {groups.demoAllowed && (
+      {canCreate && (
         <LearnerLink
           className="action action-primary mt-8"
           href="/learners/new"

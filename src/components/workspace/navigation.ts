@@ -36,7 +36,12 @@ export function currentWorkspace(
   if (previous && roles.includes(previous)) return previous;
   return roles.length === 1 ? roles[0] : null;
 }
-export function workspaceLinks(role: Role | null): WorkspaceLink[] {
+/** Deployment-level switches; never per user, so the sidebar cannot flash. */
+export type WorkspaceLinkOptions = { screening?: boolean };
+export function workspaceLinks(
+  role: Role | null,
+  { screening = false }: WorkspaceLinkOptions = {},
+): WorkspaceLink[] {
   switch (role) {
     case "parent":
     case "student":
@@ -50,7 +55,9 @@ export function workspaceLinks(role: Role | null): WorkspaceLink[] {
         { href: "/tutor/availability", label: "Availability" },
         { href: "/tutor/time-off", label: "Time off" },
         { href: "/tutor/profile", label: "Profile" },
-        { href: "/tutor/screening", label: "Tutor screening" },
+        ...(screening
+          ? [{ href: "/tutor/screening", label: "Tutor screening" }]
+          : []),
       ];
     case "admin":
       return [

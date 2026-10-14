@@ -3,6 +3,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useTransition,
   useSyncExternalStore,
   type FormEvent,
 } from "react";
@@ -26,11 +27,13 @@ export function AssignmentForm({ detail }: { detail: DispatchDetail }) {
     hydratedSnapshot,
     serverSnapshot,
   );
-  const [pending, setPending] = useState(false),
+  const [refreshing, startRefresh] = useTransition();
+  const [saving, setSaving] = useState(false),
     [message, setMessage] = useState(""),
     [failed, setFailed] = useState(false),
     [fieldError, setFieldError] = useState(false),
     [blocked, setBlocked] = useState(false);
+  const pending = saving || refreshing;
   useEffect(() => {
     if (message) notice.current?.focus();
   }, [message]);
@@ -56,7 +59,7 @@ export function AssignmentForm({ detail }: { detail: DispatchDetail }) {
       return;
     }
     busy.current = true;
-    setPending(true);
+    setSaving(true);
     setFieldError(false);
     setMessage("");
     try {
@@ -65,7 +68,7 @@ export function AssignmentForm({ detail }: { detail: DispatchDetail }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(input.data),
       });
-      const result: unknown = await response.json();
+      const result: unknown = await response.json().catch(() => null);
       const safeMessage =
         typeof result === "object" &&
         result !== null &&
@@ -90,7 +93,7 @@ export function AssignmentForm({ detail }: { detail: DispatchDetail }) {
       );
       if (response.ok) {
         retry.current = null;
-        router.refresh();
+        startRefresh(() => router.refresh());
       } else if (response.status === 409) setBlocked(true);
     } catch {
       setFailed(true);
@@ -100,7 +103,7 @@ export function AssignmentForm({ detail }: { detail: DispatchDetail }) {
       );
     } finally {
       busy.current = false;
-      setPending(false);
+      setSaving(false);
     }
   }
   return (

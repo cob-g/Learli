@@ -135,10 +135,11 @@ for (const width of [1024, 1440, 320, 390]) {
         navigation.release();
         await click;
         await expect(page).toHaveURL(destination);
+        // The signed-in chip stays rendered while the refetch is held.
+        await expect(settled).toBeVisible();
         await expect(
           header.getByText("Checking account…", { exact: true }),
-        ).toBeVisible();
-        await expect(settled).toHaveCount(0);
+        ).toHaveCount(0);
         const pending = await record(page, `${label}-session-pending`);
         session.release();
         await expect(settled).toBeVisible();
@@ -256,12 +257,10 @@ test("long account names and 200% text remain readable through navigation", asyn
         ? page.locator(".site-header nav")
         : page.locator(".site-dock");
     await nav.locator(`a[href="${destination}"]`).click();
-    await expect(
-      header.getByText("Checking account…", { exact: true }),
-    ).toBeVisible();
+    await expect(account).toBeVisible();
     const during = await record(page, `${width}-enlarged-pending`);
     // Full names can add header height; top-aligned navigation and branding
-    // must retain their position while the identity is withheld on refetch.
+    // must retain their position while the identity is refetched.
     for (const target of ["brand", "navigation"] as const) {
       expect(during[target].x).toBe(before[target].x);
       expect(during[target].y).toBe(before[target].y);

@@ -23,16 +23,23 @@ function assigned(
 export const reviewInput = z.strictObject({
   action: z.enum(reviewActionNames),
 });
+/** Applications per queue page. */
 export const reviewQueueLimit = 50;
 const notFound = "We can't find that application.";
 
-/** The review queue, oldest first. Returns only what the queue shows. */
+/**
+ * One page of the review queue, oldest first (id breaks ties so pages never
+ * overlap). Returns only what the queue shows. `hasMore` comes from fetching
+ * one row beyond the page.
+ */
 export async function listTutorApplications(
   runtime: AuthRuntime,
   headers: Headers,
   status?: ReviewStatus,
+  page = 1,
 ) {
   const identity = await requireRole(runtime, headers, "admin");
+  const safe = Number.isInteger(page) && page >= 1 && page <= 1000 ? page : 1;
   const filter = and(
     assigned(runtime, identity.userId, identity.sessionId),
     status ? eq(tutorProfiles.reviewStatus, status) : undefined,
@@ -53,9 +60,15 @@ export async function listTutorApplications(
     .innerJoin(user, eq(user.id, tutorProfiles.userId))
     .where(filter)
     .orderBy(asc(tutorProfiles.createdAt), asc(tutorProfiles.id))
-    .limit(reviewQueueLimit);
+    .limit(reviewQueueLimit + 1)
+    .offset((safe - 1) * reviewQueueLimit);
   await recheckAdminAssurance(runtime.db, identity);
-  return { total, applications };
+  return {
+    total,
+    applications: applications.slice(0, reviewQueueLimit),
+    page: safe,
+    hasMore: applications.length > reviewQueueLimit && safe < 1000,
+  };
 }
 
 /** One application for review. The owner's account id and email stay server-side. */

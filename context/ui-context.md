@@ -406,10 +406,13 @@ role routes select the workspace; same-document shared account/bookings/learner/
 support navigation retains that selected role. A sole actual grant resolves a
 direct shared entry; a fresh ambiguous multi-role entry remains Your account.
 Role context is in memory for this provider user/session only, never permission
-or durable browser storage. Each destination rechecks the guarded account GET;
-only display links remain during that navigation wait, with unchecked names
-hidden. Provider refresh/error, identity/session changes, denied account reads
-and revoked grants invalidate evidence. The sidebar owns role links, including
+or durable browser storage. A new document renders the full sidebar and name at
+first paint from the server's guarded account read (no partial sidebar). Each
+later destination rechecks the guarded account GET; the name and links stay
+visible during that wait and during provider refreshes of the same session, so
+nothing flickers. The public header keeps the signed-in chip while it re-checks.
+Provider errors, identity/session changes, denied account reads and revoked
+grants invalidate evidence. The sidebar owns role links, including
 on tutor leaf pages; contextual prerequisite and recovery actions remain.
 Account settings, existing Sign out, Visit website and safety reporting remain
 reachable. Parent/student accounts keep Find a tutor. The workspace shell owns
