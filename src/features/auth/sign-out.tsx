@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
-export function SignOut() {
+export function SignOut({ className = "mt-8" }: { className?: string }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
   async function signOut() {
@@ -22,7 +22,7 @@ export function SignOut() {
     }
   }
   return (
-    <div className="mt-8">
+    <div className={className}>
       <button
         className="action action-outline"
         type="button"

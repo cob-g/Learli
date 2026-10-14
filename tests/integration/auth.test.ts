@@ -2,7 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { createLocalAuth, type LocalAuthRuntime } from "@/lib/auth-factory";
 import { createDatabase } from "@/lib/db/connection";
 import {
@@ -304,6 +304,17 @@ describe("server permissions, validation and database boundaries", () => {
       expect.arrayContaining(["parent", "tutor"]),
     );
     await requireRole(runtime, headers, "tutor");
+    await owner.db
+      .delete(userRoles)
+      .where(
+        and(eq(userRoles.userId, account.id), eq(userRoles.role, "tutor")),
+      );
+    await expect(requireRole(runtime, headers, "tutor")).rejects.toMatchObject({
+      status: 403,
+    });
+    expect((await requireRole(runtime, headers, "parent")).roles).toEqual([
+      "parent",
+    ]);
     await owner.db
       .update(user)
       .set({ emailVerified: false })

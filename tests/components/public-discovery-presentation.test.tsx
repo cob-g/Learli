@@ -10,6 +10,11 @@ vi.mock("@/features/tutors/public", () => ({
   tutorsHref: ({ subject, level }: { subject?: string; level?: string }) =>
     subject ? `/tutors?subject=${subject}` : `/tutors?level=${level}`,
 }));
+// A reserved example origin: the structured data is then checked by the same
+// copy rules as the rest of the page.
+vi.mock("@/lib/seo/site", () => ({
+  siteOrigin: () => new URL("https://tutoring.example"),
+}));
 import Home from "@/app/(marketing)/page";
 
 beforeEach(() => {
@@ -96,6 +101,45 @@ describe("public home catalog truth", () => {
     expect(text).not.toMatch(
       /verified|vetted|guarantee|rating|review|testimonial|free|price|discount|\$/i,
     );
+  });
+
+  it("tells search engines only that this is the Learli website", async () => {
+    state.catalog.mockResolvedValue({
+      subjects: [],
+      tutors: [
+        {
+          slug: "synthetic-public-test",
+          displayName: "Synthetic test tutor",
+          bio: "Only a test fixture.",
+          teachingLanguages: [],
+          offerings: [
+            {
+              subjectSlug: "math",
+              subjectName: "Math",
+              levels: ["college_support"],
+            },
+          ],
+        },
+      ],
+    });
+    state.preview.mockReturnValue(true);
+    const blocks = [
+      ...(await render()).matchAll(
+        /<script type="application\/ld\+json">(.*?)<\/script>/g,
+      ),
+    ].map((match) => JSON.parse(match[1]));
+    // One entry, the same whatever tutors or sample reviews the page shows.
+    expect(blocks).toEqual([
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "Learli",
+        url: "https://tutoring.example/",
+        description:
+          "Learli connects learners and families with one-to-one tutors. Lessons take place with your tutor on Zoom or Google Meet.",
+        inLanguage: "en",
+      },
+    ]);
   });
 
   it("describes each hero photograph without presenting anyone as a Learli learner or tutor", async () => {

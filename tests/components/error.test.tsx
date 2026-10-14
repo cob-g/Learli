@@ -3,6 +3,18 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import ErrorPage from "@/app/error";
+vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
+vi.mock("@/lib/auth-client", () => ({
+  authClient: {
+    useSession: () => ({
+      data: null,
+      isPending: true,
+      isRefetching: false,
+      error: null,
+      refetch: vi.fn(),
+    }),
+  },
+}));
 
 it("lets a visitor retry without displaying internal error data", async () => {
   const reset = vi.fn();

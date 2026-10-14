@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import "../home.css";
 import {
@@ -9,9 +8,16 @@ import { filterTutors } from "@/features/tutors/eligibility";
 import { readPublicCatalog, tutorsHref } from "@/features/tutors/public";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SubjectsGuide } from "@/features/home/page-guides";
+import { publicPageMetadata } from "@/lib/seo/metadata";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Subjects" };
+// No subject is named here: the page lists only what the catalog holds today.
+export const metadata = publicPageMetadata({
+  title: "Tutoring subjects and learner levels",
+  description:
+    "Browse the subjects on Learli and the learner levels tutors teach them at, then see the tutors for the subject you need.",
+  path: "/subjects",
+});
 
 /** The catalog, then how it is organized. */
 export default function SubjectsPage() {

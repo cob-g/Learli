@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { eq } from "drizzle-orm";
 import { isAPIError } from "better-auth/api";
 import type { AuthRuntime } from "../auth-factory";
@@ -20,7 +21,13 @@ export class AccessError extends Error {
     );
   }
 }
-export async function requireIdentity(runtime: AuthRuntime, headers: Headers) {
+/**
+ * Resolves the current identity at most once per server page render. React
+ * scopes this memo to that render, so every request, route handler and test
+ * still reads the session, account status and grants afresh.
+ */
+export const requireIdentity = cache(readIdentity);
+async function readIdentity(runtime: AuthRuntime, headers: Headers) {
   if (!accountHeadersAllowed(runtime, headers)) throw new AccessError(403);
   let session;
   try {
@@ -41,19 +48,18 @@ export async function requireIdentity(runtime: AuthRuntime, headers: Headers) {
   if (!permitsAccountEmail(runtime, session.user.email))
     throw new AccessError(403);
   if (!session.user.emailVerified) throw new AccessError(403);
-  const [access] = await runtime.db
-    .select()
+  // Read status and trusted grants together. A left join preserves an active
+  // account with no roles; nothing is cached beyond the current page render.
+  const access = await runtime.db
+    .select({ status: userAccess.status, role: userRoles.role })
     .from(userAccess)
+    .leftJoin(userRoles, eq(userRoles.userId, userAccess.userId))
     .where(eq(userAccess.userId, session.user.id));
-  if (access?.status !== "active") throw new AccessError(403);
-  const grants = await runtime.db
-    .select({ role: userRoles.role })
-    .from(userRoles)
-    .where(eq(userRoles.userId, session.user.id));
+  if (access[0]?.status !== "active") throw new AccessError(403);
   return {
     userId: session.user.id,
     sessionId: session.session.id,
-    roles: grants.map((grant) => grant.role),
+    roles: access.flatMap((grant) => (grant.role ? [grant.role] : [])),
   };
 }
 export type Identity = Awaited<ReturnType<typeof requireIdentity>>;

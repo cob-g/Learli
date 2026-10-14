@@ -28,24 +28,6 @@ export default async function TimeOffPage() {
   return (
     <div className="page-shell page-space">
       <h1 className="text-page-title">Time off</h1>
-      <nav aria-label="Tutor work areas" className="mt-4 flex flex-wrap gap-4">
-        <Link className="inline-flex min-h-11 items-center" href="/tutor">
-          Tutor workspace
-        </Link>
-        <Link
-          className="inline-flex min-h-11 items-center"
-          href="/tutor/availability"
-        >
-          Weekly availability
-        </Link>
-        <Link
-          className="inline-flex min-h-11 items-center border-b-2 border-primary"
-          href="/tutor/time-off"
-          aria-current="page"
-        >
-          Time off
-        </Link>
-      </nav>
       <div className="mt-8">
         {!schedule ? (
           <p className="text-body">

@@ -14,6 +14,10 @@ import { readHostedAuthPacket } from "../../src/features/hosted-auth/config-file
 import { grantHostedTestAdmin } from "../support/hosted-auth-runtime";
 import { totpCode } from "../support/admin-mfa";
 import { hostedBrowserOrigin } from "../support/hosted-auth-proxy";
+import {
+  parseVisitTimeZone,
+  visitTimeZoneKey,
+} from "../../src/features/public-availability/visit-timezone";
 
 test.describe.configure({ mode: "serial" });
 const password = "W3-browser-fictional-credential-only";
@@ -144,8 +148,21 @@ test("actual HTTPS registration, verification, sign-in, host-only secure cookies
   await register(page, activeEmail);
   await signIn(page);
   const cookies = await context.cookies();
-  expect(cookies.length).toBeGreaterThan(0);
-  for (const cookie of cookies) {
+  const preference = cookies.find((cookie) => cookie.name === visitTimeZoneKey);
+  expect(preference).toMatchObject({
+    secure: true,
+    httpOnly: false,
+    sameSite: "Lax",
+    domain: "127.0.0.1",
+    path: "/",
+    expires: -1,
+  });
+  expect(parseVisitTimeZone(preference?.value)).toBeTruthy();
+  const authCookies = cookies.filter(
+    (cookie) => cookie.name !== visitTimeZoneKey,
+  );
+  expect(authCookies.length).toBeGreaterThan(0);
+  for (const cookie of authCookies) {
     expect(cookie.secure).toBe(true);
     expect(cookie.httpOnly).toBe(true);
     expect(cookie.sameSite).toBe("Lax");

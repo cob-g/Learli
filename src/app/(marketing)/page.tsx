@@ -15,9 +15,15 @@ import {
 import { readPublicCatalog, tutorsHref } from "@/features/tutors/public";
 import { TutorList } from "@/features/tutors/tutor-card";
 import { TutorFilterForm } from "@/features/tutors/tutor-filter-form";
+import { JsonLd } from "@/components/shared/json-ld";
+import { websiteStructuredData } from "@/lib/seo/crawling";
+import { publicPageMetadata } from "@/lib/seo/metadata";
+import { siteOrigin } from "@/lib/seo/site";
 import "./home.css";
 
 export const dynamic = "force-dynamic";
+// The home page keeps the site's own title and description.
+export const metadata = publicPageMetadata({ path: "/" });
 
 export default async function Home() {
   const catalog = await readPublicCatalog();
@@ -370,6 +376,7 @@ export default async function Home() {
           </div>
         </div>
       </section>
+      <JsonLd data={websiteStructuredData(siteOrigin())} />
     </HomeMotion>
   );
 }

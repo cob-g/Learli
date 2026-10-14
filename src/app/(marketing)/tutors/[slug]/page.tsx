@@ -15,6 +15,11 @@ import { loadProfilePreview } from "@/features/public-availability/profile";
 import { listTimeZoneOptions } from "@/lib/time/zones";
 import type { SearchValues } from "@/features/bookings/selection";
 import { teachingLanguageNames } from "@/features/tutors/teaching-languages";
+import {
+  noIndex,
+  publicPageMetadata,
+  tutorPageTitle,
+} from "@/lib/seo/metadata";
 
 export const dynamic = "force-dynamic";
 const loadTutor = cache(readPublicTutor);
@@ -25,10 +30,16 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const tutor = await loadTutor((await params).slug);
-  // Only public tutor fields reach metadata; an unknown tutor gets none.
+  // Only public tutor fields reach metadata; an unknown tutor gets none. The
+  // canonical address drops the visitor's filters and selected time, and a
+  // profile that could not be loaded is never offered for indexing.
   return tutor
-    ? { title: tutor.displayName, description: tutor.headline }
-    : { title: "Tutor" };
+    ? publicPageMetadata({
+        title: tutorPageTitle(tutor),
+        description: tutor.headline,
+        path: `/tutors/${tutor.slug}`,
+      })
+    : { title: "Tutor", robots: noIndex };
 }
 
 export default async function TutorPage({

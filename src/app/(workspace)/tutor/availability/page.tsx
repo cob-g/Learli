@@ -29,24 +29,6 @@ export default async function AvailabilityPage() {
   return (
     <div className="page-shell page-space">
       <h1 className="text-page-title">Weekly availability</h1>
-      <nav aria-label="Tutor work areas" className="mt-4 flex flex-wrap gap-4">
-        <Link className="inline-flex min-h-11 items-center" href="/tutor">
-          Tutor workspace
-        </Link>
-        <Link
-          className="inline-flex min-h-11 items-center"
-          href="/tutor/profile"
-        >
-          Profile
-        </Link>
-        <Link
-          className="inline-flex min-h-11 items-center border-b-2 border-primary"
-          href="/tutor/availability"
-          aria-current="page"
-        >
-          Availability
-        </Link>
-      </nav>
       <p className="mt-4 text-small text-muted-foreground">
         <Link href="/tutor/time-off">Manage time off</Link> for dated periods
         when you cannot teach.

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import "../home.css";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -24,9 +23,16 @@ import { publicProfileHref } from "@/features/public-availability/links";
 import { EmptyState } from "@/components/shared/empty-state";
 import { demoBookingPolicy } from "@/features/bookings/demo-policy";
 import { GetMatchedGuide } from "@/features/home/page-guides";
+import { publicPageMetadata } from "@/lib/seo/metadata";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Get matched" };
+// The questions and every set of results share one canonical address.
+export const metadata = publicPageMetadata({
+  title: "Get matched with a tutor",
+  description:
+    "Answer three questions about the learner's level, the subject and when a lesson suits you, and see the tutors who fit.",
+  path: "/get-matched",
+});
 
 function LoadFailure({
   href,

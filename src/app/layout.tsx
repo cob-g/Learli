@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Lexend, Literata } from "next/font/google";
-import { SiteHeader } from "@/components/shared/site-header";
-import { SiteFooter } from "@/components/shared/site-footer";
+import { connection } from "next/server";
 import { GlassEffects } from "@/components/shared/glass-effects";
+import { NavigationProgress } from "@/components/shared/navigation-progress";
+import { BrowserTimeZone } from "@/features/public-availability/profile-zone";
+import { siteMetadata } from "@/lib/seo/metadata";
+import { indexingAllowed, siteOrigin } from "@/lib/seo/site";
 import "./globals.css";
 import "@/components/shared/site-shell.css";
 
@@ -23,13 +26,15 @@ const literata = Literata({
   preload: false,
 });
 
-export const metadata: Metadata = {
-  title: { default: "Online tutoring | Learli", template: "%s | Learli" },
-  description:
-    "Learli connects learners and families with one-to-one tutors. Lessons take place with your tutor on Zoom or Google Meet.",
-  robots: { index: false, follow: false },
-  icons: { icon: { url: "/brand/learli-icon.svg", type: "image/svg+xml" } },
-};
+/**
+ * Whether the site may be indexed, and the origin its canonical URLs use, both
+ * depend on where this build is running. They are read for each request so a
+ * build made in one environment can never carry its answer into another.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  await connection();
+  return siteMetadata({ origin: siteOrigin(), indexable: indexingAllowed() });
+}
 export const viewport: Viewport = { colorScheme: "light" };
 
 export default function RootLayout({
@@ -42,11 +47,9 @@ export default function RootLayout({
           Skip to main content
         </a>
         <GlassEffects />
-        <SiteHeader />
-        <main id="main-content" tabIndex={-1}>
-          {children}
-        </main>
-        <SiteFooter />
+        <NavigationProgress />
+        <BrowserTimeZone />
+        {children}
       </body>
     </html>
   );

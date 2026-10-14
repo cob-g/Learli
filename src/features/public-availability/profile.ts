@@ -1,6 +1,6 @@
 import "server-only";
 import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { getAuthRuntime } from "@/lib/auth";
 import { tutorProfiles } from "@/lib/db/schema";
 import { isValidTimeZone } from "@/lib/time/time-zone";
@@ -8,6 +8,7 @@ import { timeZoneLabel } from "@/lib/time/zones";
 import type { PublicTutor } from "@/features/tutors/eligibility";
 import { publicLevelInput, publicSlugInput, publicZoneInput } from "./input";
 import { readPublicCandidates, type PublicTutorCandidates } from "./service";
+import { parseVisitTimeZone, visitTimeZoneKey } from "./visit-timezone";
 import {
   publicBookingSelectionInput,
   type SearchValues,
@@ -36,7 +37,7 @@ export async function loadProfilePreview(
   const zone = publicZoneInput.safeParse(params.displayTimezone);
   const runtime = getAuthRuntime();
   let savedZone: string | undefined;
-  if (runtime) {
+  if (runtime && !zone.success) {
     try {
       const session = await runtime.auth.api.getSession({
         headers: await headers(),
@@ -47,8 +48,12 @@ export async function loadProfilePreview(
       /* Public browsing does not require an account. */
     }
   }
+  const visitZone =
+    !zone.success && !savedZone
+      ? parseVisitTimeZone((await cookies()).get(visitTimeZoneKey)?.value)
+      : undefined;
   let teachingZone = "UTC";
-  if (runtime) {
+  if (runtime && !zone.success && !savedZone && !visitZone) {
     try {
       const [profile] = await runtime.db
         .select({ timezone: tutorProfiles.timezone })
@@ -62,13 +67,15 @@ export async function loadProfilePreview(
     }
   }
   // Only a public teaching-zone fallback leaves this wrapper; no private records.
-  const timezone = zone.success ? zone.data : (savedZone ?? teachingZone);
+  const timezone = zone.success
+    ? zone.data
+    : (savedZone ?? visitZone ?? teachingZone);
   const result: ProfilePreview = {
     subjectSlug: subject.success ? subject.data : "",
     level: level.success ? level.data : "",
     timezone,
     zoneLabel: timeZoneLabel(timezone),
-    needsBrowserZone: !zone.success && !savedZone,
+    needsBrowserZone: !zone.success && !savedZone && !visitZone,
     explicitZone: zone.success,
     message: "",
     candidates: null,

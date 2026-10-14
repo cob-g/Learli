@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
   agentRules: false,
   // Verification/reset URLs contain private tokens.
   logging: { incomingRequests: false },
+  experimental: {
+    // Restarting `next dev` on the saved Turbopack cache after code changed
+    // left pages reloading endlessly ("HMR hash mismatch"). Development only;
+    // see docs/decisions/2026-10-14-dev-build-cache-off.md.
+    turbopackFileSystemCacheForDev: false,
+  },
 };
 
 export default nextConfig;

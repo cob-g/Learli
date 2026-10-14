@@ -171,6 +171,16 @@ Record environment/resource identity and variable **names**, never credential
 values, in a shareable release record. Private backups/captures require access
 controls, not upload to a public runbook or Railway filesystem.
 
+Search visibility is read on each request rather than at build time, and it
+stays closed until the approved public launch. Search engines may index the
+public pages only when the owner has set `SEARCH_INDEXING=open` and the service
+runs as `APP_ENV=production` with an HTTPS, non-loopback `APP_URL`; every other
+combination, including a production service without that variable, serves
+`noindex` and a closed `robots.txt`. `APP_URL` is the origin written into
+canonical links, the sitemap and share previews, so set the final public
+address before opening indexing. Setting the variable is a production change
+that needs the owner's explicit authorization.
+
 | Environment        | Data and credentials                                                                                                               | Gate                                                                             |
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | Local/dev and test | Owned loopback cluster, distinct `learli_dev`/`learli_test`, random private creds, synthetic `.test` users and demo states         | Local verification only; suites sharing test DB run sequentially                 |

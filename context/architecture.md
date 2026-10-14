@@ -1,5 +1,21 @@
 # Learli — System Architecture
 
+### Local preview round-trip reduction — 2026-10-14
+
+Under the owner's performance repair request, runtime lease verification retains
+all current native TLS, target, identity, parameter ACL and privilege checks in
+one SQL snapshot per checkout. Convenience pool queries finish mandatory cleanup
+before resolving, allowing immediate socket reuse; explicit transaction leases
+retain their release behavior. Public catalog reads overlap independent queries;
+trusted account status/roles share one current left join. No authorization,
+session, catalog or booking result is cached across requests. Within one server
+page render, `requireIdentity` and each admin assurance age are read once (React
+per-render memo) and shared by the admin pre-check and the page's own guards;
+route handlers and every new request read afresh.
+See `docs/decisions/2026-10-14-local-preview-performance.md` and
+`docs/decisions/2026-10-14-admin-checks-once-per-render.md`. Actual verification
+is recorded separately in the progress tracker.
+
 > **Product:** Learli (`learli` in the visual identity)  
 > **Document type:** System Architecture / Technical Blueprint  
 > **Version:** 1.0 — Initial MVP architecture  
@@ -423,6 +439,11 @@ A tutor and learner can be in different countries. Each should see their **local
 - Accessible form labels, keyboard navigation, screen-reader support, contrast, and readable error messages.
 - Modern, clean visual identity: lowercase `learli`, rounded friendly UI, navy/teal direction.
 - Public pages should be SEO-friendly with meaningful metadata.
+- Search indexing is closed until the approved public launch and is decided per
+  request: only `SEARCH_INDEXING=open` with `APP_ENV=production` on an HTTPS,
+  non-loopback `APP_URL` opens the public pages, and `APP_URL` supplies the
+  canonical origin. Account, workspace, draft-policy and support pages are
+  excluded everywhere. See `docs/decisions/2026-10-14-search-indexing-and-seo.md`.
 - Dashboards and private data should not be indexed or accidentally cached for other users.
 - Never display a student's private information or a meeting URL on a public tutor profile.
 
@@ -1702,8 +1723,35 @@ coordination using the installed Better Auth composition and guarded runtime poo
 It requires development, local auth, loopback origin and a private runtime-only
 schema-only-development packet; no owner URL or real-mail/hosted credentials.
 The synchronous factory allocates without an unchecked query; every query/checkout
-still validates native transport and current role/identity/privileges. Default
+still validates native transport and current role/identity/privileges. Its pool
+keeps idle connections for four minutes, so a pause in the preview does not cost
+a reconnect; operator purposes and staging keep ten seconds. Default
 local/test behavior and disabled real policy factories remain. Provider apply,
 branch/role provisioning, verification and actual local-dev acceptance are distinct
 from this software implementation. See docs/operations/neon-activation.md and the
 activation blueprint; actual outcomes belong in the tracker.
+
+### Dedicated public and workspace shells — 2026-10-14
+
+M1.5 keeps one root document with shared fonts/providers/metadata and separates
+public/auth chrome from the workspace route group. Workspace pages retain
+PrivateDocumentBoundary and no-index metadata, with one main landmark and no
+marketing header/dock/footer. Auth pages retain PublicAuthDocumentBoundary.
+Current shell identity/roles come from the existing provider session and guarded
+account GET. Per-destination account reads reauthorize the server session/account/
+roles without an extra route-triggered provider refetch. Stale requests are
+cancelled; only display links survive same-identity navigation waits, not names.
+Provider refresh/error or identity/session changes and denied reads clear evidence.
+Explicit granted role routes win; shared routes retain a same-document selected
+role or use a sole actual grant. Fresh ambiguous multi-role entries remain neutral;
+context is never stored durably. Navigation is presentation only; page guards,
+current server permissions, record ownership, admin MFA and signout document
+replacement remain unchanged. No new endpoint, schema or business rule.
+See docs/decisions/2026-10-14-workspace-shell.md and the M1.5 blueprint.
+
+
+Sidebar refresh detail: a selected role enum may survive an ordinary provider
+refresh within the same user/session, but no name or granted-role links display
+until fresh guarded account data validates it. Error/denial and identity/session
+changes clear the context. Shared booking current-page markers require the exact
+matching scope; query scope never grants or selects an arbitrary workspace.

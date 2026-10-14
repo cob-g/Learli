@@ -1,7 +1,12 @@
-import type { Metadata } from "next";
 import Link from "next/link";
+import { publicPageMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = { title: "How it works" };
+export const metadata = publicPageMetadata({
+  title: "How it works",
+  description:
+    "Find a tutor for your subject, choose an available time, and meet for a one-to-one lesson on Zoom or Google Meet. Tutors teach independently.",
+  path: "/how-it-works",
+});
 
 export default function HowItWorksPage() {
   return (

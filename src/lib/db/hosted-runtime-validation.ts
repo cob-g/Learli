@@ -6,7 +6,6 @@ import {
   type VerifiedDatabaseConfig,
 } from "./verified-config";
 import { verifyNativeTls } from "./native-tls";
-import { stagingParameterPrivilegesSafe } from "./staging-runtime-guard";
 
 export async function verifyRuntimeLease(
   client: ClientBase,
@@ -18,32 +17,28 @@ export async function verifyRuntimeLease(
     throw new StagingDatabaseError("config_invalid");
   try {
     verifyNativeTls(client, options);
-    const identity = await client.query<{
+    // One current snapshot and one network round trip. These checks still run
+    // on every checkout, including an already-open pooled connection.
+    const verification = await client.query<{
       database: string;
       current_role: string;
       session_role: string;
       ssl: boolean;
       replication_role: string;
+      parameters_safe: boolean;
+      privileges_safe: boolean;
     }>(`
       SELECT pg_catalog.current_database() AS database,
         current_user AS current_role, session_user AS session_role,
         COALESCE((SELECT ssl FROM pg_catalog.pg_stat_ssl
           WHERE pid = pg_catalog.pg_backend_pid()), false) AS ssl,
-        pg_catalog.current_setting('session_replication_role') AS replication_role
-    `);
-    const row = identity.rows[0];
-    if (
-      identity.rows.length !== 1 ||
-      row.database !== config.target.database ||
-      row.current_role !== config.role ||
-      row.session_role !== config.role ||
-      row.replication_role !== "origin"
-    )
-      throw new StagingDatabaseError("identity_mismatch");
-    if (!(await stagingParameterPrivilegesSafe(client)))
-      throw new StagingDatabaseError("runtime_privilege");
-    const privileges = await client.query<{ safe: boolean }>(`
-      SELECT NOT (
+        pg_catalog.current_setting('session_replication_role') AS replication_role,
+        NOT EXISTS (
+          SELECT 1 FROM pg_catalog.pg_parameter_acl p
+          WHERE pg_catalog.has_parameter_privilege('learli_app', p.parname, 'SET')
+            OR pg_catalog.has_parameter_privilege('learli_app', p.parname, 'ALTER SYSTEM')
+        ) AS parameters_safe,
+        (SELECT NOT (
         NOT r.rolcanlogin OR r.rolsuper OR r.rolcreatedb OR r.rolcreaterole
         OR r.rolreplication OR r.rolbypassrls
         OR EXISTS (SELECT 1 FROM pg_catalog.pg_auth_members m WHERE m.member = r.oid)
@@ -66,9 +61,18 @@ export async function verifyRuntimeLease(
             WHERE datname = pg_catalog.current_database()))
           AND setting.value LIKE 'session_replication_role=%'
           AND setting.value <> 'session_replication_role=origin')
-      ) AS safe FROM pg_catalog.pg_roles r WHERE r.rolname = current_user
+        ) FROM pg_catalog.pg_roles r WHERE r.rolname = current_user) AS privileges_safe
     `);
-    if (privileges.rows.length !== 1 || privileges.rows[0].safe !== true)
+    const row = verification.rows[0];
+    if (
+      verification.rows.length !== 1 ||
+      row.database !== config.target.database ||
+      row.current_role !== config.role ||
+      row.session_role !== config.role ||
+      row.replication_role !== "origin"
+    )
+      throw new StagingDatabaseError("identity_mismatch");
+    if (row.parameters_safe !== true || row.privileges_safe !== true)
       throw new StagingDatabaseError("runtime_privilege");
   } catch (error) {
     if (error instanceof StagingDatabaseError) throw error;

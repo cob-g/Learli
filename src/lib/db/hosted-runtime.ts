@@ -156,6 +156,7 @@ class RuntimeLease extends EventEmitter implements HostedRuntimeClient {
   #client: PoolClient;
   #release: PoolClient["release"];
   #onError: (error: Error) => void;
+  #cleanup: Promise<void> | undefined;
 
   constructor(client: PoolClient) {
     super();
@@ -194,7 +195,7 @@ class RuntimeLease extends EventEmitter implements HostedRuntimeClient {
     // Keep the native client borrowed until cleanup completes. ROLLBACK is safe
     // for idle and failed transactions. Keep named prepared statements: DISCARD
     // ALL would invalidate pg's still-cached prepared statement names.
-    void this.#client
+    this.#cleanup = this.#client
       .query(
         "ROLLBACK; RESET ROLE; RESET SESSION AUTHORIZATION; RESET ALL; " +
           "CLOSE ALL; UNLISTEN *; SELECT pg_catalog.pg_advisory_unlock_all(); " +
@@ -213,8 +214,9 @@ class RuntimeLease extends EventEmitter implements HostedRuntimeClient {
       );
   }
   /** Internal cleanup may follow an asynchronous socket failure. */
-  finish(error?: Error | boolean): void {
+  async finish(error?: Error | boolean): Promise<void> {
     if (this.#active) this.release(error);
+    await this.#cleanup;
   }
 }
 
@@ -243,7 +245,9 @@ class GuardedRuntimePool extends EventEmitter implements HostedRuntimePool {
         failed = true;
         throw error;
       } finally {
-        client.finish(failed);
+        // A sequential pool.query can reuse this connection immediately. Do
+        // not make it open another socket while this one's reset is pending.
+        await client.finish(failed);
       }
     });
   }
@@ -300,7 +304,7 @@ class GuardedRuntimePool extends EventEmitter implements HostedRuntimePool {
         try {
           callback(undefined, client, client.release.bind(client));
         } catch (error) {
-          client.finish(true);
+          void client.finish(true);
           throw error;
         }
       },

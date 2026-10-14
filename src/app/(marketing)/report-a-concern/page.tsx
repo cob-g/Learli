@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
 import { SupportEntry } from "@/features/support/entry";
+import { publicPageMetadata } from "@/lib/seo/metadata";
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = {
+export const metadata = publicPageMetadata({
   title: "Report a concern",
-  robots: { index: false, follow: false },
-};
+  path: "/report-a-concern",
+  index: false,
+});
 export default async function Page({
   searchParams,
 }: {

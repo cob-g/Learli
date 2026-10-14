@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import "../home.css";
 import Link from "next/link";
 import { X } from "lucide-react";
@@ -21,13 +20,20 @@ import { TutorList } from "@/features/tutors/tutor-card";
 import { TutorFilterForm } from "@/features/tutors/tutor-filter-form";
 import { EmptyState } from "@/components/shared/empty-state";
 import { FindATutorGuide } from "@/features/home/page-guides";
+import { publicPageMetadata } from "@/lib/seo/metadata";
 import {
   declaredTeachingLanguages,
   teachingLanguageLabels,
 } from "@/features/tutors/teaching-languages";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Find a tutor" };
+// One canonical address for every filter, time and page of the directory.
+export const metadata = publicPageMetadata({
+  title: "Find a tutor by subject and level",
+  description:
+    "Compare tutors by the subjects and learner levels they teach, and add a lesson time to see the open times that fit. Browsing needs no account.",
+  path: "/tutors",
+});
 
 type DirectoryProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;

@@ -128,6 +128,63 @@
     }
   }
 
+  /* Drawn along the top edge while the next page is on its way
+     (navigation-progress.tsx). How long is left is unknown, so nothing fills
+     up: a teal run crosses a navy track for as long as the wait lasts. The
+     track shows over light pages and the run over navy ones. With reduced
+     motion it is drawn still, teal above a navy line. It sits over the header
+     and the dock and takes no pointer events. */
+  .navigation-progress {
+    position: fixed;
+    z-index: 50;
+    inset: 0 0 auto;
+    pointer-events: none;
+  }
+  .navigation-progress-track {
+    display: block;
+    height: 3px;
+    overflow: hidden;
+    background: var(--brand-navy);
+  }
+  .navigation-progress-track::before {
+    content: "";
+    display: block;
+    height: 2px;
+    background: var(--accent-primary);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .navigation-progress-track {
+      animation: navigation-progress-in 160ms ease-out;
+    }
+    .navigation-progress-track::before {
+      width: 40%;
+      height: 100%;
+      animation: navigation-progress-run 1.2s cubic-bezier(0.4, 0, 0.2, 1)
+        infinite;
+    }
+  }
+  @keyframes navigation-progress-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes navigation-progress-run {
+    from {
+      translate: -100% 0;
+    }
+    to {
+      translate: 250% 0;
+    }
+  }
+  @media (forced-colors: active) {
+    .navigation-progress-track {
+      background: CanvasText;
+    }
+    .navigation-progress-track::before {
+      background: Highlight;
+    }
+  }
+
   /* The header is transparent and spans the viewport. With scripts it stays on
      screen, and its glass appears only once the page has moved beneath it:
      pinned labels on raw content would be unreadable. Text scrolls under this
@@ -140,7 +197,56 @@
   .site-header .site-header-bar {
     --glass-tint: color-mix(in srgb, var(--glass-light) 80%, transparent);
     --glass-soften: blur(20px) saturate(180%);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.25rem 0.75rem;
+    padding-block: 0.5rem;
     padding-inline: clamp(0.5rem, 2.4vw, 2.5rem);
+  }
+  .site-header .brand-home {
+    min-height: 4.375rem;
+  }
+  .site-header-navigation {
+    display: none;
+  }
+  /* One footprint for anonymous, checking and signed-in presentation. Its
+     children never distribute space in the navigation's layout. It can wrap
+     onto another row when enlarged text needs the full available width. */
+  .site-header-account {
+    flex: 1 1 0;
+    min-width: min(10rem, 100%);
+    max-width: min(15rem, 100%);
+    min-height: 4.375rem;
+    margin-inline-start: auto;
+    container: header-account / inline-size;
+  }
+  @media (min-width: 64rem) {
+    .site-header .site-header-bar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+    }
+    .site-header .brand-home {
+      justify-self: start;
+    }
+    .site-header-navigation {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      min-height: 4.375rem;
+    }
+    /* Underlining still identifies the current page without changing each
+       link's text metrics as the route changes. */
+    .site-header-navigation .nav-link {
+      font-weight: 500;
+    }
+    .site-header-account {
+      width: 15rem;
+      min-width: 0;
+    }
   }
   .site-header .site-header-bar::before,
   .site-header .site-header-bar::after {
@@ -152,6 +258,103 @@
   .site-header:not([data-raised]) .site-header-bar::before,
   .site-header:not([data-raised]) .site-header-bar::after {
     opacity: 0;
+  }
+  /* Account presentation stays in the top bar at every width. Its disclosure
+     is a solid reading surface above the glass, with native links and buttons. */
+  .header-account,
+  .header-account-fallback {
+    position: relative;
+    min-width: 0;
+    min-height: 4.375rem;
+    width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .site-header-account > .nav-link {
+    display: flex;
+    justify-content: flex-end;
+    min-height: 4.375rem;
+  }
+  .header-account-checking {
+    display: none;
+  }
+  .site-header[data-live] .header-account-checking {
+    display: inline;
+  }
+  .header-account-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 4.375rem;
+    width: 100%;
+    max-width: 100%;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--border-control);
+    border-radius: var(--radius-control);
+    color: var(--brand-navy);
+    text-align: start;
+    cursor: pointer;
+  }
+  .header-account-trigger:hover,
+  .header-account-trigger[aria-expanded="true"] {
+    background: var(--bg-subtle);
+  }
+  .header-account-initials {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--brand-mint);
+    color: var(--brand-navy);
+  }
+  .header-account-label {
+    display: grid;
+    min-width: 0;
+  }
+  .header-account-trigger > svg {
+    flex: none;
+  }
+  /* At enlarged text sizes, reserve the full row for the name rather than
+     squeezing it between initials and a chevron. The bar can wrap naturally. */
+  @container header-account (max-width: 12rem) {
+    .header-account,
+    .header-account-fallback,
+    .site-header-account > .nav-link {
+      min-height: 6.875rem;
+    }
+    .header-account-trigger {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      min-height: 6.875rem;
+    }
+    .header-account-label {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+    .header-account-trigger > svg {
+      grid-column: 2;
+      grid-row: 1;
+    }
+  }
+  .header-account-panel {
+    position: absolute;
+    z-index: 1;
+    top: calc(100% + 0.5rem);
+    inset-inline-end: 0;
+    width: min(18rem, calc(100vw - 1rem));
+    padding: 1rem;
+    border: 1px solid var(--border-control);
+    border-radius: var(--radius-surface);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+  }
+  .header-account-panel > .nav-link {
+    display: flex;
+    margin-bottom: 0.5rem;
+  }
+  .header-account-signout .action {
+    width: 100%;
   }
   /* It stays on screen only on wide screens with height to spare, so enlarged
      text never loses the page to a tall fixed bar. Below the wide breakpoint
@@ -271,10 +474,10 @@
       }
     }
     /* Room at the foot of the page for the dock, and no focus beneath it. */
-    :root {
+    :root:has(.site-dock) {
       scroll-padding-bottom: 6rem;
     }
-    body > footer {
+    .public-shell > footer {
       padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
     }
     /* While someone is typing, the dock steps aside for the keyboard. */

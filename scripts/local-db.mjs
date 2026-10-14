@@ -1,6 +1,12 @@
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 import pg from "pg";
 
@@ -145,6 +151,20 @@ async function main() {
     }
   } finally {
     await pool.end();
+  }
+  // A cluster set up before the ports were saved has none on record, and the
+  // tools that confirm this checkout owns its test database read the port from
+  // here. The owner connection above has just proved the one in use.
+  if (!state.ports) {
+    const next = `${statePath}.next`;
+    writePrivate(
+      next,
+      JSON.stringify({
+        ports: { database: port, development: devPort, test: testPort },
+        ...state,
+      }),
+    );
+    renameSync(next, statePath);
   }
   for (const [file, db, env, appPort] of [
     [".env.local", "learli_dev", "development", devPort],

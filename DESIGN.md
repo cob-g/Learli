@@ -320,7 +320,7 @@ steps are in the frontmatter; larger public sections also use (6rem).
 Public home stacks introduction and finder, then uses two flexible columns at
 large widths. Auth content centers at (36rem). Matching questions constrain the
 working column to (42rem). Directory filters become a (18rem) sidebar at large;
-admin work-area navigation becomes a (16rem) sidebar. Tutor and matching result
+dedicated workspaces use a sidebar of min(17rem, 30vw). Tutor and matching result
 rows change columns at a container width of (48rem), rather than assuming that
 the page viewport guarantees room inside a sidebar layout.
 
@@ -366,7 +366,7 @@ markup; reduced motion keeps each state and removes the travel.
 
 ### Public home liquid glass
 
-On the public home page and the shared header on every route, the flat surface
+On the public home page and the public/auth shared header, the flat surface
 rule gives way to one material (in `site-shell.css`),
 `.glass`: a softened and tinted backdrop, a lit rim, a soft offset contact
 shadow and a glint that follows the pointer. It is used for floating layers
@@ -441,22 +441,29 @@ and focus.
 
 ### Navigation
 
-Main navigation uses Navy interface labels with minimum (3rem) height; the current
+Public/auth navigation uses Navy interface labels with minimum (3rem) height; the current
 page is stronger and underlined. Large-screen links appear from (64rem); below
 that the navigation is a floating glass dock at the foot of the screen, at most
 (26rem) wide with the full radius: five tabs, each an icon over one word in
 the caption role, the current one filled Navy with White text. There is no menu
-button. Header groups wrap with enlarged text. Every route uses the full-width
+button. Header groups wrap with enlarged text. Public/auth routes use the full-width
 transparent header; on wide, tall viewports it stays on screen and takes on
 glass after scrolling, and below (64rem) it scrolls away with the page.
 The footer sits on Navy: the reverse wordmark,
 the tagline in the headline role with its mint highlight, three labelled link
 groups in White at body size with (2.75rem) targets, and a closing bar under a
-hairline with a Back to top link. On every page its top edge is cut
+hairline with a Back to top link. On public/auth pages its top edge is cut
 on a five-degree diagonal with the mint stroke lying along it. The shared
 `FooterAccent` draws the stroke on arrival and moves the stop with scroll,
 respecting reduced motion and leaving complete static markup without scripts.
-Admin current navigation uses Navy/White and a small teal dot with `aria-current`.
+Dedicated parent, student, tutor and admin workspaces have no public header,
+mobile dock or footer. Their flat White sidebar and compact account topbar use
+existing Navy, Stone and Paper tokens. Current workspace links use Navy/White
+and `aria-current`; mobile navigation expands in document flow with a labelled
+Menu button, focus transfer and Escape return. Show only actual granted roles;
+shared account, booking and support routes keep a neutral account label. Long
+names and 200% text wrap without truncation. Narrow workspace gutters preserve
+reading width as text enlarges. Visit website is a secondary same-tab link.
 
 ### Artwork and lesson details
 

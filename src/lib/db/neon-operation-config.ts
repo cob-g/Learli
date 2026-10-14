@@ -93,6 +93,14 @@ export interface NeonOperationConfig {
   readonly role: string;
 }
 const settings = new WeakMap<NeonOperationConfig, PoolConfig>();
+// The runtime purpose is development only and backs the one long-lived pool:
+// the preview server's. Reopening a hosted connection took about a second from
+// a developer machine, so every click after a short pause was slow. Its idle
+// connections are kept for four minutes, which is still shorter than the five
+// after which Neon suspends an unused compute. Operator purposes are one-shot
+// commands and keep the short default.
+const developmentRuntimeIdleMillis = 240_000;
+const operatorIdleMillis = 10_000;
 
 /** Attestations bind an approved operation, never establish provider ownership. */
 export function neonOperationConfig(input: {
@@ -171,7 +179,10 @@ export function neonOperationConfig(input: {
       enableChannelBinding: true,
       max: 5,
       connectionTimeoutMillis: 3000,
-      idleTimeoutMillis: 10000,
+      idleTimeoutMillis:
+        parsed.purpose === "runtime"
+          ? developmentRuntimeIdleMillis
+          : operatorIdleMillis,
       query_timeout: 10000,
       statement_timeout: 10000,
       options: "-c search_path=pg_catalog,public",

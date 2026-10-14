@@ -1,6 +1,6 @@
 # Learli — UI Context
 
-Version2.15 — Brand kit adoption, plus public home motion, illustration, layered hero photographs, liquid glass and a sample review carousel, 2026-10-13
+Version2.17 — Brand kit adoption, plus public home motion, illustration, layered hero photographs, liquid glass, a sample review carousel, search metadata and a page-loading bar, 2026-10-14
 
 ## Authority and scope
 
@@ -183,6 +183,8 @@ own stroke.
   travel: no sweep, no drawn rules, no scroll-linked position.
 - Scroll-linked values are user-driven, never autoplay or looping. The review
   carousel is the one thing that advances by itself, under the rules below.
+  The page-loading bar (Components and states) is the one loop, and it runs
+  only for the length of a real wait.
 - A highlight may use a single-colour `linear-gradient` only so its width can be
   animated; this and the select marker are the two permitted uses of the syntax.
 - One mint highlight per headline at most. Teal stays one dot per image, marking
@@ -196,7 +198,8 @@ own stroke.
 
 The owner asked on 2026-10-13 for a liquid-glass environment on the home page,
 with a LiquidButton as the reference. The flat surface rule is set aside there,
-plus the shared site header on every route (owner follow-up, 2026-10-13).
+plus the public/auth site header (owner follow-up, 2026-10-13;
+workspace separation, 2026-10-14).
 The material is `.glass` in `site-shell.css`: a softened, tinted
 backdrop, a lit rim, a contact shadow and a glint that follows the pointer.
 
@@ -241,6 +244,25 @@ states honestly. Every booking status remains a factual server state; selection
 is not confirmation. Keep original warning and synthetic-mode notices. A style
 change must not remove hidden proofs, reset handlers, query parameters or return
 URLs. Use real disabled attributes and accessible names, not styling alone.
+
+**Page loading.** Pages await their data, so the page being left stays on
+screen until the next one is ready. While that takes time, `NavigationProgress`
+in the root layout draws a 3px bar along the top edge of the viewport, above
+the header and the dock: a brand-teal run crossing a navy track, so it shows
+over light and navy pages alike.
+
+- It appears only after 150ms; a quick page shows nothing.
+- It never fills up. How long is left is unknown, and it does not pretend to
+  measure it.
+- A polite live region says "Loading page…". The wrapper is not
+  `role="status"`: it is on every page, and pages keep that role for their own
+  messages.
+- Reduced motion draws it still, teal above a navy line. Forced colours use
+  system colours.
+- It is set by the router's own navigation, so it cannot outlast one. Without
+  scripts nothing is drawn and the browser shows its own loading state.
+- A link that already says what is loading ("Loading your bookings…") keeps its
+  words; the bar is in addition.
 
 ## Layout patterns
 
@@ -369,6 +391,32 @@ readable tables/rows and all existing admission/assurance gates. Mobile reflows;
 it never compresses private content into unreadable type. Long tables may scroll
 inside a clearly bounded labelled region, not overflow the document.
 
+### Dedicated workspace navigation — 2026-10-14
+
+The owner approved same-tab dedicated role workspaces, explicitly without the
+landing navbar, mobile marketing dock or any footer. A solid white sidebar on
+desktop and a compact topbar use existing navy/teal tokens. On mobile a labelled
+Workspace menu expands in document flow, supports keyboard access and restores
+focus on Escape. Role selection and navigation close the chooser; the mobile
+menu closes on link activation, with focus returned to its trigger. The topbar shows the full wrapping account name and current
+role; long names and enlarged text can grow it rather than being truncated.
+
+Role navigation uses the existing guarded account endpoint. Explicit granted
+role routes select the workspace; same-document shared account/bookings/learner/
+support navigation retains that selected role. A sole actual grant resolves a
+direct shared entry; a fresh ambiguous multi-role entry remains Your account.
+Role context is in memory for this provider user/session only, never permission
+or durable browser storage. Each destination rechecks the guarded account GET;
+only display links remain during that navigation wait, with unchecked names
+hidden. Provider refresh/error, identity/session changes, denied account reads
+and revoked grants invalidate evidence. The sidebar owns role links, including
+on tutor leaf pages; contextual prerequisite and recovery actions remain.
+Account settings, existing Sign out, Visit website and safety reporting remain
+reachable. Parent/student accounts keep Find a tutor. The workspace shell owns
+role navigation, replacing duplicate family/tutor/admin page navigation. Public
+header stability and auth document boundaries remain intact. See the dated
+workspace-shell decision and M1.5 blueprint; execution evidence is separate.
+
 ### Booking and availability
 
 Who, what and when stay visible together: tutor, authorized learner, subject,
@@ -380,7 +428,7 @@ behavior. No calendar invention or business-policy change from branding.
 ## Footer
 
 Redesigned on 2026-10-13 at the owner's request (the earlier one was a logo and
-a loose list). It is shared by every page: a flat navy reading surface below
+a loose list). It is shared by public marketing and auth pages: a flat navy reading surface below
 the landing page's diagonal accent, with no glass.
 
 - Left: the reverse wordmark (7rem, then 9rem), the tagline in the headline
@@ -397,7 +445,7 @@ the landing page's diagonal accent, with no glass.
   legal identity is an open decision and none of those exist. Add them only
   when the owner supplies them.
 
-On every page, the shared footer's first element (`.site-footer-accent`) cuts its
+On public/auth pages, the shared footer's first element (`.site-footer-accent`) cuts its
 top edge on the hero's five-degree diagonal: a navy wedge that joins
 the footer, with the hero's mint stroke lying along it and its teal stop. The
 stroke is drawn on arrival and the stop travels up it as the page ends. The
@@ -410,9 +458,16 @@ white/paper, reverse on navy; no typed placeholder, distortion or recoloring.
 Use the kit icon for browser metadata, never beside the wordmark. Respect clear
 space and minimum size. Home links have a clear accessible name. Desktop and
 mobile navigation keep all current real destinations and visible focus. On
-every page, the shared header is transparent and full width, turning to glass
+public/auth pages, the shared header is transparent and full width, turning to glass
 on scroll. Use the existing Lucide library for functional icons only. No emoji
 icons or decorative icon tiles.
+
+Page titles, descriptions, canonical addresses and share data come from
+`src/lib/seo/metadata.ts`; a page states only what is true of it and names no
+price, rating, count or credential. The share image is the reverse wordmark on
+navy (`src/app/opengraph-image.tsx`), never a photograph. Search indexing stays
+closed until launch; see
+`docs/decisions/2026-10-14-search-indexing-and-seo.md`.
 
 ### Small-screen dock
 
@@ -428,8 +483,23 @@ menu button and no dialog.
 - Names come from the words, not from `aria-label`: "Find" is completed for
   assistive technology as "Find a tutor". Both navs are named "Main
   navigation"; styles display exactly one at any width.
-- Below the wide breakpoint the top bar holds only the wordmark and Sign in,
-  and scrolls away with the page instead of staying pinned.
+- Below the wide breakpoint the top bar holds the wordmark and account control,
+  and scrolls away with the page instead of staying pinned. A confirmed anonymous
+  session shows Sign in; a signed-in session shows its display name and initials
+  with a disclosure for Account settings and Sign out. Pending, refetching and unavailable
+  session reads retain a native Account link, with checking or retry feedback.
+  Every session state shares one responsive account slot. Desktop navigation is
+  independently centered with stable link metrics, and branding/navigation stay
+  top-aligned when a long name grows the header. Error/retry feedback appears on
+  the existing solid account-panel surface without resizing the bar.
+  The same control appears on desktop. Names wrap; enlarged text can move the
+  control onto its own header row and the full name below initials/chevron.
+  The closed disclosure exposes
+  no duplicate logout action. Escape restores focus, and outside pointer/focus
+  departure closes it. Disabling the pending Sign out button does not dismiss
+  its disclosure or discard failure feedback. Navigation revalidates session presentation, including
+  names saved through account settings; provider focus/online/cross-tab refresh
+  remains in use. This display grants no permissions and stores no identity.
 - When five words do not fit (about 320px, or enlarged text) the current tab
   keeps its word and the others show icons only; at very large text all five
   are icons. Hidden words stay available to assistive technology. The row
@@ -524,8 +594,13 @@ and approved navy/white treatment; no fake availability, ratings or prices.
 Loading, unavailable, empty and error text remain distinct. Preview and review
 are visibly local simulation and never imply a confirmed lesson.
 
-An explicit visit-zone choice is stored in sessionStorage only; otherwise a saved
-signed-in account zone is used, then browser IANA detection. The server/no-JS
+An explicit visit-zone choice is stored in sessionStorage and, since the owner's
+2026-10-14 performance repair, a non-sensitive session cookie. A client initializer
+records the visit/browser IANA zone before profile navigation. Server precedence
+is explicit URL choice, current signed-in account zone, validated visit cookie,
+then tutor fallback; this avoids a second page request when the visit zone is
+already known. Higher-priority choices skip unnecessary fallback reads. Invalid
+cookies are ignored; they never set account or booking authority. The server/no-JS
 fallback is explicitly labeled as the tutor teaching zone (UTC only if unavailable).
 Public preview never changes account settings or uses a learner zone. Public-only
 pending-choice summaries appear on sign-in/sign-up/verification; the private demo
@@ -700,3 +775,10 @@ surface, not social proof for the public marketplace. Only approved eligible new
 records may contribute Customer/rating/plain-text/date and the matching aggregate;
 private authors and booking details are absent. An unavailable query cannot be
 styled as zero reviews. Actual public publication remains gated by policy.
+
+
+Sidebar refresh detail: a selected role enum may survive an ordinary provider
+refresh within the same user/session, but no name or granted-role links display
+until fresh guarded account data validates it. Error/denial and identity/session
+changes clear the context. Shared booking current-page markers require the exact
+matching scope; query scope never grants or selects an arbitrary workspace.

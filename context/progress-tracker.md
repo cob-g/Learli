@@ -1,5 +1,572 @@
 # Learli — Progress Tracker
 
+
+## 2026-10-14 — Today's verified slices: commit and merge into local main
+
+The owner asked for the work to be committed and merged into `main` ("ok add
+that line and commit and merge into main branch"). The changes in the entries
+below, from "Playwright runs again; search metadata added" up to "Role
+workspace UI audit and repair", shared files and could not be separated, so
+they are one commit on `fix/e2e-test-env`, merged into local `main` with a
+merge commit. `main`, the branch and `origin/main` were all at `c4c28fb`
+beforehand, so there were no conflicts.
+
+Merged tree checks: `npm run check` PASS (**1,457 tests / 96 files**, inherited
+`inArray` warning) and `npm run build` PASS with the dev cache flag listed as
+off. `npm run dev` starts with it off and `/`, `/tutors`, `/sign-in`,
+`/account` each load once. Browser and integration evidence is in each entry.
+The full Playwright suite was not run before this merge.
+
+Left out: `.claude/worktrees/` (another agent's git worktree) and the generated
+`next-env.d.ts`. Not pushed; no deployment, database or environment change.
+
+
+## 2026-10-14 — Role workspace UI audit and repair (verified locally, committed)
+
+Owner request: check each role's workspace for buggy UI. M1.5 shell, branch
+`fix/e2e-test-env`, HEAD `c4c28fb`; existing dirty work preserved.
+
+Found: under `npm run dev` every page (public and workspace) reloaded itself
+about 30 times a second. Turbopack answered each HMR subscription with a
+`restart` for the client entry, so the server sent "HMR hash mismatch" and the
+page reloaded, also tripping auth rate limits (429). Cause: a damaged 3 GB
+persistent dev cache in `.next/dev`. A fresh cache stops the loop with the
+original, unchanged `src/instrumentation-client.ts`.
+
+Trigger (measured on loopback test env): restarting `next dev` on the existing
+persistent Turbopack dev cache after source files changed (edited while stopped
+or while running). A start/edit/restart sequence looped in 3 of 6 runs with the
+cache on (5 stuck first-page loads, all `restart` of the main client entry
+`_1anvha4rlo79g._.js` + "HMR hash mismatch") and 0 of 5 runs (0/120 loads) with
+`experimental.turbopackFileSystemCacheForDev: false`. Live edits without a
+restart: 0/75 loads in every setup. Not reproduced by an env switch, a refused
+second dev server or the diagnostic preload; an import-free
+`instrumentation-client.ts` also looped (the restart sequence without that file
+was not run). Cost of
+turning the cache off: first `/tutors` after restart 2.2 s vs 1.8 s; repeat
+visits ~0.04 s either way. Owner approved turning it off:
+`experimental.turbopackFileSystemCacheForDev: false` in `next.config.ts`
+(`docs/decisions/2026-10-14-dev-build-cache-off.md`). Production builds are
+unaffected.
+
+Admin slowness: on Neon development each query costs three ~50 ms round trips
+(checkout verification, query, reset); two thirds of measured database time is
+that wrapper (still the owner's open decision). Admin pages also ran
+`requireIdentity` two or three times per render plus two MFA checks. Owner
+approved option 1: `requireIdentity` and the admin assurance read are memoized
+per server page render with React `cache`, and the `loadPrivatePage` pre-check
+uses those reads instead of `readAdminSecurity`
+(`docs/decisions/2026-10-14-admin-checks-once-per-render.md`). Traced queries
+per sidebar click on `learli_test`: Overview 12→5, Subjects/Accounts/Support
+assignment/Reviews 9→5, Tutor review queue 15→7, Tutor › Profile 9→6. Files:
+`src/lib/permissions/access.ts`, `workspace.ts`,
+`src/features/admin-security/assurance.ts`.
+
+- `npm run check` PASS: **1,457 tests / 96 files** (inherited `inArray` warning).
+- Integration `auth.test.ts` + `admin-security.test.ts` PASS **48/48**.
+- Browser `admin-security.spec.ts` + `workspace-shell.spec.ts` PASS **19/19**
+  (test-env `next dev`, Chromium). The recovery-code case first timed out twice
+  (field never fillable, as in the reload loop); after live file edits refreshed
+  the dev server it passed on the reverted code and then 3/3 on this change.
+
+Fixed: `/learner-admission` and `/safeguarding` (report and case pages, reached
+from Learners and booking details) are now shared workspace destinations, so a
+parent no longer loses the Parent workspace sidebar on them. The topbar account
+chevron sits at the trigger's trailing edge; trigger dimensions are unchanged.
+Files: `src/components/workspace/navigation.ts`, `workspace-shell.css`,
+`tests/components/workspace-shell.test.tsx`.
+
+Checked at 1440 and 390 px: student, tutor, tutor applicant (Neon dev demo
+accounts); parent with learners and bookings, MFA-enrolled admin, multi-role
+(synthetic accounts on loopback `learli_test`). No horizontal overflow. Admin
+support/publication/admission "unavailable" pages are the correct denials for an
+admin without a granted scope. Demo parent sign-in returns 401 because its
+password was changed on 2026-10-13 after seeding; it was not reset.
+
+- `npm run check` PASS: format, lint (inherited `inArray` warning only),
+  typecheck, **1,457 tests / 96 files**.
+- `tests/e2e/workspace-shell.spec.ts` PASS **15/15**, Chromium, against a
+  test-env `next dev` on 3100 (`.local/workspace-ui-audit/shell-e2e.config.ts`).
+- Reload probe: one load per route on 3000 (Neon dev) and 3100 (test) after the
+  cache reset. Screenshots in `.local/workspace-ui-audit/`.
+
+Limits: no production build, Firefox/WebKit or full E2E run. Next: none selected.
+
+
+## 2026-10-14 — Workspace sidebar repair (verified locally, uncommitted)
+
+M1.5 regression under the workspace-shell blueprint amendment, AUTHORIZED —
+build-feature delegation for the owner's sidebar-changing bug report. Branch
+`fix/e2e-test-env`, HEAD `c4c28fb`; baseline copies/hashes include prior dirty and
+untracked files under `.local/workspace-sidebar-repair/`.
+
+Actual pre-fix Chromium/synthetic-provider reproduction found five tutor links
+disappear during a held session request, zero tutor links on settled Account
+settings, and two Tutor work areas menus on Availability. The shell now keeps
+session-bound selected role context across shared navigation and rechecks the
+current guarded account GET on each pathname/scope without a duplicate provider
+refetch. Only display links persist during navigation waits; unchecked names are
+hidden. Explicit granted role routes win; sole-grant direct shared entry is
+unambiguous, fresh multi-role entry stays neutral. Provider refresh discards
+identity/grants and may restore only the role enum after fresh grants; error,
+denial and identity/session changes invalidate context. Monotonic visits and
+aborted requests prevent late A→B→A results from validating old identity.
+
+Removed duplicate Availability/Time off inline navigation and Profile return
+chrome; contextual actions remain. Role chooser dismisses on selection (including
+the same role) and subsequent navigation, with keyboard focus recovery; mobile
+menu closes on navigation and Escape restores its trigger. Shared booking active
+markers require exact guardian/student/tutor scope without using it for authority.
+UI/architecture/build-plan/decision and blueprint are reconciled. No backend
+permission, schema, dependency, public HeaderAccount or production change.
+
+Review: labelled same-agent alignment/integrity/unintended-change PASS, READY FOR
+VERIFICATION; coordinator independently reviewed source and accepted the chooser
+correction, plus desktop/narrow visual evidence. Separate final verification:
+
+- `npm run check` PASS: formatting, lint, typecheck, **1,457 tests /96 files**.
+  Only inherited time-off unused-import warning remains (`check-final.log`).
+- `NEXT_TELEMETRY_DISABLED=1 node scripts/with-test-env.mjs npm run build` PASS
+  (`build-final.log`).
+- `node scripts/with-test-env.mjs node_modules/.bin/vitest run --config vitest.integration.config.ts tests/integration/auth.test.ts tests/integration/admin-security.test.ts`
+  PASS **48/48** against isolated loopback PostgreSQL `learli_test` at55432.
+  Later chooser-only changes do not affect this evidence (`integration-1.log`).
+- Focused test-env Chromium config `.local/workspace-sidebar-repair/focused.config.ts`
+  PASS **51/51**: foundation18, auth5, header-navigation13, workspace15
+  (`browser-final.log`). Real tutor Availability→Profile→Time off→Account→Support→
+  Back→Availability retains every one of five links through held account requests
+  at320/390/1440; all23/23/15 observed DOM snapshots respectively agree. No extra
+  navigation provider request occurs. Family Learners/shared paths, multi-role
+  switches/refresh, roleless/denied, native account entry, actual revoke/expiry/
+  suspension/cross-tab signout/account replacement, and exact booking scope plus
+  unavailable-detail return passed. No fake authorized booking-detail claim.
+- Separate actual-provider desktop keyboard selection/shared navigation **1/1**
+  PASS (`keyboard-final.log`). Mobile focus/Escape/close, long names,200% text,
+  overflow and three workspace axe scans passed in the focused suite. Final
+  desktop/320/390 availability and enlarged-name captures plus keyboard focus
+  image were opened and inspected; screenshots remain local/ignored.
+
+Initial Markdown-format failure and browser50/51 disclosure failure remain in
+logs/recovery. A test-only interaction adjustment passed51 but was superseded by
+the coordinator-requested runtime dismissal correction; final checks above cover
+that source. Full source hashes, baseline-relative diff and exact commands are in
+`.local/workspace-sidebar-repair/report.md`. Generated `next-env.d.ts` restored to
+pre-task bytes; existing dev3000 and PostgreSQL55432 preserved, owned3100 stopped.
+Limits: Chromium and synthetic local data; no Firefox/WebKit, physical device/
+screen reader, full repository E2E/integration, hosted provider or release claim.
+Next: coordinator final handoff; no further feature selected or launch gate closed.
+
+
+## 2026-10-14 — Dedicated workspace shell (verified locally, uncommitted)
+
+Owner-approved M1.5 shared-shell continuation under
+`prompts/features/m1-05-workspace-shell.md`, AUTHORIZED — build-feature delegation;
+AUTH-02/03/04, NFR-01/02/05/07/09. Branch `fix/e2e-test-env`, HEAD `c4c28fb`.
+The pre-existing dirty tree is preserved; exact baseline copies, hashes and
+feature-only diff are under ignored `.local/workspace-shell/`.
+
+Public/auth routes retain the marketing shell. Private routes now have their own
+responsive role navigation and account topbar, with no marketing header, dock or
+footer. Shared routes stay neutral; real role grants control the switcher and
+explicit parent/student/tutor booking-history scopes. Current server guards,
+admin MFA, private no-index, native auth document boundaries and same-tab links
+remain. Removed duplicate family/tutor/admin navigation and retained support and
+safety destinations in the shared sidebar. No dependencies, schema, backend
+business rules, environment or production changes.
+
+Review: labelled same-agent scoped review PASS for blueprint alignment, integrity
+and unintended changes; recommendation READY FOR VERIFICATION. Coordinator's
+independent source and visual review found no remaining confirmed findings.
+`prompts/recovery/2026-10-14-workspace-shell.md` records repaired link scope,
+current admin support details, test-harness mistakes, inherited footer and narrow
+200% text gutters. Review itself executed no checks; separate verification below
+covers the final application source.
+
+Observed final verification:
+
+- `npm run check` PASS: formatting, lint, typecheck, **1,448 tests / 96 files**;
+  only inherited unused `inArray` warning in time-off service remains.
+- `NEXT_TELEMETRY_DISABLED=1 node scripts/with-test-env.mjs npm run build` PASS.
+- `node scripts/with-test-env.mjs node_modules/.bin/vitest run --config vitest.integration.config.ts tests/integration/auth.test.ts tests/integration/admin-security.test.ts`
+  PASS **48 tests / 2 files**, isolated local PostgreSQL `learli_test` at port55432.
+- `WORKSPACE_EVIDENCE_DIR=.local/workspace-shell/final-screenshots NAVIGATION_EVIDENCE_DIR=.local/workspace-shell/final-public-navigation node scripts/with-test-env.mjs node_modules/.bin/playwright test --config .local/workspace-shell/focused.config.ts`
+  PASS **45/45 Chromium cases**: foundation18, auth5, public navigation13,
+  dedicated workspace9. Existing name-save, signout, denial and privacy checks
+  remain. Actual role routes, shared/roleless states, MFA, expiry/suspension,
+  keyboard/Escape, long names, 320/390/1440 widths, 200% text and three axe scans
+  passed. All10 final workspace captures and representative public captures
+  opened; final narrow enlarged text stays readable with no horizontal overflow.
+- Delayed provider then guarded account reads preserve ordinary-name topbar/main
+  geometry at320/390/1440: mobile167px, desktop103px. Legitimately long/enlarged
+  names may grow the header. Existing public navigation stability cases all pass.
+- Scoped Impeccable detector returned no findings. Final source inventory/hashes,
+  screenshot paths, exact logs, initial failures and review are in
+  `.local/workspace-shell/report.md`.
+
+Limits: Chromium and synthetic local data only; no real-device/screen-reader,
+Firefox/WebKit, full repository E2E/integration, live provider or production
+validation claimed. Existing user dev server3000 and local test PostgreSQL55432
+preserved; owned browser server3100 stopped. Generated `next-env.d.ts` restored
+to its saved pre-task bytes. No overall milestone, launch or policy gate promoted.
+Next: coordinator's final handoff of this verified, uncommitted slice; no further
+implementation is selected by this entry.
+
+
+## 2026-10-14 — Navigation stability repair (verified locally, uncommitted)
+
+Explicit owner follow-up repair; supervised task `task_8a0fa12872e2` /
+`ctx_971c35d039c0`, branch `fix/e2e-test-env`. Separate AI-workflow implementation
+under the repair request, not build-feature delegation. PRD AUTH-02/04,
+NFR-01/02/09; shared shell M1.5. Existing dirty work and the prior verified record
+remain intact.
+
+Before-fix production Chromium regression failed all eight viewport/session
+cases. Anonymous desktop navigation moved 180–378px during delayed session
+refetch; signed-in mobile header height collapsed from 148.11px to 84px and back.
+The loading bar did not move layout. A common responsive account slot and an
+independently centered desktop navigation now keep geometry stable across
+anonymous, signed-in, pending, error and retry states. Active links retain stable
+text metrics. Error/retry uses the existing solid account panel; long names wrap
+and enlarged text remains readable. Session logic, native account navigation,
+sign-out handling, name refresh, server guards and dock behavior are preserved.
+
+Observed final verification:
+
+- `npm run check` PASS: formatting, lint, typecheck, **1,440 tests / 95 files**;
+  only the inherited unused `inArray` warning remains.
+- `NEXT_TELEMETRY_DISABLED=1 node scripts/with-test-env.mjs npm run build` PASS.
+- `NAVIGATION_EVIDENCE_DIR=.local/navigation-stability/final node scripts/with-test-env.mjs node_modules/.bin/playwright test --config .local/navigation-stability/focused.config.ts`
+  PASS **36/36**: foundation 18, auth 5, new movement/error/enlarged-text 13.
+  The regression is registered in the default auth project, which runs its two
+  fixture files sequentially.
+- Actual provider sessions at 1024/1440 desktop and 320/390 mobile: three repeated
+  routes each, before/held route/held session/resolved bounding boxes and images;
+  initial failure/retry; 200% text and full long name; no horizontal overflow.
+  Seven final desktop/mobile/error/enlarged screenshots were opened and inspected.
+  Existing auth cases retain actual account-name updates, native account entry,
+  sign-out pending/failure/success, history privacy and server denial assertions.
+- Desktop nav rectangles have identical x/y throughout each session transition;
+  header heights remain 86px at 1024/1440/390 and 126px at 320 for ordinary test
+  names. On narrow docks, the existing transition from no selected tab to a
+  selected label adds 2px; session states do not move the dock or its tabs.
+  Very long enlarged names may grow header height; navigation/brand positions
+  remain stable and the full name/actions stay readable and keyboard reachable.
+
+Coordinator independent source review and eight-case dev-browser probe PASS with
+no remaining findings; final phone screenshots inspected. Its one confirmed
+finding (an unnecessarily doubled phone header) was repaired using a flexible
+account slot, then rechecked. An initial retry test incorrectly expected a
+retained error button; actual provider retry clears the error and shows checking
+text, so that test assertion was corrected. Original failures and intermediate
+builds remain in ignored `.local/navigation-stability/`; `report.md` records exact
+files, commands, coordinates, images and limits.
+
+The user's dev server PIDs 74398/74424 and `.next/dev` were preserved; test servers
+used only port 3100 and the existing loopback `learli_test` database. Generated
+`next-env.d.ts` was restored byte-for-byte to its pre-task user content. No
+backend, dependency, schema, environment-file, preview-account, Neon or production
+mutation; no commit, push or deployment. Broader security/PG suites, other browser
+engines, real devices and screen-reader audit were not rerun. Next: coordinator
+handoff of this accepted repair; no milestone or launch gate is promoted.
+
+## 2026-10-14 — Signed-in shared header repair (verified locally, uncommitted)
+
+Explicit owner repair request; implementation follows
+`prompts/recovery/2026-10-14-signed-in-navigation.md` as a separate AI-workflow
+implementation stage, not build-feature delegation. Supervised task
+`task_8f4114e70b21` / `ctx_9b692fba5dd0`; branch `fix/e2e-test-env`.
+PRD AUTH-02/03/04/05, NFR-01/02/05/09; M1.5, M2.3/6/9. Existing dirty work
+was preserved.
+
+The shared header now consumes the existing Better Auth client session. Pending,
+refetching and failed reads retain a native Account link; only a resolved absent session
+shows Sign in. Signed-in name/initials open a keyboard-accessible disclosure for
+existing account settings and reused SignOut. Errors take precedence over retained
+provider data. Public navigation revalidates presentation, including saved display
+names. No role logic, backend, schema, dependency or persistent identity store was
+added; server guards, sign-in/out document replacement, glass and mobile dock remain.
+
+Implementation checks: `npm test -- tests/components/header-account.test.tsx
+tests/components/site-header-glass.test.tsx` PASS, 17 tests in 2 files. Earlier
+runs exposed accessible-name concatenation in three name cases; an explicit full
+accessible label repaired it without changing expected assertions. Coverage includes
+pending/no-session/error/retry, identity and pathname changes, empty/international/
+long names, disclosure dismissal, logout failure/pending/success and document
+replacement. The initial scoped Impeccable detector returned no findings.
+
+Independent review/verification by task `task_9f1e5f872cc3` / `ctx_7fe9ce512575`
+PASS, with no remaining finding. The verifier found two actual UI defects, repaired
+by this implementation worker and reverified: disabling pending SignOut emitted a
+null-target blur that discarded its error state; and 320px/200% text squeezed a long
+name into an unusable column. The disclosure now survives that blur, and bounded
+width/container reflow gives the full name a separate row when needed. No failing
+E2E assertion was weakened. Final evidence in ignored
+`.local/signed-in-navigation/report.md`, logs, screenshots and source hashes:
+
+- `npm run check` PASS: formatting, lint, typecheck and **1,440 tests / 95 files**;
+  only the inherited unused `inArray` warning in `src/features/time-off/service.ts`
+  remains. Earlier note-format and
+  native-anchor lint failures were repaired narrowly and retained in the report.
+- `NEXT_TELEMETRY_DISABLED=1 node scripts/with-test-env.mjs npm run build` PASS.
+- `node scripts/with-test-env.mjs node_modules/.bin/playwright test --config .local/signed-in-navigation/playwright.config.ts`
+  PASS **31/31**: foundation 18, auth 5, account sessions 4, actor privacy 4.
+- The same Playwright command with
+  `--config .local/signed-in-navigation/acceptance.config.ts` PASS **4/4**:
+  roleless/parent/student/tutor/admin/multi-role accounts, actual MFA gate,
+  account switching, cross-tab logout, revoked/expired/suspended state and visuals.
+- Chromium at 320/390/768/1024/1440: keyboard/focus, five zero-violation header axe
+  scans, native no-script Account access, scrolled glass, forced colors/reduced
+  motion, full long name and 200% text. Ten final screenshots were inspected.
+  The extreme enlarged-name control is 498px tall; vertical scrolling and keyboard
+  focus keep its actions reachable above the dock. Final scoped diff check PASS.
+
+The first browser attempt hit a stopped owned loopback test cluster, restarted by
+the verifier without migration or development-data changes. A separate verifier
+Back-test setup error was also corrected; original failures remain recorded.
+Tests use only the isolated local test database. No preview-account, Neon or
+production mutation, commit, push or deployment. Full unrelated E2E/PG suites,
+Firefox/WebKit, real devices and a screen-reader audit were not run; the coordinator
+explicitly chose focused verification. Next: coordinator handoff of this completed
+local repair. No whole milestone, launch policy or production gate is promoted.
+
+## 2026-10-14 — Local preview performance repair (verified, uncommitted)
+
+Owner requested fixing the diagnosed local slowness. Blueprint
+`prompts/features/m8-09-local-preview-performance.md`, AUTHORIZED — build-feature
+delegation; M8.9/NFR-08 with AUTH-03/PUB-02/03 preservation. Branch
+`fix/e2e-test-env` at `c4c28fb`, preserving the pre-existing uncommitted work.
+
+Implemented consolidated per-checkout database validation, awaited convenience
+query cleanup, concurrent public catalog reads, combined current account/role
+lookup, removal of the duplicated admin preflight identity query, validated
+session time-zone preference before profile navigation, skipped unnecessary
+fallback reads and bounded reusable Intl offset formatters. No migration,
+dependency, production action or permission/booking-policy change.
+
+Fresh pre-change measurements: 47–53 ms trivial Neon-development round trip,
+185–206 ms warm guarded trivial read, 1,184 ms first read, traced warm catalog
+433–442 ms with ten database requests including cleanup. Warm dev HTTP directory
+522 ms, subjects 733 ms, home 1,169 ms; informational page 47 ms, sign-in 22 ms.
+Small diagnostic samples only.
+
+Measured after the repair, warm dev HTTP response times were directory 204–212 ms,
+subjects 191–195 ms and home 232–294 ms (three samples each after warmup).
+Informational page 19–23 ms, sign-in 18–33 ms. Catalog reads initially measured
+148–168 ms warm; a later run varied from 138 ms to 1,039 ms, so remote connection
+and network variability remain. Repeated time-zone option generation fell from
+22–30 ms to 1–2 ms, with the first formatter population still 21–42 ms.
+Desktop/phone directory-to-profile checks made one profile request, correctly
+displayed the browser zone and had no horizontal overflow (356/315 ms observed).
+An anonymous browser trace showed no long tasks; the largest script resources
+were Next development tooling. These local samples are not a production SLA.
+
+A final HTTP sample after browser tests stopped had five warm samples per route:
+home median 289 ms (224–1,073), directory 433 ms (217–975), subjects 567 ms
+(249–708); all responses 200. First home response was 2,087 ms. Concurrent
+signed-in-header work was discovered during this final sample, so it is not an
+isolated benchmark of this patch. Retain this variability alongside the faster
+earlier samples; do not claim a universal 60–80% speedup or eliminated cold starts.
+
+Same-agent read-only Review: full scoped blueprint alignment, system integrity
+and unintended-change audits PASS; no confirmed findings; READY FOR VERIFICATION.
+This is not an independent review. Separate verification:
+
+- `npm run check` PASS: formatting, typecheck, lint (one inherited unused
+  `inArray` warning), 1,426 unit/component tests in 94 files. The first attempt
+  failed only blueprint formatting, then the entire check passed.
+- `NEXT_TELEMETRY_DISABLED=1 npm run build` PASS.
+- All 907 PostgreSQL integration cases have aggregate passing evidence. Initial
+  full run: 890 passed, one failed, 16 skipped in two setup failures. Three
+  affected files reran with all 44 cases passing after local test setup repairs:
+  assigned TLS port 55703, ignored receipt directory created, existing synthetic
+  test mailbox mode tightened to 0700. No application/test assertion change.
+  Recovery: `prompts/recovery/2026-10-14-performance-verification-setup.md`.
+- Full standard Chromium browser suite PASS: **172/172**, third run, 7.0 minutes.
+  The first
+  attempt exposed cookie-classification and hydration-wait assertions affected
+  by the preference change; the second passed those but hit an existing
+  Back-navigation/document-read race. Scoped test repairs retain all auth-cookie
+  and private-HTML assertions, with fresh same-agent read-only Review PASS and
+  typecheck/scoped lint PASS. Original logs and diagnosis are retained in the
+  recovery note; performance application sources/build/PG evidence remain unchanged.
+
+Evidence/baselines/source hashes and original failed attempts are retained in
+ignored `.local/performance-repair/`. Tests use loopback PostgreSQL; preview
+performance reads use only the existing Neon development branch. Preview
+restarted at `http://127.0.0.1:3000` to load the revised runtime. No private env
+edits, commit, push or deployment. The owned loopback test cluster was stopped
+after suites finished and no active client connections remained; data retained.
+All scoped application/test hashes match the final reviewed state; diff checks
+and final document formatting pass. The local memory handoff is saved separately.
+
+Concurrent work changed `site-header.tsx`, `sign-out.tsx`, header tests and added
+`header-account.tsx` after this run's production build. Those edits were preserved
+and are outside this review/verification result; do not claim the entire latest
+combined checkout was built or passed 172 browser tests. Next: owner review of
+the faster preview and separate header-work verification; admin workspace redesign
+remains separate work. No remaining confirmed defect in this scoped repair.
+
+## 2026-10-14 — Preview speed: longer idle connections and a page-loading bar
+
+**Task:** owner request after a slowness diagnosis ("ok do it both"). Status:
+**Done, uncommitted** on `fix/e2e-test-env` with the earlier test and search
+work. Record: `docs/decisions/2026-10-14-preview-speed-and-page-loading.md`.
+
+- **Development pool.** `neonOperationConfig` gives the development-only
+  `runtime` purpose a four-minute idle timeout (was ten seconds); operator
+  purposes and staging keep ten seconds. Per-query verification is unchanged.
+- **Page-loading bar.** `NavigationProgress` in the root layout, started by
+  `onRouterTransitionStart` in `src/instrumentation-client.ts` and held as
+  optimistic state inside the router's transition. 3px teal run on a navy
+  track after 150ms; "Loading page…" in a polite live region that is not
+  `role="status"`; still under reduced motion. `ui-context.md` Version2.17.
+
+**Verified:** `npm run check` PASS (format, lint with the one inherited
+`inArray` warning, typecheck, 1,410 tests / 92 files, including 5 new). Build
+PASS. Full Chromium end-to-end 171/171 on the fourth run. Runs one to three
+each stopped on a different existing timing fault, none involving the bar: a
+test that books the first open hour crossed 11:00
+(`local-completion-integration`); an accessibility scan ran while the profile's
+streamed title was still missing (`tutor-catalog`); and the availability form
+focuses its saved message in an animation frame that can arrive before the
+message exists (`availability`, also seen 2/8 and 0/8 in repeat runs with the
+bar and 0/8 without it). Browser checks in Chromium, WebKit and Firefox against
+the preview, and in Chromium and WebKit against a production build: the bar
+appears after about 170ms on slow clicks, never on fast ones or Back, clears on
+arrival, covers header and dock links, and logs no console errors. Timing with
+the new pool: directory reads 357–465ms after 15, 60 and 120s pauses (were
+0.8s and more after 11s); a production server answered `/tutors` in 0.44s
+after a 60s pause.
+
+**Next / open:** the owner restarts `npm run dev` to load the new pool (the
+preview server stopped at about 11:15; not by this work). Owner decision: verify
+a connection once when it opens instead of before every query. Not changed: the
+tutor profile fetches itself again to add the visitor's time zone; the three
+timing faults above.
+
+## 2026-10-14 — Sample accounts on the development branch for the owner's preview
+
+**Task:** data only, no source change. Owner request: "create a test account
+for me that I can try and add some seed for some accounts that's needed to
+actually see the real workflow of Learli". Status: **Done; nothing to commit.**
+
+**What exists now** (Neon branch `learli-local-development` only, the database
+the owner's preview at `http://127.0.0.1:3000` reads):
+
+- Six synthetic `.test` accounts: a parent with two learners (Elementary, High
+  School), an independent College Support student, two approved and listed
+  sample tutors with subjects, teaching languages and weekly availability
+  (Manila and New York time), one tutor applicant left pending for the review
+  queue, and an admin.
+- Accounts, verification, profiles, availability, learners, time zones and
+  reservations were made through the running app's own routes. The guarded
+  development owner connection (same target checks as the earlier acceptance
+  tooling: project, branch, endpoint, non-default branch) was used only for
+  what the app does not self-grant: the parent, student and admin roles, and
+  setting the two sample tutors to approved. No human screening is claimed.
+- The tooling and the credentials are private and untracked in
+  `.local/demo-accounts/` (`seed.mjs` is safe to run again; `accounts.html`
+  lists the sign-in details). The only repository addition is the owner's
+  step-by-step guide, `docs/operations/preview-walkthrough.md`, which holds no
+  passwords; its steps were checked against the screens in Chromium.
+
+**Verified in Chromium against the preview:** every account signs in; the
+directory and home page list the two sample tutors and not the applicant; the
+parent sees both learners; the student chose a time on a tutor profile and
+created a simulated reservation, which then appeared in the tutor's bookings;
+`/admin` sends the admin to authenticator setup first, as designed.
+
+**Limits the owner should know:** a booking in this preview is a local
+simulation that holds a time for ten minutes and then expires into history;
+confirmed lessons, payment and public reviews stay switched off until their
+policies are decided. No meeting link was seeded. The development compute
+dropped new connections a few times during seeding (one 503 from the app), the
+same intermittent fault recorded on 2026-10-13; reads were retried, no write
+was repeated blindly. Production was not touched.
+
+## 2026-10-14 — Playwright runs again; search metadata added
+
+**Task:** test tooling, then public metadata. Owner requests: "Fix that
+playwright first so that you can do all the tests you need, specifically all
+the other three tests", and, alongside it, "work on the SEO of this website".
+PRD: QA-01, PUB-01 to PUB-03, and the edge case "Search engine indexes site".
+Branch `fix/e2e-test-env` from `main` at `c4c28fb`. Status: **Ready for
+review; not committed.**
+
+**Changed, test tooling:**
+
+- `scripts/with-test-env.mjs` now sets `DATABASE_MODE=local` and an empty
+  `NEON_DEVELOPMENT_CONFIG_FILE` for every test command. The started app also
+  reads `.env.local`, which in this checkout selects the Neon development
+  branch; the environment schema rightly refused that under `APP_ENV=test`, so
+  the test server never started. No guard was changed, the two private env
+  files were not edited, and tests still reach only loopback `learli_test`.
+- `scripts/local-db.mjs`: `db:start` records the ports in
+  `.local/database.json` when an older state file has none, after the owner
+  connection has proved the port. The readiness helper's ownership check needs
+  that field. Credentials and the file's mode are unchanged.
+
+**Changed, search metadata** (decision record:
+`docs/decisions/2026-10-14-search-indexing-and-seo.md`):
+
+- New `src/lib/seo/` (`site.ts`, `metadata.ts`, `crawling.ts`), `sitemap.ts`,
+  `opengraph-image.tsx`, `components/shared/json-ld.tsx`; `robots.ts` and the
+  root layout now answer per request. Each public page has its own title,
+  description, canonical address and share data. Auth and workspace layouts say
+  `noindex` themselves.
+- **Indexing stays closed until launch.** It opens only with
+  `SEARCH_INDEXING=open`, `APP_ENV=production` and an HTTPS `APP_URL`. The
+  variable is documented in `.env.example`, the README and the deployment
+  runbook; nothing sets it.
+- No visible heading, link, landmark or page copy changed. Browser-tab titles
+  changed on the home page, `/tutors`, `/get-matched`, `/subjects` and tutor
+  profiles.
+- `/how-it-works`, `/become-a-tutor`, the three draft policies and the
+  not-found page are now rendered on request instead of prerendered.
+- `context/architecture.md` and `context/ui-context.md` (2.16) note the rule.
+- No dependency, schema, migration or environment change.
+
+**Verified on the final source:**
+
+- `npm run check` PASS: formatting, lint (the one inherited unused-import
+  warning), type checking, **1,405 tests / 91 files** (30 new metadata tests).
+- `npm run build` PASS.
+- `npm run test:e2e` PASS: **171 of 171** in Chromium, run before and again
+  after the metadata work. This includes the three specs rewritten for the
+  dock: `foundation.spec.ts` 18 of 18 across desktop, phone and narrow, and
+  `booking-history.spec.ts` 6 of 6.
+- `cross-browser-acceptance.spec.ts` PASS in Firefox and WebKit, **20 of 20**,
+  before and after the metadata work, including the rewritten dock test.
+- One production build served on port 3020 without a database. Launched
+  settings (`SEARCH_INDEXING=open`, production, an HTTPS example origin): the
+  six public pages carry no robots tag and a canonical address on that origin;
+  Contact, Report a concern, Privacy, sign-in, sign-up and an unknown address
+  stay `noindex`; `robots.txt` lists the private areas and names the sitemap;
+  the sitemap holds the six pages. Production without the switch: `noindex` on
+  every page, `Disallow: /`, empty sitemap. Under `APP_ENV=test` the same.
+
+**Failing, not caused by this work, not fixed:**
+
+- The whole cross-browser configuration in one run: 76 tests, **69 passed, 3
+  failed, 4 did not run**. `tutor-screening.spec.ts:71` fails in Firefox and
+  WebKit: it clicks an unscoped "View synthetic profile" link, and the
+  readiness helper server seeds a second listed tutor that only the Chromium
+  suite's global setup clears. It fails the same way when that project runs
+  alone. `policy-booking.spec.ts:178` fails in WebKit only after Firefox has
+  enrolled the shared fixture account in MFA; run alone, that project passes 5
+  of 5. Both tests pass in Chromium on this source.
+
+**Not run / not verified:**
+
+- A sitemap with tutor addresses and a real tutor's metadata were covered by
+  unit tests with a mocked directory read, not seen rendered.
+- The share image on any social platform; real Safari and Firefox; a phone.
+
+**State left behind:** changes are uncommitted on `fix/e2e-test-env`. The local
+PostgreSQL cluster was started for the tests and stopped afterwards. The
+metadata work was done in an agent worktree under `.claude/worktrees/`, which
+still holds a second copy. No deployment, no production or Neon change.
+
 ## 2026-10-14 — Navigation page content and small-screen dock: commit, merge into main and push
 
 The owner explicitly asked for this work to be committed, merged into `main`

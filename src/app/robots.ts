@@ -1,6 +1,11 @@
 import type { MetadataRoute } from "next";
+import { robotsRules } from "@/lib/seo/crawling";
+import { indexingAllowed, siteOrigin } from "@/lib/seo/site";
 
-// Development foundation: indexing waits for the approved public launch.
+// Answered per request: the rules depend on where this build is running, so
+// they must never be frozen into the build.
+export const dynamic = "force-dynamic";
+
 export default function robots(): MetadataRoute.Robots {
-  return { rules: { userAgent: "*", disallow: "/" } };
+  return robotsRules({ origin: siteOrigin(), indexable: indexingAllowed() });
 }

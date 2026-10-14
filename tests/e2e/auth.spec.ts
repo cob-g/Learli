@@ -59,6 +59,17 @@ test("local signup, verification, safe return, settings and logout work end to e
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL("/tutors?subject=math");
+  const header = page.getByRole("banner");
+  const account = header.getByRole("button", {
+    name: "Account Browser learner",
+  });
+  await expect(account).toBeVisible();
+  await expect(
+    header.getByRole("link", { name: "Sign in", exact: true }),
+  ).toHaveCount(0);
+  await account.click();
+  await header.getByRole("link", { name: "Account settings" }).click();
+  await expect(page).toHaveURL("/account");
   const response = await page.goto("/account");
   expect(response?.headers()["cache-control"]).toContain("no-store");
   await expect(
@@ -75,6 +86,20 @@ test("local signup, verification, safe return, settings and logout work end to e
     .selectOption("Asia/Manila");
   await page.getByRole("button", { name: "Save settings" }).click();
   await expect(page.getByRole("status")).toHaveText("Account settings saved.");
+  // App settings use PATCH rather than a provider mutation signal. A public
+  // client navigation must revalidate the header's display name.
+  await page.getByRole("link", { name: "Visit website" }).click();
+  await expect(page).toHaveURL("/");
+  await header.getByRole("link", { name: "Subjects", exact: true }).click();
+  await expect(page).toHaveURL("/subjects");
+  await expect(
+    header.getByRole("button", { name: "Account Updated browser learner" }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    header.getByRole("button", { name: "Account Updated browser learner" }),
+  ).toBeVisible();
+  await page.goto("/account");
   await page.reload();
   await expect(page.getByLabel("Display name", { exact: true })).toHaveValue(
     "Updated browser learner",
@@ -86,7 +111,40 @@ test("local signup, verification, safe return, settings and logout work end to e
         .analyze()
     ).violations,
   ).toEqual([]);
-  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  // The closed header disclosure must not duplicate the account-page action.
+  await expect(
+    page.getByRole("button", { name: "Sign out", exact: true }),
+  ).toHaveCount(1);
+  for (const [width, height] of [
+    [320, 720],
+    [390, 844],
+    [768, 900],
+    [1024, 900],
+    [1440, 900],
+  ]) {
+    await page.setViewportSize({ width, height });
+    const trigger = header.getByRole("button", {
+      name: "Account Updated browser learner",
+    });
+    await trigger.click();
+    await expect(
+      header.getByRole("link", { name: "Account settings" }),
+    ).toBeVisible();
+    await expect(
+      header.getByRole("button", { name: "Sign out", exact: true }),
+    ).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await page.keyboard.press("Escape");
+    await expect(trigger).toBeFocused();
+  }
+  await header
+    .getByRole("button", { name: "Account Updated browser learner" })
+    .click();
+  await header.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(page).toHaveURL("/sign-in");
   await page.goBack();
   await expect(page.getByRole("heading", { name: "Your account" })).toHaveCount(
@@ -95,6 +153,78 @@ test("local signup, verification, safe return, settings and logout work end to e
   await page.goto("/account");
   await expect(page).toHaveURL(/\/sign-in\?next=/);
   expect(external).toEqual([]);
+});
+
+test("phone account navigation preserves session recovery and header logout", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const email = `header-phone-${randomUUID()}@learli.test`;
+  await page.request.post("/api/auth/sign-up/email", {
+    headers: { origin: process.env.APP_URL ?? "http://127.0.0.1:3100" },
+    data: { email, name: "Phone learner", password, callbackURL: "/sign-in" },
+  });
+  await page.goto((await mail(email, "verification")).url);
+  await page.goto("/sign-in?next=%2Fsubjects");
+  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page).toHaveURL("/subjects");
+  const header = page.getByRole("banner");
+  const account = header.getByRole("button", { name: "Account Phone learner" });
+  await expect(account).toBeVisible();
+  await expect(
+    header.getByRole("link", { name: "Sign in", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .locator(".site-dock")
+    .getByRole("link", { name: "Home", exact: true })
+    .click();
+  await expect(page).toHaveURL("/");
+  await expect(account).toBeVisible();
+  await page.reload();
+  await expect(account).toBeVisible();
+
+  const unavailable = async (route: import("@playwright/test").Route) => {
+    await route.fulfill({
+      status: 503,
+      contentType: "application/json",
+      body: JSON.stringify({ message: "Service unavailable" }),
+    });
+  };
+  await page.route("**/api/auth/get-session**", unavailable);
+  await page
+    .locator(".site-dock")
+    .getByRole("link", { name: "Subjects", exact: true })
+    .click();
+  await expect(header.getByText("Account status unavailable.")).toBeVisible();
+  await expect(
+    header.getByRole("link", { name: "Account", exact: true }),
+  ).toBeVisible();
+  await expect(
+    header.getByRole("link", { name: "Sign in", exact: true }),
+  ).toHaveCount(0);
+  await expect(account).toHaveCount(0);
+  await page.unroute("**/api/auth/get-session**", unavailable);
+  await header.getByRole("button", { name: "Try again" }).click();
+  await expect(account).toBeVisible();
+
+  await page.route("**/api/auth/sign-out", unavailable);
+  await account.click();
+  await header.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(header.getByRole("alert")).toHaveText(
+    "Sign-out could not be completed. Try again.",
+  );
+  await expect(page).toHaveURL("/subjects");
+  await expect(account).toBeVisible();
+  await page.unroute("**/api/auth/sign-out", unavailable);
+  await header.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(page).toHaveURL("/sign-in");
+  await expect(
+    header.getByRole("link", { name: "Sign in", exact: true }),
+  ).toBeVisible();
+  await page.goto("/account");
+  await expect(page).toHaveURL(/\/sign-in\?next=/);
 });
 
 test("password recovery stays local and produces a usable new login", async ({
