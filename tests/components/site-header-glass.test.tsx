@@ -3,6 +3,17 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const state = vi.hoisted(() => ({ pathname: "/" }));
 vi.mock("next/navigation", () => ({ usePathname: () => state.pathname }));
+vi.mock("@/lib/auth-client", () => ({
+  authClient: {
+    useSession: () => ({
+      data: null,
+      isPending: true,
+      isRefetching: false,
+      error: null,
+      refetch: vi.fn(),
+    }),
+  },
+}));
 import { SiteHeader } from "@/components/shared/site-header";
 
 beforeEach(() => vi.clearAllMocks());
@@ -39,7 +50,7 @@ describe("site header glass variant", () => {
         "/get-matched",
         "/subjects",
         "/become-a-tutor",
-        "/sign-in",
+        "/account",
       ])
         expect(html).toContain(`href="${href}"`);
       expect(html).toContain('aria-label="Learli home"');

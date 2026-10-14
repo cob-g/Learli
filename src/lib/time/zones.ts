@@ -1,14 +1,22 @@
 // Server-side only by convention: Node and browsers carry different zone data,
 // so labels are built in one runtime and passed to client components as props.
 
+const offsetFormatters = new Map<string, Intl.DateTimeFormat>();
 function offsetOf(zone: string, at: Date) {
-  const label =
-    new Intl.DateTimeFormat("en-US", {
+  let formatter = offsetFormatters.get(zone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-US", {
       timeZone: zone,
       timeZoneName: "shortOffset",
-    })
-      .formatToParts(at)
-      .find((part) => part.type === "timeZoneName")?.value ?? "GMT";
+    });
+    // Cache formatters, never offsets: each date must still honor its own DST.
+    if (offsetFormatters.size >= 512)
+      offsetFormatters.delete(offsetFormatters.keys().next().value!);
+    offsetFormatters.set(zone, formatter);
+  }
+  const label =
+    formatter.formatToParts(at).find((part) => part.type === "timeZoneName")
+      ?.value ?? "GMT";
   const match = /^GMT(?:([+-])(\d{1,2})(?::(\d{2}))?)?$/.exec(label);
   const minutes = match?.[1]
     ? (match[1] === "-" ? -1 : 1) *
@@ -33,11 +41,11 @@ export function listTimeZoneOptions(
   return [
     ...new Set(["UTC", ...include, ...Intl.supportedValuesOf("timeZone")]),
   ]
-    .map((value) => ({
-      value,
-      label: timeZoneLabel(value, at),
-      minutes: offsetOf(value, at).minutes,
-    }))
+    .map((value) => {
+      const { label, minutes } = offsetOf(value, at);
+      const city = value.slice(value.lastIndexOf("/") + 1).replaceAll("_", " ");
+      return { value, label: `${city} (${label})`, minutes };
+    })
     .sort(
       (a, b) => a.minutes - b.minutes || a.label.localeCompare(b.label, "en"),
     )

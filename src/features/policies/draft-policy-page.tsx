@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { publicPageMetadata } from "@/lib/seo/metadata";
 
 // Open items summarize canonical PRD §7 PUB-05 and §§11, 17–18.
 // These descriptions record questions; they never establish customer policy.
@@ -61,13 +62,15 @@ export const draftPolicies = {
 
 export type DraftPolicy = keyof typeof draftPolicies;
 
+/** Each key is also the policy's route, and a draft is never indexed. */
 export function draftPolicyMetadata(policy: DraftPolicy): Metadata {
   const content = draftPolicies[policy];
-  return {
+  return publicPageMetadata({
     title: content.title,
     description: content.description,
-    robots: { index: false, follow: false },
-  };
+    path: `/${policy}`,
+    index: false,
+  });
 }
 
 export function DraftPolicyPage({ policy }: { policy: DraftPolicy }) {

@@ -159,6 +159,52 @@ test.afterAll(async () => {
   }
 });
 
+test("a known visit zone opens a profile once and submits native dated choices in that zone", async ({
+  browser,
+}) => {
+  const tutor = await publicTutor();
+  const context = await browser.newContext({
+    baseURL,
+    timezoneId: "Pacific/Auckland",
+  });
+  const page = await context.newPage();
+  await page.goto("/how-it-works");
+  await expect
+    .poll(
+      async () =>
+        (await context.cookies()).find(
+          (cookie) => cookie.name === "learli-preview-timezone",
+        )?.value,
+    )
+    .toBe("Pacific%2FAuckland");
+  const profileRequests: string[] = [];
+  page.on("request", (request) => {
+    if (
+      new URL(request.url()).pathname === `/tutors/${tutor.slug}` &&
+      (request.isNavigationRequest() || request.headers().rsc === "1")
+    )
+      profileRequests.push(request.method());
+  });
+  await page.goto(`/tutors/${tutor.slug}`);
+  await expect(page.getByLabel("Time zone", { exact: true })).toHaveValue(
+    "Pacific/Auckland",
+  );
+  await page.waitForLoadState("networkidle");
+  expect(profileRequests).toEqual(["GET"]);
+  expect(new URL(page.url()).searchParams.has("displayTimezone")).toBe(false);
+  await page.getByLabel("Subject", { exact: true }).selectOption("math");
+  await page.getByLabel("Level", { exact: true }).selectOption("elementary");
+  await page
+    .getByRole("button", { name: "Load open times", exact: true })
+    .click();
+  await expect(page.locator('input[name="time"]').first()).toBeVisible();
+  expect(new URL(page.url()).searchParams.get("displayTimezone")).toBe(
+    "Pacific/Auckland",
+  );
+  expect(await count(tutor.id)).toBe(0);
+  await context.close();
+});
+
 test("public actual dates are private, keyboard accessible, responsive and native without JavaScript", async ({
   browser,
 }, info) => {
@@ -644,6 +690,21 @@ test("browser visit zone, native pending feedback and unavailable preview stay h
       displayTimezone: "Asia/Manila",
     }),
   );
+  // Wait for the explicit preference to persist before immediately replacing
+  // this document. SSR renders the selection before its client effect runs.
+  await expect
+    .poll(() =>
+      page.evaluate(() => sessionStorage.getItem("learli-preview-timezone")),
+    )
+    .toBe("Asia/Manila");
+  await expect
+    .poll(
+      async () =>
+        (await context.cookies()).find(
+          (cookie) => cookie.name === "learli-preview-timezone",
+        )?.value,
+    )
+    .toBe("Asia%2FManila");
   await page.goto(`/tutors/${tutor.slug}?subject=math&level=elementary`);
   await expect(page.getByLabel("Time zone", { exact: true })).toHaveValue(
     "Asia/Manila",

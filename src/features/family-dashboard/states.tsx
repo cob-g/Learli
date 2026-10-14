@@ -30,24 +30,10 @@ export function DashboardUnavailable({
         <Link href="/account" className="inline-flex min-h-11 items-center">
           Account settings
         </Link>
+        <Link href="/contact" className="inline-flex min-h-11 items-center">
+          Contact support
+        </Link>
       </div>
-      <DashboardHelp />
     </div>
-  );
-}
-
-export function DashboardHelp() {
-  return (
-    <footer className="mt-12 flex flex-wrap gap-x-6 gap-y-2 border-t border-border pt-6 text-small">
-      <Link className="inline-flex min-h-11 items-center" href="/contact">
-        Contact support
-      </Link>
-      <Link
-        className="inline-flex min-h-11 items-center"
-        href="/report-a-concern"
-      >
-        Report a concern
-      </Link>
-    </footer>
   );
 }

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { listTimeZoneOptions, timeZoneLabel } from "@/lib/time/zones";
 import { readAccount } from "@/features/account/service";
@@ -75,9 +74,6 @@ export default async function TutorProfilePage() {
           />
         )}
       </div>
-      <Link className="mt-8 inline-flex min-h-11 items-center" href="/tutor">
-        Tutor workspace
-      </Link>
     </div>
   );
 }

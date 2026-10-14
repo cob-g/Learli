@@ -136,7 +136,11 @@ applying it. Local scripts reject remote DB targets; no destructive reset exists
 - Review publication is a separate default-disabled synthetic software path.
   Historical private reviews are never promoted to public social proof.
 - `/api/health` is uncached process liveness, not a database/email readiness claim.
-- Pages remain excluded from indexing. Local auth is rejected in staging/production.
+- Pages remain excluded from indexing until the approved public launch. Only
+  `SEARCH_INDEXING=open` with `APP_ENV=production` on an HTTPS `APP_URL` opens
+  the public pages to search engines; private, account and draft pages stay
+  excluded everywhere.
+- Local auth is rejected in staging/production.
 - Final brand artwork and generated shadcn primitive approval remain open.
   `new-york` is a provisional CLI setting, not final design approval.
 - No payment, cloud provisioning, deployment or external message sends.

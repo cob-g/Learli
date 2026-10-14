@@ -6,7 +6,6 @@ import {
   tutorAgendaBooking,
 } from "@/features/tutors/booking-workspace";
 import { TutorBookingAgenda } from "@/features/tutors/booking-agenda";
-import { TutorWorkspaceNavigation } from "@/features/tutors/workspace-navigation";
 import { TutorBookingRefresh } from "@/features/tutors/booking-refresh";
 import { ReviewNotice } from "@/features/tutors/review-notice";
 import { SignOut } from "@/features/auth/sign-out";
@@ -44,9 +43,6 @@ export default async function TutorWorkspacePage() {
   return (
     <div className="page-shell page-space">
       <h1 className="text-page-title">Your bookings</h1>
-      <div className="mt-4">
-        <TutorWorkspaceNavigation />
-      </div>
       <p className="mt-3 max-w-prose text-small text-muted-foreground">
         Local simulated bookings assigned to you. Times use your current account
         time zone.
@@ -71,20 +67,6 @@ export default async function TutorWorkspacePage() {
         />
       </div>
       <SignOut />
-      <nav
-        aria-label="Workspace support"
-        className="mt-12 flex flex-wrap gap-4 border-t border-border pt-6 text-small"
-      >
-        <Link className="inline-flex min-h-11 items-center" href="/contact">
-          Contact support
-        </Link>
-        <Link
-          className="inline-flex min-h-11 items-center"
-          href="/report-a-concern"
-        >
-          Report a concern
-        </Link>
-      </nav>
     </div>
   );
 }

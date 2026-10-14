@@ -76,7 +76,13 @@ export default defineConfig({
     },
     {
       name: "auth",
-      testMatch: "auth.spec.ts",
+      testMatch: [
+        "auth.spec.ts",
+        "header-navigation.spec.ts",
+        "workspace-shell.spec.ts",
+      ],
+      // Both files use isolated auth fixtures and reset the test throttle rows.
+      workers: 1,
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1440, height: 900 },

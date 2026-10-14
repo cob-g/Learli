@@ -472,9 +472,14 @@ test("rescheduled capture links the new head and remains private after recipient
     ).status(),
   ).toBe(404);
   await page.goBack();
-  expect(
-    (await page.content()).includes("Private synthetic notice browser learner"),
-  ).toBe(false);
+  // Back can still be replacing the document when Playwright resolves it.
+  // Assert the actual destination and HTML once that transition is readable.
+  await expect(async () => {
+    expect(page.url()).toBe("about:blank");
+    expect(await page.content()).not.toContain(
+      "Private synthetic notice browser learner",
+    );
+  }).toPass({ timeout: 5_000 });
   await f.context.close();
 });
 

@@ -32,6 +32,29 @@ describe("truthful Neon operational configuration", () => {
     );
     expect(() => neonOperationPoolConfig({ ...config })).toThrow(/omitted/);
   });
+  it("keeps idle connections longer for the development runtime only", () => {
+    const idle = (
+      appEnv: "development" | "production",
+      purpose: "runtime" | "inspect-runtime" | "inspect" | "migrate",
+    ) =>
+      neonOperationPoolConfig(
+        neonOperationConfig({
+          appEnv,
+          target: operationTarget(appEnv),
+          url: url(
+            ["runtime", "inspect-runtime"].includes(purpose)
+              ? "learli_app"
+              : "learli_migrator",
+          ),
+          purpose,
+        }),
+      ).idleTimeoutMillis;
+    expect(idle("development", "runtime")).toBe(240_000);
+    expect(idle("development", "inspect")).toBe(10_000);
+    expect(idle("development", "migrate")).toBe(10_000);
+    expect(idle("production", "inspect-runtime")).toBe(10_000);
+    expect(idle("production", "migrate")).toBe(10_000);
+  });
   it("permits production metadata inspection but forbids production runtime", () => {
     const target = operationTarget("production");
     expect(

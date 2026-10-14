@@ -1,9 +1,43 @@
 import { describe, expect, it } from "vitest";
 import { isValidTimeZone, utcOffsetLookup } from "@/lib/time/time-zone";
+import { listTimeZoneOptions, timeZoneLabel } from "@/lib/time/zones";
 
 const HOUR = 3_600_000;
 const MINUTE = 60_000;
 const at = (iso: string) => Date.parse(iso);
+
+describe("reused display-zone formatters", () => {
+  it("formats each date's actual offset across DST after reuse, including aliases", () => {
+    const before = new Date("2026-03-08T06:59:59Z");
+    const after = new Date("2026-03-08T07:00:00Z");
+    expect(timeZoneLabel("America/New_York", before)).toBe("New York (GMT-5)");
+    expect(timeZoneLabel("America/New_York", after)).toBe("New York (GMT-4)");
+    expect(timeZoneLabel("America/New_York", before)).toBe("New York (GMT-5)");
+    for (const date of [before, after]) {
+      const options = listTimeZoneOptions(date, ["US/Eastern", "Asia/Kolkata"]);
+      for (const zone of [
+        "America/New_York",
+        "US/Eastern",
+        "Asia/Kolkata",
+        "Pacific/Chatham",
+        "UTC",
+      ]) {
+        const offset = new Intl.DateTimeFormat("en-US", {
+          timeZone: zone,
+          timeZoneName: "shortOffset",
+        })
+          .formatToParts(date)
+          .find((part) => part.type === "timeZoneName")!.value;
+        expect(options.find((item) => item.value === zone)?.label).toContain(
+          `(${offset})`,
+        );
+      }
+      expect(new Set(options.map((item) => item.value)).size).toBe(
+        options.length,
+      );
+    }
+  });
+});
 
 describe("time-zone identifiers", () => {
   it.each([

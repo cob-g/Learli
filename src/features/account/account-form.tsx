@@ -43,7 +43,10 @@ export function AccountForm({
           ? "Account settings saved."
           : "Settings could not be saved. Check your details and sign-in status, then try again.",
       );
-      if (response.ok) router.refresh();
+      if (response.ok) {
+        window.dispatchEvent(new Event("learli:account-updated"));
+        router.refresh();
+      }
     } catch {
       setFailed(true);
       setMessage("The account service could not be reached. Try again.");

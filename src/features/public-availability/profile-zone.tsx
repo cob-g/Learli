@@ -1,9 +1,20 @@
 "use client";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { isValidTimeZone } from "@/lib/time/time-zone";
+import {
+  browserVisitTimeZone,
+  visitTimeZoneKey,
+  writeVisitTimeZoneCookie,
+} from "./visit-timezone";
 
-const visitZoneKey = "learli-preview-timezone";
+/** Establish the display preference before the visitor opens a tutor profile. */
+export function BrowserTimeZone() {
+  useEffect(() => {
+    const zone = browserVisitTimeZone();
+    if (zone) writeVisitTimeZoneCookie(zone);
+  }, []);
+  return null;
+}
 /** Enhances a working GET form; no learner data or persistent account mutation. */
 export function ProfileZone({
   needsBrowserZone,
@@ -18,22 +29,17 @@ export function ProfileZone({
   useEffect(() => {
     if (explicitZone) {
       try {
-        sessionStorage.setItem(visitZoneKey, timezone);
+        sessionStorage.setItem(visitTimeZoneKey, timezone);
       } catch {
         /* Optional visit preference. */
       }
+      writeVisitTimeZoneCookie(timezone);
       return;
     }
     if (!needsBrowserZone) return;
-    let detected = "";
-    try {
-      detected = sessionStorage.getItem(visitZoneKey) ?? "";
-    } catch {
-      /* Fall back to browser zone. */
-    }
-    if (!isValidTimeZone(detected))
-      detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (!isValidTimeZone(detected)) return;
+    const detected = browserVisitTimeZone();
+    if (!detected) return;
+    writeVisitTimeZoneCookie(detected);
     const url = new URL(window.location.href);
     url.searchParams.set("displayTimezone", detected);
     router.replace(`${url.pathname}${url.search}`, { scroll: false });

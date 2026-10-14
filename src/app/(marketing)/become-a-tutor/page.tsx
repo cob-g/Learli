@@ -1,10 +1,15 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { StartApplication } from "@/features/tutors/start-application";
 import { BecomeATutorGuide } from "@/features/home/page-guides";
+import { publicPageMetadata } from "@/lib/seo/metadata";
 import "../home.css";
 
-export const metadata: Metadata = { title: "Become a tutor" };
+export const metadata = publicPageMetadata({
+  title: "Become a tutor",
+  description:
+    "Teach one-to-one lessons on your own Zoom or Google Meet account. You decide how you teach, and Learli reviews each application before a profile is public.",
+  path: "/become-a-tutor",
+});
 export default function Page() {
   return (
     <>

@@ -47,10 +47,11 @@ const identity = {
   session_role: "learli_app",
   ssl: true,
   replication_role: "origin",
+  parameters_safe: true,
+  privileges_safe: true,
 };
 function client() {
-  const query = vi.fn().mockResolvedValueOnce({ rows: [identity] });
-  query.mockResolvedValue({ rows: [{ safe: true }] });
+  const query = vi.fn().mockResolvedValue({ rows: [identity] });
   return { query, client: { query } as unknown as ClientBase };
 }
 afterEach(() => vi.unstubAllEnvs());
@@ -93,13 +94,23 @@ describe("W2 opaque runtime lease boundary", () => {
       code: "config_invalid",
     });
   });
-  it("runs all three read-only lease checks", async () => {
+  it("checks current identity and both privilege boundaries in one round trip on every checkout", async () => {
     const probe = client();
     await verifyRuntimeLease(probe.client, config());
-    expect(probe.query).toHaveBeenCalledTimes(3);
+    expect(probe.query).toHaveBeenCalledTimes(1);
     expect(probe.query.mock.calls.map(([text]) => text).join("\n")).toMatch(
       /pg_catalog\.pg_db_role_setting/,
     );
+    expect(probe.query.mock.calls[0][0]).toContain(
+      "pg_catalog.pg_parameter_acl",
+    );
+    probe.query.mockResolvedValue({
+      rows: [{ ...identity, privileges_safe: false }],
+    });
+    await expect(
+      verifyRuntimeLease(probe.client, config()),
+    ).rejects.toMatchObject({ code: "runtime_privilege" });
+    expect(probe.query).toHaveBeenCalledTimes(2);
   });
   it.each([
     { database: "other_database" },
@@ -122,10 +133,9 @@ describe("W2 opaque runtime lease boundary", () => {
     const probe = client();
     probe.query
       .mockReset()
-      .mockResolvedValueOnce({ rows: [{ ...identity, ssl: false }] })
-      .mockResolvedValue({ rows: [{ safe: true }] });
+      .mockResolvedValue({ rows: [{ ...identity, ssl: false }] });
     await verifyRuntimeLease(probe.client, config());
-    expect(probe.query).toHaveBeenCalledTimes(3);
+    expect(probe.query).toHaveBeenCalledTimes(1);
   });
   it.each([0, 2])("refuses %s identity rows", async (count) => {
     const probe = client();
@@ -138,23 +148,22 @@ describe("W2 opaque runtime lease boundary", () => {
       code: "identity_mismatch",
     });
   });
-  it.each([2, 3])(
-    "refuses unsafe privilege result in check %s",
-    async (check) => {
-      const probe = client();
-      probe.query.mockReset();
-      probe.query.mockResolvedValueOnce({ rows: [identity] });
-      if (check === 3)
-        probe.query.mockResolvedValueOnce({ rows: [{ safe: true }] });
-      probe.query.mockResolvedValue({ rows: [{ safe: false }] });
-      await expect(
-        verifyRuntimeLease(probe.client, config()),
-      ).rejects.toMatchObject({
-        code: "runtime_privilege",
-      });
-      expect(probe.query).toHaveBeenCalledTimes(check);
-    },
-  );
+  it.each([
+    { parameters_safe: false },
+    { privileges_safe: false },
+    { parameters_safe: null },
+    { privileges_safe: null },
+  ])("refuses unsafe or missing privilege result %j", async (drift) => {
+    const probe = client();
+    probe.query.mockReset();
+    probe.query.mockResolvedValue({ rows: [{ ...identity, ...drift }] });
+    await expect(
+      verifyRuntimeLease(probe.client, config()),
+    ).rejects.toMatchObject({
+      code: "runtime_privilege",
+    });
+    expect(probe.query).toHaveBeenCalledTimes(1);
+  });
   it("drops raw driver causes, messages and DSN/password from validation errors", async () => {
     const probe = client();
     probe.query

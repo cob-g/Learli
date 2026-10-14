@@ -23,12 +23,15 @@ export async function readPublicCatalog() {
   try {
     const runtime = getAuthRuntime();
     if (!runtime) return { tutors: [] as PublicTutor[], subjects: [] };
-    const tutors = await listEligibleTutors(runtime.db);
+    const [tutors, catalog] = await Promise.all([
+      listEligibleTutors(runtime.db),
+      listSubjects(runtime.db, true),
+    ]);
     const offered = new Set(
       tutors.flatMap((tutor) => tutor.offerings.map((o) => o.subjectSlug)),
     );
     // A specialized subject is advertised only while an eligible tutor offers it.
-    const subjects = (await listSubjects(runtime.db, true)).filter(
+    const subjects = catalog.filter(
       (subject) =>
         subject.category !== "specialized" || offered.has(subject.slug),
     );

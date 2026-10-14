@@ -11,7 +11,6 @@ import {
 import { levelNames } from "@/features/subjects/catalog";
 import { bookingDetailPath } from "@/features/bookings/read-model";
 import type { LearnerLevel } from "@/lib/db/schema/app";
-import { DashboardHelp } from "./states";
 import { ExpiryRefresh } from "./expiry-refresh";
 import { DashboardFilterForm, DashboardLink } from "./pending";
 import {
@@ -258,25 +257,6 @@ export function FamilyDashboard({ data }: { data: DashboardData }) {
   return (
     <div className="page-shell page-space">
       <div className="max-w-5xl">
-        <nav
-          aria-label="Workspace navigation"
-          className="mb-8 flex flex-wrap gap-x-6 gap-y-2"
-        >
-          <Link href={`/${workspace}`} className="nav-link" aria-current="page">
-            Bookings
-          </Link>
-          {workspace === "parent" && (
-            <Link href="/learners" className="nav-link">
-              Learners
-            </Link>
-          )}
-          <Link href="/tutors" className="nav-link">
-            Find a tutor
-          </Link>
-          <Link href="/account" className="nav-link">
-            Account settings
-          </Link>
-        </nav>
         <h1 className="text-page-title wrap-anywhere">{title}</h1>
         <p className="mt-3 max-w-prose text-small text-muted-foreground">
           Local simulation only. Reservations expire after ten minutes and do
@@ -417,7 +397,6 @@ export function FamilyDashboard({ data }: { data: DashboardData }) {
         >
           Your learners
         </Link>
-        <DashboardHelp />
         <ExpiryRefresh
           expiresAt={earliestExpiry}
           snapshotAt={data.checkedAt.startAtUtc}

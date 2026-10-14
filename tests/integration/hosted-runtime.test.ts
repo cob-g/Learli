@@ -137,6 +137,18 @@ afterEach(async () => {
 afterAll(() => harness?.stop());
 
 describe("W2 actual TLS PostgreSQL pooled application runtime", () => {
+  it("reuses a fully reset connection for consecutive pool queries without opening another", async () => {
+    const { pool } = await open();
+    const firstPid = await pid(pool);
+    await pool.query("SET application_name='temporary-performance-probe'");
+    const state = await pool.query<{ pid: number; name: string }>(
+      "SELECT pg_backend_pid() AS pid, current_setting('application_name') AS name",
+    );
+    expect(state.rows[0].pid).toBe(firstPid);
+    expect(state.rows[0].name).not.toBe("temporary-performance-probe");
+    expect(pool.totalCount).toBe(1);
+    expect(pool.idleCount).toBe(1);
+  });
   it("verifies TLS/identity and reuses a checked-out native session", async () => {
     const runtime = await open();
     const first = await borrow(runtime.pool);

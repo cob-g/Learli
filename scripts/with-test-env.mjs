@@ -4,6 +4,12 @@ import { parseEnv } from "node:util";
 const env = {
   ...process.env,
   ...parseEnv(readFileSync(".env.test.local", "utf8")),
+  // A started app also reads .env.local, which may opt this checkout into the
+  // Neon development branch. Tests stay on the loopback database, so the
+  // selector and its packet path are settled here, where that file cannot
+  // supply them.
+  DATABASE_MODE: "local",
+  NEON_DEVELOPMENT_CONFIG_FILE: "",
 };
 if (env.APP_ENV !== "test" || env.AUTH_MODE !== "local")
   throw new Error("Dedicated local test configuration required.");

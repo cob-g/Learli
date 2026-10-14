@@ -12,6 +12,7 @@ import {
 import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
 import { BrandLogo } from "@/components/shared/brand-logo";
+import { HeaderAccount } from "@/components/shared/header-account";
 
 const links = [
   ["/tutors", "Find a tutor"],
@@ -68,17 +69,11 @@ export function SiteHeader() {
         data-live={live ? "" : undefined}
         data-raised={raised ? "" : undefined}
       >
-        <div
-          className="site-header-bar glass glass-liquid flex min-h-16 flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2 lg:min-h-18"
-          data-glint=""
-        >
+        <div className="site-header-bar glass glass-liquid" data-glint="">
           <Link href="/" className="brand-home" aria-label="Learli home">
             <BrandLogo />
           </Link>
-          <nav
-            aria-label="Main navigation"
-            className="hidden items-center gap-6 lg:flex"
-          >
+          <nav aria-label="Main navigation" className="site-header-navigation">
             {links.map(([href, label]) => (
               <Link
                 key={href}
@@ -90,13 +85,9 @@ export function SiteHeader() {
               </Link>
             ))}
           </nav>
-          <Link
-            href="/sign-in"
-            className="nav-link"
-            aria-current={pathname === "/sign-in" ? "page" : undefined}
-          >
-            Sign in
-          </Link>
+          <div className="site-header-account">
+            <HeaderAccount />
+          </div>
         </div>
       </header>
       {/* Below the wide breakpoint the main navigation is a floating dock at

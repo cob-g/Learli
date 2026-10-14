@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { sql, type SQL } from "drizzle-orm";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import type { Database } from "@/lib/db/connection";
@@ -25,15 +26,35 @@ export function adminAssurancePredicate(
   return sql`public.has_admin_assurance(${userId}, ${sessionId}, ${maxAgeSeconds})`;
 }
 
+/** One assurance read per page render and age, like `requireIdentity`. */
+const currentAdminAssurance = cache(
+  async (
+    db: Pick<Database, "execute">,
+    userId: string,
+    sessionId: string,
+    maxAgeSeconds: number,
+  ) => {
+    const result = await db.execute<{ allowed: boolean }>(
+      sql`SELECT ${adminAssurancePredicate(userId, sessionId, maxAgeSeconds)} AS allowed`,
+    );
+    return result.rows[0]?.allowed === true;
+  },
+);
+
 export async function recheckAdminAssurance(
   db: Pick<Database, "execute">,
   identity: Pick<Identity, "userId" | "sessionId">,
   maxAgeSeconds = ADMIN_ASSURANCE_SECONDS,
 ) {
-  const result = await db.execute<{ allowed: boolean }>(
-    sql`SELECT ${adminAssurancePredicate(identity.userId, identity.sessionId, maxAgeSeconds)} AS allowed`,
-  );
-  if (!result.rows[0]?.allowed) throw new AccessError(403);
+  if (
+    !(await currentAdminAssurance(
+      db,
+      identity.userId,
+      identity.sessionId,
+      maxAgeSeconds,
+    ))
+  )
+    throw new AccessError(403);
 }
 
 /** Runtime-compatible: provider identity is resolved first; SQL is authoritative. */
