@@ -1,11 +1,10 @@
 "use client";
 import { useSyncExternalStore, useRef, useState, useTransition } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useRouter } from "next/navigation";
 import type { SafeguardingDetail } from "./service";
 import { isUncertainRequestStatus } from "@/features/learners/pending-request";
 const subscribe = () => () => {};
-const clientSnapshot = () => true;
-const serverSnapshot = () => false;
 const pendingReportKey = "learli:pending-safeguarding-request";
 const serverReportKey = () => null;
 function storedReportKey() {
@@ -34,7 +33,7 @@ function friendly(result: unknown) {
     : undefined;
 }
 export function SafeguardingReportForm() {
-  const ready = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot),
+  const ready = useHydrated(),
     pendingKey = useSyncExternalStore(
       subscribe,
       storedReportKey,
@@ -233,7 +232,7 @@ export function ResponseForm({
   scope: "reviewer" | "dispatcher";
 }) {
   const router = useRouter(),
-    ready = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot),
+    ready = useHydrated(),
     [refreshing, startRefresh] = useTransition(),
     [saving, setBusy] = useState(false),
     [message, setMessage] = useState(""),

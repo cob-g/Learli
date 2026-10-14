@@ -2,7 +2,7 @@
 import { z } from "zod";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { AccessError } from "@/lib/permissions/access";
-import { isLoopbackOrigin, syntheticEmail } from "@/lib/local-mode";
+import { resolveLocalSyntheticSession } from "@/lib/permissions/local-synthetic-session";
 import { isValidTimeZone } from "@/lib/time/time-zone";
 import {
   bookingListInput,
@@ -20,28 +20,12 @@ import type {
   BookingOverview,
 } from "./read-model";
 
-async function readActor(runtime: AuthRuntime, headers: Headers) {
-  if (
-    !["development", "test"].includes(runtime.environment) ||
-    !isLoopbackOrigin(runtime.origin)
-  )
-    throw new AccessError(503);
-  const current = await runtime.auth.api.getSession({
-    headers,
-    query: { disableCookieCache: true },
-  });
-  if (!current) throw new AccessError(401);
-  if (!syntheticEmail(current.user.email)) throw new AccessError(404);
-  // These identifiers come only from the provider. Final SQL rechecks everything.
-  return { userId: current.user.id, sessionId: current.session.id };
-}
-
 export async function listParticipantBookings(
   runtime: AuthRuntime,
   headers: Headers,
   input: unknown,
 ): Promise<BookingPage> {
-  const actor = await readActor(runtime, headers);
+  const actor = await resolveLocalSyntheticSession(runtime, headers);
   const values = bookingListInput.parse(input);
   const snapshot = await queryParticipantBookings(runtime.db, actor, values);
   if (!snapshot || !isValidTimeZone(snapshot.timezone))
@@ -82,7 +66,7 @@ export async function listParticipantBookingOverview(
   headers: Headers,
   input: unknown,
 ): Promise<BookingOverview> {
-  const actor = await readActor(runtime, headers);
+  const actor = await resolveLocalSyntheticSession(runtime, headers);
   const values = bookingOverviewInput.parse(input);
   const snapshot = await queryParticipantBookings(
     runtime.db,
@@ -116,7 +100,7 @@ export async function readParticipantBooking(
   bookingId: string,
   scope: BookingReadScope,
 ): Promise<BookingDetail> {
-  const actor = await readActor(runtime, headers);
+  const actor = await resolveLocalSyntheticSession(runtime, headers);
   if (
     !z.uuid().safeParse(bookingId).success ||
     !bookingReadScope.safeParse(scope).success

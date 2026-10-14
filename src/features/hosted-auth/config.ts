@@ -3,13 +3,7 @@ import { z } from "zod";
 import { parseServerEnv } from "@/lib/env/schema";
 import { stagingDatabaseConfig } from "@/lib/db/staging-config";
 import { syntheticEmail } from "@/lib/local-mode";
-// Node entry can validate configuration without importing server-only modules.
-const mailboxSchema = z
-  .string()
-  .max(254)
-  .email()
-  .regex(/^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+$/)
-  .refine((value) => !value.includes(".."));
+import { mailboxSchema } from "@/lib/email/mailbox";
 
 export class HostedAuthError extends Error {
   constructor(

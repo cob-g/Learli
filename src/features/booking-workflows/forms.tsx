@@ -1,22 +1,14 @@
 "use client";
-import {
-  useState,
-  useEffect,
-  useRef,
-  useSyncExternalStore,
-  type FormEvent,
-} from "react";
+import { useState, useEffect, useRef, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import type { LessonTimeValue } from "@/features/bookings/lesson-time";
 import { LessonTime } from "@/features/bookings/lesson-time";
 import type { WorkflowAction } from "./input";
-const subscribe = () => () => {},
-  client = () => true,
-  server = () => false;
 function useMutation(
   endpoint: string,
   destination: (r: { id: string }) => string,
 ) {
-  const ready = useSyncExternalStore(subscribe, client, server),
+  const ready = useHydrated(),
     [pending, setPending] = useState(false),
     [message, setMessage] = useState(""),
     [uncertain, setUncertain] = useState(false),

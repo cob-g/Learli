@@ -1,11 +1,6 @@
 "use client";
-import {
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type FormEvent,
-} from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { LoaderCircle, CircleAlert } from "lucide-react";
 import {
   publicationSubmission,
@@ -14,9 +9,6 @@ import {
   publicationStateLabels,
   type PublicationState,
 } from "./input";
-const subscribe = () => () => {},
-  client = () => true,
-  server = () => false;
 export function PublicationForm({
   bookingId,
   completionEventId,
@@ -32,7 +24,7 @@ export function PublicationForm({
   revision?: number;
   state?: PublicationState;
 }) {
-  const hydrated = useSyncExternalStore(subscribe, client, server),
+  const hydrated = useHydrated(),
     busy = useRef(false),
     request = useRef<string | undefined>(undefined),
     notice = useRef<HTMLParagraphElement>(null);

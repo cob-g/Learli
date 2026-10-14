@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { escapeHtml as escape } from "./escape-html";
 import { isLoopbackOrigin, syntheticEmail } from "../local-mode";
 
 export type LocalMessage =
@@ -15,14 +16,6 @@ export type LocalMessage =
       url: string;
       otp: string;
     };
-const escape = (value: string) =>
-  value.replace(
-    /[&<>"']/g,
-    (c) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
-        c
-      ]!,
-  );
 export function localMailbox(environment: "development" | "test") {
   return path.join(process.cwd(), ".local", "mail", environment);
 }

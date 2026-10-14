@@ -1,16 +1,8 @@
 "use client";
-import {
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type FormEvent,
-} from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { nextStates, stateLabels, type ReviewState } from "./input";
-const subscribe = () => () => {};
-const ready = () => true;
-const server = () => false;
 export function ReviewForm({
   bookingId,
   reviewId,
@@ -22,7 +14,7 @@ export function ReviewForm({
   revision: number;
   state?: ReviewState;
 }) {
-  const hydrated = useSyncExternalStore(subscribe, ready, server);
+  const hydrated = useHydrated();
   const busy = useRef(false),
     request = useRef<string | undefined>(undefined),
     notice = useRef<HTMLParagraphElement>(null);

@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { authClient } from "@/lib/auth-client";
 import { safeBookingReturnPath } from "@/features/bookings/selection";
 
@@ -13,7 +14,6 @@ const labels: Record<Mode, string> = {
   reset: "Save new password",
   verify: "Resend verification",
 };
-const subscribe = () => () => {};
 export function AuthForm({
   mode,
   next,
@@ -27,11 +27,7 @@ export function AuthForm({
   invalidToken?: boolean;
   hosted?: boolean;
 }) {
-  const ready = useSyncExternalStore(
-    subscribe,
-    () => true,
-    () => false,
-  );
+  const ready = useHydrated();
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");

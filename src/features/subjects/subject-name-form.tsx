@@ -2,12 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
-import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { subjectName, subjectNameHelp } from "./input";
-
-const subscribe = () => () => {};
-const clientReady = () => true;
-const serverReady = () => false;
 
 export function SubjectNameForm({
   subject,
@@ -15,7 +12,7 @@ export function SubjectNameForm({
   subject: { id: string; name: string; nameRevision: number };
 }) {
   const router = useRouter();
-  const hydrated = useSyncExternalStore(subscribe, clientReady, serverReady);
+  const hydrated = useHydrated();
   const busy = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const noticeRef = useRef<HTMLParagraphElement>(null);

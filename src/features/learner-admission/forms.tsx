@@ -1,11 +1,6 @@
 "use client";
-import {
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type FormEvent,
-} from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { z } from "zod";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
 import { describeLearnerIssues } from "@/features/learners/input";
@@ -24,15 +19,8 @@ const responseMessage = z.object({
   fields: z.record(z.string(), z.string().max(500)).optional(),
 });
 const responseId = z.object({ id: z.uuid() });
-const subscribeHydration = () => () => {};
-const clientReady = () => true;
-const serverReady = () => false;
 function useSubmission() {
-  const hydrated = useSyncExternalStore(
-    subscribeHydration,
-    clientReady,
-    serverReady,
-  );
+  const hydrated = useHydrated();
   const [pending, setPending] = useState(false);
   const [uncertain, setUncertain] = useState(false);
   const [message, setMessage] = useState("");

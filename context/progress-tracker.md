@@ -1,5 +1,106 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — ABSTRACTION POLICE: five consolidations verified (local, uncommitted)
+
+The owner explicitly authorized repository-wide semantic abstraction exploration,
+behavior-preserving consolidation, validation and an independent second pass.
+**10 GPT-6 Luna high investigators/auditors** (4 initial, 2 cross-module, 4 source
+audits) and **4 GPT-6.1 Sol high implementers** ran with verified effective launch
+settings, at most 3 workers concurrently. Coverage included frontend components/
+forms/state, API handlers, services/domain rules, identity/record authorization,
+temporal/discovery/projection logic, DB/config/email integrations, scripts,
+infrastructure and test support. Root synthesized **21 conceptual groups: 5
+confirmed and consolidated, 12 rejected look-alikes, 4 deferred candidates**;
+counts deduplicate overlapping agent reports rather than textual matches.
+
+| Responsibility | Before | Canonical implementation / result |
+| --- | --- | --- |
+| Hydration readiness | 25 readiness calls in 22 independently implemented consumer modules | `src/hooks/use-hydrated.ts`; all 25 use one server-false/client-true hook |
+| Mailbox syntax | 2 equivalent schema bodies across config/message boundaries | `src/lib/email/mailbox.ts`; 4 direct consumer modules, 13 schema uses; existing export retained |
+| HTML encoding | 3 equivalent table/inline/switch encoders | `src/lib/email/escape-html.ts`; 3 consumer modules, legacy `escapeNoticeText` retained as an alias |
+| Local synthetic-session preflight | 2 independent uncached provider identity preflights | `src/lib/permissions/local-synthetic-session.ts`; 2 service consumers retain their own final SQL authority |
+| Advisory batch-window intersection | 3 independent raw from/to intersections | `src/features/public-availability/batch-window.ts`; matching, directory and readiness retain their own cutoffs/fitting/providers |
+
+Two existing schema/encoder implementations were relocated to neutral modules;
+three focused shared helpers were established where no exact canonical helper
+existed. No generic form, permission, configuration, matching or delivery framework
+was introduced. Templates, recipient policies, retry/uncertainty recovery, native
+POST/no-script behavior, private-document safeguards, current SQL authorization,
+post-lock checks, public contracts and compatibility exports remain intact.
+
+The temporal cross-check refined an exploration claim: readiness passes starts
+strictly beyond rawTo into ranking, but valid 60-minute lessons there fail final
+whole-interval fitting. At exactly rawTo, readiness can retain the lesson ending
+at rawTo+60 while matching/directory exclude its start. Both stages and actual
+outputs are preserved using valid provider-duration regression fixtures.
+
+Independent Luna G/H/I/J source audits accepted all five completed consolidations
+without blockers or missed equivalents in the modified areas. Source review and
+executed runtime verification remain separate evidence. Scoped Sol commands also
+passed (session 48 unit/59 PG; mail 179 unit; hydration 176 component; batch window
+110 unit/48 PG); final aggregate results below supersede those narrower claims.
+
+**Observed final verification on frozen application source:**
+
+- `npm run check` **PASS: 1,644 tests / 111 files**, including **97 additive
+  regression cases** (39 session, 34 email, 6 hydration, 18 batch/caller cases),
+  formatting, lint and strict typecheck. No existing assertion was weakened.
+  One pre-existing unused `inArray` lint warning in `time-off/service.ts` remains.
+- `LEARLI_STAGING_TEST_PORT=56019 npm run test:integration` **PASS: 921/921 cases,
+  63 files, 401.75s**, in one full invocation on owned loopback test databases.
+- `node scripts/with-test-env.mjs npm run build` **PASS**. The wrapper explicitly
+  forces local test mode and disables the Neon-development packet selector.
+- Affected Chromium run **PASS: 97/97, 2.6 minutes**, including 320/390/1440px,
+  keyboard/accessibility, no-script, current permission, private-document,
+  matching/availability, retry and auth/security flows. This is 14 selected
+  projects, not the complete or cross-browser suite. Exact command:
+
+  ```sh
+  npm run test:e2e -- --project=desktop --project=phone --project=narrow --project=auth --project=learners --project=learner-admission --project=screening-safeguarding --project=booking-history --project=booking-meeting-links --project=matching --project=directory-time-filters --project=account-password --project=account-email --project=admin-security --no-deps --workers=1
+  ```
+
+- Static runtime-import comparison across **741 TypeScript source/script/test
+  files / 2,305 edges** found **zero new cycles**. The two baseline cycles
+  (admin assurance/access and booking/workflow schema) are unchanged.
+- Final whitespace/diff, source-freeze and prior-work preservation checks pass.
+  All **11 protected baseline files** are byte-identical; the four existing dirty
+  forms differ only by readiness imports/calls/dead snapshots. Their prior
+  retry/recovery tests and migration0029 remain unchanged. The operation itself
+  changes **43 files: 38 source, 4 new tests, this tracker**. `.claude/worktrees/`
+  and unrelated work are preserved.
+
+Deferred: shared Resend config-schema machinery, a broad local-runtime guard,
+staging/Neon config primitives and mirror/process fixture lifecycle sharing.
+Their security, ordering, target or ownership contracts need separate evidence
+and the simplification benefit is uncertain. Rejected look-alikes include generic
+mutation/route workflows, record/admin authority, review error mappings and
+projections, temporal resolution policies, advisory/private booking pipelines,
+local/CI provisioning, delivery/capture, changing UI stores and email/URL trust
+rules. Existing screening-specific error copy used by safeguarding is an
+observable-contract coupling, not a duplicate-removal change, and remains recorded
+for a separately scoped correction.
+
+Orca run `run_ed21b83c65db`: all **14 workers released**, zero reclaimable or active
+workers. Task ledger: **13 completed / 1 failed lifecycle delivery**. The latter
+Luna completed its source report but its PATH launcher could not resolve Orca;
+root recovered the report, used positive final-transcript evidence to stop only
+that worker, followed the fleet release action, and had its temporal finding
+independently checked before implementation. No source work remains blocked.
+
+Evidence under `/tmp/learli-abstraction-police-20261015/`: `findings.json` (all 21
+groups and A/B/C/D decisions), `workers.json` / `tasks-final.json` (per-task
+outcomes/model/evidence), `luna-*.md` / `sol-*.md` (reports), `check-final.log`,
+`integration-final.log`, `build-final.log`, `browser-final.log`,
+`preservation-and-dependencies.json` and `operation.diff` (this operation alone,
+relative to the saved pre-existing work). Application source stayed frozen through
+aggregate verification; the final factual tracker edit was checked separately.
+
+No new migration/schema, dependency/environment/configuration, real email,
+Neon/development/production operation, commit/merge/push or deployment. Existing
+real-use and policy gates remain unchanged. Next smallest unit: review the
+uncommitted operation patch for a commit; optional deferred work needs its own
+narrow contract and compatibility evidence.
+
 ## 2026-10-14 — Luna/Sol bug sweep: combined verification complete (local, uncommitted)
 
 Owner requested GPT-6 Luna high exploration and GPT-6.1 Sol high fixes, then

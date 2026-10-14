@@ -2,11 +2,11 @@ import "server-only";
 import { createHmac } from "node:crypto";
 import { z } from "zod";
 import type { Database } from "@/lib/db/connection";
+import { mailboxSchema } from "@/lib/email/mailbox";
 import { createResendTransport } from "@/lib/email/resend-transport";
 import {
   createBookingMessageConstructor,
   exactHttpsOrigin,
-  mailboxSchema,
 } from "@/lib/email/transactional-message";
 
 const configuration = z

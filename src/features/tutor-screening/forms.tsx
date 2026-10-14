@@ -1,12 +1,10 @@
 "use client";
-import { useSyncExternalStore, useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useRouter } from "next/navigation";
 import type { ScreeningDetail } from "./service";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { screeningActions } from "./policy";
-const subscribe = () => () => {};
-const clientSnapshot = () => true;
-const serverSnapshot = () => false;
 export function ScreeningForm({
   tutorId,
   detail,
@@ -15,7 +13,7 @@ export function ScreeningForm({
   detail: ScreeningDetail;
 }) {
   const router = useRouter(),
-    ready = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot),
+    ready = useHydrated(),
     [refreshing, startRefresh] = useTransition(),
     [saving, setBusy] = useState(false),
     [message, setMessage] = useState(""),
@@ -235,7 +233,7 @@ export function ScreeningForm({
   );
 }
 export function ScreeningRequest({ tutorId }: { tutorId: string }) {
-  const ready = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot),
+  const ready = useHydrated(),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
   const key = useRef<string | null>(null);

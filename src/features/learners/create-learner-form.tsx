@@ -1,11 +1,6 @@
 "use client";
-import {
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type FormEvent,
-} from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import Link from "next/link";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
@@ -20,10 +15,6 @@ import {
 
 const pendingScope = "create-learner";
 
-const subscribeHydration = () => () => {};
-const clientReady = () => true;
-const serverReady = () => false;
-
 export function CreateLearnerForm({
   requestId,
   modes,
@@ -37,11 +28,7 @@ export function CreateLearnerForm({
   zones: TimeZoneOption[];
   returnToBooking?: string;
 }) {
-  const ready = useSyncExternalStore(
-    subscribeHydration,
-    clientReady,
-    serverReady,
-  );
+  const ready = useHydrated();
   const [management, setManagement] = useState(modes[0]);
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState("");

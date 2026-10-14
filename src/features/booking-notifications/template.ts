@@ -1,8 +1,11 @@
 import { z } from "zod";
+import { escapeHtml } from "@/lib/email/escape-html";
 import { isLoopbackOrigin } from "@/lib/local-mode";
 import { isValidTimeZone } from "@/lib/time/time-zone";
 import { formatLessonTime } from "@/features/bookings/format-time";
 import { noticeKinds, type LifecycleNoticeKind } from "./kinds";
+
+export { escapeHtml as escapeNoticeText } from "@/lib/email/escape-html";
 
 export const noticeKind = "simulated_reservation_created" as const;
 const instant = z.date().refine((value) => Number.isFinite(value.getTime()));
@@ -47,23 +50,6 @@ const headings = {
   simulated_fixture_completed: "Synthetic fixture marked completed",
 } as const;
 
-export function escapeNoticeText(value: string) {
-  return value.replace(/[&<>"']/g, (character) => {
-    switch (character) {
-      case "&":
-        return "&amp;";
-      case "<":
-        return "&lt;";
-      case ">":
-        return "&gt;";
-      case '"':
-        return "&quot;";
-      default:
-        return "&#39;";
-    }
-  });
-}
-
 /** No participant/learner fields enter this template. Link always requires sign-in. */
 export function renderReservationNotice(origin: string, notice: BookingNotice) {
   if (!isLoopbackOrigin(origin))
@@ -82,7 +68,7 @@ export function renderReservationNotice(origin: string, notice: BookingNotice) {
     ? "Owner-provisioned synthetic fixture only. This does not establish a real lesson, payment or attendance."
     : "This is not a confirmed lesson.";
   const detail = new URL(values.detailPath, origin);
-  const escape = escapeNoticeText;
+  const escape = escapeHtml;
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="robots" content="noindex, nofollow"><title>Learli local reservation notice</title>
 <style>body{margin:0;padding:1rem;font-family:Arial,sans-serif;line-height:1.6}main{max-width:42rem;margin:auto}h1{font-size:1.75rem}dt{font-weight:bold}dd{margin:0 0 1rem;overflow-wrap:anywhere}a{display:inline-block;padding:.75rem 0}a:focus-visible{outline:2px solid;outline-offset:2px}</style></head>

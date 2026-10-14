@@ -1,10 +1,8 @@
 "use client";
-import { useSyncExternalStore, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useRouter } from "next/navigation";
-const subscribe = () => () => {};
-const clientSnapshot = () => true;
-const serverSnapshot = () => false;
 export function SafetyRestrictionForm({
   targetId,
   revision,
@@ -15,7 +13,7 @@ export function SafetyRestrictionForm({
   status: "active" | "suspended";
 }) {
   const router = useRouter(),
-    ready = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot),
+    ready = useHydrated(),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
   const dialog = useRef<HTMLDialogElement>(null),

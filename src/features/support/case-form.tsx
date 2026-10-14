@@ -1,12 +1,9 @@
 "use client";
-import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useRouter } from "next/navigation";
 import { CircleAlert, LoaderCircle } from "lucide-react";
 import { categoryLabels } from "./input";
-
-const subscribeToHydration = () => () => {};
-const hydratedSnapshot = () => true;
-const serverSnapshot = () => false;
 
 export function CaseForm({
   concern = false,
@@ -16,11 +13,7 @@ export function CaseForm({
   bookingId?: string;
 }) {
   const router = useRouter();
-  const hydrated = useSyncExternalStore(
-    subscribeToHydration,
-    hydratedSnapshot,
-    serverSnapshot,
-  );
+  const hydrated = useHydrated();
   const busy = useRef(false);
   const key = useRef<string | null>(null);
   const notice = useRef<HTMLParagraphElement>(null);

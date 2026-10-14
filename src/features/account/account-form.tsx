@@ -1,8 +1,8 @@
 "use client";
-import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useRouter } from "next/navigation";
 import type { TimeZoneOption } from "@/lib/time/zones";
-const subscribe = () => () => {};
 export function AccountForm({
   account,
   timeZones,
@@ -10,11 +10,7 @@ export function AccountForm({
   account: { id: string; name: string; timezone: string };
   timeZones: TimeZoneOption[];
 }) {
-  const ready = useSyncExternalStore(
-    subscribe,
-    () => true,
-    () => false,
-  );
+  const ready = useHydrated();
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");

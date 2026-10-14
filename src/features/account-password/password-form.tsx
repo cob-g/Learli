@@ -2,13 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type FormEvent,
-} from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { passwordChangeInput } from "./input";
 
 type Field = "currentPassword" | "newPassword" | "confirmPassword";
@@ -25,15 +20,10 @@ const fields: { name: Field; label: string; autoComplete: string }[] = [
     autoComplete: "new-password",
   },
 ];
-const subscribeToHydration = () => () => {};
 
 export function PasswordForm() {
   const router = useRouter();
-  const ready = useSyncExternalStore(
-    subscribeToHydration,
-    () => true,
-    () => false,
-  );
+  const ready = useHydrated();
   const [pending, setPending] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [notice, setNotice] = useState<{
