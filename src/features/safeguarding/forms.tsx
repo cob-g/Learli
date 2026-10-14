@@ -2,9 +2,28 @@
 import { useSyncExternalStore, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { SafeguardingDetail } from "./service";
+import { isUncertainRequestStatus } from "@/features/learners/pending-request";
 const subscribe = () => () => {};
 const clientSnapshot = () => true;
 const serverSnapshot = () => false;
+const pendingReportKey = "learli:pending-safeguarding-request";
+const serverReportKey = () => null;
+function storedReportKey() {
+  try {
+    const key = window.sessionStorage.getItem(pendingReportKey);
+    return key && /^[0-9a-f-]{36}$/i.test(key) ? key : null;
+  } catch {
+    return null;
+  }
+}
+function rememberReportKey(key: string | null) {
+  try {
+    if (key) window.sessionStorage.setItem(pendingReportKey, key);
+    else window.sessionStorage.removeItem(pendingReportKey);
+  } catch {
+    // Optional storage; same-document retries still retain the original attempt.
+  }
+}
 function friendly(result: unknown) {
   return typeof result === "object" &&
     result !== null &&
@@ -16,33 +35,56 @@ function friendly(result: unknown) {
 }
 export function SafeguardingReportForm() {
   const ready = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot),
+    pendingKey = useSyncExternalStore(
+      subscribe,
+      storedReportKey,
+      serverReportKey,
+    ),
     [busy, setBusy] = useState(false),
+    [uncertain, setUncertain] = useState(false),
     [message, setMessage] = useState(""),
-    key = useRef<string | null>(null),
+    inFlight = useRef(false),
+    priorUncertainty = useRef(false),
+    attempt = useRef<{
+      category: "safety";
+      subject: FormDataEntryValue | null;
+      body: FormDataEntryValue | null;
+      requestKey: string;
+    } | null>(null),
+    form = useRef<HTMLFormElement>(null),
     alert = useRef<HTMLParagraphElement>(null);
+  const recovering = uncertain || (!busy && pendingKey !== null);
   return (
     <form
+      ref={form}
       method="post"
       action="/api/safeguarding/cases"
       className="max-w-xl space-y-6"
-      onChange={() => {
-        key.current = null;
-      }}
       onSubmit={async (e) => {
         e.preventDefault();
-        const f = new FormData(e.currentTarget);
+        if (!ready || inFlight.current) return;
+        // Keep both identity and fields until the server settles this attempt.
+        if (!attempt.current) {
+          const f = new FormData(e.currentTarget);
+          const savedKey = storedReportKey();
+          priorUncertainty.current = savedKey !== null;
+          setUncertain(priorUncertainty.current);
+          attempt.current = {
+            category: "safety",
+            subject: f.get("subject"),
+            body: f.get("body"),
+            requestKey: savedKey ?? crypto.randomUUID(),
+          };
+        }
+        inFlight.current = true;
         setBusy(true);
-        key.current ??= crypto.randomUUID();
+        setMessage("");
+        rememberReportKey(attempt.current.requestKey);
         try {
           const r = await fetch("/api/safeguarding/cases", {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({
-              category: "safety",
-              subject: f.get("subject"),
-              body: f.get("body"),
-              requestKey: key.current,
-            }),
+            body: JSON.stringify(attempt.current),
           });
           const result: unknown = await r.json().catch(() => null);
           const text = friendly(result);
@@ -51,16 +93,40 @@ export function SafeguardingReportForm() {
               ? result.id
               : undefined;
           if (!r.ok || typeof id !== "string") {
-            setMessage(text ?? "Report could not be saved.");
+            // A later refusal cannot disprove an earlier uncertain commit.
+            const outcomeUncertain =
+              priorUncertainty.current ||
+              isUncertainRequestStatus(r.status) ||
+              result === null ||
+              r.ok;
+            setUncertain(outcomeUncertain);
+            priorUncertainty.current = outcomeUncertain;
+            if (!outcomeUncertain) {
+              attempt.current = null;
+              rememberReportKey(null);
+            }
+            setMessage(
+              outcomeUncertain
+                ? "We could not confirm whether your report was saved. Retry this same report to check its result."
+                : (text ??
+                    "Report could not be saved. Check the fields and retry."),
+            );
+            inFlight.current = false;
             setBusy(false);
             requestAnimationFrame(() => alert.current?.focus());
             return;
           }
+          rememberReportKey(null);
           window.location.replace(
             new URL(`/safeguarding/cases/${id}`, window.location.origin).href,
           );
         } catch {
-          setMessage("Report could not be saved.");
+          priorUncertainty.current = true;
+          setUncertain(true);
+          setMessage(
+            "We could not confirm whether your report was saved. Retry this same report to check its result.",
+          );
+          inFlight.current = false;
           setBusy(false);
           requestAnimationFrame(() => alert.current?.focus());
         }
@@ -72,7 +138,13 @@ export function SafeguardingReportForm() {
       </p>
       <label className="block text-label">
         Report subject
-        <input name="subject" className="field mt-2" required maxLength={120} />
+        <input
+          name="subject"
+          className="field mt-2"
+          required
+          maxLength={120}
+          disabled={!ready || busy || uncertain}
+        />
       </label>
       <label className="block text-label">
         Concern
@@ -81,6 +153,7 @@ export function SafeguardingReportForm() {
           className="field mt-2 min-h-40"
           required
           maxLength={2000}
+          disabled={!ready || busy || uncertain}
         />
       </label>
       <p
@@ -96,8 +169,54 @@ export function SafeguardingReportForm() {
         disabled={!ready || busy}
         aria-busy={busy}
       >
-        {busy ? "Saving report" : "Save synthetic report"}
+        {busy
+          ? "Saving report"
+          : recovering
+            ? "Retry same report"
+            : "Save synthetic report"}
       </button>
+      {recovering && (
+        <div className="space-y-4">
+          <p className="max-w-prose text-body">
+            Your earlier report may already be saved. Check your reports before
+            starting a different report. Retrying keeps the same request.
+          </p>
+          <div className="flex flex-wrap items-center gap-4">
+            {/* A native document GET reloads current history after an uncertain write. */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a
+              className="inline-flex min-h-11 items-center"
+              href="/safeguarding/report"
+            >
+              Check my reports
+            </a>
+            <button
+              type="button"
+              className="action action-outline"
+              disabled={!ready || busy}
+              onClick={() => {
+                if (!ready || inFlight.current) return;
+                // A new key requires explicit new-report intent, never a retry.
+                attempt.current = null;
+                priorUncertainty.current = false;
+                rememberReportKey(null);
+                setUncertain(false);
+                setMessage(
+                  "You can start a different report. Your earlier report may already be saved.",
+                );
+                form.current?.reset();
+                requestAnimationFrame(() =>
+                  form.current
+                    ?.querySelector<HTMLInputElement>('[name="subject"]')
+                    ?.focus(),
+                );
+              }}
+            >
+              Start a different report
+            </button>
+          </div>
+        </div>
+      )}
       <noscript>
         <p className="text-body">
           Enable JavaScript to save a report. Nothing is submitted without it.

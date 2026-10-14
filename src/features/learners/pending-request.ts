@@ -1,11 +1,16 @@
 /**
- * Remembers the requestId of a create attempt whose outcome was never seen so
- * a reload and retry replays the same server request instead of minting a
+ * Remembers the requestId before a create attempt is sent so a reload, even
+ * before a response arrives, replays the same server request instead of minting a
  * second profile. The server replays only when the submitted fields match, so
  * the id is reused only for an identical fingerprint. Storage is optional.
  */
 const prefix = "learli:pending-request:";
 type Stored = { id: string; fingerprint: string };
+
+/** A timeout/client disconnect can arrive after the server committed a write. */
+export function isUncertainRequestStatus(status: number): boolean {
+  return status === 408 || status === 499 || status >= 500;
+}
 
 export function requestFingerprint(fields: Record<string, unknown>): string {
   return JSON.stringify(

@@ -12,6 +12,7 @@ import { describeLearnerIssues } from "@/features/learners/input";
 import { admissionInput } from "./input";
 import {
   clearRequestId,
+  isUncertainRequestStatus,
   rememberRequestId,
   requestFingerprint,
   reusableRequestId,
@@ -61,18 +62,23 @@ function useSubmission() {
     setPending(true);
     setMessage("");
     setFields({});
+    if (track) rememberRequestId(admissionScope, track.fingerprint, track.id);
     try {
       const response = await fetch(url, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (track) {
-        if (response.status < 500) clearRequestId(admissionScope);
-        else rememberRequestId(admissionScope, track.fingerprint, track.id);
-      }
       const value: unknown = await response.json();
       if (!response.ok) {
+        if (track && isUncertainRequestStatus(response.status)) {
+          setUncertain(true);
+          setMessage(
+            "The result is uncertain. Reload the current status before another request.",
+          );
+          return null;
+        }
+        if (track) clearRequestId(admissionScope);
         const parsed = responseMessage.safeParse(value);
         const safe = parsed.success ? parsed.data : {};
         setMessage(
@@ -82,9 +88,10 @@ function useSubmission() {
         setFields(safe.fields || {});
         return null;
       }
-      return responseId.parse(value);
+      const result = responseId.parse(value);
+      if (track) clearRequestId(admissionScope);
+      return result;
     } catch {
-      if (track) rememberRequestId(admissionScope, track.fingerprint, track.id);
       setUncertain(true);
       setMessage(
         "The result is uncertain. Reload the current status before another request.",

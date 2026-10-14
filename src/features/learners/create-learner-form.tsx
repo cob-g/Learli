@@ -12,6 +12,7 @@ import { learnerLevelOptions } from "@/features/subjects/catalog";
 import type { TimeZoneOption } from "@/lib/time/zones";
 import {
   clearRequestId,
+  isUncertainRequestStatus,
   rememberRequestId,
   requestFingerprint,
   reusableRequestId,
@@ -73,37 +74,41 @@ export function CreateLearnerForm({
     setPending(true);
     setNotice("");
     setFields({});
+    rememberRequestId(pendingScope, fingerprint, id);
     try {
       const response = await fetch("/api/learners", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ requestId: id, ...payload }),
       });
-      if (response.status < 500) clearRequestId(pendingScope);
-      else rememberRequestId(pendingScope, fingerprint, id);
       const result = await response.json();
       if (
         response.ok &&
         typeof result.id === "string" &&
         /^[0-9a-f-]{36}$/i.test(result.id)
       ) {
+        clearRequestId(pendingScope);
         setCreated(result.id);
         setNotice("Local learner created");
       } else {
+        const uncertain =
+          isUncertainRequestStatus(response.status) || response.ok;
+        if (!uncertain) clearRequestId(pendingScope);
         const errors: Record<string, string> = {};
         for (const key of ["displayName", "level", "timezone"])
           if (typeof result.fields?.[key] === "string")
             errors[key] = result.fields[key];
         setFields(errors);
         setNotice(
-          response.status === 409
-            ? "This request could not create another profile. Check your learners before starting a new request."
-            : "Learner could not be created. Check the fields and your account access, then retry this request.",
+          uncertain
+            ? "We could not confirm creation. Keep these fields and retry this request, or check your learners first."
+            : response.status === 409
+              ? "This request could not create another profile. Check your learners before starting a new request."
+              : "Learner could not be created. Check the fields and your account access, then retry this request.",
         );
         busy.current = false;
       }
     } catch {
-      rememberRequestId(pendingScope, fingerprint, id);
       setNotice(
         "We could not confirm creation. Keep these fields and retry this request, or check your learners first.",
       );

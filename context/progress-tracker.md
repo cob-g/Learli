@@ -1,5 +1,175 @@
 # Learli — Progress Tracker
 
+## 2026-10-14 — Luna/Sol bug sweep: combined verification complete (local, uncommitted)
+
+Owner requested GPT-6 Luna high exploration and GPT-6.1 Sol high fixes, then
+authorized more explorers as needed. Six Luna scouts/reviewers and three Sol
+fixers ran with those effective model/effort settings. Orca's maximum worker
+depth of one prevented explorer-owned child launches, so root dispatched the
+fixers from Luna's confirmed handoffs. All nine workers settled and were released.
+
+Confirmed repairs cover duplicate learner/admission creation after uncertain
+responses or an in-flight reload; safeguarding report retry identity, concurrent
+submits and recovery through existing requester history/explicit new-report intent;
+safe screening failure notices; and the two conditional SQL approval functions
+using stale admin privileges under non-READ-COMMITTED transactions. Migration
+`0029` preserves the historical function bodies apart from the early isolation
+guards. No external HTTP exploit was reproduced. Luna F's independent source
+review found no remaining in-scope findings; root reviewed the final typed test
+helper/count repair separately. This bounded sweep is not a claim of zero bugs.
+
+- `npm run check` **PASS: 1,547 tests / 107 files**, formatting, lint and strict
+  types; the pre-existing unused `inArray` warning remains. The initial typecheck
+  failure and its precise harness repair remain recorded below. Final log:
+  `/tmp/learli-bugsweep-check-final2.log`.
+- `node scripts/with-test-env.mjs npm run build` **PASS** on the final source;
+  `/tmp/learli-bugsweep-build-final.log`.
+- Full guarded PostgreSQL run with `LEARLI_STAGING_TEST_PORT=56019` recorded
+  **920 passed / 1 failed, 921 cases / 63 files**. The sole obsolete ledger-count
+  assertion was repaired; the final affected bootstrap/migration rerun passed
+  **10/10 across 2 files**. Together these cover all **921 distinct cases** on
+  unchanged implementation, with the modified tests rerun; this is not a single
+  all-pass full-suite invocation. Logs: `/tmp/learli-bugsweep-integration-final.log`
+  and `/tmp/learli-harness-integration.log`. Fresh/upgrade data, ledger, function
+  ownership, exact ACL and protection preservation passed.
+- `npm run test:e2e -- --project=learners --project=learner-admission
+  --project=screening-safeguarding --project=local-completion-integration
+  --no-deps --workers=1` **PASS 16/16**, including existing phone/desktop,
+  accessibility, no-script and private-data checks; this was affected Chromium
+  coverage, not the full or cross-browser suite. Log:
+  `/tmp/learli-bugsweep-browser-final.log`.
+- Final diff/whitespace review passed; a focused credential-pattern scan of the
+  seven changed implementation/SQL files found no matching credentials. Existing
+  `.claude/worktrees/` was preserved. No dependency/environment changes,
+  commit/merge/push/deployment or external email. Migration `0029` was applied
+  only to owned loopback test databases, not local development or either Neon
+  environment. Real-user/policy/launch gates remain unchanged.
+- Next smallest unit: review the uncommitted diff for a commit. Any non-test
+  migration target requires its own explicit operation authorization.
+
+## 2026-10-14 — Bug-sweep migration test compatibility (verified locally, uncommitted)
+
+Authorized scoped harness repair `task_2298729ec359` / `ctx_838d973077ac` changes
+only the two integration tests and this factual entry. Decision-isolation
+migration coverage uses the installed typed public node-postgres migrator. Its
+private temporary baseline journal selects canonical `0000–0028` entries with
+unchanged timestamps and byte-exact SQL verified against candidate hashes;
+cleanup removes only that temporary folder. Fresh/current migration, populated
+`0028→0029` row/ledger preservation, all function definitions, OIDs, ownership,
+SECURITY DEFINER, search paths, exact ACLs, protections and no-op rerun assertions
+remain. Neon-shaped bootstrap expects the exact reviewed candidate entry count
+instead of the obsolete hardcoded 29.
+
+- Root's preceding `npm run check` passed format/lint (inherited `inArray`
+  warning) and failed strict typecheck at the old internal dialect call. Root's
+  preceding full guarded PostgreSQL run was **920 passed / 1 failed, 921 cases
+  across 63 files, 398.46s**; its only failure was bootstrap's expected 29 versus
+  actual 30 ledger rows. Logs: `/tmp/learli-bugsweep-check-final.log` and
+  `/tmp/learli-bugsweep-integration-final.log`.
+- Worker `npm run typecheck` **PASS**; scoped ESLint **PASS**. Initial scoped
+  Prettier check failed only the modified helper's formatting; scoped write and
+  final check **PASS**, with no assertion changes.
+- After confirming loopback port 56019 unused,
+  `LEARLI_STAGING_TEST_PORT=56019 npm run test:integration -- tests/integration/neon-bootstrap.test.ts tests/integration/decision-isolation-migration.test.ts`
+  **PASS 10/10 across 2 files, 3.00s**. This is a focused rerun, not a single
+  all-pass 921-case invocation; unchanged passing cases remain root-owned prior
+  evidence. Report: `/tmp/learli-bugsweep-sol-harness.txt`.
+- No application, canonical SQL/metadata, dependency/configuration/environment,
+  development/production/cloud migration, schema reset, commit/push/deploy or
+  worktree operation. Worker ran no full PG suite, browser or build under the
+  shared-resource gate. Root owns final aggregate check/build, affected browser
+  verification and independent acceptance; no milestone or launch gate promoted.
+- Next: root final verification of the frozen source with those exact evidence
+  boundaries.
+
+## 2026-10-14 — Safeguarding report uncertainty recovery (verified locally, uncommitted)
+
+Coordinator follow-up `msg_7a260152ecb0` closes the form-review caveat after the
+accepted retry fixes. The private noindex report page reuses the existing exact
+requester service to show its bounded latest 50 report links/statuses, including
+when intake is disabled. History unavailability is distinct from authorized empty
+history; independent intake failure does not hide existing reports.
+
+The uncertain/key-only-remount form offers a fresh native GET to current history
+and an explicit **Start a different report** action. It explains that the earlier
+report may already be saved and asks the requester to check history first. Only
+explicit new-report intent clears the pending key/attempt and unlocks/clears fields;
+that action is blocked while fetch is pending. Ordinary retries preserve the exact
+key/payload. Browser storage still contains only the opaque key, never report text.
+No endpoint/service/query/grant/policy/schema or response-owner change.
+
+- New recovery/server-page regression: **9 failed before / 9 passed after**.
+- Final scoped command: **56/56 across 5 files**, including all **28** previously
+  accepted form-request retry cases, **9** new cases, existing safeguarding
+  component and **18** policy/input units. Scoped ESLint, Prettier and diff checks
+  pass. Initial lint found render-time ref access and native-page link warnings;
+  final code reads the opaque key through `useSyncExternalStore` and documents
+  the two intentional document GET links. No check was weakened.
+- Evidence/commands/hashes: `/tmp/learli-bugsweep-sol-database.txt`; source freeze
+  reported in `msg_3e781cd12ab1`. Root owns aggregate typecheck/check/build/browser
+  and independent review; worker ran no browser/manual layout QA or build under
+  the shared-resource gate. No DB activity after releasing the lease to root.
+- Next: root aggregate verification of the frozen repair plus accepted form fixes.
+
+
+## 2026-10-14 — Conditional SQL decision isolation repair (verified locally, uncommitted)
+
+Owner-authorized confirmed bug-sweep repair, database-only Sol worker
+`task_afbb484feaa1` / `ctx_f89e7ab4fc1a`. Forward migration `0029_decision_isolation`
+adds only an early non-READ-COMMITTED refusal (`25001`) to learner-admission and
+tutor-screening decision functions. Historical SQL, current RC behavior,
+ownership/search path/SECURITY DEFINER and exact execute ACLs stay intact.
+Installed Drizzle custom generation appended the journal and unchanged-schema
+cumulative snapshot; dynamic migration inventory needed no compatibility edit.
+
+- Before repair, actual-PG regression: **7 failed / 2 passed**. Both decision
+  functions committed despite admin-role revocation under REPEATABLE READ and
+  SERIALIZABLE; the exact service controls already refused **403**.
+- After owned loopback **test-only** migration: **12/12** new integration cases
+  pass, including `25001`, unchanged admission/learner/link/role/events and
+  tutor/decision/check-receipt/events/audit, valid RC commits, fresh and populated
+  `0028→0029` preservation, exact protections/ACLs/journal and no-op rerun.
+- Existing affected admission/screening/authority/expiry/migration/staging/admin
+  assurance tests: **106/106 across 8 files**; staging-migration units **29/29**.
+  Scoped ESLint, Prettier and diff checks pass. Commands and evidence hashes:
+  `/tmp/learli-bugsweep-sol-database.txt`.
+- **Medium conditional SQL-contract risk; no external HTTP exploit reproduced.**
+  Ordinary admission service forces RC, screening service uses current assurance
+  and autocommit, and readiness factories remain disabled outside synthetic tests.
+  No production, Neon development or local-development migration, deployment,
+  commit or push. UI/worktrees preserved. Root owns aggregate check/typecheck,
+  build/browser/full integration and independent review; these scoped results do
+  not claim whole-repository or real-launch acceptance.
+- Next smallest task: root aggregate verification and review of migration0029.
+
+
+## 2026-10-14 — Request identity and safe form failures (scoped verification, uncommitted)
+
+Owner-authorized bug repairs on local `main`; FAM-01/02, TUT-01, OPS-05 and
+NFR-02/05/07. Safeguarding report retries retain the original payload in memory
+and only an opaque UUID in optional session storage, block synchronous duplicate
+submits, and lock edits while saving or uncertain. Reloaded changed fields retain
+that UUID so the server conflicts rather than silently creating another report;
+an initial definite refusal allows corrections. Screening requests show bounded,
+nonblank server messages or a fixed safe retry notice, retaining their UUID.
+Learner creation/admission persist request identity before fetch and retain it
+through HTTP408/499/5xx, network/non-JSON failure and invalid success, including
+reload before the response arrives. Valid success and definite JSON refusals
+clear it; existing server authority and POST/no-script privacy remain.
+
+New React regression tests observed **17 failures / 4 passes** on original source
+(16 behavior failures and one cross-DOM matcher issue, subsequently corrected).
+Coordinator follow-up tests then observed **3 failures / 23 passes** before
+pre-fetch persistence/invalid-success repair. Safeguarding remount regression then
+observed **1 failure / 26 passes** before key-only persistence. Final focused
+new/existing component and pure tests pass **136 tests / 9 files**, including all
+**28 new tests**;
+scoped ESLint, Prettier and diff checks are recorded in
+`/tmp/learli-bugsweep-sol-forms.txt`. No database, schema, dependency, configuration
+or production operation. Independent Luna review and root aggregate checks,
+build and browser verification remain pending; no broader acceptance claimed.
+Next: coordinator review and combined verification.
+
 
 ## 2026-10-14 — Four follow-up fixes from the bug sweep (verified locally, uncommitted)
 
