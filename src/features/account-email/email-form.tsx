@@ -1,16 +1,10 @@
 "use client";
 /* eslint-disable @next/next/no-html-link-for-pages -- Native recovery replaces potentially stale private identity state after credential mutation. */
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type FormEvent,
-} from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { emailChangeInput } from "./input";
 
-const subscribe = () => () => {};
 export function EmailForm({
   currentEmail,
   hosted = false,
@@ -18,11 +12,7 @@ export function EmailForm({
   currentEmail: string;
   hosted?: boolean;
 }) {
-  const ready = useSyncExternalStore(
-    subscribe,
-    () => true,
-    () => false,
-  );
+  const ready = useHydrated();
   const [stage, setStage] = useState<"start" | "current" | "new">("start");
   const [newEmail, setNewEmail] = useState("");
   const [pending, setPending] = useState(false);

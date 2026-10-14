@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { HeaderAccount } from "@/components/shared/header-account";
 
@@ -35,7 +36,6 @@ const dock: { href: string; icon: LucideIcon; label: string; rest?: string }[] =
     { href: "/become-a-tutor", icon: Presentation, label: "Teach" },
   ];
 
-const idle = () => () => {};
 const onScroll = (notify: () => void) => {
   window.addEventListener("scroll", notify, { passive: true });
   return () => window.removeEventListener("scroll", notify);
@@ -44,11 +44,7 @@ const onScroll = (notify: () => void) => {
 export function SiteHeader() {
   const pathname = usePathname();
   // The shared bar is transparent at the top and takes on glass over content.
-  const live = useSyncExternalStore(
-    idle,
-    () => true,
-    () => false,
-  );
+  const live = useHydrated();
   const raised = useSyncExternalStore(
     onScroll,
     () => window.scrollY > 8,

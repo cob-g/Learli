@@ -7,6 +7,7 @@ import {
   type TutorFilters,
 } from "@/features/tutors/eligibility";
 import { readPublicCandidates } from "@/features/public-availability/service";
+import { commonCandidateBatchWindow } from "@/features/public-availability/batch-window";
 export async function readinessDirectory(
   runtime: AuthRuntime,
   filters: TutorFilters = {},
@@ -47,11 +48,9 @@ export async function readinessMatches(
       }),
     );
   if (!batches.length) return [];
-  const from = new Date(Math.max(...batches.map((b) => Date.parse(b.from)))),
-    to = new Date(
-      Math.min(...batches.map((b) => Date.parse(b.to))) +
-        batches[0].durationMinutes * 60000,
-    );
+  const window = commonCandidateBatchWindow(batches);
+  const from = new Date(window.from),
+    to = new Date(window.to + batches[0].durationMinutes * 60000);
   const { matchAvailableTutors } = await import("@/features/matching/match");
   return matchAvailableTutors(
     tutors,

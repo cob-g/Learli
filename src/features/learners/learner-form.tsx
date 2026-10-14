@@ -1,14 +1,11 @@
 "use client";
-import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useRouter } from "next/navigation";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
 import type { TimeZoneOption } from "@/lib/time/zones";
 import type { PrivateLearner } from "./service";
-
-const subscribeHydration = () => () => {};
-const clientReady = () => true;
-const serverReady = () => false;
 
 export function LearnerForm({
   profile,
@@ -20,11 +17,7 @@ export function LearnerForm({
   reviewed?: boolean;
 }) {
   const router = useRouter();
-  const ready = useSyncExternalStore(
-    subscribeHydration,
-    clientReady,
-    serverReady,
-  );
+  const ready = useHydrated();
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState("");
   const [failed, setFailed] = useState(false);

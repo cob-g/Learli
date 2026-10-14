@@ -1,6 +1,7 @@
 // Node-only directory composition. Matching policy and ordering are unchanged.
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { PUBLIC_CANDIDATE_LIMITS } from "@/features/public-availability/input";
+import { commonCandidateBatchWindow } from "@/features/public-availability/batch-window";
 import {
   PublicAvailabilityUnavailable,
   readPublicDirectoryCandidates,
@@ -54,10 +55,9 @@ export async function readDirectoryAvailability(
     );
   }
   // Advisory per-batch snapshots share a start horizon, as in matching.
-  const from = new Date(
-    Math.max(...batches.map((batch) => Date.parse(batch.from))),
-  );
-  const to = Math.min(...batches.map((batch) => Date.parse(batch.to)));
+  const window = commonCandidateBatchWindow(batches);
+  const from = new Date(window.from);
+  const to = window.to;
   const fits = preferencePredicate(
     preferences,
     from,

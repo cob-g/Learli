@@ -1,17 +1,13 @@
 "use client";
-import {
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type FormEvent,
-} from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { z } from "zod";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
 import { describeLearnerIssues } from "@/features/learners/input";
 import { admissionInput } from "./input";
 import {
   clearRequestId,
+  isUncertainRequestStatus,
   rememberRequestId,
   requestFingerprint,
   reusableRequestId,
@@ -23,15 +19,8 @@ const responseMessage = z.object({
   fields: z.record(z.string(), z.string().max(500)).optional(),
 });
 const responseId = z.object({ id: z.uuid() });
-const subscribeHydration = () => () => {};
-const clientReady = () => true;
-const serverReady = () => false;
 function useSubmission() {
-  const hydrated = useSyncExternalStore(
-    subscribeHydration,
-    clientReady,
-    serverReady,
-  );
+  const hydrated = useHydrated();
   const [pending, setPending] = useState(false);
   const [uncertain, setUncertain] = useState(false);
   const [message, setMessage] = useState("");
@@ -61,18 +50,23 @@ function useSubmission() {
     setPending(true);
     setMessage("");
     setFields({});
+    if (track) rememberRequestId(admissionScope, track.fingerprint, track.id);
     try {
       const response = await fetch(url, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (track) {
-        if (response.status < 500) clearRequestId(admissionScope);
-        else rememberRequestId(admissionScope, track.fingerprint, track.id);
-      }
       const value: unknown = await response.json();
       if (!response.ok) {
+        if (track && isUncertainRequestStatus(response.status)) {
+          setUncertain(true);
+          setMessage(
+            "The result is uncertain. Reload the current status before another request.",
+          );
+          return null;
+        }
+        if (track) clearRequestId(admissionScope);
         const parsed = responseMessage.safeParse(value);
         const safe = parsed.success ? parsed.data : {};
         setMessage(
@@ -82,9 +76,10 @@ function useSubmission() {
         setFields(safe.fields || {});
         return null;
       }
-      return responseId.parse(value);
+      const result = responseId.parse(value);
+      if (track) clearRequestId(admissionScope);
+      return result;
     } catch {
-      if (track) rememberRequestId(admissionScope, track.fingerprint, track.id);
       setUncertain(true);
       setMessage(
         "The result is uncertain. Reload the current status before another request.",

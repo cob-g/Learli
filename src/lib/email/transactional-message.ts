@@ -1,8 +1,12 @@
 import "server-only";
 import { createHmac } from "node:crypto";
 import { z } from "zod";
+import { escapeHtml } from "./escape-html";
+import { mailboxSchema } from "./mailbox";
 import { safeReturnPath } from "@/lib/permissions/return-path";
 import { isValidTimeZone } from "@/lib/time/time-zone";
+
+export { mailboxSchema } from "./mailbox";
 
 export type AuthTemplate =
   | "verification-v1"
@@ -41,13 +45,6 @@ export function exactHttpsOrigin(value: string): boolean {
   }
 }
 
-export const mailboxSchema = z
-  .string()
-  .max(254)
-  .email()
-  .regex(/^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+$/)
-  .refine((value) => !value.includes(".."));
-
 const baseShape = {
   eventId: z.uuid(),
   // Persist before first dispatch; never replace this on retry.
@@ -69,18 +66,6 @@ export type ProviderCodeInput = z.input<typeof codeInput>;
 export type MessageConstruction =
   | { ok: true; message: ValidatedMessage }
   | { ok: false; code: "configuration" | "recipient" | "payload" };
-
-const escapeHtml = (value: string) =>
-  value.replace(/[&<>"']/g, (character) => {
-    const escaped: Record<string, string> = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    };
-    return escaped[character];
-  });
 
 function safeUrl(value: string, origin: string): URL | undefined {
   if (

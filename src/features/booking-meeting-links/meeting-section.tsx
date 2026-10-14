@@ -1,11 +1,8 @@
 "use client";
 
-import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import type { MeetingSectionState, PrivateMeetingState } from "./model";
-
-const subscribe = () => () => {};
-const clientReady = () => true;
-const serverReady = () => false;
 
 export function BookingMeetingSection({
   bookingId,
@@ -25,7 +22,7 @@ export function BookingMeetingSection({
   const [message, setMessage] = useState("");
   const [conflicted, setConflicted] = useState(false);
   const requestId = useRef<string | null>(null);
-  const interactive = useSyncExternalStore(subscribe, clientReady, serverReady);
+  const interactive = useHydrated();
   const canEdit =
     (meeting.state === "present" || meeting.state === "missing") &&
     meeting.canEdit;

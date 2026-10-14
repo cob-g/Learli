@@ -4,16 +4,13 @@ import {
   useRef,
   useState,
   useTransition,
-  useSyncExternalStore,
   type FormEvent,
 } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useRouter } from "next/navigation";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { assignmentKinds, assignmentInput } from "./dispatch-input";
 import type { DispatchDetail } from "./dispatch-service";
-const subscribeToHydration = () => () => {};
-const hydratedSnapshot = () => true;
-const serverSnapshot = () => false;
 export function AssignmentForm({ detail }: { detail: DispatchDetail }) {
   const router = useRouter(),
     busy = useRef(false),
@@ -22,11 +19,7 @@ export function AssignmentForm({ detail }: { detail: DispatchDetail }) {
   const retry = useRef<{ fingerprint: string; requestKey: string } | null>(
     null,
   );
-  const hydrated = useSyncExternalStore(
-    subscribeToHydration,
-    hydratedSnapshot,
-    serverSnapshot,
-  );
+  const hydrated = useHydrated();
   const [refreshing, startRefresh] = useTransition();
   const [saving, setSaving] = useState(false),
     [message, setMessage] = useState(""),

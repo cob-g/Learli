@@ -8,6 +8,7 @@ import {
   type PublicCandidates,
 } from "@/features/public-availability/service";
 import { PUBLIC_CANDIDATE_LIMITS } from "@/features/public-availability/input";
+import { commonCandidateBatchWindow } from "@/features/public-availability/batch-window";
 import { matchAvailableTutors, type AvailableMatch } from "./match";
 import type { MatchPreferences } from "./preferences";
 
@@ -53,12 +54,9 @@ export async function readMatchingAvailability(
     );
   // Each batch is a consistent snapshot. Use their common start-time search
   // window so a slower batch cannot give its tutors a larger ranking horizon.
-  const from = new Date(
-    Math.max(...batches.map((batch) => Date.parse(batch.from))),
-  );
-  const to = new Date(
-    Math.min(...batches.map((batch) => Date.parse(batch.to))),
-  );
+  const window = commonCandidateBatchWindow(batches);
+  const from = new Date(window.from);
+  const to = new Date(window.to);
   const generatedAtUtc = new Date(
     Math.max(...batches.map((batch) => Date.parse(batch.generatedAtUtc))),
   ).toISOString();

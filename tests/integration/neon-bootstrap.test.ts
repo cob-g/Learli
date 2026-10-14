@@ -328,7 +328,7 @@ describe("actual Neon-shaped non-database-owner bootstrap", () => {
               "SELECT count(*)::int AS count FROM drizzle.__drizzle_migrations",
             )
           ).rows[0].count,
-        ).toBe(29);
+        ).toBe(candidate.entries.length);
       });
     } finally {
       await inspect.close();

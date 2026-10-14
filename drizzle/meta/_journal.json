@@ -204,6 +204,13 @@
       "when": 1791829357533,
       "tag": "0028_booking_discovery_return",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1791984079386,
+      "tag": "0029_decision_isolation",
+      "breakpoints": true
     }
   ]
 }

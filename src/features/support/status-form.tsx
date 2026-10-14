@@ -1,18 +1,9 @@
 "use client";
-import {
-  useRef,
-  useState,
-  useSyncExternalStore,
-  useTransition,
-  type FormEvent,
-} from "react";
+import { useRef, useState, useTransition, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useRouter } from "next/navigation";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { statusLabels, transitions, type CaseStatus } from "./input";
-
-const subscribeToHydration = () => () => {};
-const hydratedSnapshot = () => true;
-const serverSnapshot = () => false;
 
 export function StatusForm({
   caseId,
@@ -24,11 +15,7 @@ export function StatusForm({
   revision: number;
 }) {
   const router = useRouter();
-  const hydrated = useSyncExternalStore(
-    subscribeToHydration,
-    hydratedSnapshot,
-    serverSnapshot,
-  );
+  const hydrated = useHydrated();
   const busy = useRef(false);
   const notice = useRef<HTMLParagraphElement>(null);
   const [refreshing, startRefresh] = useTransition();

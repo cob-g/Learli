@@ -1,14 +1,11 @@
 "use client";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import type { BookingDetail, BookingReadScope } from "./read-model";
 import { bookingDetailPath } from "./read-model";
 import { demoLiveState } from "./lifecycle-model";
 import { LessonTime } from "./lesson-time";
 import type { LessonTimeValue } from "./lesson-time";
-
-const subscribe = () => () => {};
-const clientReady = () => true;
-const serverReady = () => false;
 
 export function DemoCancelControl({
   booking,
@@ -17,7 +14,7 @@ export function DemoCancelControl({
   booking: BookingDetail;
   scope: BookingReadScope;
 }) {
-  const ready = useSyncExternalStore(subscribe, clientReady, serverReady);
+  const ready = useHydrated();
   const [busy, setBusy] = useState(false),
     [uncertain, setUncertain] = useState(false),
     [notice, setNotice] = useState("");
@@ -128,7 +125,7 @@ export function DemoRescheduleForm({
   scope: BookingReadScope;
   times: LessonTimeValue[];
 }) {
-  const ready = useSyncExternalStore(subscribe, clientReady, serverReady);
+  const ready = useHydrated();
   const [busy, setBusy] = useState(false),
     [uncertain, setUncertain] = useState(false),
     [notice, setNotice] = useState("");

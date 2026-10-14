@@ -1,12 +1,10 @@
 "use client";
-import { useSyncExternalStore, useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useRouter } from "next/navigation";
 import type { ScreeningDetail } from "./service";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { screeningActions } from "./policy";
-const subscribe = () => () => {};
-const clientSnapshot = () => true;
-const serverSnapshot = () => false;
 export function ScreeningForm({
   tutorId,
   detail,
@@ -15,7 +13,7 @@ export function ScreeningForm({
   detail: ScreeningDetail;
 }) {
   const router = useRouter(),
-    ready = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot),
+    ready = useHydrated(),
     [refreshing, startRefresh] = useTransition(),
     [saving, setBusy] = useState(false),
     [message, setMessage] = useState(""),
@@ -235,10 +233,11 @@ export function ScreeningForm({
   );
 }
 export function ScreeningRequest({ tutorId }: { tutorId: string }) {
-  const ready = useSyncExternalStore(subscribe, clientSnapshot, serverSnapshot),
+  const ready = useHydrated(),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
   const key = useRef<string | null>(null);
+  const inFlight = useRef(false);
   return (
     <form
       method="post"
@@ -246,7 +245,10 @@ export function ScreeningRequest({ tutorId }: { tutorId: string }) {
       className="mt-6"
       onSubmit={async (e) => {
         e.preventDefault();
+        if (!ready || inFlight.current) return;
+        inFlight.current = true;
         setBusy(true);
+        setMessage("");
         key.current ??= crypto.randomUUID();
         try {
           const r = await fetch(`/api/tutor/screening/${tutorId}`, {
@@ -254,13 +256,26 @@ export function ScreeningRequest({ tutorId }: { tutorId: string }) {
             headers: { "content-type": "application/json" },
             body: JSON.stringify({ requestKey: key.current }),
           });
-          const v = await r.json();
-          if (!r.ok) throw new Error(v.message);
+          const v: unknown = await r.json();
+          if (!r.ok) {
+            setMessage(
+              typeof v === "object" &&
+                v !== null &&
+                "message" in v &&
+                typeof v.message === "string" &&
+                v.message.trim().length > 0 &&
+                v.message.length <= 500
+                ? v.message
+                : "Screening is unavailable. Please retry this request.",
+            );
+            inFlight.current = false;
+            setBusy(false);
+            return;
+          }
           window.location.reload();
-        } catch (e) {
-          setMessage(
-            e instanceof Error ? e.message : "Screening is unavailable.",
-          );
+        } catch {
+          setMessage("Screening is unavailable. Please retry this request.");
+          inFlight.current = false;
           setBusy(false);
         }
       }}

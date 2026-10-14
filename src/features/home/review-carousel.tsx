@@ -11,6 +11,7 @@ import {
   useSyncExternalStore,
   type CSSProperties,
 } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 
 export type Review = {
   /** Who is speaking, by role. Learli publishes no reviewer names. */
@@ -27,7 +28,6 @@ const REVIEW_INTERVAL_MS = 6000;
 /** After a pointer or focus lets go, a review stays at least this much longer. */
 const RESUME_MS = 2500;
 
-const idle = () => () => {};
 const stillQuery = "(prefers-reduced-motion: reduce)";
 const onStillChange = (notify: () => void) => {
   const query = window.matchMedia(stillQuery);
@@ -51,11 +51,7 @@ export function ReviewCarousel({ reviews }: { reviews: Review[] }) {
   const root = useRef<HTMLDivElement>(null);
   const hold = useRef({ hover: false, focus: false });
   const inView = useRef(false);
-  const live = useSyncExternalStore(
-    idle,
-    () => true,
-    () => false,
-  );
+  const live = useHydrated();
   const still = useSyncExternalStore(
     onStillChange,
     () => window.matchMedia(stillQuery).matches,

@@ -4,7 +4,7 @@ import { z } from "zod";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { bookingMeetingLinks, bookingMeetingLinkEvents } from "@/lib/db/schema";
 import { AccessError } from "@/lib/permissions/access";
-import { isLoopbackOrigin, syntheticEmail } from "@/lib/local-mode";
+import { resolveLocalSyntheticSession } from "@/lib/permissions/local-synthetic-session";
 import { RuleError } from "@/lib/rule-error";
 import { validateMeetingLink } from "@/lib/validation/meeting-link";
 import { meetingEditInput } from "./input";
@@ -16,22 +16,9 @@ async function meetingActor(
   headers: Headers,
   bookingId: string,
 ) {
-  if (
-    !["development", "test"].includes(runtime.environment) ||
-    !isLoopbackOrigin(runtime.origin)
-  )
-    throw new AccessError(503);
-  const current = await runtime.auth.api.getSession({
-    headers,
-    query: { disableCookieCache: true },
-  });
-  if (!current) throw new AccessError(401);
-  if (
-    !syntheticEmail(current.user.email) ||
-    !z.uuid().safeParse(bookingId).success
-  )
-    throw new AccessError(404);
-  return { userId: current.user.id, sessionId: current.session.id };
+  const actor = await resolveLocalSyntheticSession(runtime, headers);
+  if (!z.uuid().safeParse(bookingId).success) throw new AccessError(404);
+  return actor;
 }
 
 export async function readPrivateMeetingLink(

@@ -1,11 +1,6 @@
 "use client";
-import {
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type FormEvent,
-} from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useHydrated } from "@/hooks/use-hydrated";
 import Link from "next/link";
 import { safeBookingReturnPath } from "@/features/bookings/selection";
 
@@ -15,9 +10,6 @@ type Action =
   | "verify-backup-code"
   | "generate-backup-codes"
   | "disable";
-const subscribe = () => () => {};
-const hydrated = () => true;
-const serverHydrated = () => false;
 export function AdminSecurityForm({
   enrolled = false,
   challenge = false,
@@ -27,7 +19,7 @@ export function AdminSecurityForm({
   challenge?: boolean;
   next?: string;
 }) {
-  const ready = useSyncExternalStore(subscribe, hydrated, serverHydrated);
+  const ready = useHydrated();
   const [pending, setPending] = useState(false);
   const [secret, setSecret] = useState("");
   const [codes, setCodes] = useState<string[]>([]);

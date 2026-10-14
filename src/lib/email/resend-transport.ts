@@ -1,9 +1,9 @@
 import "server-only";
 import { Resend, type Response as SdkResponse } from "resend";
 import { z } from "zod";
+import { mailboxSchema } from "./mailbox";
 import {
   exactHttpsOrigin,
-  mailboxSchema,
   readValidatedMessage,
   type ValidatedMessage,
 } from "./transactional-message";
