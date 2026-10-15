@@ -2,12 +2,12 @@
 import { betterAuth } from "better-auth";
 import { APIError, isAPIError } from "better-auth/api";
 import { emailOTP } from "better-auth/plugins/email-otp";
-import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { eq } from "drizzle-orm";
 import { authOptions } from "@/lib/auth-options";
 import type { Database } from "@/lib/db/connection";
 import type { LocalMessage } from "@/lib/email/local-mail";
 import { createMailAttemptBoundary } from "./mail-attempt";
+import { accountAdapter } from "./account-adapter";
 import { hostedMembershipPlugin } from "./membership";
 import * as schema from "@/lib/db/schema";
 import { createEmailProofBinding } from "@/features/account-email/proof-context";
@@ -62,7 +62,7 @@ export function composeAccountAuth(
           });
       },
     },
-    database: drizzleAdapter(db, { provider: "pg", schema, transaction: true }),
+    database: accountAdapter(db),
     verification: {
       storeIdentifier: {
         default: "plain",
@@ -154,16 +154,6 @@ export function composeAccountAuth(
                   "Use a synthetic .test account with a short display name.",
               });
             }
-          },
-          after: async (user) => {
-            await db.transaction(async (tx) => {
-              await tx.insert(schema.userAccess).values({ userId: user.id });
-              await tx.insert(schema.auditEvents).values({
-                actorUserId: user.id,
-                targetUserId: user.id,
-                action: "account.created",
-              });
-            });
           },
         },
       },
