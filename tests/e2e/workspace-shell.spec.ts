@@ -626,6 +626,9 @@ test("cross-tab signout clears shell identity and grants, and a changed account 
     .getByRole("button", { name: "Sign out", exact: true })
     .click();
   await expect(other).toHaveURL("/sign-in");
+  // Settled identity loss replaces the entire private document, including its
+  // inline page bootstrap, rather than retaining a signed-out shell.
+  await expect(page).toHaveURL(/\/sign-in\?next=/);
   await expect(page.locator(".workspace-account bdi")).toHaveCount(0);
   await expect(
     page.locator('.workspace-sidebar nav[aria-label$="work areas"]'),
@@ -634,10 +637,7 @@ test("cross-tab signout clears shell identity and grants, and a changed account 
     401,
   );
   await signIn(other, ["parent"], "Replacement parent");
-  await page
-    .locator(".workspace-sidebar")
-    .getByRole("link", { name: "Account settings" })
-    .click();
+  await page.goto("/account");
   await expect(page).toHaveURL("/account");
   await page.evaluate(() =>
     window.dispatchEvent(new Event("learli:account-updated")),

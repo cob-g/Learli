@@ -80,8 +80,9 @@ export default defineConfig({
         "auth.spec.ts",
         "header-navigation.spec.ts",
         "workspace-shell.spec.ts",
+        "private-document-identity.spec.ts",
       ],
-      // Both files use isolated auth fixtures and reset the test throttle rows.
+      // Isolated auth fixtures share test throttle rows, so run one worker.
       workers: 1,
       use: {
         ...devices["Desktop Chrome"],
