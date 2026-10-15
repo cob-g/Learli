@@ -1,5 +1,89 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — DEAD CODE POLICE: three removals verified (local, uncommitted)
+
+Owner authorized repository-wide reachability investigation and removal of only
+confirmed dead code. Work is local and uncommitted on
+`feature/dead-code-police-20261015`, based on local-main merge `56cd860`.
+Six GPT-6 Luna high investigators covered frontend/routes/state/styles/assets,
+domain/API/identity/booking/discovery/policy/email, dependencies/config/CI/scripts,
+test/fixture/operational roots and independent symbol/dependency/style checks.
+Two GPT-6.1 Sol high workers independently revalidated disjoint removal scopes.
+Two fresh Luna high auditors independently accepted the implemented source and
+dependency lanes without blockers: **8 Luna high and 2 Sol high tasks total**,
+all succeeded and released. At most three workers ran alongside the coordinator.
+
+The deduplicated ledger contains **22 candidate groups: 3 confirmed dead,
+6 uncertain, 7 intentionally preserved, 6 active false positives**. Confirmed
+changes remove the retired `TutorWorkspaceNavigation` module and only its obsolete
+standalone test/import, the unloaded `tw-animate-css@1.4.0` devDependency and its
+isolated npm lock node, and the unused `inArray` binding in the time-off service.
+Current workspace navigation, agenda tests, time-off SQL and authorization remain.
+No route, asset, migration, security control or operational workflow was removed.
+
+Scoped source checks reported **79/79 tests across 3 files**, Prettier, ESLint
+and diff checks passing. The offline npm uninstall removed exactly one package;
+deep manifest/lock comparison confirms every other field, pin and node unchanged
+(lock map 992 to 991 entries including root). Independent direct and full installed
+npm graph checks passed. The implementation/test/package diff is **69 net lines
+removed**, including one 42-line component file, one retired standalone test,
+one import binding and the package/lock entries. No class, asset or active business
+implementation was deleted; no new tests were needed for these removals.
+
+**Observed final verification on frozen application/dependency source:**
+
+- Fresh pre-change `npm test` **PASS: 1,644/1,644 across 111 files**; baseline lint
+  had only the unused binding warning.
+- Final `npm run check` **PASS: 1,643/1,643 tests across 111 files**, formatting,
+  clean lint and strict typecheck. One retired-component test accounts for the
+  count reduction; every remaining supported-behavior assertion was preserved.
+  Expected jsdom document-navigation notices were not test failures.
+- `LEARLI_STAGING_TEST_PORT=56019 npm run test:integration` **PASS: 921/921 across
+  63 files, 407.59s**, in one full run on owned loopback test databases.
+- `node scripts/with-test-env.mjs npm run build` **PASS**, retaining the same
+  **131 app-path entries**. The wrapper forces local test mode and disables the
+  Neon-development selector.
+- Affected Chromium **PASS: 58/58 across 5 projects / 5 files, 1.1 minutes**,
+  including 320/390/1440px, workspace/tutor navigation, keyboard/accessibility,
+  no-script, private-document and current authorization/recovery checks. This
+  was affected Chromium coverage, not the full or cross-browser suite. Command:
+
+  ```sh
+  npm run test:e2e -- --project=desktop --project=phone --project=narrow --project=auth --project=tutor-dashboard --no-deps --workers=1
+  ```
+
+Static comparison found no new source-module orphan or runtime import cycle;
+the two baseline cycles remain. All 1,196 unrelated tracked files match baseline,
+and all 1,201 frozen entries (including the deleted-path sentinel, excluding this
+tracker) remained stable through all aggregate verification. No public route was
+removed. All owned validation listeners were closed after verification; unrelated
+preview processes were not stopped. Final tracker formatting/diff checks were
+performed separately after this factual status update.
+
+Retained uncertain candidates: four package entries (`@neon/env`,
+`@neondatabase/serverless`, Radix Slot, CVA) and four type aliases in three groups.
+Their setup/generation or source-compatibility intent is unresolved. Original
+brand assets, live/conditional CSS, Next convention roots, gated readiness and
+hosted workflows, migrations/schema/functions/audit and recovery tooling remain.
+Existing `.claude/worktrees/` is untouched. No commit/merge/push, deployment,
+non-test migration, provider operation or real email occurred in this operation.
+
+Coverage limits: static reachability cannot enumerate every external source
+importer, shell alias or public asset consumer. Installed dependency metadata was
+inspected when needed; generated/cache output, private state and the unrelated
+nested worktree were excluded from deletion scope. Uncertain/protected candidates
+were retained rather than inferring retirement from absent direct references.
+
+Evidence: `/tmp/learli-dead-code-police-20261015/` contains the baseline manifest,
+before/after reachability inventories, `findings.json`, `static-analysis-final.json`,
+worker launch receipts/reports, `check-final.log`, `integration-final.log`,
+`build-final.log`, `browser-final.log`, preservation/port checks and `operation.diff`.
+`worker-outcomes.md` and `workers.json` name each of the ten tasks, model/effort,
+successful settlement, report and release; run `run_79e53f52576c` has no active or
+reclaimable worker. No verification failure or corrective audit work remains.
+Next smallest unit: review the uncommitted cleanup for a commit; deferred package
+and type-contract retirement requires its own narrow compatibility evidence.
+
 ## 2026-10-15 — Bug sweep and ABSTRACTION POLICE committed to local main
 
 Owner authorized committing and merging the completed work into local `main`.
