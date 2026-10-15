@@ -4,9 +4,10 @@ Verified two narrow browser-test corrections on local-main base
 `00cac7862ddc8b96c28c49fb5f014befea07e566`. The incomplete SQL test draft is
 archived and deferred. The owner authorized committing/merging only passing
 browser corrections and removing the old worktrees after preserving their work.
-At this implementation checkpoint the four-path candidate is uncommitted;
-subsequent Git integration and final cleanup are recorded separately below and
-in the private evidence receipts.
+Fix commit `cc7e579057ab09c61ef25f553e20ba6ac9a6d8b2` is merged into local
+`main` by `54cf776dd936af0029d31fbf08bfd06b6dbe4003`. The two old security
+worktrees and branches are removed. Restart reconciliation confirmed these
+completed actions; no implementation or test run was repeated.
 
 This is a test-harness repair. No production vulnerability or security-control
 fix is claimed. Application code, authorization, schema/migrations, dependencies,
@@ -125,16 +126,25 @@ No secrets or private capture contents are reproduced in this report.
 
 ## Scope, Git integration and cleanup
 
-Four paths comprise the planned merge: the two E2E specs, this report and the
+Four paths comprise the completed merge: the two E2E specs, this report and the
 canonical progress tracker. All application, permission, SQL, migration,
 dependency and unrelated source bytes are unchanged. Test hashes remain those
 of the passing final candidate; scoped documentation formatting/diff checks are
 recorded during integration rather than repeating unchanged application tests.
 
+`git-integration/merge.json` records the fix and merge commits. Both
+`security-browser-20261015` and `security-sql-20261015` directories, their Git
+worktree registrations and their `cob-g/` branches are absent. These removals
+completed before the restart and were independently confirmed afterward. All
+three tasks still have succeeded/completed outcomes and released worker
+resources; the coordinator inbox is empty.
+
 The primary `/Users/cob/learli` security branch/HEAD, all 1,210 baseline tracked
 regular files, 12 symlink targets and its uncommitted security notes remain
-protected. Root owns the authorized commit/local merge and removal of both old
-security worktrees plus the temporary validation checkout/branches. Final
-observed Git/filesystem/Orca state, source hashes and preservation checks are
-recorded in `git-integration/final-cleanup.json` in the evidence directory.
+protected. At this status-commit checkpoint only the temporary validation
+checkout remains. It will be archived again at the final committed state,
+detached from main and removed with its merged task branch. Root owns those
+remaining cleanup actions. Final observed Git/filesystem/Orca state, source
+hashes, final archive and preservation checks are recorded separately in
+`git-integration/final-cleanup.json` in the evidence directory.
 No push, deployment or production operation is authorized or performed.

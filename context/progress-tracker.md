@@ -1,6 +1,6 @@
 # Learli — Progress Tracker
 
-## 2026-10-15 — Security browser follow-up verified; SQL draft archived
+## 2026-10-15 — Security browser follow-up merged into local main; SQL draft archived
 
 Owner authorized rechecking the browser failure on current main, merging only
 validated corrections, archiving/deferring the incomplete SQL draft and cleaning
@@ -30,13 +30,22 @@ without weakening guards. No full browser/real-provider/production acceptance.
 SQL draft was archived without execution or merge; its unresolved finding remains
 deferred. All owned DB/TLS/web helpers are stopped.
 
+Fix commit `cc7e579057ab09c61ef25f553e20ba6ac9a6d8b2` is merged into local
+`main` by `54cf776dd936af0029d31fbf08bfd06b6dbe4003`. Both old security
+worktrees and their `cob-g/security-browser-20261015` and
+`cob-g/security-sql-20261015` branches are removed. Restart reconciliation
+confirmed the completed merge and removals; no implementation or tests needed
+repeating. All three worker tasks remain succeeded and released, with no pending
+messages.
+
 Verified archives preserve both old security drafts and synthetic data; a frozen
 validation-checkout snapshot is also retained. Full report:
 `docs/operations/security-browser-followup-2026-10-15.md`. Evidence:
-`/tmp/learli-security-browser-followup-20261015/`. Next: commit/merge the accepted
-two-test correction and these status documents, then remove the archived old
-worktrees and temporary validation checkout/branches. Preserve the primary
-checkout's uncommitted security notes throughout.
+`/tmp/learli-security-browser-followup-20261015/`. After this status-only commit,
+archive the final validation checkout, detach it from main and remove it with its
+merged task branch. Final observed cleanup and preservation checks belong in
+`git-integration/final-cleanup.json` in that evidence directory. The primary
+checkout's uncommitted security notes remain protected. No push or deployment.
 
 ## 2026-10-15 — RACE CONDITION POLICE committed and merged into local main
 
