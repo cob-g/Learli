@@ -1,5 +1,35 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — RACE CONDITION POLICE committed and merged into local main
+
+Owner authorized cleanup first, then explicitly authorized commit and local
+merge. Both original task worktrees/branches were removed only after every
+archived member and the standalone 11-path patch were verified. The patch was
+restored into a fresh temporary checkout at the exact `d357aac` base; all 11
+restored and committed hashes match the accepted candidate. Fix commit
+`079a57b22a1fc84ec9f2c35099a3629974ff9b34` is merged into local `main` by
+`f177b2958985133b55fbcdc2e82113295b2450df`.
+
+The eight application/test/config paths and architecture remain byte-identical
+to the reviewed and tested fix. Prior passing evidence remains applicable:
+1,691 unit/component tests, 18 selected Chromium cases, strict types/lint,
+normal production build and two independent audits. No application/database
+tests were repeated for exact restoration and Git/status-only changes. Scoped
+formatting and staged diff checks passed. The first fresh-checkout formatter
+attempt lacked plugin resolution; existing dependencies were temporarily linked
+for formatting only, then unlinked. No dependency installation or source change
+was needed. No production/provider operation, push or deployment.
+
+Original user checkout: all 1,210 baseline files, 12 symlinks, dirty security
+notes, branch/HEAD/status preserved. Archives and test evidence remain private at
+`/tmp/learli-race-condition-police-20261015/cleanup-archive/`. The temporary
+integration checkout currently holds local main; after committing this status
+note it will be detached at that tip and removed through Orca, along with its
+merged task branch. Final observed Git/filesystem/catalog checks are recorded
+in `git-integration/final-cleanup.json` in the operation evidence directory.
+Next small task: separately investigate only the documented deferred concerns
+under their existing safety and policy constraints.
+
 ## 2026-10-15 — RACE CONDITION POLICE completed; verified fix uncommitted
 
 Owner requested a repository-wide concurrency sweep using GPT-6 Luna high for

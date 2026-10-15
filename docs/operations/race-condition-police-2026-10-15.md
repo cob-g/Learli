@@ -1,5 +1,32 @@
 # RACE CONDITION POLICE — 2026-10-15
 
+## Subsequent authorized Git integration
+
+The owner requested worktree/branch cleanup first, then explicitly authorized
+commit and merge into local main. Both original task checkouts/branches were
+removed after verifying full source/synthetic-data archives and a standalone
+11-path patch. A fresh temporary checkout restored that patch at the original
+`d357aac` base; every restored and committed file hash matched the accepted
+candidate. Fix commit `079a57b22a1fc84ec9f2c35099a3629974ff9b34` was merged into
+local main by `f177b2958985133b55fbcdc2e82113295b2450df`.
+
+All eight application/test/config paths and architecture remain byte-identical
+to the previously validated source. Test evidence below remains applicable;
+tests were not repeated for restoration and Git/status-only changes. Scoped
+formatting and staged diff checks passed. A fresh-checkout formatter dependency
+resolution failure was corrected with a temporary link to existing installed
+packages; the link was not committed and was removed. No source workaround or
+dependency installation occurred.
+
+The original dirty security checkout and unrelated worktrees/branches are
+preserved. The original archives remain in the evidence directory's
+`cleanup-archive/`; integration receipts are in `git-integration/`. After this
+status-note commit, the temporary checkout will be detached from main and
+removed with its merged task branch. The final observed cleanup is recorded in
+`git-integration/final-cleanup.json`. No push, deployment or production operation.
+
+## Original audit completion and evidence
+
 Completed run `run_72ea7128142a` with one verified Medium defect corrected,
 regression coverage added, and two independent audits accepting the integrated
 fix. Three new candidate groups were triaged: one confirmed/fixed, one rejected
@@ -7,11 +34,11 @@ under the established in-flight authorization contract, and one unsupported
 operator-overlap concern deferred. No new unresolved high-confidence application
 race was established. Confirmed severity: Critical 0, High 0, Medium 1, Low 0.
 
-Work is uncommitted on `cob-g/race-condition-police-20261015`, based on local
+At audit completion, work was uncommitted on `cob-g/race-condition-police-20261015`, based on local
 main `d357aacc57612a26daf7c53885ebe04f5c10caa8`, in
-`/Users/cob/orca/workspaces/learli/race-condition-police-20261015`. No commit,
-merge, push or deployment was performed for this operation. The user's separate
-dirty security checkout was preserved.
+`/Users/cob/orca/workspaces/learli/race-condition-police-20261015`. The subsequent
+authorized commit/merge is recorded above. The user's separate dirty security
+checkout was preserved.
 
 ## Exploration and actual agent accounting
 
@@ -294,6 +321,6 @@ added to satisfy hypothetical concurrency patterns. No stronger instantaneous
 revocation policy was assumed. These limits are not represented as reproduced
 defects or successful validation.
 
-Next small action: review and commit/merge the isolated verified patch when
-requested, then archive/remove its two task worktrees and branches. Existing
-unrelated security worktrees and user work must continue to be preserved.
+The subsequent authorized commit/merge and cleanup are recorded above. Existing
+unrelated security worktrees and user work remain preserved. Deferred findings
+and validation limits in this audit remain unchanged.
