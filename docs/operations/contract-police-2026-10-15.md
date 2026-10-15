@@ -3,8 +3,13 @@
 Completed: **one confirmed Low contract defect fixed**, 25 regression cases added,
 and two independent post-fix audits accepted. One timeout-epoch lead is deferred
 because the intended contract is ambiguous and a naive fix would break prepared
-queue compatibility. Work is uncommitted on `cob-g/contract-police-20261015`, based
-on local main `961c8753fbf2704817f0bd4ab418d259316db34e`.
+queue compatibility. The original audit checkpoint left the candidate uncommitted
+on `cob-g/contract-police-20261015`, based on local main
+`961c8753fbf2704817f0bd4ab418d259316db34e`. The owner subsequently authorized
+commit, local merge and cleanup:
+fix `5aaedca895c18488e20ff1cb3bfb5f213d009556` is committed and merged into local
+`main` by `474b580379804211837be531a5c3060c68a77f1e`. All six merged files match
+the audited candidate. See the Git integration checkpoint below for cleanup.
 
 ## Exploration and evidence
 
@@ -182,9 +187,9 @@ absence confirm removal of all three:
 - `data-signup-atomicity-20261015`
 - `data-restore-proof-20261015`
 
-Their three `cob-g/` branches are gone. Local main remains exactly `961c8753`, with
+Their three `cob-g/` branches are gone. At DATA cleanup, local main was `961c8753`, with
 `e0bf67f` and merge `4fe8d7e` retained. Original security/Claude work and current
-CONTRACT worktrees remain preserved. Archives/checksums remain private under
+CONTRACT worktrees were still preserved. Archives/checksums remain private under
 `/tmp/learli-data-integrity-police-20261015/cleanup-archive/`. The worker's earlier
 partial receipt is preserved; coordinator completion is a separate evidence trail.
 
@@ -194,8 +199,37 @@ The migration selector now refuses incompatible input at its trusted entrypoint,
 while known command consumers preserve target, migration/grant and error semantics.
 No forced standardization or new contract system was introduced. One delivery-epoch
 ownership decision remains deferred; hosted/external and excluded reset-based
-scenarios were not certified. Review/commit is the next requested action, not an
-automatic merge. No commit, push, merge or live operation occurred in this sweep.
+scenarios were not certified. The completed audit initially left the six-file
+candidate uncommitted; the owner's subsequent explicit instruction authorized the
+local commit, merge and cleanup recorded below. No push or live operation occurred.
+
+## Authorized Git integration and cleanup checkpoint
+
+Fix commit `5aaedca` and merge `474b580` preserve every audited file hash.
+The implementation checkout `contract-migration-cli-20261015` is now absent from
+disk, Git and Orca; its accepted patch/test were byte-identical to committed main
+and its 1,212 unrelated files and 12 symlinks matched baseline. Its empty native
+Claude placeholder was closed through Orca; all three recorded processes exited.
+The unused integration shell was also closed. Both task branches
+`cob-g/contract-police-20261015` and `cob-g/contract-migration-cli-20261015` are
+deleted without forced branch deletion. All supervised worker resources remain
+released.
+
+The private archive `git-integration/private-evidence.tar.gz` preserves all
+48,096 evidence/data/env files with exact membership and every member's content
+hash verified. No private contents are included in this report. Generated
+dependency/build caches need not be retained. At this status checkpoint the
+clean integration checkout still holds main. After this documentation commit,
+it is to be detached at the exact final main tip and removed through Orca, with
+observed final checks saved as `git-integration/final-cleanup.json` in the private
+evidence root. Main is preserved; the original dirty security checkout and other
+unrelated worktrees are outside the removal scope.
+
+No tested runtime or regression bytes changed during Git integration. The
+executed checks above remain the evidence; Git/status-only work did not rerun
+application or database tests. This documentation update receives scoped
+formatting and diff checks. No push, production operation, external service call,
+schema/data change or historical reconciliation was performed.
 
 Private run evidence: `/tmp/learli-contract-police-20261015/`, Run
 `run_191f2368fc9c`. Key artifacts: `explore-A`–`H`, cross `X/Y/Z`, audits `K/L`,

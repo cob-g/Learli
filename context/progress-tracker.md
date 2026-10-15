@@ -1,5 +1,36 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — CONTRACT POLICE committed and merged into local main
+
+Owner authorized commit, local merge and task-worktree/branch cleanup. Fix commit
+`5aaedca895c18488e20ff1cb3bfb5f213d009556` was merged into local `main` by
+`474b580379804211837be531a5c3060c68a77f1e`. All six merged file hashes match the
+verified candidate. Application and regression source remain byte-identical;
+the prior 1,673 unit/component tests, strict types/lint/format, production build,
+25-case red/green proof and two independent audits remain applicable. The 930-case
+PostgreSQL baseline and its documented exclusions are unchanged. No tests were
+rerun for Git/status-only changes; this status update receives scoped formatting
+and diff checks.
+
+The implementation checkout `contract-migration-cli-20261015` is removed from
+disk, Git and Orca. Its accepted two-file patch matched committed main; 1,212
+unrelated files and 12 symlinks were unchanged. An empty native Claude chat was
+closed through Orca and its three recorded processes exited before removal.
+Both task branches, `cob-g/contract-migration-cli-20261015` and
+`cob-g/contract-police-20261015`, are deleted without forced branch deletion.
+The unused integration shell is closed. All 48,096 private evidence/data/env
+files are archived with every member hash verified under
+`/tmp/learli-contract-police-20261015/git-integration/`.
+
+At this documentation checkpoint the remaining clean integration checkout holds
+local `main`; after committing this status note it will be detached at that exact
+tip and removed through Orca. Final observed filesystem, Git, branch and catalog
+checks are recorded in `git-integration/final-cleanup.json` in the evidence root.
+The original user checkout stays on its security branch with its uncommitted
+notes preserved. No push, deployment, database operation or provider operation.
+Next small task: clarify the separately deferred timeout-epoch contract before
+any compatibility-sensitive prepared-delivery change.
+
 ## 2026-10-15 — CONTRACT POLICE completed; DATA worktrees cleaned up
 
 Completed 13 GPT-6 Luna high read-only investigations: eight domain, three
