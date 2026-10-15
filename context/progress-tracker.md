@@ -1,5 +1,76 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — ERROR HANDLING POLICE completed; verified CLI fix uncommitted
+
+Owner authorized a repository-wide failure-correctness investigation and routine
+verified fixes. Run `run_e24bc4d884e9` used eleven GPT-6 Luna high launches for ten
+completed domain/cross-boundary/audit investigations, plus two GPT-6.1 Sol high
+implementation workers. One initial explorer stopped before inspection after a
+broken PATH CLI alias; its final turn was positively inspected, exact worker
+closed and same Task retried successfully. Twelve Tasks completed across thirteen
+attempts. Successful workers are released, the stopped attempt is closed and no
+reclaimable worker remains. Models match requested/effective launch receipts.
+
+Five domain investigations and two cross-boundary reviews cover failure-sensitive
+paths across all 31 feature modules, 56 API handlers, database/schema boundaries,
+client recovery, auth/admin, delivery/retries, diagnostics and operator tooling.
+Source inventory is not runtime coverage of every scenario. Two initial unique
+candidates became one confirmed Low operational defect (EH-C-01) and one false
+positive (EH-B-01). The post-implementation audits identified one additional Low
+test-only blocker (EH-H-01), now resolved; no high-confidence finding remains.
+
+EH-C-01 let unknown PostgreSQL subprocess status become exit-0 stopped output or
+permit startup follow-up. `scripts/local-db.mjs` now rejects launch errors,
+signals and unrecognized statuses; only status 0/3 is recognized and other
+commands require success. Known state/ownership/no-reset/private-output behavior
+is preserved. Thirty-four new deterministic CLI regressions use only disposable
+fake executables, state and an intercepted pg.Pool. Exact final test bytes show
+16 failures/18 passes on original CLI and all 34 passing on the fixed CLI.
+
+The first aggregate check passed formatting/lint but caught the new test's
+missing NODE_ENV under Next's ambient ProcessEnv. Both H/I audits independently
+reported this acceptance blocker. A second Sol added only explicit NODE_ENV:test,
+without inherited environment, casts or assertion changes, and re-established
+red/green plus full-project types. Audit J independently passed the exact final
+bytes and actual completed aggregate/build/PostgreSQL evidence. EH-B-01 was
+correctly rejected: installed Next 16.4 already provides safe root-error recovery.
+
+Fresh baseline check passed 1,712 tests/116 files, format/lint/types and ordinary
+production build. Corrected integrated check passes 1,746 tests/117 files with
+format/lint/full strict types; ordinary production build passes. Post-integration
+selected real-PostgreSQL suites pass 199 tests/11 files, including hosted auth and
+native TLS. The original full database baseline was interrupted after 403 seconds:
+an unchanged booking fixture assumes the first two slots overlap across a day
+boundary and fails before concurrent calls. A separate TLS output-directory
+prerequisite was prepared privately and all selected TLS cases then passed. No
+full database-suite pass is claimed; the clock-sensitive fixture is deferred.
+The final build reports one broad filesystem-tracing warning in unchanged local
+mail source after test artifacts accumulated; the baseline build did not. Raw
+failures/warnings remain, including original worker harness/compiler corrections.
+
+Only four paths change: local DB script, new test, operation report and this
+tracker. All 543 checked application/schema/dependency/configuration paths remain
+byte-identical. No architecture, public API, business rule, security control,
+existing test, dependency, schema or migration changed. Native known-running
+status, normal stop and known-stopped status additionally passed during cleanup
+of this operation's owned loopback cluster; PID and listener absence are verified.
+All synthetic data remains preserved; no real-cluster fault injection occurred.
+
+The original checkout's branch/HEAD/status, 1,210 tracked files, 12 symlinks and
+dirty security notes remain untouched, as do local main `becf29f` and all original
+refs. The completed Sol helper worktree/branch was removed only after exact
+integration and full private archive verification. Review changes remain
+uncommitted on `cob-g/error-handling-police-20261015`. No push, deployment,
+production mutation or live provider/cloud operation occurred.
+
+Full report: `docs/operations/error-handling-police-2026-10-15.md`. Evidence:
+`/tmp/learli-error-handling-police-20261015/`, including all findings, command
+logs, audits, lifecycle receipts, corrected source manifests, archives and final
+validation/preservation checks. Next small task: owner review of the verified
+four-path change; separately address the time-dependent test fixture or tracing
+warning only within a focused follow-up. Full browser E2E, Windows portability,
+live providers, production recovery and a root-layout runtime fault are untested.
+
 ## 2026-10-15 — PERFORMANCE POLICE committed and merged into local main
 
 Owner explicitly authorized committing the verified performance changes, merging

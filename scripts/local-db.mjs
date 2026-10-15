@@ -32,9 +32,13 @@ const testPort = localPort("LEARLI_TEST_PORT", savedPorts?.test ?? 3100);
 const action = process.argv[2] ?? "start";
 const binaries = process.env.PG_BIN;
 const binary = (name) => (binaries ? path.join(binaries, name) : name);
-function run(name, args, allowFailure = false) {
+function run(name, args, acceptedStatuses = [0]) {
   const result = spawnSync(binary(name), args, { encoding: "utf8" });
-  if (result.status !== 0 && !allowFailure) {
+  if (
+    result.error ||
+    result.signal ||
+    !acceptedStatuses.includes(result.status)
+  ) {
     throw new Error(
       `Local ${name} failed. Check PostgreSQL tools and the private .local/postgres/server.log; no database was reset.`,
     );
@@ -51,13 +55,13 @@ async function main() {
     if (!existsSync(marker)) throw new Error("No owned local cluster exists.");
     if (action === "status") {
       console.log(
-        run("pg_ctl", ["-D", data, "status"], true) === 0
+        run("pg_ctl", ["-D", data, "status"], [0, 3]) === 0
           ? "Local PostgreSQL is running."
           : "Local PostgreSQL is stopped.",
       );
       return;
     }
-    if (run("pg_ctl", ["-D", data, "status"], true) === 0)
+    if (run("pg_ctl", ["-D", data, "status"], [0, 3]) === 0)
       run("pg_ctl", ["-D", data, "stop", "-m", "fast"]);
     console.log("Local PostgreSQL stopped; data preserved.");
     return;
@@ -106,7 +110,8 @@ async function main() {
     ]);
     writePrivate(marker, "Learli local development cluster\n");
   }
-  if (run("pg_ctl", ["-D", data, "status"], true) !== 0) {
+  // PostgreSQL 17 status: 0 is running, 3 is stopped; other outcomes are errors.
+  if (run("pg_ctl", ["-D", data, "status"], [0, 3]) !== 0) {
     // All socket/listener paths belong to this repo. No system service is changed.
     run("pg_ctl", [
       "-D",
