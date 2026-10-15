@@ -3,9 +3,11 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   cp,
+  lstat,
   mkdir,
   readFile,
   readdir,
+  rm,
   stat,
   symlink,
   writeFile,
@@ -48,8 +50,19 @@ async function portAvailable(port: number) {
 }
 export async function prepareAdmissionMirror(repo: string, policyId: string) {
   const root = path.join(repo, ".local/learner-admission/isolated-mirror");
-  await mkdir(root, { recursive: true, mode: 0o700 });
+  // Check each parent before descending so refresh cannot follow a link into
+  // canonical source or another checkout. Only generated src is disposable.
+  for (const directory of [
+    path.join(repo, ".local"),
+    path.dirname(root),
+    root,
+  ]) {
+    await mkdir(directory, { recursive: true, mode: 0o700 });
+    if (!(await lstat(directory)).isDirectory())
+      throw new Error("Mirror requires checkout-owned generated directories.");
+  }
   const before = await inventory(repo);
+  await rm(path.join(root, "src"), { recursive: true, force: true });
   await cp(path.join(repo, "src"), path.join(root, "src"), { recursive: true });
   let publicExists = false;
   try {
