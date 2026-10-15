@@ -3,12 +3,23 @@
 One existing error-handling defect was reproduced and fixed: the local database
 CLI could report a stopped server after an unknown subprocess result. An
 introduced test typing issue was caught by aggregate validation and independent
-audits, corrected, and independently cleared. Changes remain uncommitted on
-`cob-g/error-handling-police-20261015`, based on unchanged local main `becf29f`.
+audits, corrected, and independently cleared. The owner subsequently authorized
+commit, merge into local main and cleanup. Commit `00be982` contains exactly the
+four reviewed paths; merge `eac4489` preserves the same tree on local main.
 
 Run: `run_e24bc4d884e9`. Private evidence, exact commands, hashes, original
 failures and lifecycle receipts: `/tmp/learli-error-handling-police-20261015/`.
 No deployment, remote push, production mutation or live provider test occurred.
+
+At the integration follow-up, that temporary evidence directory was no longer
+present. All four reviewed file hashes still matched. Fresh aggregate validation
+again passed all 1,746 tests, formatting, lint and full project types; the ordinary
+production build passed with the same one tracing warning. Database suites were
+not rerun for the merge. New logs, preservation/merge receipts, a verified review
+checkout archive and final cleanup results are retained under
+`/Users/cob/orca/archives/learli/error-handling-police-20261015/local-merge/`.
+The earlier raw investigation evidence has not been recovered or recreated; the
+historical outcomes below remain the recorded results of the original operation.
 
 ## Exploration and failure model
 
@@ -171,16 +182,19 @@ requested/effective model identities.
 
 Four paths change: the CLI script, its new test, this report and the progress
 tracker. The original checkout's branch, HEAD, status, 1,210 tracked file bytes,
-12 symlink targets and uncommitted security report are unchanged. Local main and
-all original local refs are unchanged. No secrets, database migrations, existing
-tests or business rules were changed.
+12 symlink targets and uncommitted security report were unchanged by the
+investigation. During the owner-authorized integration follow-up, local main
+advanced through the verified merge; unrelated branches and the original dirty
+checkout remain protected. No secrets, database migrations, existing tests or
+business rules were changed.
 
 All owned database/test processes are stopped and synthetic data is preserved.
 The shared Sol helper worktree/branch was removed after exact integration and a
 verified private archive of every non-regenerable file hash/mode and symlink
-target. The review worktree remains uncommitted for owner review. Evidence is
-retained outside the worktrees, including `preservation-and-cleanup.json`,
-`owned-resource-cleanup.json`, worker archives and final validation manifest.
+target. The owner subsequently authorized removal of the committed and merged
+review worktree/branch after archive verification. The durable integration receipt
+records final removal and original-checkout preservation; see the evidence
+availability limitation above for the original temporary investigation artifacts.
 
 The result is truthful local operator failure handling with bounded regression
 coverage. Existing failure contracts and legitimate graceful degradation remain.

@@ -1,5 +1,34 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — ERROR HANDLING POLICE committed and merged into local main
+
+Owner explicitly authorized committing the reviewed error-handling changes,
+merging into local main and removing the completed worktree/branch. Commit
+`00be982` contains exactly the four reviewed paths; merge `eac4489` has the same
+tree, with no conflicts or additional application changes. The CLI and its
+34-case regression file retain the exact independently audited bytes.
+
+The integration follow-up reran `node scripts/with-test-env.mjs npm run check`:
+formatting, lint, Next route types, strict TypeScript and all 1,746 tests across
+117 files passed. The ordinary production build also passed, retaining the one
+documented local-mail filesystem-tracing warning. PostgreSQL and browser suites
+were not rerun for this merge; the earlier database-suite limitations remain.
+
+The earlier `/tmp/learli-error-handling-police-20261015/` evidence directory was no
+longer present at this follow-up. The reviewed four-file hashes still matched.
+New validation logs, preservation manifests, merge receipts and the review
+checkout archive are saved durably under
+`/Users/cob/orca/archives/learli/error-handling-police-20261015/local-merge/`.
+Historical raw evidence is not claimed to have been recovered or recreated.
+
+The original checkout remains on `fix/security-police-20261015`; its existing
+uncommitted progress notes and security report are preserved. Cleanup of the
+completed review worktree/branch follows archive verification and preservation
+checks; the final receipt at the durable path records the actual result. No
+remote push, deployment, live provider action or production mutation is involved.
+Next small task: address the deferred clock-sensitive booking fixture only as a
+separate focused change; do not infer complete database acceptance from this merge.
+
 ## 2026-10-15 — ERROR HANDLING POLICE completed; verified CLI fix uncommitted
 
 Owner authorized a repository-wide failure-correctness investigation and routine
