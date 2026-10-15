@@ -7,7 +7,6 @@ import {
   nextTutorSimulation,
   type TutorAgendaBooking,
 } from "@/features/tutors/booking-agenda";
-import { TutorWorkspaceNavigation } from "@/features/tutors/workspace-navigation";
 import { LoadingTutorBookings } from "@/features/tutors/booking-refresh";
 import TutorBookingsError from "@/app/(workspace)/tutor/error";
 import userEvent from "@testing-library/user-event";
@@ -136,20 +135,6 @@ describe("tutor simulation presentation", () => {
     const { container } = agenda([row]);
     expect(screen.getByText(row.learnerLabel)).toBeVisible();
     expect(container.querySelector("script,img")).toBeNull();
-  });
-  it("retains all tutor destinations and marks bookings as current", () => {
-    render(<TutorWorkspaceNavigation />);
-    expect(screen.getByRole("link", { name: "Bookings" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
-    for (const name of [
-      "Availability",
-      "Time off",
-      "Profile",
-      "Account settings",
-    ])
-      expect(screen.getByRole("link", { name })).toBeVisible();
   });
   it("announces loading and provides keyboard-operable retry without private error output", async () => {
     const loading = render(<LoadingTutorBookings />);

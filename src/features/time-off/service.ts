@@ -1,5 +1,5 @@
 import { blockingBookingPredicate } from "@/features/booking-workflows/model";
-import { inArray, and, asc, count, eq, gt, lt, sql } from "drizzle-orm";
+import { and, asc, count, eq, gt, lt, sql } from "drizzle-orm";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import {
   auditEvents,
