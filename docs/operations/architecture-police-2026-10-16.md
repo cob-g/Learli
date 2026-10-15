@@ -5,6 +5,21 @@ Started October 15 and continued October 16, Asia/Manila.
 Base/local main: `11d87f6a02f84130272909e391102ad796e4eb97`.
 Run: `run_a250f25c8333`.
 
+## Local main integration — 2026-10-16
+
+Owner subsequently authorized commit and local merge. Implementation commit
+`d165d6e` contains the exact four reviewed paths; merge
+`4e301ca` has the identical tree, with no conflicts. All validated
+application/test bytes are preserved, so existing execution evidence applies;
+the full suites are not repeated just for Git integration. The integration
+follow-up edits only this report and the tracker, with format/diff verification
+recorded under the evidence archive's `local-merge/` directory.
+
+Local `main` is checked out in the architecture operation directory. The feature
+branch and operation worktree remain for a later cleanup step. Original dirty security work is
+preserved; no push, deployment, provider call or production mutation occurred.
+The sections below record the completed audit and its evidence before this merge.
+
 ## Exploration and intended architecture
 
 Nine source-investigation/re-audit assignments cover the repository's major
@@ -146,12 +161,14 @@ lane, which is not evidence of process exit. No unrelated session was killed.
 The Sol helper's exact two files were verified against the integrated checkout,
 archived with read-back SHA-256 verification, then its worktree and branch were
 removed. Owned runtime fixtures are stopped, assigned ports have no listeners,
-and database data is preserved. The primary architecture checkout and branch
-remain uncommitted for review. No commit, merge, push, deployment, production
-mutation, payment or real notification was performed.
+and database data is preserved. At audit completion, the primary architecture checkout and branch remained
+uncommitted for review. The audit performed no commit, merge, push, deployment,
+production mutation, payment or real notification; the subsequent authorized
+local merge is recorded above.
 
-The dirty original security checkout, its existing changes and local main were
-preserved; final byte/ref verification is recorded separately.
+The dirty original security checkout and its existing changes were preserved.
+Local main was unchanged during the audit and then advanced only by the authorized
+integration above; byte/ref verification is recorded separately.
 
 ## Evidence and next step
 
@@ -162,5 +179,6 @@ A–G reports, H/I audits, dependency graphs, baseline failures/results, worker
 red/green proof, integrated patch, final check/build/runtime receipts, source
 hashes and helper archive/removal proof.
 
-Next small task: owner review/commit decision for the narrow uncommitted change. The delivery epoch needs a separate explicit contract decision;
-hosted public discovery needs its approved launch/policy composition first.
+Next small task: owner-directed worktree/branch cleanup after the completed local
+merge. The delivery epoch needs a separate explicit contract decision; hosted
+public discovery needs its approved launch/policy composition first.

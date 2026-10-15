@@ -1,5 +1,30 @@
 # Learli — Progress Tracker
 
+## 2026-10-16 — ARCHITECTURE POLICE committed and merged into local main
+
+Owner explicitly authorized committing the reviewed change and merging it into
+local main. Commit `d165d6e` contains exactly the four reviewed paths;
+merge `4e301ca` has the identical Git tree and no conflicts. The
+application/test bytes remain the validated versions: 1,751 unit/component,
+996 baseline PostgreSQL, 43 affected PostgreSQL and 205 Chromium cases passed;
+both independent audits were clean. Types/lint/build passed with the existing
+local-mail tracing warning. Those suites are not repeated solely for the Git
+merge; source/tree identity and documentation format/diff checks are verified.
+
+The original dirty security checkout, tracked files and report are preserved.
+Local main is now checked out in the architecture operation directory. The
+feature branch and operation worktree remain for a later cleanup step; the Sol
+helper was already archived and removed. No remote push, deployment, live
+provider call or production mutation occurred. This integration follow-up changes
+only the report and tracker. Exact commit, merge, validation and preservation
+receipts are retained under
+`/Users/cob/orca/archives/learli/architecture-police-20261015/local-merge/`.
+
+Full report: `docs/operations/architecture-police-2026-10-16.md`. Next small task:
+owner-directed worktree/branch cleanup, preserving the separate dirty security
+work. The existing delivery-contract decision and hosted-public-launch gates
+remain as documented.
+
 ## 2026-10-16 — ARCHITECTURE POLICE completed; reviewed changes uncommitted
 
 Owner authorized repository-wide architectural investigation and safe focused
