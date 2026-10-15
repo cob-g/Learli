@@ -16,7 +16,7 @@ import {
   demoCandidateIntervals,
   demoCandidateRange,
 } from "@/features/bookings/demo-schedule";
-import { formatLessonTime } from "@/features/bookings/format-time";
+import { createLessonTimeFormatter } from "@/features/bookings/format-time";
 import type { LessonTimeValue } from "@/features/bookings/lesson-time";
 import {
   PUBLIC_CANDIDATE_LIMITS,
@@ -206,6 +206,19 @@ async function readCandidates(
         busy.length > PUBLIC_CANDIDATE_LIMITS.busy
       )
         throw overload();
+      // At most one viewer zone plus 20 tutor zones, retained only for this batch.
+      const timeFormatters = new Map<
+        string,
+        ReturnType<typeof createLessonTimeFormatter>
+      >();
+      const formatTime = (start: Date, end: Date, timezone: string) => {
+        let formatter = timeFormatters.get(timezone);
+        if (!formatter) {
+          formatter = createLessonTimeFormatter(timezone);
+          timeFormatters.set(timezone, formatter);
+        }
+        return formatter(start, end);
+      };
       const tutors = query.tutorSlugs.map(
         (tutorSlug): PublicTutorCandidates => {
           const profile = profiles.find((row) => row.slug === tutorSlug);
@@ -222,8 +235,8 @@ async function readCandidates(
           if (intervals.length > PUBLIC_CANDIDATE_LIMITS.timesPerTutor)
             throw overload();
           const times = intervals.map(({ start, end }) => ({
-            ...formatLessonTime(start, end, query.displayTimezone),
-            tutorTime: formatLessonTime(start, end, profile.timezone),
+            ...formatTime(start, end, query.displayTimezone),
+            tutorTime: formatTime(start, end, profile.timezone),
           }));
           return {
             tutorSlug,
