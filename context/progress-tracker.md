@@ -1,5 +1,26 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — BUG POLICE committed, merged into local main and cleaned up
+
+Owner explicitly authorized committing the verified sweep, merging into local
+`main` and removing the task worktree/branches. Fix commit `3bcf2f4` was merged
+with merge commit `3e20eb7`. All 12 tested non-tracker source/test/metadata hashes
+and the full 1,209-entry source freeze match after merge; only this status entry
+changes documentation afterward. The previous executed validation remains:
+1,648 unit/component tests, 969 PostgreSQL tests, 33 affected Chromium cases,
+formatting, clean lint, strict types and the production build passed. No runtime
+source changed during commit/merge; those suites were not redundantly rerun.
+
+Orca removed the owned `bp-sql-authority-20261015` checkout after exact transferred
+patch, baseline, ignored-resource and stopped-listener checks. The physical directory
+and Git worktree registration are gone. Both `cob-g/bp-sql-authority-20261015` and
+`fix/bug-police-20261015` branches are removed; their source is retained in local
+main and archived patches. The unrelated Claude worktree/branch and other feature
+branches are preserved. No remote push, deployment, production/development DB or
+provider action occurred. Git receipts and updated report remain under
+`/tmp/learli-bug-police-20261015/`. Next small task: separately establish contracts
+and reproductions for the three deferred adjacent SQL isolation leads.
+
 ## 2026-10-15 — BUG POLICE completed: SQL authority and mirror refresh corrected
 
 The sweep completed with 12 GPT-6 Luna high explorers/auditors and 3 GPT-6.1 Sol
