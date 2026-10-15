@@ -1,5 +1,32 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — PERFORMANCE POLICE committed and merged into local main
+
+Owner explicitly authorized committing the verified performance changes, merging
+to local main and cleaning up the performance worktrees/branch. Application
+commit `a2c6415` contains exactly the seven reviewed paths; local merge `e66fbfc`
+has the same tree. No conflicts or additional application changes occurred.
+
+Before commit, all seven files matched the final review manifest. The five
+application/test files retain the exact bytes validated by the 1,712-case unit
+check, 153 selected PostgreSQL cases, ordinary production build, performance
+experiments and both independent Luna audits. Those checks were not rerun for
+this integration-only follow-up. This status entry and the operation report are
+the only subsequent changes; their formatting and diff checks are recorded in
+the integration receipt.
+
+The original checkout remains on `fix/security-police-20261015` with its existing
+uncommitted progress notes and security report untouched. Local main was updated
+through the isolated performance checkout. Both implementation worker checkouts
+were already archived and removed; the owner authorized removal of the remaining
+performance review checkout and branch after merge and preservation verification.
+Exact commit, merge, archive, cleanup and original-file preservation receipts are
+retained under `/tmp/learli-performance-police-20261015/local-merge/`.
+
+No remote push, deployment, production mutation or external-provider operation
+was performed. Next small task: pursue deferred opportunities only when new
+representative measurements justify them.
+
 ## 2026-10-15 — PERFORMANCE POLICE verified; two measured optimizations uncommitted
 
 Owner requested a repository-wide measured performance operation. Run

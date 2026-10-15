@@ -1,14 +1,24 @@
 # PERFORMANCE POLICE — 2026-10-15
 
-Two measured optimizations are implemented and independently audited. Changes
-remain uncommitted on `cob-g/performance-police-20261015`, based on local main
-`45d88ffd25c386868872a839d4f3e2b90f5d2d42`. Local main and the original user's
-checkout/security notes are preserved. No push, deployment, production data,
-live provider or cloud operation occurred.
+Two measured optimizations are implemented and independently audited. The owner
+subsequently authorized local integration and cleanup. Application commit
+`a2c6415` contains the exact seven reviewed paths; merge `e66fbfc` integrates it
+into local main from base `45d88ffd25c386868872a839d4f3e2b90f5d2d42` with an
+identical tree. Application and regression-test bytes still match the validated
+source manifest. The original checkout/security notes remain untouched. No push,
+deployment, production data, live provider or cloud operation occurred.
 
 Private evidence: `/tmp/learli-performance-police-20261015/`.
 Run: `run_0e95b457ccf1`. Exact sources, commands, raw samples, original failures,
 worker outcomes and preservation checks are retained there.
+
+Local integration and cleanup receipts are in its `local-merge/` directory.
+Validation below describes the executed performance operation; the integration
+follow-up verifies source identity and documentation formatting rather than
+repeating the benchmarks or changing application behavior. The worktree and
+branch status described later records the original operation handoff; the owner
+subsequently authorized removal of the remaining performance checkout and branch
+after verified merge and archival.
 
 ## Exploration and findings
 
@@ -67,7 +77,8 @@ selected page rows. Actor, relation/filter, authorization joins/predicates,
 pagination and learner-summary sections are byte-identical. It remains one
 read-only READ COMMITTED statement; global earliest expiry still covers every
 permitted active timed row. List/detail/history, ordering, sentinels, current
-heads, policy values and event history retain their contracts. Actual plans,+rather than a generic CTE assumption, establish the removed work; see the
+heads, policy values and event history retain their contracts. Actual plans,
+rather than a generic CTE assumption, establish the removed work; see the
 [PostgreSQL 17 CTE reference](https://www.postgresql.org/docs/17/queries-with.html#QUERIES-WITH-CTE-MATERIALIZATION)
 for background only.
 
