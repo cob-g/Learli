@@ -1,5 +1,21 @@
 # Learli — System Architecture
 
+### Private workspace document identity — 2026-10-15
+
+The workspace layout binds its private document to the guarded server user and
+session independently of the optional account display query. A failed display
+query retains that proven identity. The private document boundary observes the
+existing Better Auth session atom: a settled identity/session change or sign-out
+removes the old private subtree and latches one full document reload for current
+server authorization and release of the preceding inline bootstrap. Reload
+preserves the exact URL, query, fragment and history entry; replacing an identical
+fragment URL would not guarantee a new document. Pending refreshes, transient
+errors and the same user/session preserve mounted state. Existing auth-route and
+BFCache document guards remain, as do all server permissions and disabled policy
+factories. No extra provider fetch, polling, database lock or cross-request
+authorization cache is introduced. See the RACE CONDITION POLICE operation report
+for executed evidence and limits.
+
 ### Local preview round-trip reduction — 2026-10-14
 
 Under the owner's performance repair request, runtime lease verification retains

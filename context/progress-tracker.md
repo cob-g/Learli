@@ -1,5 +1,65 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — RACE CONDITION POLICE completed; verified fix uncommitted
+
+Owner requested a repository-wide concurrency sweep using GPT-6 Luna high for
+read-only exploration and GPT-6.1 Sol high for verified fixes. Run
+`run_72ea7128142a` uses an isolated `cob-g/race-condition-police-20261015`
+checkout at local-main base `d357aac`; original security work is preserved.
+Fourteen Luna investigations completed: nine domain, three cross-module and two
+independent post-fix audits. Two Sol workers implemented the fix and registered
+its browser regression. Every launch receipt confirms the requested model/high
+effort; all 16 tasks succeeded and all worker resources are released. At most
+three workers ran with the coordinator. Coverage includes the 31-feature,
+56-handler, 22-schema-source, 32-migration repository map, client ordering,
+domain/SQL locks, auth/session transitions, delivery claims, runtime pools and
+operator artifacts.
+
+Three candidate groups were triaged. FS-RACE-01 matches the explicitly permitted
+already-authorized in-flight completion rule and needs no stronger status lock.
+OPS-FS-01 describes unsupported overlapping acceptance tools in one checkout;
+the shared-output limitation is deferred without changing the supported serial
+workflow. Y-RACE-01 is a confirmed Medium cross-tab private-document retention
+defect: chrome follows a new provider identity while old private children remain.
+One Sol worker independently reproduced and fixed that boundary in the separate
+`race-private-document-20261015` checkout. The exact seven-file source manifest
+is now integrated and that worker is released. Identical final component bytes
+failed 10/passed 8 on original source, then passed all 18 on the fix. Trusted
+server identity survives display-query failure; settled mismatch removes the
+private subtree before one full reload, including fragment URLs. Worker checks
+passed 1,691 tests/115 files, format/lint/types, offline webpack production build
+and all 18 selected Chromium cases, including real two-tab bootstrap release,
+existing workspace journeys and no-JS. Sol registered all three new browser
+cases in the normal auth project; discovery passed without executing broad
+setup. Both independent Luna audits accepted the exact integrated source and
+found no confirmed residual. Root final `node scripts/with-test-env.mjs npm run
+check` passed formatting, lint, strict types and 1,691 tests in 115 files; normal
+production Turbopack build passed. Earlier font/mock, fragment-navigation and
+browser-observation failures remain retained with their corrections.
+
+Fresh baseline format/lint/types, 1,673 tests in 113 files and production build
+passed. Aggregate PostgreSQL coverage passed 852 unique cases in 55 files:
+54 files/844 cases passed first; eight hosted-auth cases initially could not
+start without the required TLS-port variable, then passed unchanged with the
+correct assigned port. Initial missing-port and wrong-variable attempts are
+retained; this is not one all-green 55-file run. Thirteen reset/structural-cleanup
+suites were excluded. This is pre-change database evidence: all persistence,
+schema, migration, grant and dependency bytes remain unchanged. Root and worker
+DB/TLS/server resources are stopped with synthetic data retained. No production
+or external integration operation, reset/TRUNCATE, source-policy change or new
+commit/merge/push. Prior provider-blocked direct-SQL isolation work remains
+deferred. No Firefox/WebKit, full browser suite, actual BFCache engine acceptance
+or performance/load result is claimed; no database lock or global serialization
+was introduced.
+
+Original checkout: all 1,210 baseline regular files, 12 symlinks, protected
+uncommitted security notes, branch/HEAD/status and local main are preserved.
+Eight application/test/config paths plus architecture, this tracker and the
+operation report changed in the isolated integration checkout; no unrelated
+source changed. Full report: `docs/operations/race-condition-police-2026-10-15.md`.
+Evidence: `/tmp/learli-race-condition-police-20261015/`. Next small task: review
+and commit/merge when requested; task worktrees remain available for that step.
+
 ## 2026-10-15 — CONTRACT POLICE committed and merged into local main
 
 Owner authorized commit, local merge and task-worktree/branch cleanup. Fix commit

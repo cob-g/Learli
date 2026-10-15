@@ -59,28 +59,41 @@ export type ShellAccount = {
   sessionId: string;
 };
 /**
- * The account the workspace shell shows on its first render, read the same
- * guarded way as GET /api/account/[userId]. Pages already read the identity in
- * this render, so it costs one name query. Null on any refusal or failure; the
- * shell then falls back to its own client checks. Display only: every page and
- * endpoint keeps its own guard.
+ * Bind the private document independently of the optional display account.
+ * Pages share requireIdentity's per-render read; the extra query only supplies
+ * the shell's name. A failed display query must not discard a proven identity
+ * while separately guarded page children can still contain that user's data.
+ * Every page and endpoint retains its own authorization guard.
  */
-export async function readShellAccount(): Promise<ShellAccount | null> {
+export async function readWorkspaceDocument(): Promise<{
+  identity: { id: string; sessionId: string } | null;
+  account: ShellAccount | null;
+}> {
+  const unavailable = { identity: null, account: null };
   const requestHeaders = await headers();
   try {
     const runtime = await getAccountAuthRuntime();
     if (!runtime || !accountHeadersAllowed(runtime, requestHeaders))
-      return null;
+      return unavailable;
     const identity = await requireIdentity(runtime, requestHeaders);
-    const account = await readAccount(runtime, requestHeaders);
+    let account: ShellAccount | null = null;
+    try {
+      const display = await readAccount(runtime, requestHeaders);
+      account = {
+        id: display.id,
+        name: display.name,
+        roles: display.roles,
+        sessionId: identity.sessionId,
+      };
+    } catch {
+      // Chrome may retry; the document remains bound to the server identity.
+    }
     return {
-      id: account.id,
-      name: account.name,
-      roles: account.roles,
-      sessionId: identity.sessionId,
+      identity: { id: identity.userId, sessionId: identity.sessionId },
+      account,
     };
   } catch {
-    return null;
+    return unavailable;
   }
 }
 export async function loadPrivateAccountPage<T>(

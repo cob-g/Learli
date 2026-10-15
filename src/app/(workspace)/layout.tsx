@@ -4,7 +4,7 @@ import "@/components/workspace/workspace-shell.css";
 import { PrivateDocumentBoundary } from "@/features/auth/document-boundary";
 import { getAuthRuntime } from "@/lib/auth";
 import { getScreeningContext } from "@/features/tutor-screening/composition";
-import { readShellAccount } from "@/lib/permissions/workspace";
+import { readWorkspaceDocument } from "@/lib/permissions/workspace";
 import { noIndex } from "@/lib/seo/metadata";
 
 // Every workspace page also says this itself; the layout covers any that forgets.
@@ -16,15 +16,15 @@ export default async function WorkspaceLayout({
   children: React.ReactNode;
 }) {
   // Read on the server so the first paint already has the full sidebar.
-  const initialAccount = await readShellAccount();
+  const document = await readWorkspaceDocument();
   // Same deployment-level decision the screening page makes; it is not per user.
   const runtime = getAuthRuntime();
   const screeningEnabled =
     !!runtime && getScreeningContext(runtime).screening.mode !== "disabled";
   return (
-    <PrivateDocumentBoundary>
+    <PrivateDocumentBoundary initialIdentity={document.identity}>
       <WorkspaceShell
-        initialAccount={initialAccount}
+        initialAccount={document.account}
         screeningEnabled={screeningEnabled}
       >
         {children}
