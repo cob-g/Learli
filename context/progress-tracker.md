@@ -1,5 +1,30 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — DATA INTEGRITY POLICE committed and merged into local main
+
+Owner explicitly authorized committing the verified patch and merging it into
+local `main`. Fix commit `e0bf67f` was integrated with merge commit `4fe8d7e`;
+the merge tree matches all six verified file hashes exactly. The three tested
+application/regression source files remain byte-identical afterward; only this
+tracker and the operation report receive the following status update.
+
+Existing verification remains: 1,648 unit/component tests, 930 PostgreSQL tests
+(including 26 new regression cases), formatting, lint, strict types, production
+build and real backup/restore passed; both independent audits accepted the fix.
+No application source changed during Git integration, so those suites were not
+redundantly rerun. This documentation update receives scoped formatting/diff checks.
+
+Local `main` is checked out at
+`/Users/cob/orca/workspaces/learli/data-integrity-police-20261015`.
+The original `/Users/cob/learli` checkout stays on its existing security branch;
+its uncommitted security notes and unrelated Claude work remain untouched.
+Feature/implementation/proof branches and stopped private evidence/data are
+retained. No remote push, deployment, schema/data repair, external provider or
+production/development database operation occurred. Git evidence is under
+`/tmp/learli-data-integrity-police-20261015/git-integration-receipt.json`.
+Next small task: decide the separately documented profile/reload contracts when
+needed; provenance-aware historical reconciliation requires separate scope.
+
 ## 2026-10-15 — DATA INTEGRITY POLICE: atomic signup verified; uncommitted
 
 Completed with 12 GPT-6 Luna high read-only explorers/auditors (eight domain,

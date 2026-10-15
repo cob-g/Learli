@@ -2,11 +2,19 @@
 
 Status: complete. One confirmed Medium integrity defect fixed, independently audited and validated.
 
-Work is uncommitted on `cob-g/data-integrity-police-20261015`, based on
-`1cab7228c1a6cfa864a7136e2c2e105da4c433d5`. The original `/Users/cob/learli`
-checkout, its uncommitted SECURITY POLICE notes and unrelated Claude work were
-preserved. No commit, merge, push, deployment or external database/provider
-operation was performed.
+Owner-authorized Git integration: fix commit `e0bf67f` from
+`cob-g/data-integrity-police-20261015` was merged into local `main` by
+`4fe8d7e`, based on `1cab7228c1a6cfa864a7136e2c2e105da4c433d5`.
+All six verified file hashes matched the merge tree. The three tested
+application/regression files remain unchanged; only this report and the tracker
+receive a subsequent status-only documentation commit. Existing test/build
+results remain applicable and were not redundantly rerun for Git operations.
+
+Local `main` is checked out at
+`/Users/cob/orca/workspaces/learli/data-integrity-police-20261015`.
+The original `/Users/cob/learli` checkout stays on its existing security branch;
+its uncommitted SECURITY POLICE notes and unrelated Claude work were preserved.
+No remote push, deployment or external database/provider operation was performed.
 
 ## Exploration
 
@@ -198,5 +206,6 @@ stopped with private data retained. All owned listeners are closed, including
 TLS56063; all owned postmaster PID files are absent. Only newly owned loopback
 test databases were migrated; original local development/test databases and all
 external systems were untouched. The stopped implementation/proof checkouts and
-branches remain for later version-control cleanup; this operation did not commit
-or merge the change.
+branches remain for later version-control cleanup. The verified patch is now
+committed and merged into local main as recorded above; no branch/worktree removal
+or remote push was part of this follow-up.
