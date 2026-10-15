@@ -1,5 +1,43 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — Security browser follow-up verified; SQL draft archived
+
+Owner authorized rechecking the browser failure on current main, merging only
+validated corrections, archiving/deferring the incomplete SQL draft and cleaning
+the two remaining security worktrees. Run `run_1cf457f4dfb9` used two GPT-6.1 Sol
+high workers and one read-only GPT-6 Luna high auditor; all tasks succeeded and
+their worker resources are released. Base is `00cac78`; primary user security
+notes and the original checkout are preserved.
+
+Two existing E2E expectations were corrected. Hosted auth now uses the actual
+guarded account-sessions client link after synthetic session revocation, proves
+a fresh 401 and replaces the preceding private document before auth entry. A
+related logout check accepts only the two legitimate same-origin sign-in URLs.
+All original private-data, failed-login, Back/history, replacement-account,
+storage and no-JS assertions remain. Luna identified a loose hosted destination
+matcher; a second Sol worker pinned the exact trusted origin and safe sessions
+return URL. Root verified that correction and unchanged assertion suffixes.
+Application, auth/permission controls, SQL/migrations, fixtures and dependencies
+are unchanged. This repairs test coverage; no new production vulnerability or
+security-control remediation is claimed.
+
+Final frozen source passed hosted Chromium 7/7, related Chromium 18/18, and
+format/lint/types plus 1,691 unit cases in 115 files. The ordinary production
+build passed on the identical application source before test-only edits.
+Original hosted 6/1, related 17/1 and an unchanged focused failure remain recorded;
+owned socket-path, fixture-cwd and private-directory setup failures were corrected
+without weakening guards. No full browser/real-provider/production acceptance.
+SQL draft was archived without execution or merge; its unresolved finding remains
+deferred. All owned DB/TLS/web helpers are stopped.
+
+Verified archives preserve both old security drafts and synthetic data; a frozen
+validation-checkout snapshot is also retained. Full report:
+`docs/operations/security-browser-followup-2026-10-15.md`. Evidence:
+`/tmp/learli-security-browser-followup-20261015/`. Next: commit/merge the accepted
+two-test correction and these status documents, then remove the archived old
+worktrees and temporary validation checkout/branches. Preserve the primary
+checkout's uncommitted security notes throughout.
+
 ## 2026-10-15 — RACE CONDITION POLICE committed and merged into local main
 
 Owner authorized cleanup first, then explicitly authorized commit and local

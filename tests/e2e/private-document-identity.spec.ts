@@ -130,7 +130,15 @@ test("a second-tab account change clears rendered data before exact-URL document
     .getByRole("main")
     .getByRole("button", { name: "Sign out", exact: true })
     .click();
-  await expect(other).toHaveURL("/sign-in");
+  // Provider settlement can reload the guarded account before SignOut replaces
+  // it; both supported paths end at sign-in with only the safe account return.
+  await expect(other).toHaveURL(
+    (url) =>
+      url.origin === origin &&
+      url.pathname === "/sign-in" &&
+      (url.search === "" || url.search === "?next=%2Faccount") &&
+      url.hash === "",
+  );
   await signIn(other, b.email);
   expect((await page.request.get(`/api/account/${a.id}`)).status()).toBe(404);
   finalSession = true;

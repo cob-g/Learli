@@ -672,6 +672,10 @@ test("revoked cookie/failed reauthentication and account switch clear old privat
   page,
 }) => {
   await signIn(page);
+  await expect(page.getByLabel("Display name", { exact: true })).toBeEnabled();
+  expect((await page.locator("script").allTextContents()).join("\n")).toContain(
+    activeEmail,
+  );
   const account = await owner((pool) =>
     pool.query<{ id: string }>('SELECT id FROM public."user" WHERE email=$1', [
       activeEmail,
@@ -680,8 +684,39 @@ test("revoked cookie/failed reauthentication and account switch clear old privat
   await owner((pool) =>
     pool.query("DELETE FROM session WHERE user_id=$1", [account.rows[0].id]),
   );
-  await page.getByRole("link", { name: "Sign in" }).first().click();
-  await expect(page).toHaveURL(/\/sign-in/);
+  expect(
+    (await page.request.get(`/api/account/${account.rows[0].id}`)).status(),
+  ).toBe(401);
+  const isSessionsSignIn = (url: URL) =>
+    url.origin === hostedBrowserOrigin &&
+    url.pathname === "/sign-in" &&
+    url.search === "?next=%2Faccount%2Fsessions" &&
+    url.hash === "";
+  const clientNavigation = page.waitForRequest((request) => {
+    const url = new URL(request.url());
+    return (
+      url.origin === hostedBrowserOrigin &&
+      url.pathname === "/account/sessions" &&
+      request.headers().rsc === "1"
+    );
+  });
+  const publicDocument = page.waitForResponse(
+    (response) =>
+      response.request().isNavigationRequest() &&
+      response.request().frame() === page.mainFrame() &&
+      isSessionsSignIn(new URL(response.url())) &&
+      response.status() === 200,
+  );
+  // The workspace has no Sign in link. Its guarded client link exercises
+  // private-to-auth replacement without discarding the old document in the test.
+  await page
+    .getByRole("link", { name: "Manage account sessions", exact: true })
+    .click();
+  await clientNavigation;
+  await (await publicDocument).finished();
+  await page.waitForLoadState("load");
+  await expect(page.getByLabel("Test email", { exact: true })).toBeEnabled();
+  await expect(page).toHaveURL(isSessionsSignIn);
   expect(await page.content()).not.toContain(activeEmail);
   await page
     .getByLabel("Test email", { exact: true })
