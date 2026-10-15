@@ -84,7 +84,8 @@ test("opt-in GET filters preserve complete counts, order, paging, Back, keyboard
   await page.getByLabel("Monday", { exact: true }).focus();
   await page.keyboard.press("Space");
   await page.getByLabel("Preferred time of day").selectOption("morning");
-  let observed: { busy: string | null; action?: string } | undefined;
+  let observed:
+    { busy: string | null; action?: string; disabled?: boolean } | undefined;
   await page.exposeFunction(
     "recordDirectoryPending",
     (value: typeof observed) => {
@@ -98,15 +99,18 @@ test("opt-in GET filters preserve complete counts, order, paging, Back, keyboard
         recordDirectoryPending: (value: {
           busy: string | null;
           action?: string;
+          disabled?: boolean;
         }) => Promise<void>;
       }
     ).recordDirectoryPending;
     new MutationObserver(() => {
+      const submit = form.querySelector<HTMLButtonElement>(
+        'button[type="submit"]',
+      );
       void record({
         busy: form.getAttribute("aria-busy"),
-        action: form
-          .querySelector('button[type="submit"]')
-          ?.textContent?.trim(),
+        action: submit?.textContent?.trim(),
+        disabled: submit?.disabled,
       });
     }).observe(form, {
       attributes: true,
@@ -127,7 +131,7 @@ test("opt-in GET filters preserve complete counts, order, paging, Back, keyboard
   try {
     await expect
       .poll(() => observed)
-      .toEqual({ busy: "true", action: "Loading tutors…" });
+      .toEqual({ busy: "true", action: "Loading tutors…", disabled: true });
   } finally {
     resume();
   }
@@ -143,6 +147,9 @@ test("opt-in GET filters preserve complete counts, order, paging, Back, keyboard
   await expect(
     page.getByRole("button", { name: "Apply filters" }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Apply filters" }),
+  ).toBeEnabled();
   await page.getByRole("link", { name: "Next page", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: name(20), exact: true }),
@@ -155,6 +162,9 @@ test("opt-in GET filters preserve complete counts, order, paging, Back, keyboard
     page.getByRole("button", { name: "Apply filters" }),
   ).toBeVisible();
   await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Apply filters" }),
+  ).toBeEnabled();
   for (const [width, height] of [
     [320, 720],
     [390, 844],

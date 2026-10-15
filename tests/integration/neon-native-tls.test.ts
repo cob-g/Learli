@@ -136,6 +136,10 @@ beforeAll(async () => {
     expectedPlanHash: planHash(plan),
     recheckCandidate: () => loadCandidate(process.cwd()),
   });
+  mkdirSync(path.join(process.cwd(), ".local/neon-activation"), {
+    recursive: true,
+    mode: 0o700,
+  });
   writeFileSync(
     path.join(process.cwd(), ".local/neon-activation/proxy-apply-receipt.json"),
     JSON.stringify(receipt),

@@ -291,3 +291,142 @@ test("bounded catalog overflow is a retry state rather than a partial or empty m
     );
   }
 });
+
+test("six real preferred-time matches paginate without duplicates and retain URL history", async ({
+  page,
+}) => {
+  const group = randomUUID();
+  const subject = `matching-page-${group}`;
+  const names = Array.from(
+    { length: 6 },
+    (_, i) =>
+      `Synthetic matching pager tutor ${String(i + 1).padStart(2, "0")}`,
+  );
+  const identities = names.map(
+    (_, i) => `/tutors/matching-page-${group}-${i + 1}`,
+  );
+  const parameters = new URLSearchParams({
+    level: "college_support",
+    subject,
+    timezone: "Asia/Manila",
+    when: "preferred",
+    range: "morning",
+  });
+  parameters.append("days", "1");
+  parameters.append("days", "3");
+  const firstURL = `/get-matched?${parameters}`;
+  const assertFilters = (href: string, expectedPage: number) => {
+    const url = new URL(href, "http://127.0.0.1");
+    expect(url.pathname).toBe("/get-matched");
+    expect(url.searchParams.get("level")).toBe("college_support");
+    expect(url.searchParams.get("subject")).toBe(subject);
+    expect(url.searchParams.get("timezone")).toBe("Asia/Manila");
+    expect(url.searchParams.get("when")).toBe("preferred");
+    expect(url.searchParams.getAll("days")).toEqual(["1", "3"]);
+    expect(url.searchParams.get("range")).toBe("morning");
+    expect(Number(url.searchParams.get("page") ?? "1")).toBe(expectedPage);
+  };
+  const profileLinks = page.getByRole("link", { name: /^View profile:/ });
+  const assertPage = async (number: number) => {
+    const expected =
+      number === 1 ? identities.slice(0, 5) : identities.slice(5);
+    const expectedNames = number === 1 ? names.slice(0, 5) : names.slice(5);
+    await expect(page.getByRole("status")).toHaveText(
+      "6 tutors teach Synthetic matching pager subject at College Support with an open time that fits.",
+    );
+    await expect(profileLinks).toHaveCount(expected.length);
+    const rows = await profileLinks.evaluateAll((links) =>
+      links.map((link) => ({
+        identity: new URL((link as HTMLAnchorElement).href).pathname,
+        label: link.getAttribute("aria-label"),
+      })),
+    );
+    expect(rows).toEqual(
+      expected.map((identity, i) => ({
+        identity,
+        label: `View profile: ${expectedNames[i]}`,
+      })),
+    );
+    const pager = page.getByRole("navigation", {
+      name: "Matching result pages",
+    });
+    await expect(
+      pager.getByText(`Page ${number} of 2`, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      pager.getByRole("link", { name: "More tutors", exact: true }),
+    ).toHaveCount(number === 1 ? 1 : 0);
+    await expect(
+      pager.getByRole("link", { name: "Previous tutors", exact: true }),
+    ).toHaveCount(number === 2 ? 1 : 0);
+    const link = pager.getByRole("link");
+    const href = await link.getAttribute("href");
+    expect(href).not.toBeNull();
+    assertFilters(href ?? "", number === 1 ? 2 : 1);
+    assertFilters(page.url(), number);
+    return rows.map((row) => row.identity);
+  };
+  try {
+    await owner.pool.query(
+      "INSERT INTO subjects(slug,name,category,is_active) VALUES ($1,'Synthetic matching pager subject','specialized',true)",
+      [subject],
+    );
+    // Reverse insertion makes the asserted name order independent of row insertion.
+    await owner.pool.query(
+      "INSERT INTO \"user\" (id,name,email,email_verified,created_at,updated_at) SELECT $1 || '-' || n,'Synthetic matching pager tutor ' || lpad(n::text,2,'0'),$1 || '-' || n || '@learli.test',true,now(),now() FROM generate_series(8,1,-1) n",
+      [group],
+    );
+    await owner.pool.query(
+      'INSERT INTO user_access(user_id) SELECT id FROM "user" WHERE id LIKE $1',
+      [`${group}-%`],
+    );
+    await owner.pool.query(
+      "INSERT INTO user_roles(user_id,role) SELECT id,'tutor' FROM \"user\" WHERE id LIKE $1",
+      [`${group}-%`],
+    );
+    await owner.pool.query(
+      "INSERT INTO tutor_profiles(user_id,slug,headline,bio,teaching_background,timezone,review_status) SELECT id,'matching-page-'||id,'Synthetic','Fictional pager fixture','Local only','UTC','approved' FROM \"user\" WHERE id LIKE $1",
+      [`${group}-%`],
+    );
+    await owner.pool.query(
+      "INSERT INTO tutor_subjects(tutor_id,subject_id,levels) SELECT p.id,s.id,ARRAY['college_support']::text[] FROM tutor_profiles p CROSS JOIN subjects s WHERE p.user_id LIKE $1 AND s.slug=$2",
+      [`${group}-%`, subject],
+    );
+    // 00:00–01:00 UTC is 08:00–09:00 Manila. All six have the same actual
+    // next time, exercising the accepted name tie-break over two viewer weekdays.
+    // Control 07 fits the days but only the evening; 08 fits mornings on other days.
+    await owner.pool.query(
+      "INSERT INTO tutor_availability(tutor_id,iso_weekday,start_minute,end_minute) SELECT p.id,day,CASE WHEN right(p.user_id,2)='-7' THEN 600 ELSE 0 END,CASE WHEN right(p.user_id,2)='-7' THEN 660 ELSE 60 END FROM tutor_profiles p CROSS JOIN generate_series(1,4) day WHERE p.user_id LIKE $1 AND ((right(p.user_id,2)='-8' AND day IN (2,4)) OR (right(p.user_id,2)<>'-8' AND day IN (1,3)))",
+      [`${group}-%`],
+    );
+    // Both negative controls have genuine actual-date candidates without preferences.
+    await page.goto(
+      `/get-matched?level=college_support&subject=${subject}&timezone=Asia%2FManila&when=any`,
+    );
+    await expect(page.getByRole("status")).toHaveText(
+      "8 tutors teach Synthetic matching pager subject at College Support with an open time that fits.",
+    );
+    await page.goto(firstURL);
+    const first = await assertPage(1);
+    await page.getByRole("link", { name: "More tutors", exact: true }).click();
+    const second = await assertPage(2);
+    expect([...first, ...second]).toEqual(identities);
+    expect(new Set([...first, ...second]).size).toBe(6);
+    await page.reload();
+    await assertPage(2);
+    await page
+      .getByRole("link", { name: "Previous tutors", exact: true })
+      .click();
+    await assertPage(1);
+    await page.goBack();
+    await assertPage(2);
+    await page.goBack();
+    await assertPage(1);
+  } finally {
+    // Preserve synthetic records/history, removing only this fixture's public eligibility.
+    await owner.pool.query(
+      "UPDATE tutor_profiles SET review_status='suspended' WHERE user_id LIKE $1",
+      [`${group}-%`],
+    );
+  }
+});

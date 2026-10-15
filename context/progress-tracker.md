@@ -1,5 +1,71 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — TEST COVERAGE POLICE completed; verified changes uncommitted
+
+Owner authorized a repository-wide behavioral test investigation and safe focused
+improvements. Ten GPT-6 Luna high workers completed five domain investigations,
+two cross-boundary investigations and three independent audits; four GPT-6.1 Sol
+high workers independently verified and implemented changes. Requested/effective
+models match all receipts. Fourteen Tasks completed and fourteen resources are
+released, with no pending question, inbox delivery or reclaimable worker.
+
+Six candidates became three confirmed test defects, two meaningful coverage gaps
+and one false positive. All five actionable items are resolved (four Medium,
+one Low; no Critical/High). TLS setup now establishes its own private receipt
+directory, restoring all eight existing cases from a clean checkout. The booking
+race chooses both real overlapping future candidates and asserts expected 409,
+exact winner state and one creation event. Controlled inputs to the unchanged
+actual slot engine prove the original late-day ordinal assumption false; the
+original PG test passed at its observed current clock, so no old-window runtime
+PG failure is claimed. The initial explorer dismissal was independently corrected.
+
+Two new component cases protect native GET values/pending/restoration for finder
+and directory; one new real PostgreSQL-backed Chromium journey protects the
+five-row matching pager, six fitting tutors, two genuine excluded controls,
+identity/order/completeness, retained filters and browser history. The only app
+change is native disabled state and a pending submit guard. Original-source
+component and actual-browser red checks verify the corrected mismatch. The
+matching retry claim was disproved by source, existing tests and actual helper
+roundtrips; retry behavior remains unchanged.
+
+The first full browser run exposed a further pre-existing pool lifecycle defect:
+60 cases passed, one privacy case failed and 144 dependent cases did not run.
+The fourth Sol independently reproduced unchanged main as 2 passing/1 failing
+cases under global-three/auth-project-one parallel grouping. Moving pool creation
+into matching beforeAll preserves afterAll and every private-data test/helper
+byte; all three pass in one reused worker with three successful hook pairs.
+No serial mode, retry, timeout or shared configuration change hides the failure.
+
+Fresh baseline check/build pass 1,746 unit/component cases; complete baseline PG
+reports 988 passed plus eight setup-skipped TLS cases across 69 suites. Final
+coordinator check passes 1,748 cases/117 files, formatting/lint/full types; all
+996 PG cases/69 suites pass with no skips, and production build passes on final
+application bytes. After the E2E-only pool correction, full types/lint pass again
+and the full original-config Chromium suite passes all 205 cases with no failed,
+skipped or unrun cases. H/I/J scoped independent source/assertion/evidence audits
+pass without residual findings. Complete raw failures and final source hashes
+are retained. One unchanged local-mail tracing pattern warns after fixture
+growth; a worker-only generated mirror font startup failure recovered with a
+fresh generated mirror and no tracked workaround. Its cache cause is unverified.
+
+Nine paths change: one app component, six tests, report and tracker. No schema,
+dependency, auth/booking service, shared config, business policy or existing
+assertion was weakened. No coverage/mutation provider is configured, so no
+percentage, mutation score or arbitrary threshold is claimed. The four helper
+worktrees/branches were removed only after exact integration and verified private
+archives. All owned fixtures are stopped with data preserved and assigned ports
+free. Original dirty security checkout/files/refs and local main e8dae85 remain
+unchanged; the reviewed changes stay uncommitted on
+cob-g/test-coverage-police-20261015. No commit, merge, push, deployment, production
+mutation or live provider acceptance occurred.
+
+Full report: docs/operations/test-coverage-police-2026-10-15.md. Durable evidence:
+/Users/cob/orca/archives/learli/test-coverage-police-20261015/. Next small task:
+owner review/commit decision; investigate the generated-mirror incident only as
+a focused follow-up if it recurs. No open confirmed finding remains. Remote CI,
+Firefox/WebKit/physical devices, dedicated restore drill, live providers and
+production recovery were not executed; real-policy/launch gates stay separate.
+
 ## 2026-10-15 — ERROR HANDLING POLICE committed and merged into local main
 
 Owner explicitly authorized committing the reviewed error-handling changes,
