@@ -1,5 +1,29 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — TEST COVERAGE POLICE committed and merged into local main
+
+Owner explicitly authorized committing the reviewed work, merging it into local
+main and removing the operation worktree/branch. Commit `f535a50`
+contains exactly the nine reviewed paths; merge `9e4fc1f` has the same
+Git tree and no conflicts. All seven application/test file hashes still match
+the completed validation: 1,748 unit/component, 996 PostgreSQL and 205 Chromium
+cases; three independent scoped audits passed. No application/test behavior was
+changed for integration. The follow-up changes only the integration documentation;
+formatting and diff checks are rerun for those files. Earlier validation limits
+and the local-mail build warning remain as recorded in the operation report.
+
+The dirty original security checkout is preserved byte for byte. Local main is
+advanced through the clean operation checkout; no stash, reset, remote push,
+deployment, live provider call or production mutation is involved. All owned
+services are stopped and assigned ports were reconfirmed free. Archive verification
+precedes removal of the completed operation checkout and merged branch. Exact
+commit, archive, Git bundle, removal and preservation receipts are retained at
+`/Users/cob/orca/archives/learli/test-coverage-police-20261015/local-merge/`.
+
+Full report: `docs/operations/test-coverage-police-2026-10-15.md`. No open confirmed
+test finding remains. Next small task: investigate the generated-mirror startup
+incident only if it recurs, preserving the separate real-policy launch gates.
+
 ## 2026-10-15 — TEST COVERAGE POLICE completed; verified changes uncommitted
 
 Owner authorized a repository-wide behavioral test investigation and safe focused

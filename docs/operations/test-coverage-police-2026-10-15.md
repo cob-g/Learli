@@ -5,8 +5,10 @@ verified test defects are repaired and two meaningful behavioral gaps are closed
 Final coordinator validation passes 1,748 unit/component tests, all 996 PostgreSQL
 tests and the full 205-case Chromium suite. One small application correction gives
 pending directory/finder submit buttons their required native disabled behavior.
-Changes remain uncommitted on `cob-g/test-coverage-police-20261015`, based on
-unchanged local main `e8dae85`.
+Owner subsequently authorized local commit, merge and cleanup. The nine reviewed
+paths were committed as `f535a50` and merged into local main as
+`9e4fc1f`; the merge tree exactly matches the reviewed commit.
+Application and test bytes still match the completed validation evidence.
 
 Run: `run_94eb599eb411`. Durable private evidence, raw failures, exact commands,
 hashes, reports and cleanup receipts:
@@ -167,10 +169,13 @@ provider, auth, booking service or business-policy implementation changed.
 All four implementation worktrees/branches were removed only after exact
 integration and verified private archives of non-regenerable files, modes and
 symlink targets. All workers are released. Owned database/browser processes are
-stopped, assigned ports are free and synthetic data is preserved. The review
-worktree remains uncommitted. Original checkout branch/HEAD/status, 1,210 tracked
-regular files, twelve symlinks, dirty security report and all original refs,
-including local main, are unchanged. Receipts are
+stopped, assigned ports are free and synthetic data is preserved. The original
+security checkout branch/HEAD/status, 1,210 tracked regular files, twelve symlinks
+and dirty security report remain unchanged. Local main now contains the reviewed
+changes; unrelated local refs are preserved. Removal of the operation checkout
+and merged branch is authorized after a verified private archive. The actual
+archive, Git bundle, deletion and preservation outcomes are recorded under
+`local-merge/` in the durable evidence directory. Receipts are
 `preservation-and-cleanup.json`, `owned-resource-cleanup.json` and
 `worker-archives/`; final validation records bind the final files and patch.
 
