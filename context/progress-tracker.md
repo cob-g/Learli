@@ -1,5 +1,75 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — PERFORMANCE POLICE verified; two measured optimizations uncommitted
+
+Owner requested a repository-wide measured performance operation. Run
+`run_0e95b457ccf1` used nine GPT-6 Luna high investigations (five domain, two
+cross-module, two independent audits) and two GPT-6.1 Sol high workers, with
+requested/effective model receipts. All 11 tasks succeeded and all workers are
+released. Coverage includes all 31 feature modules, 56 handlers, 22 schema
+sources and 32 migrations. Six unique candidate groups were triaged: two
+measured bottlenecks fixed, four unmeasured/low-priority opportunities deferred;
+corroborating reports were deduplicated. Source coverage is not runtime profiling
+of every workflow.
+
+Exact candidate sources are integrated uncommitted on
+`cob-g/performance-police-20261015`, base/local main `45d88ff`. PERF-A-01 adds
+bounded per-batch Intl formatter reuse while preserving the original format API,
+exact endpoint/zone/DST strings, public DTOs, eligibility, SQL/snapshots and
+limits. Ordinary-GC alternating samples measure a 1,008-interval formatting
+median of 190.395 to 13.119 ms and native constructors 8,064 to 24; byte-identical
+output and all raw tails remain recorded. Twenty-one new deterministic unit
+cases safeguard output and bounded work; no global/date/offset result cache.
+
+BPD-01 defers booking display JSON and correlated policy/head lookups until page
+selection in the same read-only statement. Authorization joins/predicates,
+relation/filter, paging and learner summaries remain byte-identical; global
+expiry still spans all permitted active timed rows. With 1,000 synthetic history
+rows plus 24 active, head loops fall 1,024 to 42. Thirty alternating pairs per
+scope measure query median guardian 62.263 to 4.363 ms, student 66.402 to 4.406
+and tutor 72.755 to 5.281 ms. Small histories retain 0.04–0.11 ms wall overhead;
+these are warm local query-growth observations, not typical-volume/route claims.
+The new PostgreSQL regression's identical final bytes fail on original source
+and pass on the candidate. No schema/index/grant/pool/concurrency change.
+
+Root baseline passed format/lint/types, 1,691 unit cases/115 files and normal
+production build. Final combined check passed format/lint/types and 1,712
+cases/116 files; all 153 selected PostgreSQL cases/10 files and normal production
+build passed. Each of three successful fixed production-workload runs retained
+136 samples/18 conflict/retry invariant groups, foreign-owner denial and exact
+cleanup. The final runtime-equivalent fresh-cluster run includes both changes:
+actual-date directory median 287.9 to 94.5 ms (193.4 ms / 67.2%); profile 61.2
+to 52.0 ms. Same 24-tutor workload/dataset and matching runtime/dependency
+conditions, with warm caches/free memory uncontrolled and only three page
+samples per viewport/cache/repetition cell. API timings varied slightly in both
+directions; no universal tail, hosted/field/device, sustained-throughput or
+retained-memory claim. All raw samples/outliers remain; forced-GC diagnostics
+are separate. Original setup/test typing/harness/plan-alias failures are retained
+with their narrow corrections; no guard or existing assertion was weakened.
+
+Both independent Luna source/evidence audits passed without a corrective change.
+The query regression is validated on pinned PostgreSQL17; revisit its structural
+loop bound if supported planners change. Broader discarded-DTO formatting,
+profile grouping and read parallelism remain deferred without measured need.
+No dependencies, existing tests, business policy or security controls changed.
+Seven paths change: three application files, two new tests, this tracker and the
+operation report. No governing architecture boundary changed.
+
+All owned PostgreSQL/web/browser/test processes are stopped, synthetic data and
+reports preserved. The two worker worktrees/branches were removed only after
+exact integration and fully verified private preservation archives. The single
+performance review worktree remains; primary checkout/branch/HEAD, 1,210 original
+tracked files, 12 symlinks and dirty security notes are protected. Local main
+remains `45d88ff`; no commit/merge/push/deployment, cloud/provider or production
+operation occurred. Earlier deferred security SQL work was not reopened.
+
+Full report: `docs/operations/performance-police-2026-10-15.md`. Private evidence:
+`/tmp/learli-performance-police-20261015/`, including raw benchmark distributions,
+exact source/model manifests, audits, `helper-cleanup.json` and final preservation
+checks in `final-validation.json`. Next small task: owner review and separately
+authorized commit/local merge of the verified seven-path change; consider only
+newly measured workload evidence before expanding optimization scope.
+
 ## 2026-10-15 — Security browser follow-up merged into local main; SQL draft archived
 
 Owner authorized rechecking the browser failure on current main, merging only

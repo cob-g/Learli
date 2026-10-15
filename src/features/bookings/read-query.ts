@@ -51,6 +51,15 @@ export async function queryParticipantBookings(
         ? sql`NOT (${active})`
         : sql`TRUE`;
   const order = input.filter === "active" ? sql`ASC` : sql`DESC`;
+  // Keep eligibility in permitted; construct display JSON and correlated lookups
+  // only for selected page rows. Expiry still examines the full permitted set.
+  const item = sql`jsonb_build_object(
+          'id', b.id, 'source', b.source, 'workflowRevision', b.workflow_revision, 'policyVersion', (SELECT p.version FROM booking_workflow_policies p WHERE p.id=b.workflow_policy_id), 'logicalBookingId', b.logical_booking_id, 'revision', b.revision, 'currentHeadId', (SELECT head.id FROM bookings head WHERE head.logical_booking_id=b.logical_booking_id ORDER BY head.revision DESC LIMIT 1), 'tutorName', b.tutor_name, 'tutorSlug', b.tutor_slug,
+          'subjectName', b.subject_name, 'subjectSlug', b.subject_slug,
+          'learnerId', b.learner_id, 'learnerName', b.learner_name, 'learnerLevel', b.learner_level,
+          'state', b.booking_state, 'start', b.start_at_utc, 'end', b.end_at_utc,
+          'expires', b.booking_expires_at, 'events', ${bookingId ? sql`COALESCE((SELECT jsonb_agg(jsonb_build_object('id', e.id, 'event', e.event, 'at', e.created_at) ORDER BY e.created_at ASC, CASE e.event WHEN 'demo_reserved' THEN 0 WHEN 'demo_confirmed' THEN 1 WHEN 'demo_completed' THEN 2 ELSE 3 END ASC, e.id ASC) FROM (SELECT e.id,e.event,e.created_at FROM booking_events e JOIN bookings eb ON eb.id=e.booking_id WHERE eb.logical_booking_id=b.logical_booking_id UNION ALL SELECT le.id,le.event,le.created_at FROM booking_lifecycle_events le WHERE le.logical_booking_id=b.logical_booking_id) e), '[]'::jsonb)` : sql`'[]'::jsonb`}
+        )`;
   const result = await db.execute<ReadSnapshot>(sql`
     WITH actor AS (
       SELECT u.id, u.timezone, statement_timestamp() AS now
@@ -64,13 +73,9 @@ export async function queryParticipantBookings(
         ${input.scope === "tutor" ? sql`AND EXISTS (SELECT 1 FROM tutor_profiles own WHERE own.user_id = u.id AND own.review_status <> 'suspended')` : sql``}
     ), permitted AS (
       SELECT b.id, b.start_at_utc, ${active} AS active, b.state AS booking_state, b.expires_at AS booking_expires_at,
-        jsonb_build_object(
-          'id', b.id, 'source', b.source, 'workflowRevision', b.workflow_revision, 'policyVersion', (SELECT p.version FROM booking_workflow_policies p WHERE p.id=b.workflow_policy_id), 'logicalBookingId', b.logical_booking_id, 'revision', b.revision, 'currentHeadId', (SELECT head.id FROM bookings head WHERE head.logical_booking_id=b.logical_booking_id ORDER BY head.revision DESC LIMIT 1), 'tutorName', tu.name, 'tutorSlug', tp.slug,
-          'subjectName', sub.name, 'subjectSlug', sub.slug,
-          'learnerId', l.id, 'learnerName', l.display_name, 'learnerLevel', l.level,
-          'state', b.state, 'start', b.start_at_utc, 'end', b.end_at_utc,
-          'expires', b.expires_at, 'events', ${bookingId ? sql`COALESCE((SELECT jsonb_agg(jsonb_build_object('id', e.id, 'event', e.event, 'at', e.created_at) ORDER BY e.created_at ASC, CASE e.event WHEN 'demo_reserved' THEN 0 WHEN 'demo_confirmed' THEN 1 WHEN 'demo_completed' THEN 2 ELSE 3 END ASC, e.id ASC) FROM (SELECT e.id,e.event,e.created_at FROM booking_events e JOIN bookings eb ON eb.id=e.booking_id WHERE eb.logical_booking_id=b.logical_booking_id UNION ALL SELECT le.id,le.event,le.created_at FROM booking_lifecycle_events le WHERE le.logical_booking_id=b.logical_booking_id) e), '[]'::jsonb)` : sql`'[]'::jsonb`}
-        ) AS item
+        b.source, b.workflow_revision, b.workflow_policy_id, b.logical_booking_id, b.revision,
+        tu.name AS tutor_name, tp.slug AS tutor_slug, sub.name AS subject_name, sub.slug AS subject_slug,
+        l.id AS learner_id, l.display_name AS learner_name, l.level AS learner_level, b.end_at_utc
       FROM actor a JOIN bookings b ON b.source IN ('local_simulation','synthetic_readiness')
       JOIN learner_profiles l ON l.id = b.learner_id
         AND l.status = 'active'
@@ -91,9 +96,9 @@ export async function queryParticipantBookings(
       LIMIT ${input.pageSize + 1} OFFSET ${(input.page - 1) * input.pageSize}
     )
     SELECT a.timezone, a.now::text AS snapshot,
-      ${overview ? sql`'[]'::jsonb` : sql`COALESCE((SELECT jsonb_agg(item ORDER BY start_at_utc ${order}, id ${order}) FROM paged), '[]'::jsonb)`} AS items,
-      ${overview ? sql`COALESCE((SELECT jsonb_agg(item ORDER BY start_at_utc ASC, id ASC) FROM active_paged), '[]'::jsonb)` : sql`'[]'::jsonb`} AS "activeItems",
-      ${overview ? sql`COALESCE((SELECT jsonb_agg(item ORDER BY start_at_utc DESC, id DESC) FROM history_paged), '[]'::jsonb)` : sql`'[]'::jsonb`} AS "historyItems",
+      ${overview ? sql`'[]'::jsonb` : sql`COALESCE((SELECT jsonb_agg(${item} ORDER BY start_at_utc ${order}, id ${order}) FROM paged b), '[]'::jsonb)`} AS items,
+      ${overview ? sql`COALESCE((SELECT jsonb_agg(${item} ORDER BY start_at_utc ASC, id ASC) FROM active_paged b), '[]'::jsonb)` : sql`'[]'::jsonb`} AS "activeItems",
+      ${overview ? sql`COALESCE((SELECT jsonb_agg(${item} ORDER BY start_at_utc DESC, id DESC) FROM history_paged b), '[]'::jsonb)` : sql`'[]'::jsonb`} AS "historyItems",
       ${overview ? sql`(SELECT MIN(booking_expires_at) FROM permitted WHERE active AND booking_state <> 'confirmed')` : sql`NULL::timestamptz`} AS "earliestExpiry",
       ${
         input.scope === "tutor"
