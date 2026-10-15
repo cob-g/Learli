@@ -70,7 +70,13 @@ export function TutorFilterForm({
       ref={form}
       action="/tutors"
       method="get"
-      onSubmit={() => flushSync(() => setPending(true))}
+      onSubmit={(event) => {
+        if (pending) {
+          event.preventDefault();
+          return;
+        }
+        flushSync(() => setPending(true));
+      }}
       aria-busy={pending}
       role="search"
       aria-label={finder ? "Find a tutor" : "Filter tutors"}
@@ -121,7 +127,11 @@ export function TutorFilterForm({
         </select>
       </div>
       {finder ? (
-        <button className="action action-primary w-full" type="submit">
+        <button
+          className="action action-primary w-full"
+          type="submit"
+          disabled={pending}
+        >
           Find a tutor
         </button>
       ) : (
@@ -264,6 +274,7 @@ export function TutorFilterForm({
             <button
               className="action action-outline"
               type="submit"
+              disabled={pending}
               aria-disabled={pending}
             >
               {pending ? "Loading tutors…" : "Apply filters"}

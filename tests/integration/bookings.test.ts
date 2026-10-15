@@ -31,6 +31,7 @@ import {
 import type { DemoBookingInput } from "@/features/bookings/input";
 import { saveOwnTimeOff } from "@/features/time-off/service";
 import { AccessError } from "@/lib/permissions/access";
+import { RuleError } from "@/lib/rule-error";
 import {
   createAccount,
   closeWorld,
@@ -1357,13 +1358,47 @@ describe("atomic local synthetic bookings against PostgreSQL", () => {
     ).toBe("demo_reserved");
   });
   it("accepts one of concurrently overlapping distinct requests", async () => {
-    const { input, candidates, profile } = await fresh();
+    const { input: initialInput, candidates, profile } = await fresh();
+    const clock = await world.owner.pool.query<{ milliseconds: number }>(
+      "SELECT floor(extract(epoch FROM clock_timestamp()) * 1000)::float8 AS milliseconds",
+    );
+    // Leave a full day of notice margin and skip isolated end-of-day slots.
+    // Both requests must come from the overlapping pair, not the first slot.
+    const safeStart = clock.rows[0].milliseconds + 86_400_000;
+    const pairIndex = candidates.times.findIndex((first, index, times) => {
+      const second = times[index + 1];
+      return (
+        second &&
+        new Date(first.startAtUtc).getTime() >= safeStart &&
+        new Date(first.startAtUtc).getTime() <
+          new Date(second.endAtUtc).getTime() &&
+        new Date(second.startAtUtc).getTime() <
+          new Date(first.endAtUtc).getTime()
+      );
+    });
+    expect(pairIndex).toBeGreaterThanOrEqual(0);
+    const input = {
+      ...initialInput,
+      startAtUtc: candidates.times[pairIndex].startAtUtc,
+      endAtUtc: candidates.times[pairIndex].endAtUtc,
+    };
     const second = {
       ...input,
-      startAtUtc: candidates.times[1].startAtUtc,
-      endAtUtc: candidates.times[1].endAtUtc,
+      startAtUtc: candidates.times[pairIndex + 1].startAtUtc,
+      endAtUtc: candidates.times[pairIndex + 1].endAtUtc,
       idempotencyKey: randomUUID(),
     };
+    expect(input.idempotencyKey).not.toBe(second.idempotencyKey);
+    expect(input.startAtUtc).not.toBe(second.startAtUtc);
+    expect(new Date(input.startAtUtc).getTime()).toBeGreaterThanOrEqual(
+      safeStart,
+    );
+    expect(new Date(second.startAtUtc).getTime()).toBeGreaterThanOrEqual(
+      safeStart,
+    );
+    expect(new Date(input.startAtUtc).getTime()).toBeLessThan(
+      new Date(second.endAtUtc).getTime(),
+    );
     expect(new Date(second.startAtUtc).getTime()).toBeLessThan(
       new Date(input.endAtUtc).getTime(),
     );
@@ -1371,13 +1406,55 @@ describe("atomic local synthetic bookings against PostgreSQL", () => {
       createDemoReservation(world.runtime, parent.headers, input),
       createDemoReservation(world.runtime, parent.headers, second),
     ]);
-    expect(outcomes.filter((r) => r.status === "fulfilled")).toHaveLength(1);
-    expect(outcomes.filter((r) => r.status === "rejected")).toHaveLength(1);
+    const successes = outcomes.filter((r) => r.status === "fulfilled");
+    const failures = outcomes.filter((r) => r.status === "rejected");
+    expect(successes).toHaveLength(1);
+    expect(failures).toHaveLength(1);
+    expect(failures[0].reason).toBeInstanceOf(RuleError);
+    expect(failures[0].reason).toMatchObject({
+      status: 409,
+      message: "That time is no longer available. Please choose another.",
+    });
+    const winner = successes[0].value;
+    const winningInput = outcomes[0].status === "fulfilled" ? input : second;
+    expect(winner).toMatchObject({
+      state: "demo_reserved",
+      time: {
+        startAtUtc: winningInput.startAtUtc,
+        endAtUtc: winningInput.endAtUtc,
+      },
+    });
     const rows = await world.owner.db
       .select()
       .from(bookings)
       .where(eq(bookings.tutorId, profile.id));
     expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      id: winner.id,
+      source: "local_simulation",
+      state: "demo_reserved",
+      tutorId: profile.id,
+      learnerId: winningInput.learnerId,
+      bookedByUserId: parent.id,
+      subjectId,
+      startAtUtc: new Date(winningInput.startAtUtc),
+      endAtUtc: new Date(winningInput.endAtUtc),
+      displayTimezone: winningInput.displayTimezone,
+      idempotencyKey: winningInput.idempotencyKey,
+      requestFingerprint: bookingFingerprint(winningInput),
+    });
+    expect(
+      await world.owner.db
+        .select()
+        .from(bookingEvents)
+        .where(eq(bookingEvents.bookingId, winner.id)),
+    ).toEqual([
+      expect.objectContaining({
+        bookingId: winner.id,
+        event: "demo_reserved",
+        createdAt: rows[0].createdAt,
+      }),
+    ]);
   });
   it("concurrent retries share one booking and one creation event", async () => {
     const { input } = await fresh();

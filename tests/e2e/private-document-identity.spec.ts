@@ -5,9 +5,13 @@ import { createDatabase } from "../../src/lib/db/connection";
 // Run only against a fresh owned loopback test database. No reset/global setup
 // is needed: every fixture is a new synthetic user created via the real routes.
 test.use({ trace: "off", screenshot: "off", video: "off" });
-const owner = createDatabase(process.env.DATABASE_URL_DIRECT ?? "", true);
+let owner: ReturnType<typeof createDatabase>;
 const origin = process.env.APP_URL ?? "http://127.0.0.1:3100";
 const password = "Synthetic-private-document-password-123";
+// A reused worker can run multiple fully-parallel groups from this file.
+test.beforeAll(() => {
+  owner = createDatabase(process.env.DATABASE_URL_DIRECT ?? "", true);
+});
 test.afterAll(async () => owner.pool.end());
 test.beforeEach(async ({ context }) => {
   await context.route("**/*", (route) =>
