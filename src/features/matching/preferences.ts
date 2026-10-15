@@ -1,6 +1,6 @@
 import { expandWeeklyWindows } from "@/lib/time/availability";
 import { isValidTimeZone } from "@/lib/time/time-zone";
-import { learnerLevels } from "@/lib/db/schema/app";
+import { learnerLevelOptions } from "@/features/subjects/catalog";
 
 export const weekdayOptions = [
   [1, "Monday"],
@@ -174,7 +174,10 @@ export function matchingHref(
   page = 1,
 ) {
   const query = new URLSearchParams();
-  if (learnerLevels.some((level) => level === answers.level) && answers.level)
+  if (
+    learnerLevelOptions.some(([level]) => level === answers.level) &&
+    answers.level
+  )
     query.set("level", answers.level);
   if (
     answers.subject &&
@@ -204,7 +207,7 @@ export function sanitizeMatchParams(raw: MatchParams) {
   for (const [key, value] of Object.entries(raw)) {
     const scalar = singleMatchParam(value);
     if (key === "level")
-      params.level = learnerLevels.some((level) => level === scalar)
+      params.level = learnerLevelOptions.some(([level]) => level === scalar)
         ? scalar
         : "";
     else if (key === "subject")

@@ -1,5 +1,53 @@
 # Learli — Progress Tracker
 
+## 2026-10-16 — ARCHITECTURE POLICE completed; reviewed changes uncommitted
+
+Owner authorized repository-wide architectural investigation and safe focused
+corrections. Nine source/cross-boundary/re-audit assignments produced evidence;
+eleven GPT-6 Luna starts include two extra recovery/preparation sessions. One
+GPT-6.1 Sol worker independently verified and implemented the correction. The
+31-feature inventory and 500-module resolved source graph cover major app,
+identity, booking, trust, persistence, provider, operator and deployment seams.
+
+Three candidate leads became one confirmed Medium client/persistence boundary
+defect, one current-defect false positive (intentionally disabled hosted public
+discovery) and one existing deferred delivery-epoch ambiguity. Matching URL
+helpers now use the existing client-safe learner-level catalog instead of
+constructing Drizzle tables in client code. All four stored levels, public
+signatures and URL behavior are preserved. No schema, dependency, permission,
+policy, provider contract or architectural layer changed. Two unrelated runtime
+cycles remain without an established harmful consequence; positive hosted
+session-revocation coverage remains a verification opportunity, not a proven bug.
+
+Three new regression cases fail on exact original source and pass on the fix;
+72 worker-scoped cases pass. Coordinator baseline passed 1,748 unit/component
+and all 996 PostgreSQL cases. The first PostgreSQL attempt omitted an explicit
+TLS fixture port; its 988-pass/eight-setup-skipped failure is preserved, and the
+unchanged configured rerun passed all 996. Final integrated format/lint/types
+and 1,751 cases across 118 files pass; all 43 affected PostgreSQL cases and the
+full original-config 205-case Chromium suite pass without skipped/unrun cases.
+Production build passes with the existing local-mail dynamic tracing warning.
+Final 61-file client scan contains none of the original schema/Drizzle markers;
+H independently checked route chunks and all 62 client runtime closures. H/I
+independent source, compatibility and regression-evidence audits are clean.
+Documentation formatting/diff results are retained with the final evidence.
+
+Four paths change: one app helper, one regression file, report and this tracker.
+The helper's exact source was integrated, archived/read-back verified and its
+worktree/branch removed. Owned fixtures are stopped, data retained and assigned
+ports free. Original dirty security checkout, its tracked bytes and existing
+refs/local main remain preserved. Changes remain uncommitted in
+`cob-g/architecture-police-20261015`. No commit, merge, push, deployment, live
+provider or production mutation occurred. A/E completion transport failures are
+recorded separately from recovered source reports; C was successfully retried.
+
+Full report: `docs/operations/architecture-police-2026-10-16.md`. Evidence:
+`/Users/cob/orca/archives/learli/architecture-police-20261015/`. Next small task:
+owner review/commit decision. Delivery fingerprint compatibility needs a separate
+contract decision; hosted public discovery and real operating policies remain
+gated. Remote CI, Firefox/WebKit, physical devices and live providers were not
+verified by this operation.
+
 ## 2026-10-15 — TEST COVERAGE POLICE committed and merged into local main
 
 Owner explicitly authorized committing the reviewed work, merging it into local
