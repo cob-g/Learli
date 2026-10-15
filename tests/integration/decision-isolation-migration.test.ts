@@ -20,7 +20,13 @@ import {
 import { verifyRuntimeGrants } from "../../scripts/staging-migrations/privileges";
 import { runtimeGrantsSql } from "../../scripts/runtime-grants";
 
-const candidate = loadCandidate(process.cwd());
+// Keep this historical migration proof pinned to the exact 0000–0029 prefix.
+// Later migrations have their own fresh/upgrade preservation tests.
+const currentCandidate = loadCandidate(process.cwd());
+const candidate = {
+  ...currentCandidate,
+  entries: currentCandidate.entries.slice(0, 30),
+};
 const names = ["decide_learner_admission", "decide_tutor_screening"];
 async function functions(client: PoolClient) {
   return (
@@ -55,7 +61,7 @@ async function rowHashes(client: PoolClient) {
   return hashes;
 }
 async function apply(client: PoolClient, until: number) {
-  if (until === candidate.entries.length) {
+  if (until === currentCandidate.entries.length) {
     // The public migrator skips the already-recorded canonical prefix on upgrade.
     await migrate(drizzle(client), { migrationsFolder: "drizzle" });
     return;

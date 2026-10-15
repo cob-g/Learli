@@ -1,5 +1,184 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — BUG POLICE completed: SQL authority and mirror refresh corrected
+
+The sweep completed with 12 GPT-6 Luna high explorers/auditors and 3 GPT-6.1 Sol
+high workers, with at most 3 workers plus the orchestrator active. Four initial,
+four cross-boundary and four independent post-fix Luna tasks covered application,
+domain, persistence, integrations, runtime and tests. All 15 tasks succeeded and
+their supervised terminals were released. Six formal reports became five root-cause
+groups: two confirmed defect families fixed (Medium SQL authority; Low test-mirror
+refresh), three false positives rejected. Three adjacent admission-evidence/private-
+review isolation leads remain unverified pending explicit direct-SQL contract evidence.
+
+Forward migrations `0030` and `0031` enforce the established READ COMMITTED contract
+in six granted admin mutations. Sol observed twelve original stale commits under
+REPEATABLE READ/SERIALIZABLE after exact admin-role revocation; equivalent services
+denied 403 and already use READ COMMITTED. Only early SQLSTATE `25001` guards were
+added to exact current predecessors. Remaining bodies, MFA/ownership/replay/lock
+rules, signatures, owners/ACLs and search paths are preserved. Historical SQL
+`0000`–`0029`, application TypeScript/frontend, tables/grants, public contracts,
+dependencies and real-use policy gates are unchanged. There are 42 new behavior
+regressions and six migration proofs.
+
+The admission mirror retained legitimately deleted canonical source on repeated
+copy. Sol reproduced the strict provenance failure and corrected refresh of generated
+`src` only, preserving canonical/private fixture/mail/cache state, the exact
+one-override/hash/count check and runtime safeguards. Five real-filesystem unit
+regressions include safe parent/src symlink behavior. The last independent Luna
+audit executed all five and accepted scope/provenance.
+
+Final root validation: `npm run check` passed 1,648 tests across 112 files, formatting,
+clean lint and strict types (14.15s). Full owned PostgreSQL passed 969 tests across
+67 files (404.97s). The guarded production build passed with 131 app paths and zero
+local-mail references in deployment traces. Only the isolated mirror helper/new
+unit and tracker changed after the full PG run; its SQL/integration/application
+inputs remain byte-identical. Eight selected Chromium projects passed 33/33 (1.8m),
+including all six admission cases, phone/keyboard/privacy and admin-MFA scenarios.
+This is affected browser coverage, not the full or cross-engine suite. Three
+pre-existing production-build glob warnings and baseline jsdom navigation notices
+remain; no final applicable check failed.
+
+Both browser setup failures are retained: stale-source provenance, then Next font
+query resolution in old generated mirror output. After verifying owned real paths
+and clear listeners, root removed only that mirror's generated `.next`; its fresh
+build and all 33 browser cases passed without further source changes. No compiler
+or production-font fix is claimed. The worker cluster at port 56029 is stopped;
+temporary module links/fixtures are cleaned. Ports 3095, 3098, 3100, 56029, 3198,
+3199 and 56003 are clear. Existing root test infrastructure, private proof receipts
+and the unrelated Claude worktree are preserved.
+
+Evidence: `/tmp/learli-bug-police-20261015/report.md`, per-task reports/launch receipts,
+findings ledger, original red/final green logs, patch/source manifests and resource
+checks. Twelve source/test/metadata paths plus this tracker changed; 1,197 unrelated
+baseline tracked paths and 1,209 frozen non-tracker paths were checked unchanged.
+Work remains uncommitted on `fix/bug-police-20261015` at `1f29dbc`. The isolated stopped
+worker checkout is retained for later version-control cleanup. No commit, merge,
+push, deployment, production/development migration, real provider/email/payment or
+cloud operation occurred. Next small task: review and commit this bounded change;
+investigate deferred SQL contracts separately.
+
+## 2026-10-15 — BUG POLICE browser-harness correction integrated; final rerun pending
+
+Final combined0030/0031 root validation passed `npm run check`1643/111,
+full owned PostgreSQL969/67 (404.97s), and production build131app paths.
+The33-case Chromium selection then passed27, failed1in admission `beforeAll`
+and left5unrun: its reused source mirror retained the retired workspace navigation
+file deleted in the previous cleanup. The strict provenance guard correctly
+refused that stale mirror; this was test setup, not an admission app assertion.
+
+A third GPT-6.1 Sol high worker independently reproduced the failure with a real
+owned temporary filesystem and supplied the accepted two-file correction.
+Only generated mirror `src` is refreshed; parent symlinks are refused, canonical
+source and private fixture/mail/cache state are preserved, and the exact
+one-override/hash/count provenance guard and runtime safeguards remain intact.
+Five new filesystem regressions and four existing placement cases passed9/9,
+with scoped lint/format/diff checks passing. Root independently verified the
+patch/log hashes, before/after files and all10unchanged accepted SQL/test/metadata
+inputs before integration. The worker is settled/released and its temporary
+module symlink/fixtures are cleaned. A final independent Luna audit, fresh root
+check and the same33browser cases are pending. No commit/merge/push/deployment.
+
+## 2026-10-15 — BUG POLICE corrective wave integrated; final aggregate checks pending
+
+Independent Luna re-audits accepted0030's exact guard/body and migration/test
+compatibility. One audit found the same contracted snapshot assumption in three
+additional current local functions: `change_local_account_access`,
+`change_local_support_assignment` (current0022 definitions) and
+`review_local_tutor_application` (current0024). A second GPT-6.1 Sol high worker
+independently reproduced six more durable stale app-role commits under RR and
+SERIALIZABLE after owner admin-role revocation; all corresponding services denied403.
+Accepted0031 adds only the same early25001 guards to those three exact predecessors.
+Existing MFA checks and historical0000–0030 SQL are preserved. The root verified
+the incremental accepted-tree patch and all source hashes before/after application.
+The combined fix covers six functions and twelve observed original stale commits,
+with42 behavior regressions and6 fresh/populated migration proofs added.
+
+Worker corrective verification passed142/142 PostgreSQL cases in10files and a
+final strengthened21/21 behavior rerun. New migration plus historical0030 proof
+passed6/6. A retained141/142 authored-test failure assumed empty audit history;
+actual account creation already appends `account.created`. The corrected proof
+asserts that exact baseline, exactly one new review event, preservation of old
+history and unchanged state/audit after strict repeated-action conflict. Other
+request-key replays and actual waited-revocation denials retain their contracts.
+No assertion or security rule was weakened. Both Sol workers are
+settled and released; the owned56029 cluster is stopped and56029/3198/3199 are clear. Two retained W8 disposable proof
+DBs from the first dispatch were removed only after exact receipt/owner/idle
+checks and coordinator approval, with metadata preserved in the evidence folder.
+
+Root's earlier frozen through0030 check passed1643/111, full PostgreSQL945/65
+(409.32s) and production build131 app paths. Three local-mail tracing warnings
+also appear in the previous operation's build; deployment traces contain zero
+local-mail references under unchanged exclusions. Those are through0030 results,
+not the final0031 aggregate run. Final check/build/PG,33 selected browser cases
+in8 projects/9 files and a fresh corrective Luna audit are now pending.
+Ten Luna high and two Sol high tasks have completed so far. Three original false
+positives remain rejected; related admission-evidence/private-review direct-SQL
+contracts are unverified/deferred. Real-use policy gates and all application
+TypeScript/frontend/dependency/lockfile contents remain unchanged. No commit,
+merge, push, deployment, real provider action or non-test migration occurred.
+
+## 2026-10-15 — BUG POLICE: reproduced SQL authority defect integrated; final checks pending
+
+Owner authorized repository-wide correctness investigation, routine verified fixes
+and Luna exploration with Sol implementation. Work is local and uncommitted on
+`fix/bug-police-20261015` from local-main `1f29dbc`. Eight GPT-6 Luna high tasks
+covered frontend/forms/navigation, booking/time/discovery/lifecycle, identity and
+admin/domain authority, integrations/runtime/tooling, plus four cross-boundary
+checks of actual navigation, applied SQL/callers, discovery-to-notification and
+mutation retry/recovery. Four formal candidate groups were triaged: three false
+positives and one confirmed Medium-severity granted-SQL defect. Independent
+post-fix Luna audits and final combined verification are pending.
+
+A GPT-6.1 Sol high worker independently reproduced all six committed stale writes
+across three current SQL functions in its separate owned PostgreSQL17.11 test
+cluster: `record_tutor_screening_check`, `change_safeguarding_response` and
+`change_safeguarding_access`, under REPEATABLE READ and SERIALIZABLE. Another
+transaction had removed the exact administrator role; ordinary services denied403
+while direct app-role function calls committed domain/history effects. W1's
+current-grant SQL boundary, W8's explicit READ COMMITTED/post-wait contract and0029
+precedent establish the expected contract. This is direct granted-SQL evidence;
+current web services use autocommit/READ COMMITTED, and real screening/safeguarding
+compositions remain disabled.
+
+Accepted forward0030 adds only an early25001 isolation guard to those three
+current0024 definitions, preserving the remaining bodies/signatures and existing
+ownership/ACL/search-path contracts. Historical0000–0029 SQL is untouched. The
+journal appends one entry; the required0030 snapshot changes only id/prevId.
+Twenty-one behavior regressions and three fresh/populated-upgrade/reapply proofs
+were added. The existing0029 migration test is pinned to its exact historical
+prefix with all original assertions retained. No application TypeScript,
+frontend, dependency, lockfile, feature gate or business policy was changed.
+The root verified patch and six source-file hashes before and after integration.
+
+Fresh baseline `npm run check` passed1643tests/111files, format, clean lint and
+strict types. Sol's pre-fix regression run observed15 failures/6 passes: six
+committed stale writes and nine missing early rejections. After the fix, focused
+actual PostgreSQL passed75/75 across9files, including24 new and51 existing cases;
+the final changed migration fixture rerun passed3/3. An earlier populated-fixture
+failure correctly rejected missing synthetic staff; only that fixture was repaired
+and the failure log retained. Root full checks/build/PG/browser remain pending.
+
+Cross-check evidence rejected the local MFA-expiry allegation because0022 already
+replaces its cited0015/0019 definitions with post-lock assurance checks. Both
+frontend prop-rerender leads were rejected: actual Chromium admission list/back
+navigation reset the second record's confirmation, while publication list rows use
+native document navigation. The proposed discovery/readiness horizon divergence
+was also unsupported by the current shared half-open start-window generator/final
+SQL; historical tracker commentary does not approve a differing product rule.
+Related alternate-isolation calls in other SQL families remain conditional,
+unreproduced candidates requiring separate caller-contract investigation.
+
+Evidence: `/tmp/learli-bug-police-20261015/` contains explorer reports, formal
+findings ledger, exact baseline/patch manifests, observed red/green logs and Sol
+handoff. All initial workers are settled/released. The worker's own56029 cluster
+is stopped, its leased ports are clear, and its source patch is preserved.
+Navigation probes used only owned synthetic test fixtures and stopped3100;
+four fictional admissions and one test-only MFA enrollment remain in that test DB.
+No user/private workspace was reset. Existing `.claude/worktrees/` is untouched.
+No commit/merge/push, deployment, development/production migration or real provider
+operation occurred. Next: independent re-audit and frozen-source aggregate checks.
+
 ## 2026-10-15 — DEAD CODE POLICE committed and merged into local main
 
 Owner authorized committing, merging and cleaning up this operation's branch and
