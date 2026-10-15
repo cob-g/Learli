@@ -1,5 +1,60 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — CONTRACT POLICE completed; DATA worktrees cleaned up
+
+Completed 13 GPT-6 Luna high read-only investigations: eight domain, three
+cross-module, two independent post-fix audits. Fourteen Luna launches include one
+initial attempt that stopped before inspection on a broken CLI path; its explicit
+retry completed. Two GPT-6.1 Sol high workers handled the fix and the separately
+requested DATA cleanup. Actual launch receipts confirm models/effort; at most
+three workers ran with the coordinator. All supervised resources are released.
+
+Two unique candidates were triaged. CP-H-001 / duplicate CP-Z-001 is a confirmed
+Low local migration selector defect: an unsupported argument such as `--tset`
+could select development. The actual entrypoint now accepts exactly no args or
+one `--test`, refusing other shapes before environment loading/DB construction.
+All known package/CI/setup callers retain their valid forms. One script and one
+new 25-case mocked entrypoint suite changed; no helper framework was introduced.
+The identical test bytes failed 16 / passed 9 on original code, then passed 25 on
+fixed code. Both independent audits accepted the exact integrated source hashes
+and found no residual. CP-G-001 is deferred: timeout/configuration-epoch ownership
+is ambiguous, no body/key violation was established, and changing the digest
+would block every existing immutable prepared item. No speculative delivery change.
+
+Root final `node scripts/with-test-env.mjs npm run check` passed formatting,
+lint, strict types and **1,673 unit/component tests in 113 files**. Final production
+build passed. The pre-change owned PostgreSQL selection passed **930 tests in
+63 files**; all application/database/schema/grant/integration-test bytes remain
+unchanged by the CLI-only fix, so that database suite was not redundantly rerun.
+Five existing table-truncating fixture suites and generic browser setup were
+excluded. No browser/E2E, hosted acceptance or production readiness claim. The
+same three baseline jsdom navigation notices remain. Root test PG/TLS helpers
+are stopped, synthetic data/evidence preserved; final document/diff checks passed.
+
+DATA cleanup is complete. The single cleanup worker archived all three evidence
+trees and removed the stopped integration checkout/merged branch, initially
+retaining two children with live unknown-ownership Claude processes. After the
+owner's status request, the coordinator positively verified all six recorded PIDs
+had exited, no open files/listeners remained, accepted source equaled committed
+main, and every child evidence file matched the verified archive. Orca then
+removed both children and their associated branches. All three DATA directories,
+Git registrations and branches are gone; main remains `961c8753`. The worker's
+initial partial/failed receipt is preserved; coordinator completion is separately
+recorded, not relabeled as worker success. Archives remain private and intact.
+
+Original user checkout: all 1,210 baseline regular files, 12 directory symlinks,
+protected uncommitted security notes, branch/HEAD/status preserved. In the CONTRACT
+checkout, 1,209 unrelated baseline files and all schema/migration/package bytes
+remain unchanged. Six paths changed: CLI, regression suite, local operator guide,
+DATA status note, this tracker and operation report. No commit/merge/push,
+production/provider operation, historical repair or business-policy change.
+Work is uncommitted on `cob-g/contract-police-20261015`, base `961c8753`.
+Full report: `docs/operations/contract-police-2026-10-15.md`; evidence:
+`/tmp/learli-contract-police-20261015/`; DATA archives:
+`/tmp/learli-data-integrity-police-20261015/cleanup-archive/`.
+Next small task: review/commit when requested; clarify timeout epoch semantics
+separately before any compatibility-sensitive prepared-delivery change.
+
 ## 2026-10-15 — DATA INTEGRITY POLICE committed and merged into local main
 
 Owner explicitly authorized committing the verified patch and merging it into

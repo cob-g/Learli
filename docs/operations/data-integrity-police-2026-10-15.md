@@ -10,8 +10,23 @@ application/regression files remain unchanged; only this report and the tracker
 receive a subsequent status-only documentation commit. Existing test/build
 results remain applicable and were not redundantly rerun for Git operations.
 
-Local `main` is checked out at
+At the integration checkpoint, local `main` was checked out at
 `/Users/cob/orca/workspaces/learli/data-integrity-police-20261015`.
+
+Cleanup follow-up during CONTRACT POLICE is complete. The owner-requested Sol
+high worker archived all three evidence trees and removed the stopped integration
+checkout and merged branch. It initially retained signup/proof children because
+unknown-ownership Claude sessions were live. After those six recorded processes
+exited, the coordinator verified no open files, exact committed-main patch bytes,
+and all child evidence against the archives, then removed both children and their
+branches through Orca. All three DATA directories, Git registrations and branches
+are gone; local `main` remains `961c8753`. No process was killed to finish cleanup.
+Archives/checksums remain in
+`/tmp/learli-data-integrity-police-20261015/cleanup-archive/`. The original partial
+worker report is preserved at
+`/tmp/learli-contract-police-20261015/cleanup-data-integrity.md`; coordinator
+completion receipts are in the same directory under `cleanup-*` filenames.
+
 The original `/Users/cob/learli` checkout stays on its existing security branch;
 its uncommitted SECURITY POLICE notes and unrelated Claude work were preserved.
 No remote push, deployment or external database/provider operation was performed.
