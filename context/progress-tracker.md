@@ -1,5 +1,65 @@
 # Learli — Progress Tracker
 
+## 2026-10-15 — DATA INTEGRITY POLICE: atomic signup verified; uncommitted
+
+Completed with 12 GPT-6 Luna high read-only explorers/auditors (eight domain,
+two cross-module, two independent post-fix) and one GPT-6.1 Sol high worker.
+All 13 supervised tasks succeeded and terminals were released. Actual launch
+receipts confirm model/effort. Coverage included all 22 schema sources and 32
+forward migrations, identity, learner/guardian relationships, tutor/catalog,
+scheduling/bookings, support/safeguarding/reviews, delivery, UI/API contracts,
+and migration/backup/recovery tooling. Three leads became one confirmed Medium
+defect fixed, one current full-profile replacement semantic, and one conditional
+local reload/request-key limitation; neither latter lead was promoted to a bug.
+
+LEI-001: Better Auth committed user/credential creation before its after-commit
+hook provisioned required access/audit rows. Sol reproduced partial identities
+and non-recovering duplicate-signup retries in both composition modes. The shared
+account adapter now provisions `user_access` and self-attributed `account.created`
+on the exact provider Drizzle transaction. Required failure/callback failure
+rolls back; standalone creation and selected output keep their native contracts.
+Native schema-check object identity, roleless signup, membership, verification,
+sessions, reset, OTP, MFA and provider mail behavior remain. No migration,
+dependency, business-rule, public payload or automatic historical repair change.
+The final identical 26-case suite failed 10/passed 16 on original composition,
+then passed all 26 with the fix. Both independent Luna audits accepted the exact
+integrated hashes and identified no residual defect.
+
+Final root validation: `node scripts/with-test-env.mjs npm run check` passed
+formatting, lint, strict types and 1,648 unit/component tests in 112 files;
+production build passed. The permitted real PostgreSQL integration selection
+passed **930 tests in 63 files** (386.71s), including the 26 new regressions.
+Baseline and exact fixed candidate each passed the existing real backup/restore
+proof on a separate clean synthetic source: **79 tables, 32 migrations, 65
+populated tables**, exact rows/schema/grants/sequences/roles and source preserved.
+Final scoped document formatting/diff and tested source hashes were checked.
+
+Five existing TRUNCATE-fixture suites and generic browser setup were excluded to
+honor the no-truncation directive; no browser/E2E or deployed hosted acceptance
+is claimed. Baseline setup issues are recorded: a missing native-TLS evidence
+directory was created and all eight unchanged tests then passed; restore after
+mixed negative fixtures refused one invalid synthetic address, so clean-source
+proof was used without deleting/repairing records or weakening safeguards.
+The same three baseline jsdom navigation notices remain. Intermediate worker
+type/fixture failures and final green evidence are retained separately.
+
+The original `/Users/cob/learli` branch/HEAD, all 1,210 baseline files, 12 directory
+symlinks and its protected uncommitted security notes remain unchanged. In the
+isolated integration tree, 1,207 unrelated baseline files and all immutable
+migration/schema/package bytes are unchanged. All owned PostgreSQL clusters and
+TLS/helper listeners are stopped, private synthetic data/evidence preserved;
+all 13 worker terminals released. No original development/test, cloud/provider,
+production data, credentials, commit, merge, push or deployment action occurred.
+
+Work is uncommitted on `cob-g/data-integrity-police-20261015`, base `1cab7228`.
+Only two application files, one new regression suite and three context/report
+files changed. Full report: `docs/operations/data-integrity-police-2026-10-15.md`.
+Private evidence: `/tmp/learli-data-integrity-police-20261015/`. Existing-data
+reconciliation, if needed, requires a separately scoped provenance-aware review;
+no roles/verification/history were inferred or repaired. Next small task: review
+and commit this verified patch when requested; decide stronger profile/reload
+contracts separately, preserving identical-field siblings and current policy gates.
+
 ## 2026-10-15 — BUG POLICE committed, merged into local main and cleaned up
 
 Owner explicitly authorized committing the verified sweep, merging into local

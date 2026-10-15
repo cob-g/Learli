@@ -563,6 +563,23 @@ cleanup; main's existing database was not migrated as part of the Git merge.
 - Unique combination (`user_id`, `role`).
 - Assign/update from trusted server/admin logic, never public form input alone.
 
+### Account creation transaction — 2026-10-15
+
+The shared `composeAccountAuth` configures `accountAdapter`, a narrow decoration
+of the installed Better Auth Drizzle adapter. Provider email/password signup
+commits its user and credential together with required `user_access` and
+self-attributed `account.created` audit records. Provisioning uses the exact
+Drizzle transaction supplied to the provider callback; a required write failure
+rolls everything back. Required database state does not use a `user.create.after`
+hook, because that hook runs after the provider transaction has committed.
+Standalone provider user creation also provisions access/audit atomically;
+selected output keeps its native shape. The native adapter object and schema
+check registration, other methods, verification/mail behavior, no-role signup,
+membership restrictions and session safeguards remain provider-backed. No schema
+change or repair of historical accounts is implied. See
+`docs/operations/data-integrity-police-2026-10-15.md` for regression evidence and
+reconciliation limits.
+
 ### 9.2 Tutors and supported subjects
 
 **`tutor_profiles`**
