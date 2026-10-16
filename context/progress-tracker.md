@@ -752,6 +752,46 @@ no roles/verification/history were inferred or repaired. Next small task: review
 and commit this verified patch when requested; decide stronger profile/reload
 contracts separately, preserving identical-field siblings and current policy gates.
 
+## 2026-10-15 — SECURITY POLICE: review recorded; remediation deferred
+
+- Ran 14 read-only GPT-6 Luna high-effort investigations/audits and two GPT-6.1
+  Sol high-effort implementation attempts across auth/MFA, permissions, database,
+  booking/learner/tutor/support flows, frontend/API projections, integrations,
+  configuration and supply chain. Cross-module and independent final audits ran.
+- **No new application vulnerability is accepted as confirmed or fixed.** Four
+  promoted security lead groups: one conditional SQL authority family remains
+  unverified/deferred; one forged-actor lead was rejected on supported user paths;
+  shared hosted rate-limit behavior and one development advisory remain operational
+  risks. Existing policy/readiness gates are preserved.
+- The SQL worker received a provider `cyberPolicy` block (`willRetry: false`).
+  No retry/replacement or SQL fix was integrated. Its incomplete test draft and
+  synthetic data were preserved in its isolated checkout; its own cluster stopped.
+- Existing full browser suite: **200 passed, 1 failed** (7.4 minutes), a stale
+  Sign in selector on authenticated workspace chrome. Focused baseline repeated
+  **6 passed, 1 failed**. Sol test-only candidates retained the privacy assertions
+  but failed at public-header discovery, then Back main-document observation.
+  Luna independently recorded these blockers. The exact original E2E file was
+  restored; **no unvalidated source or test change is retained**. This is an
+  unresolved validation-harness issue, not proof of a private-data vulnerability.
+- Fresh baseline `npm run check`: formatting/lint/types and **1,648 unit tests /
+  112 files** passed. Owned synthetic integration: **969 tests / 67 files** passed
+  (438.66 seconds). Production-mode test build passed with 131 paths and three
+  existing local-mail path-inference warnings. Repeated candidate check also
+  passed all 1,648 tests; no successful browser remediation is claimed.
+- Runtime-only dependency audit: zero reported vulnerabilities. Full audit exits1
+  for **one unpatched braces advisory affecting nine development-only package
+  entries**; no forced major downgrade or lockfile change. Exact selected private
+  synthetic-value scan found zero hits in 65 client static text files and zero
+  private-path trace references; this is not production/all-secret certification.
+- Report: `docs/operations/security-police-2026-10-15.md`. Detailed artifacts:
+  `/tmp/learli-security-police-20261015/`. Only report/progress documentation is
+  retained. No commit, merge, push, deployment, live probing, credential change or
+  production operation occurred; unrelated user work remains preserved.
+- Next small task: resolve the existing hosted-auth browser history observation
+  with sanitized local navigation evidence before claiming a green browser suite.
+  SQL validation remains deferred after the provider block; development dependency
+  and actual staging proxy/artifact follow-up remain separate operational work.
+
 ## 2026-10-15 — BUG POLICE committed, merged into local main and cleaned up
 
 Owner explicitly authorized committing the verified sweep, merging into local
