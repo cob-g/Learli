@@ -14,6 +14,7 @@ import {
 } from "./w8-fixtures";
 import { provisionScreeningAssignment } from "../../src/features/tutor-screening/fixture-tooling";
 import { provisionSafetyRestriction } from "../../src/features/safeguarding/fixture-tooling";
+import { restoreW6BrowserTutor } from "../support/w6-browser-fixtures";
 test.use({ trace: "off", screenshot: "off", video: "off" });
 test.describe.configure({ mode: "serial" });
 test.beforeAll(ensureOwner);
@@ -133,6 +134,25 @@ test("application, missing-check denial, page evidence, current discovery, amend
   });
   expect(a.status()).toBe(200);
   const reviewer = await admin(browser, "reviewer");
+  // A different eligible tutor may have the same display name. Keep that
+  // inventory present throughout approval, amendment and exact-target denials.
+  const decoy = await register(browser, "Fictional W8 browser math tutor"),
+    retainedTutor = { id: decoy.id, profileId: "", slug: "" };
+  const application = await decoy.context.request.post(
+    "/api/tutor/application",
+    {
+      headers: { origin: mirrorOrigin },
+      data: {},
+    },
+  );
+  expect(application.status()).toBe(200);
+  await restoreW6BrowserTutor(owner, decoy.context, reviewer.context, {
+    origin: mirrorOrigin,
+    reviewer: { id: reviewer.id },
+    tutor: retainedTutor,
+  });
+  const profileHref = `/readiness/tutors/${profile.slug}`,
+    retainedHref = `/readiness/tutors/${retainedTutor.slug}`;
   await reviewer.page.goto("/admin/tutors");
   await reviewer.page
     .getByRole("link", { name: "Fictional W8 browser math tutor", exact: true })
@@ -187,15 +207,21 @@ test("application, missing-check denial, page evidence, current discovery, amend
   await decision(reviewer.page, "Approve synthetic screening");
   await expect(reviewer.page.getByText(/State: approved/)).toBeVisible();
   await tutor.page.goto("/readiness/tutors?subject=math&level=college_support");
+  const intendedRow = tutor.page.getByRole("listitem").filter({
+    has: tutor.page.locator(`a[href="${profileHref}"]`),
+  });
   await expect(
-    tutor.page.getByRole("heading", {
+    intendedRow.getByRole("heading", {
       name: "Fictional W8 browser math tutor",
+      exact: true,
     }),
   ).toBeVisible();
+  await expect(tutor.page.locator(`a[href="${retainedHref}"]`)).toBeVisible();
   await accessible(tutor.page, info, "readiness-directory");
-  await tutor.page
-    .getByRole("link", { name: "View synthetic profile" })
+  await intendedRow
+    .getByRole("link", { name: "View synthetic profile", exact: true })
     .click();
+  await expect(tutor.page).toHaveURL(mirrorOrigin + profileHref);
   await expect(
     tutor.page.getByRole("heading", { name: "Synthetic slot preview" }),
   ).toBeVisible();
@@ -204,7 +230,12 @@ test("application, missing-check denial, page evidence, current discovery, amend
   ).toHaveCount(0);
   await tutor.page.goto("/readiness/get-matched");
   await expect(
-    tutor.page.getByRole("link", { name: "Fictional W8 browser math tutor" }),
+    tutor.page
+      .getByRole("link", {
+        name: "Fictional W8 browser math tutor",
+        exact: true,
+      })
+      .and(tutor.page.locator(`a[href="${profileHref}"]`)),
   ).toBeVisible();
   await tutor.page.goto("/tutor/profile");
   await tutor.page
@@ -215,8 +246,9 @@ test("application, missing-check denial, page evidence, current discovery, amend
     .click();
   await tutor.page.goto("/readiness/tutors");
   await expect(
-    tutor.page.getByRole("heading", {
+    intendedRow.getByRole("heading", {
       name: "Fictional W8 browser math tutor",
+      exact: true,
     }),
   ).toBeVisible();
   await provisionSafetyRestriction(
@@ -236,11 +268,12 @@ test("application, missing-check denial, page evidence, current discovery, amend
     .click();
   await expect(restriction.page.getByText(/suspended/)).toBeVisible();
   await reviewer.page.goto("/readiness/tutors");
+  await expect(reviewer.page.locator(`a[href="${profileHref}"]`)).toHaveCount(
+    0,
+  );
   await expect(
-    reviewer.page.getByRole("heading", {
-      name: "Fictional W8 browser math tutor",
-    }),
-  ).toHaveCount(0);
+    reviewer.page.locator(`a[href="${retainedHref}"]`),
+  ).toBeVisible();
   await restriction.page
     .getByRole("button", { name: "Restore synthetic account" })
     .click();
@@ -280,9 +313,17 @@ test("application, missing-check denial, page evidence, current discovery, amend
     }),
   ).toBeVisible();
   await reviewer.page.goto("/readiness/get-matched");
+  await expect(reviewer.page.locator(`a[href="${profileHref}"]`)).toHaveCount(
+    0,
+  );
   await expect(
-    reviewer.page.getByText("No current synthetic matches."),
+    reviewer.page.locator(`a[href="${retainedHref}"]`),
   ).toBeVisible();
-  for (const c of [tutor.context, reviewer.context, restriction.context])
+  for (const c of [
+    tutor.context,
+    decoy.context,
+    reviewer.context,
+    restriction.context,
+  ])
     await c.close();
 });

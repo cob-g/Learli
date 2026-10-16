@@ -202,6 +202,19 @@ test("new verified guardian and tutor cross admission, screening, booking, SDK n
     mirrorOrigin +
       `/learner-admission/new?next=${encodeURIComponent(discovery)}`,
   );
+  // Origin storage must not prevent a real cookie-authenticated no-JS visit.
+  await parent.page.evaluate(() =>
+    localStorage.setItem("synthetic-no-js-regression", "not-authentication"),
+  );
+  expect(
+    (await parent.context.storageState()).origins.some(
+      (origin) =>
+        origin.origin === mirrorOrigin &&
+        origin.localStorage.some(
+          (entry) => entry.name === "synthetic-no-js-regression",
+        ),
+    ),
+  ).toBe(true);
   await noJs(
     browser,
     parent.context,
