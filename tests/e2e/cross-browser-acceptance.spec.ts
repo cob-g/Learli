@@ -9,6 +9,7 @@ import {
   privateReload,
   privateRouteFetch,
   privateText,
+  protectedOperation,
 } from "./cross-browser-privacy";
 import { randomUUID } from "node:crypto";
 import { writeFile } from "node:fs/promises";
@@ -437,10 +438,26 @@ test("real browser signup, captured verification, sign-in, settings and sign-out
   await page
     .getByLabel("Time zone", { exact: true })
     .selectOption("Asia/Manila");
+  // Saving refreshes this server page. Finish that response before starting
+  // a document reload, or Firefox can interrupt the competing navigation.
+  const settingsRefresh = protectedOperation(async () => {
+    const response = await page.waitForResponse((response) => {
+      const url = new URL(response.url());
+      return (
+        url.origin === wave.baseURL &&
+        url.pathname === "/account" &&
+        response.request().headers().rsc === "1"
+      );
+    });
+    await response.finished();
+  });
+  // Observe teardown rejection even if Save or its status assertion fails first.
+  void settingsRefresh.catch(() => undefined);
   await page
     .getByRole("button", { name: "Save settings", exact: true })
     .click();
   await expect(page.getByRole("status")).toHaveText("Account settings saved.");
+  await settingsRefresh;
   await privateReload(page);
   await expect(page.getByLabel("Time zone", { exact: true })).toHaveValue(
     "Asia/Manila",
@@ -452,6 +469,7 @@ test("real browser signup, captured verification, sign-in, settings and sign-out
     page.getByRole("heading", { name: "Account sessions", exact: true }),
   ).toBeVisible();
   await page
+    .getByRole("main")
     .getByRole("link", { name: "Account settings", exact: true })
     .click();
   await expect(

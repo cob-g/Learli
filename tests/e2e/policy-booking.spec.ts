@@ -9,13 +9,15 @@ import {
   type Browser,
   type BrowserContext,
 } from "@playwright/test";
-import { readFile, mkdir, chmod } from "node:fs/promises";
+import { readFile, writeFile, mkdir, chmod } from "node:fs/promises";
+import { z } from "zod";
 import AxeBuilder from "@axe-core/playwright";
 import { randomUUID } from "node:crypto";
 import { createDatabase } from "../../src/lib/db/connection";
 import { inspectW6BrowserPrivacy } from "../support/w6-browser-privacy";
 import { restoreW6BrowserTutor } from "../support/w6-browser-fixtures";
 import { totpCode } from "../support/admin-mfa";
+process.env.PLAYWRIGHT_NO_COPY_PROMPT = "1";
 test.use({ trace: "off", screenshot: "off", video: "off" });
 test.describe.configure({ mode: "serial" });
 test.setTimeout(180000);
@@ -40,6 +42,18 @@ let fixture: Fixture,
   staff: Page,
   staffContext: BrowserContext,
   staffSecret: string;
+const factorsPath = ".local/booking-workflows/browser-authenticators.json";
+async function reviewerFactors() {
+  try {
+    return z
+      .record(z.string(), z.string().min(1))
+      .parse(JSON.parse(await readFile(factorsPath, "utf8")));
+  } catch (error) {
+    if (!(error instanceof Error && "code" in error && error.code === "ENOENT"))
+      throw error;
+    return {} as Record<string, string>;
+  }
+}
 test.beforeAll(async ({ browser }) => {
   assertOwnedReadinessDatabase(process.cwd());
   fixture = JSON.parse(
@@ -47,25 +61,33 @@ test.beforeAll(async ({ browser }) => {
   );
   expect(fixture.sourceRoot).toBe(process.cwd());
   expect(fixture.origin).toBe(screeningMirrorOrigin);
-  const admin = await login(browser, fixture.reviewer.email);
+  // The mirror actor is retained across browser projects. Its provider factor
+  // remains enrolled; retain only the private test authenticator needed to prove it.
+  const factors = await reviewerFactors();
+  staffSecret = factors[fixture.reviewer.id];
+  const admin = await login(browser, fixture.reviewer.email, staffSecret);
   staff = admin.page;
   staffContext = admin.context;
   await staff.goto("/account/security");
-  await staff
-    .getByLabel("Current password", { exact: true })
-    .fill(fixture.password);
-  await staff.getByRole("button", { name: "Set up authenticator" }).click();
-  await expect(staff.locator("[data-mfa-secret]").first()).toBeVisible();
-  staffSecret = (await staff
-    .locator("[data-mfa-secret]")
-    .first()
-    .textContent())!;
-  await staff
-    .getByLabel("Authenticator code", { exact: true })
-    .fill(totpCode(staffSecret));
-  await staff
-    .getByRole("button", { name: "Verify administrator access" })
-    .click();
+  if (!staffSecret) {
+    await staff
+      .getByLabel("Current password", { exact: true })
+      .fill(fixture.password);
+    await staff.getByRole("button", { name: "Set up authenticator" }).click();
+    await expect(staff.locator("[data-mfa-secret]").first()).toBeVisible();
+    staffSecret = (await staff
+      .locator("[data-mfa-secret]")
+      .first()
+      .textContent())!;
+    await staff
+      .getByLabel("Authenticator code", { exact: true })
+      .fill(totpCode(staffSecret));
+    await staff
+      .getByRole("button", { name: "Verify administrator access" })
+      .click();
+    factors[fixture.reviewer.id] = staffSecret;
+    await writeFile(factorsPath, JSON.stringify(factors), { mode: 0o600 });
+  }
   await expect(
     staff.getByText("Administrator verification is current.", { exact: false }),
   ).toBeVisible();
@@ -76,9 +98,11 @@ test.afterAll(async () => {
   for (const c of contexts) await c.close();
   await owner.pool.end();
 });
-async function login(browser: Browser, email: string) {
+async function login(browser: Browser, email: string, secondFactor?: string) {
+  // All retained browser projects share one synthetic loopback address. Include
+  // session reads, as the existing W7 fixture does, before each actual login.
   await owner.pool.query(
-    "UPDATE rate_limit SET count=0 WHERE key LIKE '%/sign-in/email%' OR key LIKE '%/two-factor/%'",
+    "UPDATE rate_limit SET count=0 WHERE key LIKE '%/sign-in/email%' OR key LIKE '%/two-factor/%' OR key LIKE '%/get-session%'",
   );
   const context = await browser.newContext({ baseURL: fixture.origin }),
     page = await context.newPage();
@@ -87,6 +111,21 @@ async function login(browser: Browser, email: string) {
   await page.getByLabel("Test email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(fixture.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  if (secondFactor) {
+    await expect(page).toHaveURL(
+      fixture.origin + "/two-factor?next=%2Faccount",
+    );
+    const pending = await context.request.get("/api/auth/get-session");
+    expect(pending.status()).toBe(200);
+    // A failing security assertion must not print an unexpected session payload.
+    expect((await pending.json()) === null).toBe(true);
+    await page
+      .getByLabel("Authenticator code", { exact: true })
+      .fill(totpCode(secondFactor));
+    await page
+      .getByRole("button", { name: "Verify administrator access", exact: true })
+      .click();
+  }
   await expect(page).toHaveURL(fixture.origin + "/account");
   return { context, page };
 }
@@ -193,6 +232,23 @@ test("default policy denies confirmation and body collection; native private rea
   await p.goto("/bookings/" + randomUUID() + "?scope=guardian");
   await expect(
     p.getByRole("heading", { name: "Sign in", exact: true }),
+  ).toBeVisible();
+});
+test("retained reviewer enrollment requires a new provider challenge before administrator assurance", async ({
+  browser,
+}) => {
+  const factors = await reviewerFactors();
+  expect(Boolean(factors[fixture.reviewer.id])).toBe(true);
+  const reviewer = await login(
+    browser,
+    fixture.reviewer.email,
+    factors[fixture.reviewer.id],
+  );
+  await reviewer.page.goto("/account/security");
+  await expect(
+    reviewer.page.getByText("Administrator verification is current.", {
+      exact: false,
+    }),
   ).toBeVisible();
 });
 test("parent request -> assigned browser MFA confirmation -> private link -> move/conflict -> cancel/history/dispute with phone/keyboard/axe/privacy", async ({
@@ -484,17 +540,33 @@ test("independent College booking and foreign/outcome denials preserve current a
     },
   );
   expect([400, 403]).toContain(forged.status());
-  await owner.pool.query(
-    "DELETE FROM user_roles WHERE user_id=$1 AND role='student'",
-    [fixture.college.id],
-  );
-  await college.page.reload();
-  await expect(
-    college.page.getByRole("heading", { name: /We can.t find that booking/ }),
-  ).toBeVisible();
-  expect(
-    (await college.page.content()).includes("https://meet.google.com"),
-  ).toBe(false);
+  const originalGrant = (
+    await owner.pool.query<{ granted_at: string }>(
+      "SELECT granted_at::text AS granted_at FROM user_roles WHERE user_id=$1 AND role='student'",
+      [fixture.college.id],
+    )
+  ).rows[0];
+  expect(originalGrant).toBeDefined();
+  try {
+    await owner.pool.query(
+      "DELETE FROM user_roles WHERE user_id=$1 AND role='student'",
+      [fixture.college.id],
+    );
+    await college.page.reload();
+    await expect(
+      college.page.getByRole("heading", { name: /We can.t find that booking/ }),
+    ).toBeVisible();
+    expect(
+      (await college.page.content()).includes("https://meet.google.com"),
+    ).toBe(false);
+  } finally {
+    // Keep the denial above real while restoring this retained fixture's exact
+    // student grant for the next browser project. No administrator role changes.
+    await owner.pool.query(
+      "INSERT INTO user_roles(user_id,role,granted_at) VALUES($1,'student',$2) ON CONFLICT DO NOTHING",
+      [fixture.college.id, originalGrant.granted_at],
+    );
+  }
 });
 
 test("assigned browser MFA administrative completion and no-show preserve explicit provenance and dispute path", async () => {

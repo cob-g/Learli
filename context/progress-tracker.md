@@ -1,5 +1,65 @@
 # Learli — Progress Tracker
 
+## 2026-10-16 — REGRESSION POLICE complete; ready for manual QA
+
+Owner authorized independent repository-wide regression investigation and safe
+focused remediation, without automatic commit/merge/deployment. Compared
+`6ca48aa` with integration source `92ff3b9`, using current contracts and actual
+change history rather than inventing a universally verified baseline. Seventeen
+GPT-6 Luna launches produced 16 read-only scope reports; the extra launch was
+an E attempt stopped before source work and retried. Five GPT-6.1 Sol workers
+independently verified the repairs. A refused structured reuse launched no agent.
+
+No application regression was confirmed. Eight verification defects were fixed:
+account link identity and refresh/reload ordering, exact tutor inventory identity,
+retained reviewer MFA, College fixture grant restoration, Firefox no-JS origin
+restoration, a newly introduced test waiter's early-failure observation, and
+private HTML acquisition during document replacement. The last two received
+independent closure review. Seven legacy test/harness causes and one Low issue
+introduced/corrected during this operation are distinguished from product bugs.
+Seven E2E test/helper paths plus the report and this tracker change; application,
+schema, configuration, dependencies, security and business rules are unchanged.
+
+Final complete-source format/lint/types and all 1,751 unit/component cases pass.
+All 206 configured Chromium cases pass on the parent; all 78 Firefox/WebKit
+cases pass on the bit-identical isolated child, with no failures/skips/unrun cases.
+Initial current-source PostgreSQL passed 996 cases in 69 suites; production build
+and one populated backup/restore passed. Those app/schema bytes remain unchanged.
+Actual old/current formatter outputs agree for 3,456 cases plus three invalid-input
+classes; this is correctness parity, not a speed claim. All 833 final program/test
+hashes match both executed worktrees after testing; 826 paths retain initial bytes.
+
+Earlier failures are preserved: expanded original 66 pass/six fail/four unrun;
+S4 full Chromium 67 pass/one focus fail/138 blocked, a three-pass unchanged
+availability diagnostic, then 150 pass/one HTML-read fail/55 blocked. S4 honestly
+settled failed on expanded acceptance while its runtime-proven two-line fix was
+retained; S5 separately corrected the snapshot issue and the final complete gates
+pass. Controlled probes preserve primary errors and reject injected private
+markers, script errors and closed-page reads. Partial/repeated runs are not added
+as unique scenarios or relabeled full success. No private payload leak was observed.
+
+Readiness is READY FOR MANUAL QA for the isolated development stage. The first
+availability focus miss has no established cause; its diagnostic and subsequent
+full attempts pass. Keep its assertion and verify save/validation/keyboard focus
+manually; do not label it flaky or change UI behavior without evidence. Existing
+CP-G001 delivery timeout/fingerprint compatibility requires an owner decision,
+and existing public-launch/real policy gates remain. Live providers, deployed
+Railway/Neon, physical devices, remote CI and paired system-performance benchmarks
+were not verified.
+
+Original `/Users/cob/learli` security branch/HEAD, all 1,222 tracked contents and
+symlinks, its dirty tracker and existing report are preserved. Local main remains
+`92ff3b9`. All owned fixtures are stopped with synthetic data retained; assigned
+ports are free and no worker resource is reclaimable. The stopped original E
+attempt retains only historical bookkeeping. No commit, merge, push, deployment,
+production mutation or live provider experiment occurred. Operation worktrees
+and evidence remain available; changes are uncommitted in
+`cob-g/regression-police-20261016`.
+
+Full report: `docs/operations/regression-police-2026-10-16.md`. Private evidence:
+`/Users/cob/orca/archives/learli/regression-police-20261016/`. Next small task:
+manual QA (especially availability focus), then owner review/commit decision.
+
 ## 2026-10-16 — ARCHITECTURE POLICE committed and merged into local main
 
 Owner explicitly authorized committing the reviewed change and merging it into

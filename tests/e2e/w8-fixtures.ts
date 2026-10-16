@@ -120,11 +120,14 @@ export async function register(browser: Browser, name: string) {
   ).toEqual([]);
   const native = await browser.newContext({
       baseURL: mirrorOrigin,
-      storageState: await context.storageState(),
+      // Native authentication uses provider cookies. Restoring origin storage
+      // makes Playwright navigate/evaluate internally and hangs no-JS Firefox.
+      storageState: { cookies: await context.cookies(), origins: [] },
       javaScriptEnabled: false,
     }),
     nativePage = await native.newPage();
   await nativePage.goto("/account");
+  await expect(nativePage).toHaveURL(mirrorOrigin + "/account");
   await expect(
     nativePage.getByLabel("Display name", { exact: true }),
   ).toBeDisabled();
@@ -261,11 +264,14 @@ export async function noJs(
 ) {
   const c = await browser.newContext({
       baseURL: mirrorOrigin,
-      storageState: await context.storageState(),
+      // Native authentication uses provider cookies. Restoring origin storage
+      // makes Playwright navigate/evaluate internally and hangs no-JS Firefox.
+      storageState: { cookies: await context.cookies(), origins: [] },
       javaScriptEnabled: false,
     }),
     p = await c.newPage();
   await p.goto(url);
+  await expect(p).toHaveURL(mirrorOrigin + url);
   await expect(p.getByText(/Enable JavaScript/).first()).toBeVisible();
   expect(await p.locator('form[method="post"]').count()).toBeGreaterThan(0);
   for (const button of await p

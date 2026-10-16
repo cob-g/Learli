@@ -643,7 +643,15 @@ for (const sessionLoss of ["revoked", "expired"] as const) {
       ).toBeVisible();
       await expect(f.parent.page).toHaveURL(/\/sign-in\?next=%2Faccount$/);
       const hasPrivatePayload = async () => {
-        const html = await f.parent.page.content();
+        // A legitimate auth/Back document replacement can destroy the read's
+        // execution context. Capture one complete root through Playwright's
+        // context-aware wait; check privacy only after this snapshot resolves.
+        const snapshot = await f.parent.page.waitForFunction(() => {
+          if (document.readyState !== "complete") return "";
+          return document.documentElement.outerHTML;
+        });
+        const html = await snapshot.jsonValue();
+        await snapshot.dispose();
         return [
           privateUrl,
           encodeURIComponent(privateUrl),

@@ -337,7 +337,14 @@ export async function responsive(page: Page) {
 }
 
 export async function assertPrivateAbsent(page: Page, values: string[]) {
-  const html = await page.content();
+  // Capture one complete root across legitimate document replacement. Privacy
+  // comparisons run once below, outside Playwright's context-aware acquisition.
+  const snapshot = await page.waitForFunction(() => {
+    if (document.readyState !== "complete") return "";
+    return document.documentElement.outerHTML;
+  });
+  const html = await snapshot.jsonValue();
+  await snapshot.dispose();
   expect(
     values.some(
       (value) =>
