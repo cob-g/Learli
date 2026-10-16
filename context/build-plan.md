@@ -1085,3 +1085,23 @@ and the results record. This does not mark M5.6/M8.9 or hosted launch complete.
 Local checkpoint: scoped implementation, cross-author Review and the three-case
 normal-build rehearsal passed; see `docs/qa/admin-workflow-results-2026-10-16.md`.
 Hosted preparation/acceptance and remaining launch gates are still separate.
+
+### M8.9 cross-role booking acceptance — 2026-10-16
+
+Owner approved the recommendation to verify two existing supported journeys:
+guardian-managed learner through Parent/Tutor/exact assigned Admin, and independent
+College Student through Student/Tutor/exact assigned Admin. Blueprint
+`prompts/features/m8-09-cross-role-booking-acceptance.md` is **AUTHORIZED —
+build-feature delegation** for focused tests/docs. Connected booking changes,
+meeting access, historical completion, interrupted-response recovery and distinct
+learner concurrency use the existing owned local test environment. The corrected
+checklist is `docs/qa/cross-role-booking-checklist.md`; actual outcomes belong in its
+results record and progress tracker. No new child login, policy, schema, provider
+operation, hosted activation or full M8.9/launch completion is authorized.
+
+Local checkpoint: corrected two-journey tests and independent cross-author Review
+passed; final check1,990 unit/component tests, selected PostgreSQL169 and the
+combined normal-build private browser3/3 passed. See
+`docs/qa/cross-role-booking-results-2026-10-16.md` for exact conditions, failed
+attempts and limits. Historical completion, intercepted meetings and queued
+notices do not establish newly elapsed lessons, real video/email or hosted launch.

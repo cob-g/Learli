@@ -9,7 +9,12 @@ import {
 import AxeBuilder from "@axe-core/playwright";
 import { randomUUID } from "node:crypto";
 import type { WorkflowReceipt } from "../../src/features/booking-workflows/model";
-import type { BookingPage } from "../../src/features/bookings/read-model";
+import type {
+  BookingDetail,
+  BookingPage,
+} from "../../src/features/bookings/read-model";
+import type { StaffBooking } from "../../src/features/booking-workflows/staff-read";
+import { bookingStatusLabel } from "../../src/features/private-workflow/notice";
 import {
   PrivateStudentBrowser,
   resetPrivateBrowserAuthAttempts,
@@ -20,6 +25,7 @@ import { historicalWorkflowBooking } from "../support/booking-workflows-fixtures
 test.use({ trace: "off", screenshot: "off", video: "off" });
 const h = new PrivateStudentBrowser();
 const meeting = "https://meet.google.com/abc-defg-hij";
+const updatedMeeting = "https://meet.google.com/qrs-tuvw-xyz";
 const replacementMeeting = "https://meet.google.com/klm-nopq-rst";
 type CreateInput = {
   learnerId: string;
@@ -162,6 +168,256 @@ async function retry(
   expect(repeated.logicalBookingId).toBe(receipt.logicalBookingId);
 }
 
+async function freshPage(page: Page, href: string) {
+  const target = new URL(href, h.packet.origin).href;
+  if (page.url() === target) await page.reload();
+  else await page.goto(target);
+}
+
+async function renderedLessonTime(page: Page, value: BookingDetail["time"]) {
+  const date = page.locator(`time[datetime="${value.startAtUtc}"]`).first();
+  const time = page.locator(`time[datetime="${value.endAtUtc}"]`).first();
+  await expect(date).toBeVisible();
+  await expect(date).toHaveText(value.date);
+  // Across the viewer's midnight, both endpoints are in the visible date range.
+  // The full component retains the end instant with deliberately empty text.
+  await expect(time).toHaveCount(1);
+  await expect(time).toHaveText(value.time);
+  if (value.time) await expect(time).toBeVisible();
+}
+
+async function participantSnapshot(
+  actor: CollegeActor,
+  scope: "student" | "tutor",
+  id: string,
+  state: "confirmed" | "replaced" | "cancelled" | "completed",
+) {
+  const saved = await savedBooking(id);
+  expect(saved.state).toBe(state);
+  const response = await actor.context.request.get(
+    `/api/bookings/${id}?scope=${scope}`,
+  );
+  expect(response.status()).toBe(200);
+  const detail = (await response.json()) as BookingDetail;
+  expect(detail.id).toBe(id);
+  expect(detail.logicalBookingId).toBe(saved.logical_booking_id);
+  expect(detail.revision).toBe(saved.revision);
+  expect(detail.workflowRevision).toBe(saved.workflow_revision);
+  expect(detail.state).toBe(state);
+  expect(detail.persistedState).toBe(state);
+  expect(detail.learner).toEqual({
+    id: saved.learner_id,
+    displayName: "Fictional College learner A updated",
+    level: "college_support",
+  });
+  expect(detail.subject).toEqual({ name: "Science", slug: "science" });
+  expect(detail.tutor.displayName).toBe("Fictional college-tutor");
+  expect(detail.time.startAtUtc).toBe(saved.start_at_utc.toISOString());
+  expect(detail.time.endAtUtc).toBe(saved.end_at_utc.toISOString());
+  const viewer = (
+    await h.owner.pool.query<{ timezone: string }>(
+      'SELECT timezone FROM public."user" WHERE id=$1',
+      [actor.id],
+    )
+  ).rows[0];
+  expect(detail.viewerTimezone).toBe(viewer.timezone);
+
+  await freshPage(actor.page, `/bookings/${id}?scope=${scope}`);
+  await expect(
+    actor.page.getByRole("heading", {
+      name: bookingStatusLabel(state, true),
+      exact: true,
+    }),
+  ).toBeVisible();
+  await renderedLessonTime(actor.page, detail.time);
+  await expect(
+    actor.page.getByText(detail.time.zone, { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    actor.page.getByText(
+      "Fictional College learner A updated · College Support",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    actor.page.locator("dl").getByText("Science", { exact: true }),
+  ).toBeVisible();
+  const filter = state === "confirmed" ? "active" : "history";
+  const list = await actor.context.request.get(
+    `/api/bookings?scope=${scope}&filter=${filter}`,
+  );
+  expect(list.status()).toBe(200);
+  const history = (await list.json()) as BookingPage;
+  expect(history.items.find((item) => item.id === id)).toMatchObject({
+    logicalBookingId: detail.logicalBookingId,
+    state,
+    time: {
+      startAtUtc: detail.time.startAtUtc,
+      endAtUtc: detail.time.endAtUtc,
+    },
+  });
+  return saved;
+}
+
+async function assignedAdminSnapshot(
+  admin: CollegeActor,
+  id: string,
+  state: "confirmed" | "replaced" | "cancelled" | "completed",
+) {
+  const saved = await savedBooking(id);
+  const query = new URLSearchParams({ q: id, state });
+  const response = await admin.context.request.get(
+    `/api/admin/bookings?${query}`,
+  );
+  expect(response.status()).toBe(200);
+  const result = (await response.json()) as { items: StaffBooking[] };
+  expect(result.items).toHaveLength(1);
+  const item = result.items[0];
+  expect(item).toMatchObject({
+    id,
+    logicalBookingId: saved.logical_booking_id,
+    revision: saved.revision,
+    workflowRevision: saved.workflow_revision,
+    state,
+    subject: "Science",
+    tutorName: "Fictional college-tutor",
+    learnerName: "Fictional College learner A updated",
+    learnerLevel: "college_support",
+    requesterName: "Fictional college-a",
+    relationship: "self",
+  });
+  expect(new Date(item.start).toISOString()).toBe(
+    saved.start_at_utc.toISOString(),
+  );
+  expect(new Date(item.end).toISOString()).toBe(saved.end_at_utc.toISOString());
+  expect(item.time.startAtUtc).toBe(saved.start_at_utc.toISOString());
+  expect(item.time.endAtUtc).toBe(saved.end_at_utc.toISOString());
+  const viewer = (
+    await h.owner.pool.query<{ timezone: string }>(
+      'SELECT timezone FROM public."user" WHERE id=$1',
+      [admin.id],
+    )
+  ).rows[0];
+  expect(item.timezone).toBe(viewer.timezone);
+  expect(
+    Object.keys(item).some((key) =>
+      /email|contact|meeting|userId|accountId|url/i.test(key),
+    ),
+  ).toBe(false);
+  for (const url of [meeting, updatedMeeting, replacementMeeting])
+    expect(JSON.stringify(result).includes(url)).toBe(false);
+
+  await freshPage(admin.page, `/admin/bookings?${query}`);
+  const row = admin.page.locator(`li[data-booking-id="${id}"]`);
+  await expect(row).toHaveCount(1);
+  const label = bookingStatusLabel(state, true);
+  await expect(
+    row.getByRole("heading", { name: `Science · ${label}`, exact: true }),
+  ).toBeVisible();
+  await row
+    .getByRole("link", { name: "View booking details", exact: true })
+    .click();
+  await expect(admin.page).toHaveURL(
+    (url) => url.pathname === `/admin/bookings/${id}`,
+  );
+  await admin.page.reload();
+  await expect(
+    admin.page.getByRole("heading", {
+      name: "Booking participants",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    admin.page.getByText(new RegExp(`^Science · ${label}\\.`)),
+  ).toBeVisible();
+  await expect(
+    admin.page.getByText("Tutor: Fictional college-tutor.", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    admin.page.getByText(
+      "Learner: Fictional College learner A updated · College Support.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    admin.page.getByText(
+      "Requested by: Fictional college-a (independent learner).",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await renderedLessonTime(admin.page, item.time);
+  await expect(
+    admin.page.getByText(
+      `Logical booking: ${saved.logical_booking_id}. Revision ${saved.revision}.`,
+      { exact: true },
+    ),
+  ).toBeVisible();
+  for (const url of [meeting, updatedMeeting, replacementMeeting])
+    expect((await admin.page.content()).includes(url)).toBe(false);
+  expect(
+    (
+      await admin.context.request.get(`/api/bookings/${id}/meeting-link`)
+    ).status(),
+  ).toBe(404);
+}
+
+async function transitionEvidence(
+  receipt: WorkflowReceipt,
+  event: string,
+  actorId: string,
+  recipients: string[],
+) {
+  expect(
+    (
+      await h.owner.pool.query(
+        "SELECT actor_user_id,event,logical_booking_id FROM booking_lifecycle_events WHERE id=$1",
+        [receipt.eventId],
+      )
+    ).rows,
+  ).toEqual([
+    {
+      actor_user_id: actorId,
+      event,
+      logical_booking_id: receipt.logicalBookingId,
+    },
+  ]);
+  // Committed recipient intents are evidence of queueing, not delivered email.
+  expect(
+    (
+      await h.owner.pool.query<{ recipient_user_id: string; kind: string }>(
+        "SELECT recipient_user_id,kind FROM booking_workflow_notice_intents WHERE event_id=$1 ORDER BY recipient_user_id",
+        [receipt.eventId],
+      )
+    ).rows,
+  ).toEqual(
+    [...recipients]
+      .sort()
+      .map((recipient_user_id) => ({ recipient_user_id, kind: event })),
+  );
+}
+
+async function activeHeadCount(logicalId: string) {
+  return (
+    await h.owner.pool.query<{ n: number }>(
+      "SELECT count(*)::int n FROM bookings WHERE logical_booking_id=$1 AND (state='confirmed' OR (state='provisional' AND expires_at>clock_timestamp()))",
+      [logicalId],
+    )
+  ).rows[0].n;
+}
+
+async function freshAvailableStarts(
+  actor: CollegeActor,
+  learnerId: string,
+  tutorSlug: string,
+) {
+  await requestChoices(actor, learnerId, tutorSlug);
+  return actor.page
+    .locator('input[name="slot"]')
+    .evaluateAll((nodes) =>
+      nodes.map((node) => (node as HTMLInputElement).value),
+    );
+}
+
 async function chooseFutureTime(
   page: Page,
   selector: string,
@@ -269,7 +525,7 @@ async function saveMeeting(
     .getByLabel("Zoom or Google Meet link", { exact: true })
     .fill(url);
   await tutor.page
-    .getByRole("button", { name: "Save meeting link", exact: true })
+    .getByRole("button", { name: /^(Save|Replace) meeting link$/ })
     .click();
   await expect(
     tutor.page
@@ -406,6 +662,13 @@ test("normal private build connects independent College Students, Science bookin
     await test.step("an anonymous Science/College profile supplies a real public selection for signup", async () =>
       anonymousCollegeChoice(await visitor.newPage(), profile.slug));
   const student = await h.register(browser, "college-a", continuation.next);
+  const sessionStatuses = new Map<number, number>();
+  student.page.on("response", (response) => {
+    if (new URL(response.url()).pathname === "/api/auth/get-session") {
+      const status = response.status();
+      sessionStatuses.set(status, (sessionStatuses.get(status) ?? 0) + 1);
+    }
+  });
   const other = await h.register(browser, "college-b");
   await test.step("College onboarding is accessible at narrow and wide widths and by keyboard", async () => {
     await accessibleCollegeOnboarding(student.page, continuation.selection);
@@ -695,6 +958,10 @@ test("normal private build connects independent College Students, Science bookin
     ).rows[0].n,
   ).toBe(1);
   expect(await eventCount(bookingId, "workflow_provisional")).toBe(1);
+  await transitionEvidence(create.receipt, "workflow_provisional", student.id, [
+    student.id,
+    tutor.id,
+  ]);
 
   await test.step("a stale offered slot conflicts without creating another reservation", async () => {
     const conflict = other.page.waitForResponse((response) =>
@@ -722,6 +989,25 @@ test("normal private build connects independent College Students, Science bookin
     expect((await savedBooking(bookingId)).state).toBe("provisional");
   });
 
+  await test.step("private packet membership alone cannot give Admin booking access", async () => {
+    const unassigned = await admin.context.request.get(
+      `/api/admin/bookings?q=${bookingId}`,
+    );
+    expect(unassigned.status()).toBe(200);
+    expect(
+      ((await unassigned.json()) as { items: StaffBooking[] }).items,
+    ).toEqual([]);
+    await admin.page.goto(`/admin/bookings/${bookingId}`);
+    await expect(
+      admin.page.getByText(/This booking task is unavailable/),
+    ).toBeVisible();
+    await expect(
+      admin.page.getByRole("heading", {
+        name: "Booking participants",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+  });
   await h.operate({
     action: "grant-confirmation",
     apply: true,
@@ -746,6 +1032,14 @@ test("normal private build connects independent College Students, Science bookin
     confirmation.receipt,
   );
   expect(await eventCount(bookingId, "workflow_confirmed")).toBe(1);
+  await transitionEvidence(
+    confirmation.receipt,
+    "workflow_confirmed",
+    admin.id,
+    [student.id, tutor.id],
+  );
+  expect(await activeHeadCount(initial.logical_booking_id)).toBe(1);
+  await assignedAdminSnapshot(admin, bookingId, "confirmed");
 
   await test.step("the same confirmed booking belongs to Student and assigned Tutor", async () => {
     for (const [actor, route, scope] of [
@@ -789,6 +1083,14 @@ test("normal private build connects independent College Students, Science bookin
   await saveMeeting(tutor, bookingId, meeting);
   await openMeeting(student, bookingId, meeting);
   await openMeeting(tutor, bookingId, meeting);
+  await test.step("fresh Student, Tutor and assigned Admin reads preserve one booking after a private meeting update", async () => {
+    await saveMeeting(tutor, bookingId, updatedMeeting);
+    await openMeeting(student, bookingId, updatedMeeting);
+    await openMeeting(tutor, bookingId, updatedMeeting);
+    await participantSnapshot(student, "student", bookingId, "confirmed");
+    await participantSnapshot(tutor, "tutor", bookingId, "confirmed");
+    await assignedAdminSnapshot(admin, bookingId, "confirmed");
+  });
 
   await test.step("cross-account, wrong-role and logged-out requests disclose no private booking", async () => {
     const change: ChangeInput = {
@@ -899,7 +1201,9 @@ test("normal private build connects independent College Students, Science bookin
       `/tutors/${profile.slug}`,
     );
     expect(publicProfile.status()).toBe(200);
-    expect((await publicProfile.text()).includes(meeting)).toBe(false);
+    const publicContent = await publicProfile.text();
+    for (const url of [meeting, updatedMeeting, replacementMeeting])
+      expect(publicContent.includes(url)).toBe(false);
     expect((await savedBooking(bookingId)).state).toBe("confirmed");
     expect(await eventCount(bookingId, "workflow_completed")).toBe(0);
     expect(await eventCount(bookingId, "workflow_cancelled")).toBe(0);
@@ -951,7 +1255,7 @@ test("normal private build connects independent College Students, Science bookin
     const start = await chooseFutureTime(
       student.page,
       'input[name="slot"]',
-      Date.now() + 4 * 3600000,
+      Math.max(Date.now() + 4 * 3600000, Date.parse(chosen!.endAtUtc)),
       chosen!.startAtUtc,
     );
     const move = await submit<ChangeInput>(
@@ -986,8 +1290,20 @@ test("normal private build connects independent College Students, Science bookin
     );
     expect(replacement.workflow_policy_id).toBe(initial.workflow_policy_id);
     expect(replacement.admission_policy_id).toBe(initial.admission_policy_id);
-    expect((await savedBooking(bookingId)).state).toBe("replaced");
+    const retired = await savedBooking(bookingId);
+    expect(retired.state).toBe("replaced");
+    expect(retired.start_at_utc.toISOString()).toBe(
+      initial.start_at_utc.toISOString(),
+    );
+    expect(retired.end_at_utc.toISOString()).toBe(
+      initial.end_at_utc.toISOString(),
+    );
     expect(await eventCount(bookingId, "workflow_rescheduled")).toBe(1);
+    await transitionEvidence(move.receipt, "workflow_rescheduled", student.id, [
+      student.id,
+      tutor.id,
+    ]);
+    expect(await activeHeadCount(initial.logical_booking_id)).toBe(1);
     expect(
       (
         await h.owner.pool.query(
@@ -997,9 +1313,43 @@ test("normal private build connects independent College Students, Science bookin
       ).rows[0].n,
     ).toBe(2);
     await noMeeting(student, bookingId, "expired");
+    await noMeeting(tutor, bookingId, "expired");
     await noMeeting(student, replacementId, "missing");
+    await noMeeting(tutor, replacementId, "missing");
+    for (const [actor, scope] of [
+      [student, "student"],
+      [tutor, "tutor"],
+    ] as const) {
+      await participantSnapshot(actor, scope, bookingId, "replaced");
+      await participantSnapshot(actor, scope, replacementId, "confirmed");
+    }
+    await assignedAdminSnapshot(admin, bookingId, "replaced");
+    await assignedAdminSnapshot(admin, replacementId, "confirmed");
+    const available = await freshAvailableStarts(
+      other,
+      otherLearner.id,
+      profile.slug,
+    );
+    expect(available).toContain(initial.start_at_utc.toISOString());
+    expect(available).not.toContain(replacement.start_at_utc.toISOString());
+    expect(
+      (
+        await other.context.request.get(
+          `/api/bookings/${replacementId}?scope=student`,
+        )
+      ).status(),
+    ).toBe(404);
+    expect(
+      (
+        await other.context.request.get(
+          `/api/bookings/${replacementId}/meeting-link`,
+        )
+      ).status(),
+    ).toBe(404);
     await saveMeeting(tutor, replacementId, replacementMeeting);
     await openMeeting(student, replacementId, replacementMeeting);
+    await openMeeting(tutor, replacementId, replacementMeeting);
+    await assignedAdminSnapshot(admin, replacementId, "confirmed");
   });
 
   await test.step("Student cancellation is retry-safe and both audited versions remain history", async () => {
@@ -1024,7 +1374,37 @@ test("normal private build connects independent College Students, Science bookin
       cancellation.receipt,
     );
     expect(await eventCount(replacementId, "workflow_cancelled")).toBe(1);
+    await transitionEvidence(
+      cancellation.receipt,
+      "workflow_cancelled",
+      student.id,
+      [student.id, tutor.id],
+    );
+    expect(await activeHeadCount(initial.logical_booking_id)).toBe(0);
     await noMeeting(student, replacementId, "expired");
+    await noMeeting(tutor, replacementId, "expired");
+    await participantSnapshot(tutor, "tutor", bookingId, "replaced");
+    await participantSnapshot(tutor, "tutor", replacementId, "cancelled");
+    await participantSnapshot(student, "student", replacementId, "cancelled");
+    await assignedAdminSnapshot(admin, bookingId, "replaced");
+    await assignedAdminSnapshot(admin, replacementId, "cancelled");
+    const available = await freshAvailableStarts(
+      other,
+      otherLearner.id,
+      profile.slug,
+    );
+    expect(available).toContain(initial.start_at_utc.toISOString());
+    expect(available).toContain(
+      (await savedBooking(replacementId)).start_at_utc.toISOString(),
+    );
+    expect(
+      (
+        await h.owner.pool.query<{ n: number }>(
+          "SELECT count(*)::int n FROM booking_workflow_notice_intents i JOIN booking_lifecycle_events e ON e.id=i.event_id WHERE e.logical_booking_id=$1",
+          [initial.logical_booking_id],
+        )
+      ).rows[0].n,
+    ).toBe(8);
     await student.page.goto("/bookings?scope=student&filter=history");
     for (const id of [bookingId, replacementId])
       await expect(
@@ -1075,6 +1455,17 @@ test("normal private build connects independent College Students, Science bookin
     expect(historical.id === bookingId || historical.id === replacementId).toBe(
       false,
     );
+    // This exact owner-provisioned historical assignment is fixture metadata.
+    // The live confirmation operator must continue rejecting already-ended rows.
+    await h.owner.pool.query(
+      "INSERT INTO booking_workflow_grants(logical_booking_id,actor_user_id,action,active,valid_until,reference) VALUES($1,$2,'confirm',true,$3::timestamptz,$4)",
+      [
+        historical.logicalBookingId,
+        admin.id,
+        h.packet.screening.validUntil,
+        `synthetic:${randomUUID()}`,
+      ],
+    );
     await student.page.goto(`/bookings/${historical.id}?scope=student`);
     await expect(
       student.page.getByRole("heading", { name: "Confirmed", exact: true }),
@@ -1115,6 +1506,15 @@ test("normal private build connects independent College Students, Science bookin
       )
     ).rows;
     expect(events).toEqual([{ actor_user_id: tutor.id, workflow_revision: 1 }]);
+    await transitionEvidence(
+      completion.receipt,
+      "workflow_completed",
+      tutor.id,
+      [student.id, tutor.id],
+    );
+    await participantSnapshot(tutor, "tutor", historical.id, "completed");
+    await participantSnapshot(student, "student", historical.id, "completed");
+    await assignedAdminSnapshot(admin, historical.id, "completed");
     await student.page.goto("/student");
     await expect(
       student.page
@@ -1154,17 +1554,31 @@ test("normal private build connects independent College Students, Science bookin
   });
 
   await test.step("actual Sign out removes Student and own-booking page access", async () => {
-    await student.page
-      .getByRole("button", { name: "Account Fictional college-a", exact: true })
-      .click();
+    // Status counts only: never log provider bodies, headers or identity data.
+    console.info(
+      "Student page session lookup statuses:",
+      JSON.stringify(Object.fromEntries(sessionStatuses)),
+    );
+    // The guarded Account page has its own logout control, including when a
+    // rapid session-lookup burst makes optional account chrome unavailable.
+    await student.page.goto("/account");
+    await expect(student.page).toHaveURL((url) => url.pathname === "/account");
+    const main = student.page.locator("#main-content");
+    await expect(
+      main.getByRole("heading", { name: "Your account", exact: true }),
+    ).toBeVisible();
+    expect(
+      (await main.textContent())?.includes(`Signed in as ${student.email}`),
+    ).toBe(true);
+    await expect(main.getByLabel("Display name", { exact: true })).toHaveValue(
+      "Fictional college-a",
+    );
     const signedOut = student.page.waitForResponse(
       (response) =>
         response.request().method() === "POST" &&
         new URL(response.url()).pathname === "/api/auth/sign-out",
     );
-    await student.page
-      .getByRole("button", { name: "Sign out", exact: true })
-      .click();
+    await main.getByRole("button", { name: "Sign out", exact: true }).click();
     expect((await signedOut).status()).toBe(200);
     await expect(student.page).toHaveURL((url) => url.pathname === "/sign-in");
     for (const route of [

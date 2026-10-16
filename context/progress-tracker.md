@@ -1,5 +1,54 @@
 # Learli — Progress Tracker
 
+## 2026-10-16 — Cross-role booking acceptance verified locally
+
+- Owner approved the cross-role recommendation. Blueprint
+  `prompts/features/m8-09-cross-role-booking-acceptance.md` is **AUTHORIZED —
+  build-feature delegation**, primary M8.9. Two supported journeys preserve
+  guardian-managed child/independent College identity separation and exact
+  current-MFA Admin assignments; no child login or product-policy change.
+- Clean baseline local main `7d2b155`, branch
+  `feature/cross-role-booking-acceptance-20261016`; preserved tracked hashes in
+  ignored `.local/cross-role-booking-20261016/`. Three workers own disjoint Parent
+  browser, Student browser and new PostgreSQL race test files. Coordinator owns
+  checklist/results/shared documentation. No source/schema/dependency edits planned.
+- Implemented two extended normal-build role journeys and one actual-PG integrity
+  case; nine test/doc files, no application/schema/dependency/runtime-grant change.
+  Shared logical identity/revisions, current UTC/timezone/participants/status,
+  exact Admin assignment and omitted credentials, meeting replacement/invalidation,
+  reschedule/cancel/history and exact event/notice recipients are checked.
+  Parent hard reload follows a real committed but withheld response; same-key
+  replay and fresh-key conflict preserve one booking. Two independently admitted
+  learners must both wait behind the controlled Tutor lock before one succeeds;
+  cancellation lets the loser acquire the released slot.
+- Cross-author read-only Review PASS / READY FOR VERIFICATION; subsequent test
+  repairs independently re-reviewed. Final `npm run check` PASS: format/lint/
+  TypeScript and 130 files / 1,990 tests, test phase12.65s. Actual owned PostgreSQL
+  selection PASS: nine files / 169 tests,105.02s; 34 migrations current, none applied.
+  Test-env production build PASS, four existing tracing warnings; 140 traces
+  exclude local state/env. Accepted570 source hashes unchanged; later repairs only
+  browser tests, preserving build/database evidence.
+- Final combined private Chromium PASS:3/3,51.9s, one worker/no retries: Admin17.4,
+  Student15.8, Parent/Tutor16.9. Actual provider signup/verification/MFA, reviews,
+  exact grants/confirmation, persisted lifecycle/history/privacy and actual Student
+  UI logout/protected revisits. Bounded existing layout/Axe/keyboard checks retained.
+- Failed attempts retained: inspection loader omission; Review caught replacement
+  selector/cross-midnight test assumptions. Browser1: AdminPASS, StudentlogoutFAIL,
+  Parent historical fixture prefixFAIL. Browser2: Parent/AdminPASS, StudentchipFAIL;
+  actual session responses31×200/7×429 support burst throttling. Final Student uses
+  existing guarded Account identity/main Sign out UI; real POST/redirect/401 retained,
+  limits unchanged, no within-case counter reset or arbitrary wait. Recovery:
+  `prompts/recovery/2026-10-16-cross-role-booking-validation.md`.
+- Checklist/results under `docs/qa/cross-role-booking-*`. Separate ended fixtures
+  complete through actual Tutor controls; not newly elapsed lessons or attendance.
+  Real email/video, hosted acceptance and full manual security matrix NOT RUN;
+  payments N/A. No independent child login or production readiness claim.
+- Owned test cluster stopped after zero other clients, data retained; browser3121
+  stopped. Owner preview3000 retains original process/configuration. Changes remain
+  uncommitted on the feature branch; no push/merge/deploy/purge/provider operation.
+  Next: specifically authorized isolated hosted preparation/acceptance and separate
+  real provider/manual checks; launch-policy gates remain open.
+
 ## 2026-10-16 — Scoped Admin workflow verified locally
 
 - Owner approved the Admin recommendation (“okay approve recomendation do it”).
