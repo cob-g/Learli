@@ -37,7 +37,9 @@ type CollegeAccount =
   | "ops-other"
   | "ops-parent"
   | "ops-student"
-  | "ops-tutor";
+  | "ops-tutor"
+  | "security-a"
+  | "security-b";
 type AccountIntent = "student" | "parent";
 type TutorOptions = {
   offerings?: { subject: string; levels: string[] }[];

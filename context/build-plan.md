@@ -1105,3 +1105,19 @@ combined normal-build private browser3/3 passed. See
 `docs/qa/cross-role-booking-results-2026-10-16.md` for exact conditions, failed
 attempts and limits. Historical completion, intercepted meetings and queued
 notices do not establish newly elapsed lessons, real video/email or hosted launch.
+
+
+### M8.9 / M8.8 bounded local security acceptance — 2026-10-16
+
+Owner approved the focused recommendation; blueprint
+`prompts/features/m8-09-security-edge-case-acceptance.md` is **AUTHORIZED —
+build-feature delegation**. Tests verify actual private-build auth/reset/expiry,
+explicit Manila/New York Account display, confirmed schedule-edit protection,
+past-slot denial and safe DB-boundary/recreated-runtime recovery. Independent
+cross-author Review/reReview and separate final check1,990, selected PostgreSQL330
+and combined private Chromium4/4 passed; production build passed with four existing
+tracing warnings. No product/schema/dependency/policy change. See
+`docs/qa/security-edge-case-results-2026-10-16.md` for exact runs and failed-attempt
+history. Real Neon idle wake-up, delivered email/video, hosted activation and
+historical deferred security findings remain open; payments disabled. This does
+not mark M8.8/M8.9 or launch complete.

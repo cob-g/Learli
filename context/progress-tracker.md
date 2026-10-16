@@ -1,5 +1,42 @@
 # Learli — Progress Tracker
 
+## 2026-10-16 — Bounded security and edge-case acceptance verified locally
+
+- Owner approved the focused local recommendation. Blueprint
+  `prompts/features/m8-09-security-edge-case-acceptance.md` is **AUTHORIZED —
+  build-feature delegation**, M8.9 with M8.8 coverage. Baseline local main
+  `794fe61`, feature branch `feature/security-edge-case-acceptance-20261016`.
+- Three disjoint test workers added actual normal-build auth/reset/expiry and
+  recovery, explicit Manila/New York Account display zones, confirmed-booking
+  protection through weekly/timezone edits, past private slot rejection, and
+  actual-handler safe503/no-effects/fresh-runtime same-key recovery. Coordinator
+  registered two finite fictional accounts and the fourth private browser case.
+- Cross-author read-only Review PASS/READY FOR VERIFICATION, zero open findings;
+  exact selector-only repair independently re-reviewed. Browser1 passed3/failed1
+  because auth feedback matched Next.js’s empty route announcer. Recover R1 scoped
+  expected full-message/visibility selectors without weakening HTTP/session/state
+  assertions; failed evidence retained. Targeted auth rerun1/1PASS in5.0s.
+- Final `npm run check` PASS: format/lint/TypeScript and130 files/1,990 tests,
+ 14.78s test phase. Selected actual-PG PASS330/20 files across279/16 (229.75s),
+  new recovery1/1 (3.26s), and owned local TLS50/3 (16.73s). No migration applied;
+ 34 current. Test-env production buildPASS,4 existing tracing warnings; all140
+  traces exclude local state/env. Runtime599 baseline hashes unchanged and final929
+  source/test/assets/config fingerprints saved privately.
+- Final combined normal-build Chromium PASS4/4 in57.6s, one worker/no retries:
+  Admin21.4s, auth3.2s, Student15.9s, Parent/Tutor15.3s. Actual provider verification,
+  reset/revocation/expiry/re-login/logout and bounded phone/Axe/overflow checks;
+  local captured mail only. Student lookup aggregate31×200/10×429; guarded flows
+  passed with existing limits and no within-case counter reset.
+- Results/checklist in `docs/qa/security-edge-case-*`, failure diagnosis in
+  `prompts/recovery/2026-10-16-security-edge-case-validation.md`. No application,
+  schema, grants, dependencies or policies changed. Real Neon wake-up, email/video,
+  full elapsed fresh lesson, hosted activation and historical deferred security
+  leads remain separate; payments N/A, no blanket security/launch completion claim.
+- Owned browser/TLS listeners closed; test cluster stopped after zero other client
+  connections, data retained. Owner preview3000 preserved. Changes uncommitted;
+  no commit/merge/push/deploy/account purge/provider operation. Next: separately
+  authorized hosted/provider acceptance and remaining launch-policy/manual checks.
+
 ## 2026-10-16 — Cross-role booking acceptance committed and merged locally
 
 - Owner explicitly requested “commit and merge everything”. All nine reviewed

@@ -71,6 +71,8 @@ export default async function setup() {
           "ops-parent",
           "ops-student",
           "ops-tutor",
+          "security-a",
+          "security-b",
         ].map((role) => `${role}-${run}@learli.test`),
         database: target,
         admission,

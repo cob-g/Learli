@@ -27,6 +27,8 @@ const h = new PrivateStudentBrowser();
 const meeting = "https://meet.google.com/abc-defg-hij";
 const updatedMeeting = "https://meet.google.com/qrs-tuvw-xyz";
 const replacementMeeting = "https://meet.google.com/klm-nopq-rst";
+const tutorDisplayTimezone = "Asia/Manila";
+const studentDisplayTimezone = "America/New_York";
 type CreateInput = {
   learnerId: string;
   tutorSlug: string;
@@ -174,6 +176,90 @@ async function freshPage(page: Page, href: string) {
   else await page.goto(target);
 }
 
+async function saveAccountTimezone(actor: CollegeActor, timezone: string) {
+  await actor.page.goto("/account");
+  await actor.page
+    .getByLabel("Time zone", { exact: true })
+    .selectOption(timezone);
+  const saved = actor.page.waitForResponse(
+    (response) =>
+      response.request().method() === "PATCH" &&
+      new URL(response.url()).pathname === `/api/account/${actor.id}`,
+  );
+  await actor.page
+    .getByRole("button", { name: "Save settings", exact: true })
+    .click();
+  expect((await saved).status()).toBe(200);
+  await expect(
+    actor.page
+      .getByRole("status")
+      .filter({ hasText: "Account settings saved." }),
+  ).toBeVisible();
+  await actor.page.reload();
+  await expect(actor.page.getByLabel("Time zone", { exact: true })).toHaveValue(
+    timezone,
+  );
+  const account = await actor.context.request.get(`/api/account/${actor.id}`);
+  expect(account.status()).toBe(200);
+  expect((await account.json()).timezone).toBe(timezone);
+}
+
+function actualDateLocalTime(
+  value: BookingDetail["time"],
+  expectedZone: string,
+  saved: SavedBooking,
+) {
+  // Compute each endpoint from its actual saved instant rather than importing
+  // the application's formatter or assuming a country's fixed UTC offset.
+  const normalize = (text: string) => text.replace(/[\u202f\u2009]/g, " ");
+  const labels = normalize(`${value.date} ${value.time}`);
+  const date = new Intl.DateTimeFormat("en-US", {
+    timeZone: expectedZone,
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+  const time = new Intl.DateTimeFormat("en-US", {
+    timeZone: expectedZone,
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "shortOffset",
+  });
+  for (const instant of [saved.start_at_utc, saved.end_at_utc]) {
+    expect(labels).toContain(normalize(date.format(instant)));
+    expect(labels).toContain(normalize(time.format(instant)));
+  }
+  const zonePart = (style: "longGeneric" | "shortOffset") =>
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: expectedZone,
+      timeZoneName: style,
+    })
+      .formatToParts(saved.start_at_utc)
+      .find((part) => part.type === "timeZoneName")!.value;
+  expect(value.zone).toBe(
+    `${zonePart("longGeneric")} (${zonePart("shortOffset")})`,
+  );
+  expect(value.startAtUtc).toBe(saved.start_at_utc.toISOString());
+  expect(value.endAtUtc).toBe(saved.end_at_utc.toISOString());
+}
+
+async function bookingEffects(requesterId: string) {
+  return (
+    await h.owner.pool.query<{
+      bookings: number;
+      events: number;
+      notices: number;
+    }>(
+      `SELECT
+        (SELECT count(*)::int FROM bookings WHERE booked_by_user_id=$1) bookings,
+        (SELECT count(*)::int FROM booking_lifecycle_events e JOIN bookings b ON b.id=e.booking_id WHERE b.booked_by_user_id=$1) events,
+        (SELECT count(*)::int FROM booking_workflow_notice_intents i JOIN booking_lifecycle_events e ON e.id=i.event_id JOIN bookings b ON b.id=e.booking_id WHERE b.booked_by_user_id=$1) notices`,
+      [requesterId],
+    )
+  ).rows[0];
+}
+
 async function renderedLessonTime(page: Page, value: BookingDetail["time"]) {
   const date = page.locator(`time[datetime="${value.startAtUtc}"]`).first();
   const time = page.locator(`time[datetime="${value.endAtUtc}"]`).first();
@@ -220,7 +306,11 @@ async function participantSnapshot(
       [actor.id],
     )
   ).rows[0];
-  expect(detail.viewerTimezone).toBe(viewer.timezone);
+  const expectedTimezone =
+    scope === "student" ? studentDisplayTimezone : tutorDisplayTimezone;
+  expect(viewer.timezone).toBe(expectedTimezone);
+  expect(detail.viewerTimezone).toBe(expectedTimezone);
+  actualDateLocalTime(detail.time, expectedTimezone, saved);
 
   await freshPage(actor.page, `/bookings/${id}?scope=${scope}`);
   await expect(
@@ -799,6 +889,18 @@ test("normal private build connects independent College Students, Science bookin
     expect(value.management).toBe("self");
   });
 
+  await test.step("Tutor and Student persist distinct Account display timezones", async () => {
+    await saveAccountTimezone(tutor, tutorDisplayTimezone);
+    await saveAccountTimezone(student, studentDisplayTimezone);
+    // Learner and Tutor recurrence preferences are separate from the Account
+    // preference used to render a participant's own dashboard and history.
+    const recurrence = await tutor.context.request.get(
+      "/api/tutor/availability",
+    );
+    expect(recurrence.status()).toBe(200);
+    expect((await recurrence.json()).schedule.timezone).toBe("Asia/Manila");
+  });
+
   let chosen: { startAtUtc: string; endAtUtc: string };
   await test.step("Science and College Support filters lead to the selected public slot", async () => {
     await student.page.goto("/tutors");
@@ -1078,6 +1180,154 @@ test("normal private build connects independent College Students, Science bookin
     const value = (await list.json()) as BookingPage;
     expect(value.items).toEqual([]);
     expect(value.learners.map((entry) => entry.id)).toEqual([otherLearner.id]);
+  });
+
+  await test.step("confirmed instants survive weekly removal and recurrence timezone changes", async () => {
+    type Schedule = {
+      timezone: string;
+      version: number;
+      editable: boolean;
+      windows: { isoWeekday: number; startMinute: number; endMinute: number }[];
+    };
+    const response = await tutor.context.request.get("/api/tutor/availability");
+    expect(response.status()).toBe(200);
+    const original = ((await response.json()) as { schedule: Schedule })
+      .schedule;
+    expect(original.timezone).toBe(tutorDisplayTimezone);
+    expect(original.editable).toBe(true);
+    expect(original.windows).toHaveLength(7);
+    const before = await savedBooking(bookingId);
+    const effects = await bookingEffects(student.id);
+    expect(effects).toEqual({ bookings: 1, events: 2, notices: 4 });
+    const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const bookedDay =
+      weekdays.indexOf(
+        new Intl.DateTimeFormat("en-US", {
+          timeZone: original.timezone,
+          weekday: "short",
+        }).format(before.start_at_utc),
+      ) + 1;
+    expect(bookedDay).toBeGreaterThan(0);
+    const reduced = original.windows.filter(
+      (window) => window.isoWeekday !== bookedDay,
+    );
+    expect(reduced).toHaveLength(original.windows.length - 1);
+
+    const protectedRecord = async () => {
+      expect(await savedBooking(bookingId)).toEqual(before);
+      expect(await bookingEffects(student.id)).toEqual(effects);
+      expect(await activeHeadCount(initial.logical_booking_id)).toBe(1);
+      for (const [actor, scope, zone] of [
+        [student, "student", studentDisplayTimezone],
+        [tutor, "tutor", tutorDisplayTimezone],
+      ] as const) {
+        const read = await actor.context.request.get(
+          `/api/bookings/${bookingId}?scope=${scope}`,
+        );
+        expect(read.status()).toBe(200);
+        const detail = (await read.json()) as BookingDetail;
+        expect(detail).toMatchObject({
+          id: bookingId,
+          logicalBookingId: initial.logical_booking_id,
+          state: "confirmed",
+          persistedState: "confirmed",
+          viewerTimezone: zone,
+          revision: before.revision,
+          workflowRevision: before.workflow_revision,
+        });
+        actualDateLocalTime(detail.time, zone, before);
+      }
+      const read = await admin.context.request.get(
+        `/api/admin/bookings?q=${bookingId}&state=confirmed`,
+      );
+      expect(read.status()).toBe(200);
+      const { items } = (await read.json()) as { items: StaffBooking[] };
+      expect(items).toHaveLength(1);
+      expect(items[0]).toMatchObject({
+        id: bookingId,
+        logicalBookingId: initial.logical_booking_id,
+        state: "confirmed",
+        revision: before.revision,
+        workflowRevision: before.workflow_revision,
+      });
+      expect(items[0].time.startAtUtc).toBe(before.start_at_utc.toISOString());
+      expect(items[0].time.endAtUtc).toBe(before.end_at_utc.toISOString());
+    };
+    let version = original.version;
+    const save = async (timezone: string, windows: Schedule["windows"]) => {
+      const changed = await tutor.context.request.put(
+        "/api/tutor/availability",
+        {
+          headers: { origin: h.packet.origin },
+          data: { version, timezone, windows },
+        },
+      );
+      expect(changed.status()).toBe(200);
+      expect(await changed.json()).toEqual({ version: version + 1 });
+      version++;
+      const reread = await tutor.context.request.get("/api/tutor/availability");
+      expect(reread.status()).toBe(200);
+      expect((await reread.json()).schedule).toEqual({
+        version,
+        timezone,
+        windows,
+        editable: true,
+      });
+      await protectedRecord();
+    };
+    await protectedRecord();
+    // Removing that teaching day cannot remove or rewrite the existing booking.
+    await save(original.timezone, reduced);
+    // Restore all-day windows in a genuinely different recurrence timezone;
+    // the occupied UTC interval must still be excluded from otherwise open days.
+    await save("America/New_York", original.windows);
+    const candidates = await freshAvailableStarts(
+      other,
+      otherLearner.id,
+      profile.slug,
+    );
+    expect(candidates.length).toBeGreaterThan(0);
+    expect(candidates).not.toContain(before.start_at_utc.toISOString());
+    for (const candidate of candidates) {
+      const start = Date.parse(candidate.split("|")[0]);
+      const end = start + h.packet.booking.durationMinutes * 60000;
+      expect(
+        end <= before.start_at_utc.getTime() ||
+          start >= before.end_at_utc.getTime(),
+      ).toBe(true);
+    }
+    // Use the same owned endpoint to restore recurrence before rescheduling.
+    // Neither this restore nor either edit changes either Account display zone.
+    await save(original.timezone, original.windows);
+  });
+
+  await test.step("a private past slot is rejected without booking or notification effects", async () => {
+    const before = await savedBooking(bookingId);
+    const effects = await bookingEffects(student.id);
+    const pastEnd = Math.floor((Date.now() - 86400000) / 1800000) * 1800000;
+    const idempotencyKey = randomUUID();
+    const response = await post(student, "/api/bookings/demo", {
+      ...create.input,
+      idempotencyKey,
+      displayTimezone: studentDisplayTimezone,
+      startAtUtc: new Date(pastEnd - 3600000).toISOString(),
+      endAtUtc: new Date(pastEnd).toISOString(),
+    });
+    expect(response.status()).toBe(409);
+    expect(await response.json()).toEqual({
+      message: "That time is no longer available. Please choose another.",
+    });
+    expect(
+      (
+        await h.owner.pool.query<{ n: number }>(
+          "SELECT count(*)::int n FROM bookings WHERE booked_by_user_id=$1 AND idempotency_key=$2",
+          [student.id, idempotencyKey],
+        )
+      ).rows[0].n,
+    ).toBe(0);
+    expect(await savedBooking(bookingId)).toEqual(before);
+    expect(await bookingEffects(student.id)).toEqual(effects);
+    expect(await activeHeadCount(initial.logical_booking_id)).toBe(1);
   });
 
   await saveMeeting(tutor, bookingId, meeting);

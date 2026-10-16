@@ -17,6 +17,7 @@ export default defineConfig({
     "private-fictional-workflow.spec.ts",
     "private-fictional-student.spec.ts",
     "private-fictional-admin.spec.ts",
+    "private-fictional-security.spec.ts",
   ],
   globalSetup: "./tests/support/private-workflow-browser-setup.ts",
   fullyParallel: false,
