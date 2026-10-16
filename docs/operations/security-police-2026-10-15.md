@@ -1,5 +1,37 @@
 # SECURITY POLICE — 2026-10-15
 
+## Local integration update — 2026-10-16
+
+The owner explicitly authorized committing and merging the preserved security
+work into local main. Only this report and the progress notes remained
+uncommitted; the branch's application-code baseline `1cab722` was already in
+main. Commit `af1a7ee` preserves the two original documents exactly, and merge
+`5c37def` integrates them without replacing application code. All newer main
+progress history and the original security entry are retained.
+
+The historical browser blocker below was subsequently corrected in `cc7e579`;
+see [the accepted browser follow-up](security-browser-followup-2026-10-15.md).
+The [completed regression sweep](regression-police-2026-10-16.md) later passed
+206 Chromium and 78 Firefox/WebKit cases, alongside 1,751 unit/component and
+996 PostgreSQL cases, build and backup/restore. All 833 validated program/test
+hashes still match after this documentation-only merge. Formatting and staged
+diff checks passed; no functional suite was rerun for these record changes.
+
+The conditional SQL authority lead, development advisory and staging proxy/
+rate-limit follow-up remain deferred. Relevant SQL functions and dependency
+manifests are unchanged from the audit baseline. The provider-blocked SQL task
+was not reopened; this integration claims no new application vulnerability fix,
+updated dependency-audit result or security certification.
+
+The original `/tmp/learli-security-police-20261015/` evidence directory is no
+longer present at integration. The original report's observations and counts
+below remain historical records, not newly executed or independently recertified
+checks. Exact original document copies and integration proof are preserved in
+`/Users/cob/orca/archives/learli/security-local-integration-20261016/`.
+No push, deployment, live-provider test or production mutation occurred.
+
+## Original audit record — 2026-10-15
+
 **Repository review finished; remediation remains incomplete/deferred. No application or test fix is retained. The final changes are this report and the progress record.**
 
 Baseline: `1cab7228c1a6cfa864a7136e2c2e105da4c433d5`. Branch: `fix/security-police-20261015`. Evidence directory: `/tmp/learli-security-police-20261015/`. Supervised Orca run: `run_1c3be5d9b860`.

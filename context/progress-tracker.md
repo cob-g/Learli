@@ -1,5 +1,37 @@
 # Learli — Progress Tracker
 
+## 2026-10-16 — Preserved SECURITY POLICE records committed and merged
+
+Owner explicitly authorized settling the separate security work and merging it
+into local main. Only its report and progress notes remained uncommitted; its
+application-code baseline `1cab722` was already an ancestor of main. Commit
+`af1a7ee` preserves both original documents exactly. Merge `5c37def` adds them
+to main; the tracker conflict was resolved by retaining all newer main history
+and inserting the original security entry before its BUG POLICE baseline entry.
+
+The old hosted-auth browser blocker was subsequently corrected in `cc7e579` and
+is covered by the later completed regression sweep. Its final observed gates
+remain 1,751 unit/component, 996 PostgreSQL, 206 Chromium and 78 Firefox/WebKit
+passing cases, plus build and backup/restore. All 833 validated program/test
+hashes match after this documentation-only merge; no functional suite was rerun.
+Documentation formatting and staged diff checks passed.
+
+The conditional SQL authority concern, development dependency advisory and
+hosted proxy/rate-limit operational follow-up remain explicitly deferred. No
+SQL task blocked by the provider was retried, no control was weakened and no new
+application-security remediation or security certification is claimed. Relevant
+SQL functions and dependency manifests are unchanged from the original audit.
+
+The original `/tmp/learli-security-police-20261015/` evidence directory is absent
+at this checkpoint; its historical test counts are preserved as recorded, not
+independently recertified. Exact original dirty documents, other-worktree hashes
+and integration proof are privately preserved under
+`/Users/cob/orca/archives/learli/security-local-integration-20261016/`.
+The security notes are committed, and unrelated child worktrees are preserved.
+No push, deployment, live provider or production-data operation occurred.
+Next small task: manual QA from the regression report; retain the separate
+security follow-ups and existing public-launch gates.
+
 ## 2026-10-16 — REGRESSION POLICE committed and merged into local main
 
 Owner explicitly authorized local commit and merge after the final regression
