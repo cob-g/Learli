@@ -3,8 +3,12 @@
 Status: **READY FOR MANUAL QA** in the isolated development stage. No
 application regression was confirmed. Eight test/harness defects are corrected;
 final automated gates pass on the integrated source. The unresolved origin of
-one availability-focus miss remains an explicit manual-QA item. Changes are
-uncommitted in `cob-g/regression-police-20261016`.
+one availability-focus miss remains an explicit manual-QA item. Following the
+owner's explicit authorization, commit `d2b2bfc` records the reviewed changes and
+merge `aefff5e` integrates them into local `main` without conflicts. The audit
+evidence below predates this local integration; all 833 validated program/test
+hashes still match afterward. No further program/test change or functional suite
+rerun was needed for integration.
 
 ## Baseline and coverage
 
@@ -206,8 +210,10 @@ are not verified.
 Seven test/helper paths plus this report and progress tracker comprise the
 operation diff. The original security checkout at `/Users/cob/learli`, its
 branch/HEAD, 1,222 tracked contents/symlinks and existing report are preserved.
-Local main remains `92ff3b9`. No commit, merge, push, deployment or production
-mutation occurred. All owned fixtures are stopped with data retained and all 27 assigned ports
+At the original audit handoff, local main remained `92ff3b9`; no commit, merge,
+push, deployment or production mutation had occurred. The subsequent
+owner-authorized local commit/merge is recorded above. No push, deployment or
+production mutation occurred during integration. All owned fixtures are stopped with data retained and all 27 assigned ports
 have no listeners. Worker resources are stopped/released with none reclaimable;
 the original stopped E attempt retains only its historical bookkeeping record. Worktrees remain for
 review.
@@ -223,5 +229,8 @@ Final readiness: **READY FOR MANUAL QA**. Required automated checks pass on the
 final integrated bytes, with no known blocking application regression. Revisit
 availability save/validation/keyboard focus during manual QA. The assessment
 applies to the isolated development stage; existing public-launch gates remain.
-Next task: manual QA and owner review/commit decision, preserving the separate
-security work and the retained evidence.
+Next task: manual QA, preserving the separate security work and retained
+evidence. The original security checkout, all 1,222 tracked contents/symlinks,
+its dirty state and report were rechecked after the merge and remain unchanged.
+All existing worktrees and feature branches are retained. Local integration
+proof: `validation/local-main-merge-proof.json` in the private evidence archive.

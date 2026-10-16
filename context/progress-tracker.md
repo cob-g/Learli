@@ -1,5 +1,29 @@
 # Learli — Progress Tracker
 
+## 2026-10-16 — REGRESSION POLICE committed and merged into local main
+
+Owner explicitly authorized local commit and merge after the final regression
+report. Commit `d2b2bfc` records the seven reviewed E2E test/helper changes and
+two documentation files. Merge `aefff5e` integrates it into local `main`, with
+parents `92ff3b9` and `d2b2bfc`, without conflicts. Its tree matches the reviewed
+feature commit before this documentation-only integration record.
+
+All 833 validated program/test hashes still match the merged worktree. Existing
+evidence remains 1,751 unit/component, 996 PostgreSQL, 206 Chromium and 78
+Firefox/WebKit passing cases, plus build and backup/restore. Integration made no
+further program/test changes and does not claim additional functional suite runs.
+Pre-commit diff and documentation-format checks passed.
+
+The separate `/Users/cob/learli` security checkout retains its branch, HEAD,
+all 1,222 tracked contents/symlinks, dirty tracker and existing report unchanged.
+Other branch tips are preserved. No push, deployment or production operation
+occurred. Existing worktrees and feature branches remain available.
+
+Readiness remains READY FOR MANUAL QA, including the unresolved availability
+focus observation and inherited CP-G001 owner decision. Next small task: manual
+QA, especially availability save/validation/keyboard focus. Integration evidence:
+`/Users/cob/orca/archives/learli/regression-police-20261016/validation/local-main-merge-proof.json`.
+
 ## 2026-10-16 — REGRESSION POLICE complete; ready for manual QA
 
 Owner authorized independent repository-wide regression investigation and safe
