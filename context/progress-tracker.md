@@ -1,5 +1,22 @@
 # Learli — Progress Tracker
 
+## 2026-10-17 — Security acceptance committed and merged locally
+
+- Owner explicitly requested “commit and merge in local main”. All 12 reviewed
+  test/configuration/documentation paths committed as `8503cc0fd4f890035ba1e530c6b2450444831c62`
+  on `feature/security-edge-case-acceptance-20261016`; local main fast-forwarded
+  from `794fe61` to that exact commit without conflicts.
+- Read-only independent commit-scope audit confirmed all 929 accepted source/test
+  fingerprints and 599 runtime baseline fingerprints match, with no application,
+  schema, dependency or private-artifact changes. Existing check 1,990, selected
+  PostgreSQL 330 and private Playwright 4/4/build PASS evidence remains applicable;
+  no tests were rerun for this Git-only integration. This closeout changes only
+  tracker/results documentation.
+- No push, deployment, migration, provider, account purge or service operation.
+  Feature branch retained; no branch/worktree cleanup requested. Hosted/provider
+  acceptance and launch gates remain separate. Ignored local evidence and memory
+  remain private and preserved.
+
 ## 2026-10-16 — Bounded security and edge-case acceptance verified locally
 
 - Owner approved the focused local recommendation. Blueprint

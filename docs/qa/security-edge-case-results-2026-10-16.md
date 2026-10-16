@@ -110,8 +110,10 @@ already-current migrations. No migration, reset, account purge or bypass ran.
 
 Private raw logs, error contexts and source identities remain ignored under
 `.local/security-edge-case-20261016/`; secrets, cookies, tokens and private links
-must not be published. Changes remain uncommitted. No push/merge/deploy or live
-infrastructure modification is authorized or performed by this operation.
+must not be published. At the end of the original acceptance run, changes were
+uncommitted and no Git integration was authorized or performed. The subsequent
+owner-authorized local integration is recorded below. No push, deployment or live
+infrastructure modification occurred.
 
 ## Local service closeout
 
@@ -119,3 +121,17 @@ After the final run, browser 3121 and owned TLS 55703 were closed. The owned tes
 cluster had zero other client connections across its databases and was stopped,
 retaining all synthetic records and private evidence. Owner preview 3000 retained
 its original process/configuration. No account cleanup or customer-data action ran.
+
+## Local Git integration — 2026-10-17
+
+The owner subsequently requested “commit and merge in local main”. All 12 reviewed
+test/configuration/documentation paths were committed as
+`8503cc0fd4f890035ba1e530c6b2450444831c62` (`test: verify local security and edge-case
+acceptance`) and local main fast-forwarded from `794fe61`, without conflicts.
+Independent read-only commit-scope audit found no blocker; all 929 accepted source
+hashes and 599 runtime baseline hashes match the committed state. Existing check,
+PostgreSQL, browser and build evidence remains applicable. No tests or services
+were rerun merely for this Git operation. A documentation-only closeout records
+the result. Feature branch retained; no remote push, deployment, migration,
+account purge or branch/worktree deletion occurred. Earlier uncommitted statements
+in historical verification records refer to their original run.
