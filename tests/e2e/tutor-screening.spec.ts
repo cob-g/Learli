@@ -46,9 +46,7 @@ test("ordinary shipped screening and intake remain disabled without synthetic co
   await expect(
     nativePage.getByText(/Enable JavaScript to use account forms/),
   ).toBeVisible();
-  await expect(
-    nativePage.getByLabel("Test email", { exact: true }),
-  ).toBeDisabled();
+  await expect(nativePage.getByLabel("Email", { exact: true })).toBeDisabled();
   await expect(
     nativePage.getByLabel("Password", { exact: true }),
   ).toBeDisabled();

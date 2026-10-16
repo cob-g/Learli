@@ -8,7 +8,7 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import { AuthForm } from "@/features/auth/auth-form";
 import { SiteHeader } from "@/components/shared/site-header";
 import { ReviewCarousel } from "@/features/home/review-carousel";
-import { sampleReviews } from "@/features/home/sample-reviews";
+import { sampleReviews } from "../fixtures/review-carousel";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",

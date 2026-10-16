@@ -1,5 +1,6 @@
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 import type { AuthRuntime } from "@/lib/auth-factory";
-import { privateJson, sameLocalOrigin } from "@/lib/auth-handler";
+import { privateJson, sameDomainOrigin } from "@/lib/auth-handler";
 import { AccessError } from "@/lib/permissions/access";
 import { handleJsonMutation } from "@/lib/mutation-handler";
 import { describeLearnerIssues } from "./input";
@@ -17,6 +18,12 @@ export async function handleLearnerRequest(
   learnerId?: string,
 ) {
   if (request.method === "POST" && !learnerId) {
+    // A private learner must pass reviewed admission; hidden fixture forms are not authority.
+    if (runtime && isPrivateWorkflow(runtime))
+      return privateJson(
+        { message: "Use learner admission to request a learner profile." },
+        503,
+      );
     return handleJsonMutation(
       runtime,
       request,
@@ -35,7 +42,7 @@ export async function handleLearnerRequest(
   }
   if (!runtime)
     return privateJson({ message: "Learner profiles are unavailable." }, 503);
-  if (!sameLocalOrigin(request, runtime))
+  if (!sameDomainOrigin(request, runtime))
     return privateJson({ message: "Request origin is not allowed." }, 403);
   if (request.method !== "GET")
     return privateJson({ message: "Method not allowed." }, 405);

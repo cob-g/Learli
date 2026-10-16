@@ -1,3 +1,5 @@
+import { privateTutorPredicate } from "@/features/private-workflow/query";
+import type { PrivateWorkflowPacket } from "@/features/private-workflow/config";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { Database } from "@/lib/db/connection";
 import {
@@ -46,6 +48,7 @@ async function eligibleTutors(
   slug?: string,
   slugs?: readonly string[],
   scope: ScreeningScope = "local_demo",
+  privatePacket?: PrivateWorkflowPacket | null,
 ) {
   const query = db
     .select({
@@ -68,6 +71,7 @@ async function eligibleTutors(
     .where(
       and(
         eq(tutorProfiles.reviewStatus, "approved"),
+        privateTutorPredicate(privatePacket, sql`${tutorProfiles.id}`),
         screeningEligibilityPredicate(sql`${tutorProfiles.id}`, scope),
         eq(userAccess.status, "active"),
         eq(user.emailVerified, true),
@@ -122,9 +126,10 @@ export async function listEligibleTutors(
   db: Pick<Database, "select">,
   filters: TutorFilters = {},
   scope: ScreeningScope = "local_demo",
+  privatePacket?: PrivateWorkflowPacket | null,
 ) {
   return filterTutors(
-    await eligibleTutors(db, undefined, undefined, scope),
+    await eligibleTutors(db, undefined, undefined, scope, privatePacket),
     filters,
   );
 }
@@ -135,6 +140,7 @@ export async function listEligibleTutorsBySlugs(
   slugs: readonly string[],
   filters: TutorFilters = {},
   scope: ScreeningScope = "local_demo",
+  privatePacket?: PrivateWorkflowPacket | null,
 ) {
   if (
     slugs.length < 1 ||
@@ -146,7 +152,7 @@ export async function listEligibleTutorsBySlugs(
   )
     throw new RangeError("Choose 1 to 20 unique tutor slugs.");
   return filterTutors(
-    await eligibleTutors(db, undefined, slugs, scope),
+    await eligibleTutors(db, undefined, slugs, scope, privatePacket),
     filters,
   );
 }
@@ -156,7 +162,10 @@ export async function findEligibleTutor(
   db: Pick<Database, "select">,
   slug: string,
   scope: ScreeningScope = "local_demo",
+  privatePacket?: PrivateWorkflowPacket | null,
 ) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 80) return null;
-  return (await eligibleTutors(db, slug, undefined, scope))[0] ?? null;
+  return (
+    (await eligibleTutors(db, slug, undefined, scope, privatePacket))[0] ?? null
+  );
 }

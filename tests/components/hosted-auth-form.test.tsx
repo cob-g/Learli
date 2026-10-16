@@ -41,7 +41,7 @@ describe("shared auth form document readiness", () => {
       return { error: { code: "synthetic-refusal" } };
     });
     render(<AuthForm mode="sign-in" />);
-    fireEvent.change(screen.getByLabelText("Test email"), {
+    fireEvent.change(screen.getByLabelText("Email"), {
       target: { value: "synthetic@example.test" },
     });
     fireEvent.change(screen.getByLabelText("Password"), {

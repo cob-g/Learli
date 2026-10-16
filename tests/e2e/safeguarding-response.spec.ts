@@ -133,7 +133,7 @@ test("report, metadata dispatch, acknowledgement, escalation and document lifeti
   await reviewer.page.goto("/sign-in");
   await expect(reviewer.page).toHaveURL(/\/sign-in$/);
   await expect(
-    reviewer.page.getByLabel("Test email", { exact: true }),
+    reviewer.page.getByLabel("Email", { exact: true }),
   ).toBeVisible();
   expect(await reviewer.page.content()).not.toContain(body);
   await reviewer.page.goBack();
@@ -185,7 +185,7 @@ test("report, metadata dispatch, acknowledgement, escalation and document lifeti
   expect(signOut.status()).toBe(200);
   await escalation.page.goto("/sign-in");
   await expect(
-    escalation.page.getByLabel("Test email", { exact: true }),
+    escalation.page.getByLabel("Email", { exact: true }),
   ).toBeVisible();
   expect(await escalation.page.content()).not.toContain(body);
   await escalation.page.goBack();

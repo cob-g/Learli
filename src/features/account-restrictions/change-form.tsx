@@ -3,18 +3,24 @@ import { useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { reasonLabels, type localReasons } from "./input";
+import {
+  reasonLabels,
+  restrictionReasonLabel,
+  type localReasons,
+} from "./input";
 type Reason = (typeof localReasons)[number];
 export function ChangeAccessForm({
   targetId,
   name,
   status,
   revision,
+  privateWorkflow = false,
 }: {
   targetId: string;
   name: string;
   status: "active" | "suspended";
   revision: number;
+  privateWorkflow?: boolean;
 }) {
   const [reading, startReading] = useTransition();
   // A save's follow-up refresh keeps the controls busy without the manual
@@ -85,9 +91,13 @@ export function ChangeAccessForm({
       setFailed(!response.ok);
       setMessage(
         response.ok
-          ? "Local action recorded. Reloaded access and history appear on this page."
+          ? privateWorkflow
+            ? "Fictional action recorded. Reloaded access and history appear on this page."
+            : "Local action recorded. Reloaded access and history appear on this page."
           : (safeMessage ??
-              "The local action could not be recorded. Reload the account and try again."),
+              (privateWorkflow
+                ? "The fictional action could not be recorded. Reload the account and try again."
+                : "The local action could not be recorded. Reload the account and try again.")),
       );
       if (response.ok) {
         retry.current = null;
@@ -96,7 +106,9 @@ export function ChangeAccessForm({
     } catch {
       setFailed(true);
       setMessage(
-        "We could not confirm the local action. Retry with the same fields or reload to check its history.",
+        privateWorkflow
+          ? "We could not confirm the fictional action. Retry with the same fields or reload to check its history."
+          : "We could not confirm the local action. Retry with the same fields or reload to check its history.",
       );
     } finally {
       busy.current = false;
@@ -107,7 +119,11 @@ export function ChangeAccessForm({
   }
   return (
     <section className="mt-12 max-w-xl">
-      <h2 className="text-section-title">Change local account access</h2>
+      <h2 className="text-section-title">
+        {privateWorkflow
+          ? "Change fictional account access"
+          : "Change local account access"}
+      </h2>
       <p className="mt-4 max-w-prose text-body">
         Suspension denies restricted Learli actions while retaining session and
         reservation records. Restoration changes only account access; other
@@ -121,7 +137,7 @@ export function ChangeAccessForm({
       >
         <div className="space-y-2">
           <label className="block text-label" htmlFor="restriction-reason">
-            Local test reason
+            {privateWorkflow ? "Fictional test reason" : "Local test reason"}
           </label>
           <select
             key={status}
@@ -133,13 +149,17 @@ export function ChangeAccessForm({
             aria-describedby={reasonError ? "reason-error" : undefined}
             defaultValue=""
           >
-            <option value="">Choose a local test reason</option>
+            <option value="">
+              {privateWorkflow
+                ? "Choose a fictional test reason"
+                : "Choose a local test reason"}
+            </option>
             {(next === "suspended"
               ? (["local_access_test", "local_review_test"] as const)
               : (["local_restore_test"] as const)
             ).map((r) => (
               <option key={r} value={r}>
-                {reasonLabels[r]}
+                {restrictionReasonLabel(r, privateWorkflow)}
               </option>
             ))}
           </select>
@@ -150,7 +170,9 @@ export function ChangeAccessForm({
               role="alert"
             >
               <CircleAlert aria-hidden="true" className="size-4" />
-              Choose a local test reason.
+              {privateWorkflow
+                ? "Choose a fictional test reason."
+                : "Choose a local test reason."}
             </p>
           )}
         </div>
@@ -162,7 +184,11 @@ export function ChangeAccessForm({
                 className="size-4 motion-safe:animate-spin"
               />
             )}
-            {pending ? "Recording local action…" : `${verb} local account`}
+            {pending
+              ? privateWorkflow
+                ? "Recording fictional action…"
+                : "Recording local action…"
+              : `${verb} ${privateWorkflow ? "fictional" : "local"} account`}
           </button>
           <button
             type="button"
@@ -200,7 +226,11 @@ export function ChangeAccessForm({
         ref={dialog}
         title={`${verb} ${name}?`}
         confirmLabel={
-          pending ? "Recording local action…" : `${verb} account access`
+          pending
+            ? privateWorkflow
+              ? "Recording fictional action…"
+              : "Recording local action…"
+            : `${verb} account access`
         }
         dismissLabel={pending ? "Close confirmation" : "Keep current access"}
         destructive={next === "suspended"}

@@ -3,6 +3,7 @@ import { FamilyDashboard } from "./dashboard";
 import { DashboardUnavailable } from "./states";
 import { readFamilyDashboard } from "./read";
 import type { FamilyWorkspace } from "./model";
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 
 export async function FamilyDashboardPage({
   workspace,
@@ -12,11 +13,18 @@ export async function FamilyDashboardPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const query = await searchParams;
-  const data = await loadPrivatePage(`/${workspace}`, (runtime, headers) =>
-    readFamilyDashboard(runtime, headers, workspace, query),
+  const result = await loadPrivatePage(
+    `/${workspace}`,
+    async (runtime, headers) => ({
+      data: await readFamilyDashboard(runtime, headers, workspace, query),
+      privateWorkflow: isPrivateWorkflow(runtime),
+    }),
   );
-  return data ? (
-    <FamilyDashboard data={data} />
+  return result ? (
+    <FamilyDashboard
+      data={result.data}
+      privateWorkflow={result.privateWorkflow}
+    />
   ) : (
     <DashboardUnavailable workspace={workspace} />
   );

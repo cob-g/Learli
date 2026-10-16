@@ -74,10 +74,10 @@ async function signup(
   await page
     .getByLabel("Display name", { exact: true })
     .fill("Synthetic admission account");
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page
-    .getByRole("button", { name: "Create test account", exact: true })
+    .getByRole("button", { name: "Create account", exact: true })
     .click();
   await expect(
     page.getByText(/a verification message is available/),
@@ -94,7 +94,7 @@ async function signup(
       "INSERT INTO user_roles(user_id,role) VALUES($1,'admin')",
       [id],
     );
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(
@@ -254,9 +254,9 @@ test("shipped disabled intake collects no child fields and refuses malformed POS
     "post",
   );
   await page.goto("/sign-up");
-  await expect(page.getByLabel("Test email", { exact: true })).toBeDisabled();
+  await expect(page.getByLabel("Email", { exact: true })).toBeDisabled();
   await expect(
-    page.getByRole("button", { name: "Create test account", exact: true }),
+    page.getByRole("button", { name: "Create account", exact: true }),
   ).toBeDisabled();
   expect(await page.locator("form").getAttribute("method")).toBe("post");
 });

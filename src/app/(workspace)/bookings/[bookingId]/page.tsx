@@ -1,4 +1,7 @@
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 import { WorkflowActionForm } from "@/features/booking-workflows/forms";
+import { bookingWorkflowContext } from "@/features/booking-workflows/composition";
+import { readTutorCompletion } from "@/features/booking-workflows/service";
 import { publicationContext } from "@/features/review-publication/composition";
 import { readAuthorPublication } from "@/features/review-publication/service";
 import type { Metadata } from "next";
@@ -31,11 +34,21 @@ export default async function Page({
   const query = await searchParams;
   const scope = bookingReadScope.safeParse(query.scope ?? "student");
   const path = `/bookings/${encodeURIComponent(bookingId)}?scope=${scope.success ? scope.data : "student"}`;
-  const detail = await loadPrivatePage(path, (runtime, headers) => {
+  const loaded = await loadPrivatePage(path, async (runtime, headers) => {
     if (!scope.success || Object.keys(query).some((key) => key !== "scope"))
       throw new AccessError(404);
-    return readParticipantBooking(runtime, headers, bookingId, scope.data);
+    return {
+      detail: await readParticipantBooking(
+        runtime,
+        headers,
+        bookingId,
+        scope.data,
+      ),
+      privateWorkflow: isPrivateWorkflow(runtime),
+    };
   });
+  const detail = loaded?.detail;
+  const privateWorkflow = loaded?.privateWorkflow ?? false;
   if (!detail || !scope.success)
     return (
       <BookingUnavailable scope={scope.success ? scope.data : undefined} />
@@ -64,6 +77,7 @@ export default async function Page({
         }))
       : null;
   const publication =
+    !privateWorkflow &&
     detail.source === "synthetic_readiness" &&
     detail.state === "completed" &&
     scope.data !== "tutor" &&
@@ -80,13 +94,36 @@ export default async function Page({
           ),
         }))
       : null;
+  const completion =
+    scope.data === "tutor" && detail.state === "confirmed"
+      ? await loadPrivatePage(path, (runtime, headers) =>
+          readTutorCompletion(
+            bookingWorkflowContext(runtime),
+            headers,
+            bookingId,
+          ),
+        )
+      : null;
   return (
     <BookingDetailView
       booking={detail}
+      privateWorkflow={privateWorkflow}
       scope={scope.data}
       reviewSection={
-        detail.source === "synthetic_readiness" &&
-        ["completed", "no_show", "cancelled"].includes(detail.state) ? (
+        completion ? (
+          <section className="mt-8 border-t border-border pt-6">
+            <h2 className="text-section-title">Session completion</h2>
+            <WorkflowActionForm
+              bookingId={completion.id}
+              revision={completion.workflowRevision}
+              action="complete"
+              privateWorkflow={privateWorkflow}
+              scope="tutor"
+            />
+          </section>
+        ) : !privateWorkflow &&
+          detail.source === "synthetic_readiness" &&
+          ["completed", "no_show", "cancelled"].includes(detail.state) ? (
           <section className="mt-8 border-t border-border pt-6">
             {publication && (
               <div className="mb-8">
@@ -125,21 +162,28 @@ export default async function Page({
           scope.data !== "tutor" &&
           ["provisional", "confirmed"].includes(detail.state) ? (
           <section className="mt-8 border-t border-border pt-6">
-            <h2 className="text-section-title">Change synthetic booking</h2>
+            <h2 className="text-section-title">
+              {privateWorkflow ? "Change booking" : "Change synthetic booking"}
+            </h2>
             <a
               className="mt-4 inline-flex min-h-11 items-center"
               href={`/bookings/${bookingId}/reschedule?scope=${scope.data}`}
             >
-              Move synthetic booking
+              {privateWorkflow
+                ? "Reschedule booking"
+                : "Move synthetic booking"}
             </a>
             <details className="mt-4">
               <summary className="min-h-11 cursor-pointer py-2 text-action">
-                Cancel synthetic booking
+                {privateWorkflow
+                  ? "Cancel booking"
+                  : "Cancel synthetic booking"}
               </summary>
               <WorkflowActionForm
                 bookingId={bookingId}
                 revision={detail.workflowRevision ?? 0}
                 action="cancel"
+                privateWorkflow={privateWorkflow}
                 scope={scope.data}
               />
             </details>
@@ -168,6 +212,7 @@ export default async function Page({
         <BookingMeetingSection
           key={`${bookingId}:${detail.state}:${meeting?.state}:${meeting?.state === "present" ? meeting.revision : 0}`}
           bookingId={bookingId}
+          privateWorkflow={privateWorkflow}
           inactive={[
             "demo_cancelled",
             "demo_replaced",

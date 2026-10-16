@@ -1,3 +1,4 @@
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 import type { Metadata } from "next";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { listParticipantBookings } from "@/features/bookings/read-service";
@@ -31,9 +32,14 @@ export default async function Page({
     ),
   );
   const path = `/bookings?${new URLSearchParams(Object.entries(input).filter((entry): entry is [string, string] => typeof entry[1] === "string"))}`;
-  const result = await loadPrivatePage(path, (runtime, headers) =>
-    listParticipantBookings(runtime, headers, { scope: "student", ...input }),
-  );
+  const loaded = await loadPrivatePage(path, async (runtime, headers) => ({
+    result: await listParticipantBookings(runtime, headers, {
+      scope: "student",
+      ...input,
+    }),
+    privateWorkflow: isPrivateWorkflow(runtime),
+  }));
+  const result = loaded?.result;
   if (!result)
     return (
       <BookingUnavailable scope={scope.success ? scope.data : undefined} />
@@ -41,6 +47,7 @@ export default async function Page({
   return (
     <BookingHistoryView
       result={result}
+      privateWorkflow={loaded?.privateWorkflow}
       learnerId={
         typeof params.learnerId === "string" ? params.learnerId : undefined
       }

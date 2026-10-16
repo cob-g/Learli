@@ -5,7 +5,7 @@ import { AuthForm } from "@/features/auth/auth-form";
 import { PendingBookingChoice } from "@/features/bookings/pending-choice";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Create a test account",
+  title: "Create an account",
   referrer: "no-referrer",
 };
 export default async function Page({
@@ -15,7 +15,7 @@ export default async function Page({
 }) {
   const params = await searchParams;
   return (
-    <AuthFrame title="Create a test account">
+    <AuthFrame title="Create an account">
       <PendingBookingChoice next={params.next} />
       <AuthForm
         hosted={getServerEnv().AUTH_MODE === "hosted-synthetic"}

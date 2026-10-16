@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { handleReview } from "@/features/private-reviews/handler";
 export const dynamic = "force-dynamic";
 export async function GET(
@@ -6,12 +6,22 @@ export async function GET(
   { params }: { params: Promise<{ bookingId: string }> },
 ) {
   const { bookingId } = await params;
-  return handleReview(getAuthRuntime(), request, "author", bookingId);
+  return handleReview(
+    await getDomainAuthRuntime(),
+    request,
+    "author",
+    bookingId,
+  );
 }
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ bookingId: string }> },
 ) {
   const { bookingId } = await params;
-  return handleReview(getAuthRuntime(), request, "author", bookingId);
+  return handleReview(
+    await getDomainAuthRuntime(),
+    request,
+    "author",
+    bookingId,
+  );
 }

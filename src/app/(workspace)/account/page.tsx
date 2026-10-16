@@ -3,7 +3,8 @@ import { AdmissionEntry } from "@/features/learner-admission/navigation";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getAccountAuthRuntime } from "@/lib/auth";
+import { getAccountAuthRuntime, getDomainAuthRuntime } from "@/lib/auth";
+import { canOpenStudentWorkspace } from "@/features/student-onboarding/read";
 import { AccessError } from "@/lib/permissions/access";
 import { readAccount } from "@/features/account/service";
 import { AccountForm } from "@/features/account/account-form";
@@ -18,10 +19,21 @@ export const metadata: Metadata = {
 };
 export default async function AccountPage() {
   let account;
+  let studentReady = false;
   try {
     const runtime = await getAccountAuthRuntime();
     if (!runtime) throw new AccessError(503);
-    account = await readAccount(runtime, await headers());
+    const requestHeaders = await headers();
+    account = await readAccount(runtime, requestHeaders);
+    if (account.roles.includes("student")) {
+      try {
+        const domain = await getDomainAuthRuntime();
+        studentReady =
+          !!domain && (await canOpenStudentWorkspace(domain, requestHeaders));
+      } catch {
+        // Account settings remain available when learner authority cannot be proven.
+      }
+    }
   } catch (error) {
     if (error instanceof AccessError && error.status === 401)
       redirect("/sign-in?next=%2Faccount");
@@ -32,15 +44,15 @@ export default async function AccountPage() {
       />
     );
   }
+  const workspaceRoles = account.roles.filter(
+    (role) => role !== "student" || studentReady,
+  );
   return (
     <div className="page-shell page-space">
       <div className="max-w-5xl">
         <h1 className="text-page-title">Your account</h1>
         <p className="mt-4 text-body wrap-anywhere">
           Signed in as {account.email}
-        </p>
-        <p className="mt-4 max-w-prose rounded-control border border-border bg-subtle p-4 text-small text-muted-foreground">
-          This is a synthetic test account. Real lessons are not available here.
         </p>
         <div className="mt-8 grid items-start gap-8 lg:grid-cols-3">
           <div className="min-w-0 lg:col-span-2">
@@ -60,12 +72,12 @@ export default async function AccountPage() {
           </div>
           <aside className="min-w-0 rounded-surface border border-border bg-surface p-6">
             <h2 className="text-item-title">Your workspaces</h2>
-            {account.roles.length ? (
+            {workspaceRoles.length ? (
               <nav
                 aria-label="Your workspaces"
                 className="mt-3 flex flex-col items-start gap-1"
               >
-                {account.roles.map((role) => (
+                {workspaceRoles.map((role) => (
                   <Link
                     className="inline-flex min-h-11 items-center"
                     key={role}
@@ -77,9 +89,27 @@ export default async function AccountPage() {
               </nav>
             ) : (
               <p className="mt-4 text-small text-muted-foreground">
-                No workspace role has been assigned to this account.
+                {account.roles.length
+                  ? "No workspace with current access is available."
+                  : "No workspace role has been assigned to this account."}
               </p>
             )}
+            {!account.roles.includes("parent") && (
+              <Link
+                href="/parent/onboarding"
+                className="mt-4 inline-flex min-h-11 items-center"
+              >
+                Set up parent workspace
+              </Link>
+            )}
+            <Link
+              href="/student/onboarding"
+              className="mt-4 inline-flex min-h-11 items-center"
+            >
+              {account.roles.includes("student")
+                ? "College Student setup and status"
+                : "Set up College Student"}
+            </Link>
             <AdmissionEntry />
             <section
               className="mt-6 border-t border-border pt-6"

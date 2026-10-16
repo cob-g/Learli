@@ -212,6 +212,12 @@ M6 begins **as early as possible in parallel**; postponing decisions until all e
 - [ ] **M2.2 — Establish Drizzle schema and migration process.** Integrate the installed Better Auth schema correctly; create only essential application tables as their approved dependencies become clear. Review generated SQL, constraints, indexes and migration rollback options.
 - [ ] **M2.3 — Implement Better Auth fundamentals.** Register, sign in/out, verify email, initiate/complete password reset, secure HTTP-only sessions, session expiry and abuse/rate controls. Choose permitted test email behavior; never falsely label delivery as successful.
 - [ ] **M2.4 — Implement trusted role assignment.** Support `student`, `parent`, `tutor`, `admin` as legitimate roles (multi-role accounts as appropriate); no self-admin, self-approval or arbitrary role escalation. Tutor approval belongs to server/admin logic.
+  - **2026-10-16 authorized parent subset:** signup Parent intent, mandatory
+    verification and explicit self-only parent workspace enrollment, with
+    idempotent atomic audit and no guardian or admin authority. Blueprint
+    `prompts/features/m2-04-parent-onboarding.md`; actual checks and remaining
+    parent/child/booking/staging work are tracked separately. This does not close
+    the whole M2.4 or real-minor/booking policy gates.
 - [ ] **M2.5 — Centralize authorization helpers.** Reusable server guards for session, role, ownership, tutor account state and authorized learner relationship. Apply in every protected query/mutation, not just middleware or layouts.
 - [ ] **M2.6 — Isolate data and caches.** Prevent public indexing, shared HTML caching or cross-account leakage for dashboards, child profiles, support cases and meeting information.
 - [ ] **M2.7 — Safe validation and audit primitives.** Validate untrusted inputs (Zod or equivalent), use consistent safe errors and redact secrets, credentials and child information from logs. Add minimal auditable record patterns for sensitive actions.
@@ -313,6 +319,17 @@ M6 begins **as early as possible in parallel**; postponing decisions until all e
 **Source:** `architecture.md` §§6–7, 13–15, 17; `PRD.md` §§7.7–7.9, 10–11; `ui-context.md` §Account and role workspaces.  
 **PRD:** `MEET-01`–`MEET-03`, `OPS-01`–`OPS-05`, `OPS-06` (P1/open), `ADM-01`–`ADM-04`, `TUT-06`, `FAM-03`.
 
+**Owner-approved acceptance checklist, 2026-10-16:**
+`docs/qa/parent-tutor-session-checklist.md` extends the Parent journey through
+Steps 5–9: cross-role booking consistency, tutor-supplied private link, authorized
+external join, audited manual outcome after the scheduled end, history and
+unrelated-account denials. Relevant work remains M5.1/2/4/5/11 plus BKG-04/07.
+Approval of the checklist does not mark these work packages complete; the target,
+guardian/booking rules still need their decisions. The owner subsequently chose
+the assigned tutor for manual completion after the scheduled end, with an audit
+record; see `prompts/features/m5-05-assigned-tutor-completion.md`. This bounded
+software unit does not activate the wider booking workflow.
+
 ### Work packages
 
 - [ ] **M5.1 — Private tutor-supplied meeting link.** Accept approved Zoom/Google Meet `https://` URLs with parsed protocol/hostname validation and a reviewed list of allowed hosts. **Never** trust text containing `zoom`/`meet` as sufficient validation. Store links only in the appropriate restricted booking context or another specifically approved private setting.
@@ -321,6 +338,10 @@ M6 begins **as early as possible in parallel**; postponing decisions until all e
 - [ ] **M5.4 — Parent/guardian workspace.** Show only authorized learners, unmistakable selected-learner context, upcoming lessons, booking history, allowed changes and payment information **only if actual approved payment records exist**.
 - [ ] **M5.5 — Tutor workspace.** Own profile, subjects, timezone, availability, next lessons, booked learners with minimum necessary details, safe meeting-link entry and personal booking history.
   - **2026-10-11 local slice:** authorized tutor dashboard consumes participant-scoped synthetic booking reads for next future simulation, agenda/history, minimal learner label/level and actual subject/time/demo status/expiry. Retains profile review, availability/time-off/profile/account routes. Uses native GET refresh with an accessible enhanced pending status; no meeting entry/join, money, attendance, cancellation or teaching metrics. This local slice does not complete M5.5's launch scope or authorize live lessons; verification evidence is in progress tracker and its canonical blueprint.
+  - **2026-10-16 completion subset:** assigned tutor, after scheduled end, audited;
+    preserve immutable admin-only v1 test receipts and use a distinct v2 test
+    capability. Shipped composition remains disabled pending the other policies.
+    Implementation and verification status belong in progress tracker.
 - [ ] **M5.6 — Essential admin workspace.** Limited tutor eligibility actions, subject catalog, booking/support lookup and account safety restrictions. Require audit for sensitive actions. **No tutor KPI scoring or curriculum enforcement.**
   - **2026-10-11 local account slice:** owner-provisioned exact staff-to-target grants
     support scoped synthetic account summaries and audited access suspend/restore,
@@ -475,6 +496,13 @@ M6 is **blocked at baseline**, but founders can resolve decisions while engineer
 - [ ] **M8.7 — Prove backup/recovery and owner escalation.** Verify actual backups, recovery procedure, restore test, key incident contacts and ability to disable sensitive flows safely.
 - [ ] **M8.8 — Run security/privacy checks.** Authorization, session/cookie security, rate limiting, input validation, private SEO/no-cache rules, credential scanning, data minimization, safeguarding/report routes and abuse response.
 - [ ] **M8.9 — Run the end-to-end acceptance matrix.** Real-browser role journeys with synthetic test users, multiple time zones, concurrency, provider failure behavior, responsive layouts, keyboard-only and screen reader smoke tests.
+  - **2026-10-16 Tutor acceptance scope:** owner approved the corrected nine-step
+    [Tutor checklist](../docs/qa/tutor-workflow-checklist.md), covering actual
+    application/profile/level fields and one shared booking across Parent/Tutor
+    coordination. [Blueprint](../prompts/features/m8-09-tutor-workflow-acceptance.md)
+    Part A is documentation-only; normal integration remains blocked on audience
+    and dependent operating policies/target. No complete journey or M8.9 PASS
+    is established by approval or separate existing fixture tests.
 - [ ] **M8.10 — Review the operating business gates.** Approved guardian/age policy, tutor safety screening, actual policies, market eligibility, and payment go-live conditions (if applicable).
 - [ ] **M8.11 — Conduct a limited pilot only when authorized.** Distinguish internal synthetic-data demo from a pilot using real learners. Observe actual issues/usage and prioritize P0 fixes; don't interpret a successful demo as public-readiness proof.
 - [ ] **M8.12 — Explicit release approval.** Founder/release owner reviews evidence and issues a recorded go/no-go decision; deployment is **not** an implied authorization to accept bookings or collect money.
@@ -524,7 +552,7 @@ M6 is **blocked at baseline**, but founders can resolve decisions while engineer
 | `BKG-04` Booking details/history | P0 agreed | M4 / M5 | Private accurate booking history |
 | `BKG-05` Reschedule | P0 capability; policy gated | M4 / M6 / M7 | Approved changes, ownership, history |
 | `BKG-06` Cancel | P0 capability; policy gated | M4 / M6 / M7 | Approved changes, financial consistency |
-| `BKG-07` Completion/no-show | P1 open | M6 decision / M5 if approved | No inferred attendance |
+| `BKG-07` Completion/no-show | P1 partial: assigned tutor completion agreed; other rules open | M5 completion subset; remaining M6 decision | No inferred attendance |
 | `MEET-01` Allowed URL | P0 agreed | M5 | Safe validated external host/protocol |
 | `MEET-02` Private participant access | P0 agreed | M5 | Outsider denied, status-aware link access |
 | `MEET-03` External lesson boundary | P0 agreed | M5 | Clear third-party responsibility |
@@ -1007,3 +1035,53 @@ overlap). Nine high development-tool audit entries remain unpatched upstream.
 The verified source was committed as `5e0e9d1`, merged into main as `3d4db95`
 and pushed with an exact remote-ref readback under subsequent owner authority.
 This does not close real-policy, provider-email, deployment or payment milestones.
+
+
+### M8.3/M8.9 private fictional workflow — 2026-10-16
+
+Owner selected the recommended private fictional staging audience, payments
+disabled. Blueprint `prompts/features/m8-03-private-fictional-workflow.md` is
+AUTHORIZED — build-feature delegation for the explicit composition and connected
+normal-build QA path. M2/M3/M4/M5 safeguards are reused; no new real-user policy or
+whole-milestone completion is implied. Hosted target apply/deployment and account
+cleanup remain separate. Actual implementation/review/verification status belongs
+in progress-tracker; keep all launch checkboxes open until their evidence exists.
+
+
+Private workflow checkpoint (2026-10-16): M8.3/M8.9 software composition and its
+normal-build local fictional rehearsal passed source review and scoped automated
+verification; see `docs/qa/private-fictional-workflow-results-2026-10-16.md`.
+Exact hosted preparation adapter/target activation and full hosted acceptance are
+pending. This does not complete M8, approve real intake/payments or verify real
+email/video attendance. Existing full-duration completion evidence remains separate
+from the new future booking's browser test.
+
+### M8.9 College Student acceptance — 2026-10-16
+
+Owner approved College Student onboarding intent, correction of role-view
+filtering and dedicated normal-build Student acceptance. Blueprint
+`prompts/features/m8-09-student-workflow-acceptance.md` is
+AUTHORIZED — build-feature delegation. Reuse assigned independent eligibility
+review and existing atomic booking/coordination; no early Student role, guardian
+link, independent minor policy or payment activation. Verify two admitted college
+accounts, Science/College Support, retries/overlaps, privacy, changes and a
+separately identified historical completion record. The checklist is
+`docs/qa/student-workflow-checklist.md`; actual results belong in progress-tracker.
+This entry does not mark M8.9, hosted acceptance or launch complete.
+
+### M5.6 / M8.9 scoped Admin workflow acceptance — 2026-10-16
+
+Owner approved the Admin cross-check recommendation. Blueprint
+`prompts/features/m5-06-admin-workflow-acceptance.md` is
+**AUTHORIZED — build-feature delegation**: correct finite private Tutor review
+scope, scoped searchable local-test account controls and assigned booking lookup,
+then a dedicated normal-build Admin journey alongside Parent/Tutor and Student.
+Reuse existing atomic mutations, current MFA and exact grants; no new migration,
+real policy, hosted account management, public ratings, payments or global metrics.
+Corrected checklist: `docs/qa/admin-workflow-checklist.md`. Actual implementation,
+RED/GREEN regressions, full validation and limitations belong in progress-tracker
+and the results record. This does not mark M5.6/M8.9 or hosted launch complete.
+
+Local checkpoint: scoped implementation, cross-author Review and the three-case
+normal-build rehearsal passed; see `docs/qa/admin-workflow-results-2026-10-16.md`.
+Hosted preparation/acceptance and remaining launch gates are still separate.

@@ -42,8 +42,9 @@ export function ProfilePicker({
           : `Times shown in ${preview.zoneLabel}`}
       </p>
       <p className="mt-2 max-w-prose text-small">
-        Local simulation only. Previewing a time does not reserve it or confirm
-        a lesson.
+        {preview.privateWorkflow
+          ? "Previewing a time does not reserve it. You will choose the learner and request a booking next."
+          : "Local simulation only. Previewing a time does not reserve it or confirm a lesson."}
       </p>
       <ProfileZone
         needsBrowserZone={preview.needsBrowserZone}
@@ -117,8 +118,10 @@ export function ProfilePicker({
       )}
       {preview.candidates?.state === "unavailable" && (
         <p role="status" className="mt-4 max-w-prose text-body">
-          This tutor isn&apos;t taking simulated bookings for these choices
-          right now. <Link href="/tutors">Browse all tutors</Link>
+          {preview.privateWorkflow
+            ? "This tutor is not taking bookings for these choices right now."
+            : "This tutor isn’t taking simulated bookings for these choices right now."}{" "}
+          <Link href="/tutors">Browse all tutors</Link>
         </p>
       )}
       {preview.candidates?.state === "empty" && (
@@ -137,7 +140,7 @@ export function ProfilePicker({
       )}
       {times.length > 0 && level.success && (
         <form
-          action="/bookings/demo"
+          action={preview.privateWorkflow ? "/bookings/new" : "/bookings/demo"}
           method="get"
           className="mt-6 space-y-6"
           aria-describedby="preview-zone"
@@ -233,7 +236,9 @@ export function ProfilePicker({
             </details>
           )}
           <button className="action action-primary w-full" type="submit">
-            Review simulated booking
+            {preview.privateWorkflow
+              ? "Review booking"
+              : "Review simulated booking"}
           </button>
           <p className="text-small">
             Choose who this lesson is for after sign-in. Times will be checked

@@ -1,10 +1,11 @@
+import { assertPrivateWorkflowUnchanged } from "@/features/private-workflow/runtime";
 // Node-only service. Identity comes from Better Auth, never submitted user IDs.
 import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { bookingMeetingLinks, bookingMeetingLinkEvents } from "@/lib/db/schema";
 import { AccessError } from "@/lib/permissions/access";
-import { resolveLocalSyntheticSession } from "@/lib/permissions/local-synthetic-session";
+import { resolveCoordinationSession } from "@/lib/permissions/coordination-session";
 import { RuleError } from "@/lib/rule-error";
 import { validateMeetingLink } from "@/lib/validation/meeting-link";
 import { meetingEditInput } from "./input";
@@ -16,7 +17,7 @@ async function meetingActor(
   headers: Headers,
   bookingId: string,
 ) {
-  const actor = await resolveLocalSyntheticSession(runtime, headers);
+  const actor = await resolveCoordinationSession(runtime, headers);
   if (!z.uuid().safeParse(bookingId).success) throw new AccessError(404);
   return actor;
 }
@@ -28,6 +29,10 @@ export async function readPrivateMeetingLink(
 ): Promise<PrivateMeetingState> {
   const actor = await meetingActor(runtime, headers, bookingId);
   const row = await queryPrivateMeeting(runtime.db, actor, bookingId);
+  assertPrivateWorkflowUnchanged(
+    runtime,
+    "privatePacket" in actor ? actor.privatePacket : null,
+  );
   if (!row) throw new AccessError(404);
   if (!row.live) return { state: "expired" };
   if (!row.url || !row.provider || !row.revision)
@@ -70,6 +75,10 @@ export async function savePrivateMeetingLink(
       await tx.execute(
         sql`SELECT id FROM bookings WHERE id=${bookingId}::uuid FOR NO KEY UPDATE`,
       );
+      assertPrivateWorkflowUnchanged(
+        runtime,
+        "privatePacket" in actor ? actor.privatePacket : null,
+      );
       const row = await queryPrivateMeeting(tx, actor, bookingId, true);
       if (!row?.live || !row.canEdit) throw new AccessError(404);
       const [current] = await tx
@@ -83,6 +92,10 @@ export async function savePrivateMeetingLink(
           current.updatedByUserId !== actor.userId
         )
           throw conflict();
+        assertPrivateWorkflowUnchanged(
+          runtime,
+          "privatePacket" in actor ? actor.privatePacket : null,
+        );
         return { revision: current.revision };
       }
       if ((current?.revision ?? 0) !== values.expectedRevision)
@@ -125,6 +138,10 @@ export async function savePrivateMeetingLink(
         const fresh = await queryPrivateMeeting(tx, actor, bookingId, true);
         if (!fresh?.live || !fresh.canEdit) throw new AccessError(404);
       }
+      assertPrivateWorkflowUnchanged(
+        runtime,
+        "privatePacket" in actor ? actor.privatePacket : null,
+      );
       return { revision };
     },
     { isolationLevel: "read committed" },

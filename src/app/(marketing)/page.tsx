@@ -5,9 +5,6 @@ import { HomeMotion } from "@/features/home/home-motion";
 import { HeroScene } from "@/features/home/hero-scene";
 import { LayeredScene } from "@/features/home/layered-scene";
 import { LessonTile } from "@/features/home/lesson-tile";
-import { previewContentAllowed } from "@/features/home/preview-content";
-import { ReviewCarousel } from "@/features/home/review-carousel";
-import { sampleReviews } from "@/features/home/sample-reviews";
 import {
   groupSubjects,
   learnerLevelOptions,
@@ -28,9 +25,6 @@ export const metadata = publicPageMetadata({ path: "/" });
 export default async function Home() {
   const catalog = await readPublicCatalog();
   const tutors = catalog?.tutors ?? [];
-  // Learli has no published reviews yet. The preview shows labelled samples;
-  // production shows nothing until real ones exist.
-  const reviews = previewContentAllowed() ? sampleReviews : [];
   return (
     <HomeMotion>
       <section className="home-hero">
@@ -318,27 +312,6 @@ export default async function Home() {
           </p>
         </div>
       </section>
-      {reviews.length > 0 && (
-        <section className="home-reviews-section border-t border-border bg-subtle">
-          <div className="page-shell py-16 md:py-24">
-            <h2 className="text-display text-balance">
-              Lessons, in{" "}
-              <span className="brand-highlight home-mark" data-reveal="">
-                their own words
-              </span>
-            </h2>
-            <p className="mt-5 flex max-w-prose flex-wrap items-center gap-x-3 gap-y-2 text-small text-muted-foreground">
-              <span className="inline-flex min-h-7 items-center rounded-tag border border-control bg-surface px-2 text-label text-foreground">
-                Sample reviews
-              </span>
-              Written for this preview. They are not from Learli customers.
-            </p>
-            <div className="mt-10 md:mt-14">
-              <ReviewCarousel reviews={reviews} />
-            </div>
-          </div>
-        </section>
-      )}
       <section className="border-t border-border bg-surface">
         <div className="page-shell grid md:grid-cols-2">
           <div className="py-12 md:py-20 md:pe-16">

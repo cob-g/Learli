@@ -627,3 +627,42 @@ it("renders no screening item on the first paint when disabled", () => {
   shell(false);
   expect(screen.queryByRole("link", { name: "Tutor screening" })).toBeNull();
 });
+
+it("shows only supported private Admin destinations and preserves legacy areas", () => {
+  const local = workspaceLinks("admin", {
+    privateWorkflow: true,
+    privateAccounts: true,
+  });
+  expect(local.find((link) => link.href === "/admin/accounts")?.label).toBe(
+    "Accounts",
+  );
+  expect(local.map((link) => link.href)).toEqual(
+    expect.arrayContaining([
+      "/admin/bookings",
+      "/admin/tutors",
+      "/admin/subjects",
+      "/admin/learner-admission",
+    ]),
+  );
+  const hosted = workspaceLinks("admin", { privateWorkflow: true });
+  expect(hosted.map((link) => link.href)).not.toContain("/admin/accounts");
+  for (const links of [local, hosted]) {
+    for (const path of [
+      "/admin/reviews",
+      "/admin/publication-reviews",
+      "/admin/safeguarding",
+    ])
+      expect(links.map((link) => link.href)).not.toContain(path);
+  }
+  expect(workspaceLinks("admin").map((link) => link.href)).toEqual(
+    expect.arrayContaining([
+      "/admin/accounts",
+      "/admin/reviews",
+      "/admin/publication-reviews",
+      "/admin/safeguarding",
+    ]),
+  );
+  expect(workspaceLinks("admin").map((link) => link.href)).not.toContain(
+    "/admin/bookings",
+  );
+});

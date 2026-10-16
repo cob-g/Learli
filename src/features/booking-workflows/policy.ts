@@ -1,11 +1,9 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
-const enabled = z.strictObject({
+const common = z.strictObject({
   authority: z.literal("synthetic_test"),
   source: z.literal("synthetic_readiness"),
   policyId: z.uuid(),
-  version: z.literal("synthetic-booking-v1"),
-  reference: z.literal("synthetic:booking:v1"),
   contentDigest: z.string().regex(/^[a-f0-9]{64}$/),
   admissionPolicyId: z.uuid(),
   durationMinutes: z.literal(60),
@@ -21,15 +19,29 @@ const enabled = z.strictObject({
   disputePath: z.literal("/support"),
   meetingAccess: z.literal("confirmed_until_end"),
 });
+const legacy = common.extend({
+  version: z.literal("synthetic-booking-v1"),
+  reference: z.literal("synthetic:booking:v1"),
+});
+const tutorCompletion = common.extend({
+  version: z.literal("synthetic-booking-v2"),
+  reference: z.literal("synthetic:booking:v2"),
+  completionActor: z.literal("assigned_tutor"),
+});
+const enabled = z.discriminatedUnion("version", [legacy, tutorCompletion]);
 export type EnabledBookingPolicy = z.infer<typeof enabled>;
+type PolicyTerms =
+  | Omit<z.infer<typeof legacy>, "policyId" | "contentDigest">
+  | Omit<z.infer<typeof tutorCompletion>, "policyId" | "contentDigest">;
+export function supportsTutorCompletion(policy: EnabledBookingPolicy) {
+  return policy.version === "synthetic-booking-v2";
+}
 export type BookingCapability =
   { authority: "disabled" } | EnabledBookingPolicy;
 export const disabledBooking: BookingCapability = Object.freeze({
   authority: "disabled",
 });
-export function bookingPolicyDigest(
-  v: Omit<EnabledBookingPolicy, "policyId" | "contentDigest">,
-) {
+export function bookingPolicyDigest(v: PolicyTerms) {
   return createHash("sha256")
     .update(
       JSON.stringify([
@@ -50,6 +62,8 @@ export function bookingPolicyDigest(
         v.outcomeActor,
         v.disputePath,
         v.meetingAccess,
+        // Legacy receipt digests remain byte-identical. Only v2 binds this term.
+        ...(v.version === "synthetic-booking-v2" ? [v.completionActor] : []),
       ]),
     )
     .digest("hex");

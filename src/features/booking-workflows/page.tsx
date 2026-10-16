@@ -13,10 +13,12 @@ export async function WorkflowBookingPage({
   runtime,
   headers,
   query,
+  privateWorkflow = false,
 }: {
   runtime: AuthRuntime;
   headers: Headers;
   query: Record<string, string | string[] | undefined>;
+  privateWorkflow?: boolean;
 }) {
   const c = bookingWorkflowContext(runtime),
     options = await loadWorkflowOptions(c, headers);
@@ -83,16 +85,26 @@ export async function WorkflowBookingPage({
   ];
   return (
     <div className="page-shell page-space">
-      <h1 className="text-page-title">Synthetic booking request</h1>
+      <h1 className="text-page-title">
+        {privateWorkflow ? "Request a booking" : "Synthetic booking request"}
+      </h1>
       <p className="mt-4 max-w-prose text-body">
-        Fictional readiness only. Choose an admitted learner and screened tutor;
-        an assigned synthetic prerequisite review is required for confirmation.
-        Real booking policies remain unavailable.
+        {privateWorkflow
+          ? "Choose an authorized learner, tutor and available time. Your request remains provisional until an assigned reviewer confirms it."
+          : "Fictional readiness only. Choose an admitted learner and screened tutor; an assigned synthetic prerequisite review is required for confirmation. Real booking policies remain unavailable."}
       </p>
       {!options.learners.length ? (
-        <AdmissionDetour choice={selected} discovery={discovery} />
+        <AdmissionDetour
+          choice={selected}
+          discovery={discovery}
+          privateWorkflow={privateWorkflow}
+        />
       ) : (
-        <form method="get" className="mt-6 max-w-xl space-y-4">
+        <form
+          method="get"
+          action={privateWorkflow ? "/bookings/new" : undefined}
+          className="mt-6 max-w-xl space-y-4"
+        >
           {selected && (
             <>
               <input type="hidden" name="level" value={selected.level} />
@@ -141,7 +153,7 @@ export async function WorkflowBookingPage({
             }
           />
           <button className="action action-outline" type="submit">
-            Load synthetic times
+            {privateWorkflow ? "Show available times" : "Load synthetic times"}
           </button>
         </form>
       )}
@@ -168,6 +180,7 @@ export async function WorkflowBookingPage({
             choice={values.data}
             times={times}
             requestedTime={selected ?? undefined}
+            privateWorkflow={privateWorkflow}
             scope={
               options.learners.find((l) => l.id === values.data.learnerId)
                 ?.management === "guardian"
@@ -177,7 +190,9 @@ export async function WorkflowBookingPage({
           />
         ) : (
           <p className="mt-4 text-body">
-            No current synthetic times match these choices.
+            {privateWorkflow
+              ? "No available times match these choices."
+              : "No current synthetic times match these choices."}
           </p>
         ))}
       {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Native navigation replaces the prior private document. */}

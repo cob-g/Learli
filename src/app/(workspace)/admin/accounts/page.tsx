@@ -4,11 +4,18 @@ import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { listTargets } from "@/features/account-restrictions/service";
 import {
   LocalRestrictionNotice,
+  AccountFilters,
   TargetRows,
 } from "@/features/account-restrictions/presentation";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { AdminShell } from "@/features/admin/admin-shell";
 import { safePage } from "@/features/support/input";
+import { getPrivateWorkflow } from "@/features/private-workflow/runtime";
+import {
+  accountListHref,
+  accountQueryFromSearch,
+  accountSearchParams,
+} from "@/features/account-restrictions/input";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Authorized local accounts",
@@ -17,11 +24,24 @@ export const metadata: Metadata = {
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const page = safePage((await searchParams).page);
-  const result = await loadPrivatePage("/admin/accounts", (runtime, headers) =>
-    listTargets(runtime, headers, page),
+  const params = await searchParams;
+  const search = accountSearchParams(params);
+  let path = "/admin/accounts";
+  try {
+    path = accountListHref(accountQueryFromSearch(search));
+  } catch {
+    /* Invalid private filters show the guarded unavailable state. */
+  }
+  const result = await loadPrivatePage(path, (runtime, headers) =>
+    listTargets(
+      runtime,
+      headers,
+      getPrivateWorkflow(runtime)
+        ? accountQueryFromSearch(search)
+        : safePage(params.page),
+    ),
   );
   if (!result)
     return (
@@ -32,14 +52,23 @@ export default async function Page({
     );
   return (
     <AdminShell current="accounts">
-      <h1 className="text-page-title">Authorized local accounts</h1>
-      <LocalRestrictionNotice />
-      <TargetRows targets={result.targets} />
+      <h1 className="text-page-title">
+        {result.privateWorkflow
+          ? "Authorized fictional accounts"
+          : "Authorized local accounts"}
+      </h1>
+      <LocalRestrictionNotice privateWorkflow={result.privateWorkflow} />
+      {result.query && <AccountFilters query={result.query} />}
+      <TargetRows targets={result.targets} query={result.query} />
       <nav className="mt-8 flex flex-wrap gap-4" aria-label="Account pages">
         {result.page > 1 && (
           <AccountReadLink
             className="action action-outline"
-            href={`?page=${result.page - 1}`}
+            href={
+              result.query
+                ? accountListHref(result.query, result.page - 1)
+                : `?page=${result.page - 1}`
+            }
           >
             Previous accounts
           </AccountReadLink>
@@ -47,14 +76,20 @@ export default async function Page({
         {result.hasMore && (
           <AccountReadLink
             className="action action-outline"
-            href={`?page=${result.page + 1}`}
+            href={
+              result.query
+                ? accountListHref(result.query, result.page + 1)
+                : `?page=${result.page + 1}`
+            }
           >
             More accounts
           </AccountReadLink>
         )}
         <AccountReadLink
           className="action action-outline"
-          href="/admin/accounts"
+          href={
+            result.query ? accountListHref(result.query) : "/admin/accounts"
+          }
         >
           Reload accounts
         </AccountReadLink>

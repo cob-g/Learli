@@ -2,7 +2,7 @@ import type { AuthRuntime } from "@/lib/auth-factory";
 import {
   privateHeaders,
   privateJson,
-  sameLocalOrigin,
+  sameDomainOrigin,
 } from "@/lib/auth-handler";
 import { handleJsonMutation } from "@/lib/mutation-handler";
 import { AccessError } from "@/lib/permissions/access";
@@ -36,7 +36,7 @@ export async function handleMeetingRead(
 ) {
   if (!runtime)
     return privateJson({ message: "Meeting links are unavailable." }, 503);
-  if (!sameLocalOrigin(request, runtime))
+  if (!sameDomainOrigin(request, runtime))
     return privateJson({ message: "Request origin is not allowed." }, 403);
   if (request.method !== "GET")
     return privateJson({ message: "Method not allowed." }, 405);

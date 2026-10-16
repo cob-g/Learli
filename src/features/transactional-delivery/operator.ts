@@ -11,7 +11,9 @@ export async function drainHostedTransactionalDelivery(
   options: DrainOptions = {},
 ) {
   assertHostedAuthConfig(config);
-  if (config.mail.mode === "disabled") return { status: "disabled" as const };
+  // Private account capture is not a Resend booking-delivery transport.
+  if (config.mail.mode !== "resend-single-attempt")
+    return { status: "disabled" as const };
   const database = await createHostedRuntimeDatabase(config.database);
   try {
     const context = bindTransactionalDelivery(database.db, {

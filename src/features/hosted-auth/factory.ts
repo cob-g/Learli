@@ -21,7 +21,7 @@ export async function createHostedAuth(config: HostedAuthConfig) {
     config.database.role !== "learli_app" ||
     config.secret.length < 32 ||
     config.ingressSecret.length < 32 ||
-    (config.mail.mode !== "disabled" &&
+    (config.mail.mode === "resend-single-attempt" &&
       config.mail.transport.environment !== "staging")
   )
     throw new HostedAuthError("configuration");

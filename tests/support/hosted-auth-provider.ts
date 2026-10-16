@@ -78,7 +78,7 @@ export async function createSyntheticHostedProvider(
   const database = await createHostedRuntimeDatabase(config.database);
   try {
     const transport = createResendTransport(
-      config.mail.mode === "disabled"
+      config.mail.mode !== "resend-single-attempt"
         ? undefined
         : {
             ...config.mail.transport,

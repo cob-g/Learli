@@ -10,6 +10,8 @@ const env = {
   // supply them.
   DATABASE_MODE: "local",
   NEON_DEVELOPMENT_CONFIG_FILE: "",
+  // Private workflow browser tests explicitly opt in through their own config.
+  PRIVATE_WORKFLOW_CONFIG_FILE: "",
 };
 if (env.APP_ENV !== "test" || env.AUTH_MODE !== "local")
   throw new Error("Dedicated local test configuration required.");

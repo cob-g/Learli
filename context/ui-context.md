@@ -1,6 +1,6 @@
 # Learli — UI Context
 
-Version2.17 — Brand kit adoption, plus public home motion, illustration, layered hero photographs, liquid glass, a sample review carousel, search metadata and a page-loading bar, 2026-10-14
+Version2.19 — Brand kit, account language and guarded Tutor completion controls, 2026-10-16
 
 ## Authority and scope
 
@@ -204,8 +204,8 @@ The material is `.glass` in `site-shell.css`: a softened, tinted
 backdrop, a lit rim, a contact shadow and a glint that follows the pointer.
 
 - Glass is for layers that float above content: the shared header, the
-  finder, the lesson tiles, the "What Learli looks after" card, the
-  sample-review sheet, and the primary and outline actions. Reading sections stay solid.
+  finder, the lesson tiles, the "What Learli looks after" card, and the primary
+  and outline actions. Reading sections stay solid.
 - The shared header is transparent and spans the full viewport width. It takes on
   glass only once the page has scrolled beneath it (`data-raised`), because
   pinned labels over raw content cannot hold contrast. Without scripts it is
@@ -338,39 +338,29 @@ from the landing page's blocks and loaded with its stylesheet.
 - The directory and matching carry no photographs, because that is where real
   tutors appear.
 
-### Sample review carousel
+### Reviews and staging account language — 2026-10-16
 
-The owner asked on 2026-10-13 for a testimonials section with the animation of
-21st.dev's "circular testimonials" and natural placeholder messages "for now".
-Learli has no published reviews, and PUB-01 allows no invented ones in public,
-so the section is preview content:
+The owner's staging cleanup request supersedes the temporary 2026-10-13 sample
+review preview. The public home page contains no testimonial section in any
+environment while Learli has no approved published customer reviews. Fabricated
+quotes belong only in test fixtures; do not publish them or remove a disclaimer
+while retaining the fabricated content. A future real review section still
+requires the review-publication feature and its approved policy.
 
-- It sits between the "what Learli looks after" section and the closing doors,
-  and renders only where `APP_ENV` is development, test or staging
-  (`previewContentAllowed`). In production, or with the variable unset, the
-  page has no review section at all.
-- It carries a visible "Sample reviews" tag and the sentence "Written for this
-  preview. They are not from Learli customers." Do not remove either while the
-  content is sample content.
-- The quotes in `sample-reviews.ts` name nobody and use no numbers, prices,
-  results or verification claims; each describes something the product already
-  does. Speakers are roles, because Learli publishes no reviewer names.
-- Pictures are faceless crops of the hero photographs (hands, notebooks). A face
-  is never shown beside a quote.
-- Real reviews may replace them only from the review-publication feature, once
-  its policy is approved; then the tag goes and the sample file is deleted.
-- Motion follows the reference: three pictures in a shallow 3D arc that swing
-  round with an overshoot (800ms), and the quote arriving word by word out of a
-  blur. Learli's own parts are the mint sun behind the stack, the quote on glass
-  in Literata, and the kit icon travelling along the track.
-- It changes by itself, at the owner's request with no pause button and one
-  control, Next. A review stays up for 6 seconds, as requested by the owner on
-  2026-10-13. The clock runs only while the
-  carousel is on screen in a visible tab; a review stays put while a pointer
-  rests on it or keyboard focus is inside it, then for 2.5s more. Next moves on
-  at once and the automatic change carries on. Reduced motion turns the
-  automatic change off and makes Next instant. Without scripts every review is
-  listed and there are no controls.
+Use ordinary account labels: “Create account” and “Email”. Account and session
+settings do not describe the signed-in person as a synthetic account. Current
+address restrictions, verified-email/MFA requirements, honest mail outcomes and
+security recovery instructions still apply. Copy cleanup does not make the
+unfinished booking or guardian workflows available, approve real-user intake,
+or establish deployment readiness.
+
+The approved parent journey starts with an optional “Account type” choice during
+signup: “Choose later” or “Parent or guardian”. Parent intent continues through
+verification and sign-in to a private setup page. “Continue as parent” is an
+explicit action; a page visit or verification callback never grants a role.
+Existing roleless accounts can use “Set up parent workspace” in account settings.
+Explain that child access requires a separately authorized guardian relationship;
+preserve pending/error/retry states and safe tutor-selection continuation.
 
 ### Tutor directory and profiles
 
@@ -785,3 +775,51 @@ refresh within the same user/session, but no name or granted-role links display
 until fresh guarded account data validates it. Error/denial and identity/session
 changes clear the context. Shared booking current-page markers require the exact
 matching scope; query scope never grants or selects an arbitrary workspace.
+
+
+### Assigned Tutor completion control — 2026-10-16
+
+Use the existing private booking detail and native workflow form. For a currently
+eligible assigned tutor and confirmed booking whose saved end has passed, the
+control reads “Mark session completed”, with pending, safe failure and retry
+feedback. Explain that this records an administrative outcome, not externally
+verified attendance. Preserve disabled pre-hydration/no-script submission and
+keyboard/focus behavior. No control is shown when policy or authority is absent.
+The older admin form retains its explicit administrative wording.
+
+
+The Parent setup action also uses the existing `transition-none` convention of
+other guarded auth/workflow forms: hydration enables its colors together, without
+interpolating through low contrast. Disabled pre-hydration behavior is unchanged.
+
+
+### Private fictional workflow composition — 2026-10-16
+
+College Student onboarding uses the existing Account/auth/admission form styles.
+Its signup choice expresses intent and leads to independent College Support
+review; it never implies a role or eligibility grant. Pending status, current
+reviewed access and disabled intake remain explicit. Account settings provides the
+same setup entry. Parent and Student role views keep corresponding records even
+when one account holds both grants; no new design tokens or shell are introduced.
+
+An explicit validated private workflow reuses the existing design system. Show one
+site-wide private-staging notice naming fictional test data and disabled payments.
+Use ordinary provisional/confirmed/completed labels inside that mode, with honest
+pending-review and administrative-completion explanations. Prioritize reviewed
+learner requests over local fixture creation and route booking choices to
+`/bookings/new`. Legacy/default presentation remains unchanged without its packet.
+This changes software rehearsal presentation only, not launch eligibility, real
+consent, pricing, external video or delivery claims.
+
+### Scoped private Admin workflow — 2026-10-16
+
+Use the existing task workspace, native forms, rows, semantic type/color tokens,
+accessible confirmation and truthful empty/unavailable states. Private navigation
+adds Assigned bookings and local-test Accounts, retaining assigned Tutor/learner
+review and subjects; unsupported hosted account controls and gated public/private
+review/safeguarding tools are not advertised as active. No fabricated totals or
+new analytics layout. Account name/actual-role/status and exact booking ID/state
+filters carry bounded paging through navigation. Roles are display-only. Minimal
+participant names/relationship do not expose emails, contacts or private meetings.
+Fictional account action wording remains clear; real safeguarding findings are not
+invented. Responsive/keyboard/Axe execution evidence belongs in the tracker.

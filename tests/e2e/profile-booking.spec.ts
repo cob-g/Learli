@@ -83,7 +83,7 @@ async function actor(browser: Browser, learners = 1) {
   return { context, email, userId, ids };
 }
 async function login(page: Page, email: string) {
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(/\/bookings\/demo\?/);
@@ -431,9 +431,7 @@ test("sign-up and resend verification retain selection without granting roles or
   await page.goto(
     `/sign-in?next=${encodeURIComponent(bookingSelectionHref(choice))}`,
   );
-  await page
-    .getByRole("link", { name: "Create test account", exact: true })
-    .click();
+  await page.getByRole("link", { name: "Create account", exact: true }).click();
   await expect(
     page.getByRole("heading", {
       name: "Your simulated booking choice",
@@ -444,10 +442,10 @@ test("sign-up and resend verification retain selection without granting roles or
   await page
     .getByLabel("Display name", { exact: true })
     .fill("Synthetic verification parent");
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page
-    .getByRole("button", { name: "Create test account", exact: true })
+    .getByRole("button", { name: "Create account", exact: true })
     .click();
   await expect(
     page.getByRole("status").filter({ hasText: "verification message" }),
@@ -474,7 +472,7 @@ test("sign-up and resend verification retain selection without granting roles or
       exact: true,
     }),
   ).toBeVisible();
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByRole("button", { name: "Resend verification" }).click();
   await expect(
     page.getByRole("status").filter({ hasText: "message is available" }),
@@ -503,7 +501,7 @@ test("sign-up and resend verification retain selection without granting roles or
     page.getByRole("heading", { name: "Sign in", exact: true }),
   ).toBeVisible();
   const repeatedHref = await page
-    .getByRole("link", { name: "Create test account", exact: true })
+    .getByRole("link", { name: "Create account", exact: true })
     .getAttribute("href");
   expect(new URL(repeatedHref!, baseURL).searchParams.get("next")).toBe(
     "/account",
@@ -580,7 +578,7 @@ test("empty and invalid offerings remain truthful and unsafe/private continuatio
   const forged = `/bookings/demo?learnerId=forged&next=https://evil.test`;
   await page.goto(`/sign-in?next=${encodeURIComponent(forged)}`);
   const href = await page
-    .getByRole("link", { name: "Create test account", exact: true })
+    .getByRole("link", { name: "Create account", exact: true })
     .getAttribute("href");
   expect(new URL(href!, baseURL).searchParams.get("next")).toBe(
     "/bookings/demo",
@@ -596,7 +594,7 @@ test("empty and invalid offerings remain truthful and unsafe/private continuatio
     page.getByRole("heading", { name: "Sign in", exact: true }),
   ).toBeVisible();
   const repeatedHref = await page
-    .getByRole("link", { name: "Create test account", exact: true })
+    .getByRole("link", { name: "Create account", exact: true })
     .getAttribute("href");
   expect(new URL(repeatedHref!, baseURL).searchParams.get("next")).toBe(
     "/account",

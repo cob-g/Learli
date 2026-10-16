@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ReviewCarousel } from "@/features/home/review-carousel";
-import { sampleReviews } from "@/features/home/sample-reviews";
+import { sampleReviews } from "../fixtures/review-carousel";
 
 const html = renderToStaticMarkup(<ReviewCarousel reviews={sampleReviews} />);
 

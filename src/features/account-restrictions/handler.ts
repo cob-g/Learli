@@ -3,7 +3,8 @@ import type { AuthRuntime } from "@/lib/auth-factory";
 import { privateJson, sameLocalOrigin } from "@/lib/auth-handler";
 import { handleJsonMutation } from "@/lib/mutation-handler";
 import { AccessError } from "@/lib/permissions/access";
-import { invalidInput } from "./input";
+import { getPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { accountQueryFromSearch, invalidInput } from "./input";
 import { changeAccess, listTargets, readTarget } from "./service";
 export async function handleAccountRestrictions(
   runtime: AuthRuntime | null,
@@ -26,8 +27,18 @@ export async function handleAccountRestrictions(
     return privateJson({ message: "Request origin is not allowed." }, 403);
   if (request.method !== "GET")
     return privateJson({ message: "Method not allowed." }, 405);
+  let privateQuery = false;
   try {
     const params = new URL(request.url).searchParams;
+    if (getPrivateWorkflow(runtime)) {
+      privateQuery = true;
+      const query = accountQueryFromSearch(params, !!targetId);
+      return privateJson(
+        targetId
+          ? await readTarget(runtime, request.headers, targetId, query)
+          : await listTargets(runtime, request.headers, query),
+      );
+    }
     if (
       [...params.keys()].some((key) => key !== "page") ||
       params.getAll("page").length > 1
@@ -43,7 +54,14 @@ export async function handleAccountRestrictions(
     if (error instanceof AccessError)
       return privateJson({ message: error.message }, error.status);
     if (error instanceof ZodError)
-      return privateJson({ message: "Choose a valid account page." }, 400);
+      return privateJson(
+        {
+          message: privateQuery
+            ? "Choose valid account filters and paging."
+            : "Choose a valid account page.",
+        },
+        400,
+      );
     return privateJson(
       {
         message: "Local account restrictions are unavailable. Try again later.",

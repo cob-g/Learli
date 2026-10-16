@@ -261,7 +261,7 @@ test("stale-session reauthentication preserves safe return and suspended account
       .getByRole("button", { name: "Sign out", exact: true })
       .click();
     await account.page.goto("/sign-in?next=%2Faccount");
-    await account.page.getByLabel("Test email").fill(account.email);
+    await account.page.getByLabel("Email").fill(account.email);
     await account.page.getByLabel("Password", { exact: true }).fill(password);
     await account.page
       .getByRole("button", { name: "Sign in", exact: true })

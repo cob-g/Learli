@@ -1,7 +1,4 @@
-import {
-  demoStateLabels,
-  demoLiveState,
-} from "@/features/bookings/lifecycle-model";
+import { demoLiveState } from "@/features/bookings/lifecycle-model";
 import Link from "next/link";
 import { Check, TimerOff, TriangleAlert } from "lucide-react";
 import {
@@ -10,6 +7,7 @@ import {
 } from "@/features/bookings/lesson-time";
 import { levelNames } from "@/features/subjects/catalog";
 import { bookingDetailPath } from "@/features/bookings/read-model";
+import { bookingStatusLabel } from "@/features/private-workflow/notice";
 import type { LearnerLevel } from "@/lib/db/schema/app";
 import { ExpiryRefresh } from "./expiry-refresh";
 import { DashboardFilterForm, DashboardLink } from "./pending";
@@ -36,16 +34,26 @@ export type DashboardData = {
   earliestExpiry?: string | null;
 };
 
-export function StatusBadge({ state }: { state: ReservationView["state"] }) {
+export function StatusBadge({
+  state,
+  privateWorkflow = false,
+}: {
+  state: ReservationView["state"];
+  privateWorkflow?: boolean;
+}) {
   const expired =
     !demoLiveState(state) && state !== "provisional" && state !== "confirmed";
-  const Icon = expired ? TimerOff : TriangleAlert;
+  const success =
+    privateWorkflow && (state === "confirmed" || state === "completed");
+  const Icon = success ? Check : expired ? TimerOff : TriangleAlert;
   return (
     <span
-      className={`inline-flex min-h-7 max-w-full items-center gap-1 rounded-tag border px-2 text-label ${expired ? "border-control bg-subtle text-muted-foreground" : "border-warning bg-warning-soft text-warning"}`}
+      className={`inline-flex min-h-7 max-w-full items-center gap-1 rounded-tag border px-2 text-label ${success ? "border-success bg-success-soft text-success" : expired ? "border-control bg-subtle text-muted-foreground" : "border-warning bg-warning-soft text-warning"}`}
     >
       <Icon className="size-4 shrink-0" aria-hidden="true" />
-      <span className="min-w-0 wrap-anywhere">{demoStateLabels[state]}</span>
+      <span className="min-w-0 wrap-anywhere">
+        {bookingStatusLabel(state, privateWorkflow)}
+      </span>
     </span>
   );
 }
@@ -120,7 +128,9 @@ function ViewBooking({
   );
 }
 
-function expiryLabel(row: ReservationView) {
+function expiryLabel(row: ReservationView, privateWorkflow = false) {
+  if (privateWorkflow && row.state === "expired")
+    return "Provisional hold expired at";
   return row.state === "confirmed"
     ? "Original provisional deadline (confirmation does not expire)"
     : row.state === "provisional"
@@ -132,11 +142,24 @@ function expiryLabel(row: ReservationView) {
           : "Original simulation deadline";
 }
 
-function Expiry({ row }: { row: ReservationView }) {
+function Expiry({
+  row,
+  privateWorkflow = false,
+}: {
+  row: ReservationView;
+  privateWorkflow?: boolean;
+}) {
+  if (
+    privateWorkflow &&
+    row.state !== "provisional" &&
+    row.state !== "expired" &&
+    !row.state.startsWith("demo_")
+  )
+    return null;
   return (
     <details className="mt-2">
       <summary className="min-h-11 cursor-pointer py-2 text-small text-primary underline">
-        {expiryLabel(row)}
+        {expiryLabel(row, privateWorkflow)}
       </summary>
       <LessonTime value={row.expiry} />
     </details>
@@ -146,9 +169,11 @@ function Expiry({ row }: { row: ReservationView }) {
 function Agenda({
   rows,
   workspace,
+  privateWorkflow = false,
 }: {
   rows: ReservationView[];
   workspace: FamilyWorkspace;
+  privateWorkflow?: boolean;
 }) {
   return (
     <div className="mt-6 space-y-8">
@@ -177,9 +202,12 @@ function Agenda({
                     </p>
                   )}
                   <div className="mt-2">
-                    <StatusBadge state={row.state} />
+                    <StatusBadge
+                      state={row.state}
+                      privateWorkflow={privateWorkflow}
+                    />
                   </div>
-                  <Expiry row={row} />
+                  <Expiry row={row} privateWorkflow={privateWorkflow} />
                 </div>
                 <div className="md:shrink-0">
                   <ViewBooking row={row} workspace={workspace} />
@@ -242,7 +270,13 @@ function Pagination({
   );
 }
 
-export function FamilyDashboard({ data }: { data: DashboardData }) {
+export function FamilyDashboard({
+  data,
+  privateWorkflow = false,
+}: {
+  data: DashboardData;
+  privateWorkflow?: boolean;
+}) {
   const { workspace, learners, selectedLearner, active, history } = data;
   const next = active.find((row) => row.startAtUtc > data.checkedAt.startAtUtc);
   const agenda = active.filter((row) => row.id !== next?.id);
@@ -268,9 +302,31 @@ export function FamilyDashboard({ data }: { data: DashboardData }) {
       <div className="max-w-5xl">
         <h1 className="text-page-title wrap-anywhere">{title}</h1>
         <p className="mt-3 max-w-prose text-small text-muted-foreground">
-          Local simulation only. Reservations expire after ten minutes and do
-          not confirm a lesson.
+          {privateWorkflow
+            ? "Manage upcoming sessions and booking history. Provisional requests await an assigned review before confirmation."
+            : "Local simulation only. Reservations expire after ten minutes and do not confirm a lesson."}
         </p>
+        {privateWorkflow && (
+          <nav
+            aria-label="Booking and learner actions"
+            className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2"
+          >
+            <Link className="action action-primary" href="/tutors">
+              Find a tutor
+            </Link>
+            {!!learners.length && (
+              <DashboardLink href="/bookings/new">New booking</DashboardLink>
+            )}
+            <DashboardLink href="/learner-admission/new">
+              {workspace === "parent"
+                ? "Add a learner"
+                : "Request learner review"}
+            </DashboardLink>
+            <DashboardLink href="/learner-admission">
+              Admission requests
+            </DashboardLink>
+          </nav>
+        )}
         {workspace === "parent" && learners.length > 1 && (
           <LearnerSelector learners={learners} selected={selectedLearner?.id} />
         )}
@@ -300,12 +356,17 @@ export function FamilyDashboard({ data }: { data: DashboardData }) {
           <section className="mt-8 rounded-surface border border-border bg-surface p-6 sm:p-8">
             <h2 className="text-item-title">No authorized learner available</h2>
             <p className="mt-2 max-w-prose text-body">
-              This account has no eligible local learner profile. Create a
-              fictional profile to try the local booking flow.
+              {privateWorkflow
+                ? "Request a learner review to continue. Pending requests grant no learner or booking access; an assigned reviewer must authorize the request first."
+                : "This account has no eligible local learner profile. Create a fictional profile to try the local booking flow."}
             </p>
             <div className="mt-4">
-              <DashboardLink href="/learners/new">
-                Create a local learner
+              <DashboardLink
+                href={privateWorkflow ? "/learner-admission" : "/learners/new"}
+              >
+                {privateWorkflow
+                  ? "View admission requests"
+                  : "Create a local learner"}
               </DashboardLink>
             </div>
           </section>
@@ -317,7 +378,9 @@ export function FamilyDashboard({ data }: { data: DashboardData }) {
                 aria-labelledby="next-reservation"
               >
                 <h2 id="next-reservation" className="text-section-title">
-                  Next simulated reservation
+                  {privateWorkflow
+                    ? "Next session"
+                    : "Next simulated reservation"}
                 </h2>
                 <div className="mt-6 grid min-w-0 gap-6 md:grid-cols-2">
                   <div className="min-w-0">
@@ -336,17 +399,30 @@ export function FamilyDashboard({ data }: { data: DashboardData }) {
                       {next.durationMinutes} minutes
                     </p>
                     <div className="mt-4">
-                      <StatusBadge state={next.state} />
+                      <StatusBadge
+                        state={next.state}
+                        privateWorkflow={privateWorkflow}
+                      />
                     </div>
                   </div>
                 </div>
                 <p className="mt-6 max-w-prose border-t border-border pt-6 text-small text-muted-foreground">
                   {next.state === "confirmed"
                     ? "This booking is confirmed and does not expire. Refresh bookings to check its current status."
-                    : "This is a temporary local reservation. Refresh bookings to check its current status."}
+                    : privateWorkflow && next.state === "provisional"
+                      ? "This provisional hold awaits an assigned review. It expires if it is not confirmed before the deadline."
+                      : "This is a temporary local reservation. Refresh bookings to check its current status."}
                 </p>
-                <p className="mt-4 text-label">{expiryLabel(next)}</p>
-                <LessonTime value={next.expiry} />
+                {(!privateWorkflow ||
+                  next.state === "provisional" ||
+                  next.state.startsWith("demo_")) && (
+                  <>
+                    <p className="mt-4 text-label">
+                      {expiryLabel(next, privateWorkflow)}
+                    </p>
+                    <LessonTime value={next.expiry} />
+                  </>
+                )}
                 <div className="mt-4">
                   <ViewBooking row={next} workspace={workspace} />
                 </div>
@@ -358,26 +434,37 @@ export function FamilyDashboard({ data }: { data: DashboardData }) {
               aria-labelledby="active-title"
             >
               <h2 id="active-title" className="text-section-title">
-                Active simulated reservations
+                {privateWorkflow
+                  ? "Upcoming sessions"
+                  : "Active simulated reservations"}
               </h2>
               {!active.length && (
                 <p className="mt-4 max-w-prose text-body">
-                  No active simulated reservations. Any expired reservation
-                  remains in history.
+                  {privateWorkflow
+                    ? "No upcoming sessions. Cancelled, expired and completed bookings remain in history."
+                    : "No active simulated reservations. Any expired reservation remains in history."}
                 </p>
               )}
               {next && !agenda.length && (
                 <p className="mt-4 text-body">
-                  No other active simulated reservations.
+                  {privateWorkflow
+                    ? "No other upcoming sessions."
+                    : "No other active simulated reservations."}
                 </p>
               )}
-              <Agenda rows={agenda} workspace={workspace} />
+              <Agenda
+                rows={agenda}
+                workspace={workspace}
+                privateWorkflow={privateWorkflow}
+              />
               {data.activeHasNext && (
                 <Link
                   className="mt-4 inline-flex min-h-11 items-center"
                   href={`/bookings?${new URLSearchParams({ scope: workspace === "parent" ? "guardian" : "student", filter: "active", ...(data.query.learner ? { learnerId: data.query.learner } : {}) })}`}
                 >
-                  View all active reservations
+                  {privateWorkflow
+                    ? "View all upcoming sessions"
+                    : "View all active reservations"}
                 </Link>
               )}
             </section>
@@ -387,16 +474,22 @@ export function FamilyDashboard({ data }: { data: DashboardData }) {
               aria-labelledby="history-title"
             >
               <h2 id="history-title" className="text-section-title">
-                Reservation history
+                {privateWorkflow ? "History" : "Reservation history"}
               </h2>
               {!history.length && (
                 <p className="mt-4 max-w-prose text-body">
                   {(data.query.historyPage ?? 1) === 1
-                    ? "No reservation history yet. Expired simulations appear here with their original scheduled time."
+                    ? privateWorkflow
+                      ? "No booking history yet. Cancelled, expired and completed bookings will appear here."
+                      : "No reservation history yet. Expired simulations appear here with their original scheduled time."
                     : "No history on this page. Use the previous page to return to earlier results."}
                 </p>
               )}
-              <Agenda rows={history} workspace={workspace} />
+              <Agenda
+                rows={history}
+                workspace={workspace}
+                privateWorkflow={privateWorkflow}
+              />
               <Pagination data={data} kind="history" />
             </section>
           </>

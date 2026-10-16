@@ -3,6 +3,11 @@ import {
   changeInput,
   targetIdInput,
   pageInput,
+  privateAccountQueryInput,
+  accountQueryFromSearch,
+  accountSearchParams,
+  accountListHref,
+  accountTargetHref,
 } from "@/features/account-restrictions/input";
 const input = {
   revision: 0,
@@ -54,5 +59,82 @@ describe("untrusted account restriction input", () => {
     );
     for (const page of [0, 1001, "NaN"])
       expect(pageInput.safeParse(page).success).toBe(false);
+  });
+  it("bounds private literal name/role/status/paging filters without accepting authority fields", () => {
+    expect(
+      privateAccountQueryInput.parse({
+        q: "  A_%  ",
+        role: "tutor",
+        status: "suspended",
+        pageSize: "2",
+      }),
+    ).toEqual({
+      q: "A_%",
+      role: "tutor",
+      status: "suspended",
+      page: 1,
+      pageSize: 2,
+    });
+    for (const input of [
+      { q: "x".repeat(101) },
+      { q: ["one", "two"] },
+      { role: "admin" },
+      { status: "deleted" },
+      { pageSize: 0 },
+      { pageSize: 21 },
+      { pageSize: 1.5 },
+      { actorUserId: "forged" },
+      { next: "https://unrelated.test" },
+    ])
+      expect(privateAccountQueryInput.safeParse(input).success).toBe(false);
+  });
+  it("rejects unknown and duplicate query fields, with distinct bounded detail history paging", () => {
+    for (const search of [
+      "q=one&q=two",
+      "page=1&page=1",
+      "role=student&role=tutor",
+      "targetId=foreign",
+      "historyPage=2",
+    ])
+      expect(() =>
+        accountQueryFromSearch(new URLSearchParams(search)),
+      ).toThrow();
+    expect(() =>
+      accountQueryFromSearch(accountSearchParams({ q: ["one", "two"] })),
+    ).toThrow();
+    expect(
+      accountQueryFromSearch(
+        new URLSearchParams("page=2&historyPage=3&pageSize=2"),
+        true,
+      ),
+    ).toMatchObject({ page: 2, historyPage: 3, pageSize: 2 });
+    expect(() =>
+      accountQueryFromSearch(new URLSearchParams("historyPage=1001"), true),
+    ).toThrow();
+  });
+  it("keeps exact list filters and page on detail/back/history navigation without a return URL", () => {
+    const query = privateAccountQueryInput.parse({
+      q: "A_%",
+      role: "student",
+      status: "active",
+      page: 2,
+      pageSize: 2,
+    });
+    expect(accountListHref(query)).toBe(
+      "/admin/accounts?q=A_%25&role=student&status=active&page=2&pageSize=2",
+    );
+    expect(accountListHref(query, 1)).not.toContain("page=2");
+    const detail = new URL(
+      accountTargetHref("opaque-account", query, 3),
+      "http://learli.invalid",
+    );
+    expect(detail.pathname).toBe("/admin/accounts/opaque-account");
+    expect(detail.searchParams.get("page")).toBe("2");
+    expect(detail.searchParams.get("historyPage")).toBe("3");
+    const parsed = accountQueryFromSearch(detail.searchParams, true);
+    expect(accountListHref(parsed)).toBe(accountListHref(query));
+    expect(accountListHref(privateAccountQueryInput.parse({}))).toBe(
+      "/admin/accounts",
+    );
   });
 });

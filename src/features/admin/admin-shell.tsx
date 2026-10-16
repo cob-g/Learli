@@ -12,7 +12,7 @@ export const adminAreas = [
   ],
   ["accounts", "/admin/accounts", "Authorized local accounts"],
 ] as const;
-export type AdminArea = (typeof adminAreas)[number][0];
+export type AdminArea = (typeof adminAreas)[number][0] | "bookings";
 
 /** Content frame; the dedicated workspace shell owns administrative navigation. */
 export function AdminShell({

@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { privateJson } from "@/lib/auth-handler";
 import { handleSubjectStateRequest } from "@/features/subjects/handler";
 export const runtime = "nodejs";
@@ -9,7 +9,7 @@ export async function PATCH(
 ) {
   try {
     return await handleSubjectStateRequest(
-      getAuthRuntime(),
+      await getDomainAuthRuntime(),
       request,
       (await context.params).subjectId,
     );

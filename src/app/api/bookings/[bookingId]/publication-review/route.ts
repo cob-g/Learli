@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { handlePublication } from "@/features/review-publication/handler";
 export const dynamic = "force-dynamic";
 export async function GET(
@@ -6,7 +6,7 @@ export async function GET(
   { params }: { params: Promise<{ bookingId: string }> },
 ) {
   return handlePublication(
-    getAuthRuntime(),
+    await getDomainAuthRuntime(),
     request,
     "author",
     (await params).bookingId,

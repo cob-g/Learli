@@ -4,6 +4,7 @@ import { readOwnTutorProfile } from "@/features/tutors/service";
 import { getScreeningContext } from "@/features/tutor-screening/composition";
 import { readScreening } from "@/features/tutor-screening/service";
 import { ScreeningRequest } from "@/features/tutor-screening/forms";
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Tutor screening",
@@ -19,6 +20,7 @@ export default async function Page() {
       const profile = await readOwnTutorProfile(runtime, headers);
       return {
         disabled: false as const,
+        privateWorkflow: isPrivateWorkflow(runtime),
         profile,
         detail: profile
           ? await readScreening(context, headers, profile.id, "owner")
@@ -43,7 +45,11 @@ export default async function Page() {
         </Link>
       ) : data.detail ? (
         <p className="mt-4 text-body">
-          Synthetic screening: {data.detail.state}. Required fictional checks:{" "}
+          {data.privateWorkflow
+            ? "Screening status: "
+            : "Synthetic screening: "}
+          {data.detail.state}. Required{" "}
+          {data.privateWorkflow ? "test" : "fictional"} checks:{" "}
           {data.detail.requiredCodes.join(", ")}. Your assigned reviewer decides
           eligibility.
         </p>

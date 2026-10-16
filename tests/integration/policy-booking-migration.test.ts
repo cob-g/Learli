@@ -14,6 +14,10 @@ import {
 } from "../../scripts/staging-migrations/protections";
 import { runtimeGrantsSql } from "../../scripts/runtime-grants";
 import { verifyRuntimeGrants } from "../../scripts/staging-migrations/privileges";
+import {
+  bookingPolicyDigest,
+  validateBookingCapability,
+} from "../../src/features/booking-workflows/policy";
 const port = stagingTlsTestPort(
     process.env.LEARLI_STAGING_TEST_PORT ?? "56006",
   ),
@@ -143,6 +147,130 @@ async function rows(p: Pool, shape?: Record<string, string[]>) {
   return { columns, values };
 }
 describe("W6 fresh and populated forward source/grant/preservation proof", () => {
+  it("populated0032→0033 preserves v1 receipts, ledger, rows and function authority", async () => {
+    expect(candidate.entries[33]?.tag).toBe("0033_assigned_tutor_completion");
+    const prior = JSON.parse(
+      readFileSync("drizzle/meta/0032_snapshot.json", "utf8"),
+    );
+    const current = JSON.parse(
+      readFileSync("drizzle/meta/0033_snapshot.json", "utf8"),
+    );
+    expect(current.prevId).toBe(prior.id);
+    const oldShape = structuredClone(prior.tables);
+    const newShape = structuredClone(current.tables);
+    delete oldShape["public.booking_workflow_policies"].checkConstraints
+      .booking_workflow_policy_shape;
+    delete newShape["public.booking_workflow_policies"].checkConstraints
+      .booking_workflow_policy_shape;
+    expect(newShape).toEqual(oldShape);
+    await control.query("CREATE DATABASE w6_tutor_upgrade OWNER learli_owner");
+    const p = connection("w6_tutor_upgrade");
+    try {
+      await apply(p, 33);
+      await p.query(runtimeGrantsSql);
+      const terms = {
+        authority: "synthetic_test",
+        source: "synthetic_readiness",
+        version: "synthetic-booking-v1",
+        reference: "synthetic:booking:v1",
+        admissionPolicyId: randomUUID(),
+        durationMinutes: 60,
+        stepMinutes: 30,
+        noticeMinutes: 60,
+        horizonDays: 14,
+        provisionalMinutes: 10,
+        cancelCutoffMinutes: 60,
+        moveCutoffMinutes: 60,
+        confirmationPrerequisite: "synthetic_prerequisite_review",
+        confirmationActor: "assigned_mfa_admin",
+        outcomeActor: "assigned_mfa_admin",
+        disputePath: "/support",
+        meetingAccess: "confirmed_until_end",
+      } as const;
+      const policy = validateBookingCapability(
+        {
+          ...terms,
+          policyId: randomUUID(),
+          contentDigest: bookingPolicyDigest(terms),
+        },
+        "test",
+      );
+      if (policy.authority === "disabled")
+        throw new Error("Expected isolated policy");
+      await p.query(
+        "INSERT INTO booking_workflow_policies(id,version,reference,content_digest,terms) VALUES($1,$2,$3,$4,$5::jsonb)",
+        [
+          policy.policyId,
+          policy.version,
+          policy.reference,
+          policy.contentDigest,
+          JSON.stringify(policy),
+        ],
+      );
+      await p.query(
+        "INSERT INTO booking_workflow_policy_head(source,policy_id,enabled) VALUES('synthetic_readiness',$1,true)",
+        [policy.policyId],
+      );
+      const valid = async () =>
+        (
+          await p.query("SELECT booking_workflow_policy_current($1) AS valid", [
+            policy.policyId,
+          ])
+        ).rows[0].valid;
+      expect(await valid()).toBe(true);
+      const before = await rows(p);
+      const ledger = (
+        await p.query("SELECT * FROM drizzle.__drizzle_migrations ORDER BY id")
+      ).rows;
+      const definitions = async () =>
+        (
+          await p.query(
+            "SELECT p.oid,p.oid::regprocedure::text AS signature,p.proowner,p.proacl,p.proconfig,p.prosecdef,p.provolatile,p.prosrc FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND NOT EXISTS(SELECT 1 FROM pg_depend d WHERE d.classid='pg_proc'::regclass AND d.objid=p.oid AND d.deptype='e') ORDER BY p.oid",
+          )
+        ).rows;
+      const original = await definitions();
+      await apply(p, candidate.entries.length, 33);
+      expect(await rows(p, before.columns)).toEqual(before);
+      expect(
+        (
+          await p.query(
+            "SELECT * FROM drizzle.__drizzle_migrations ORDER BY id",
+          )
+        ).rows.slice(0, 33),
+      ).toEqual(ledger);
+      const after = await definitions();
+      expect(after).toHaveLength(original.length);
+      for (const [i, previous] of original.entries()) {
+        const { prosrc: oldBody, ...oldMetadata } = previous;
+        const { prosrc: newBody, ...newMetadata } = after[i];
+        expect(newMetadata).toEqual(oldMetadata);
+        if (
+          /^(booking_workflow_policy_current|has_booking_workflow_task)\(/.test(
+            previous.signature,
+          )
+        )
+          expect(newBody).not.toBe(oldBody);
+        else expect(newBody).toBe(oldBody);
+      }
+      expect(await valid()).toBe(true);
+      for (const statement of [
+        "UPDATE booking_workflow_policies SET terms='{}' WHERE id=$1",
+        "DELETE FROM booking_workflow_policies WHERE id=$1",
+      ])
+        await expect(
+          p.query(statement, [policy.policyId]),
+        ).rejects.toMatchObject({ code: "23514" });
+      const client = await p.connect();
+      try {
+        await verifyRuntimeGrants(client);
+        await verifyProtections(client, candidate, candidate.entries.length);
+      } finally {
+        client.release();
+      }
+    } finally {
+      await p.end();
+    }
+  }, 60000);
   it("preserves all historical0000–0024 accepted source bytes and generated supported predecessor", () => {
     const acceptedPriorSources: Record<string, string> = {
       "drizzle/0022_admin_assurance.sql":

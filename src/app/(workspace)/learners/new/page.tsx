@@ -11,7 +11,12 @@ import { UnavailablePage } from "@/components/shared/unavailable-page";
 import {
   bookingSelectionHref,
   selectionFromReturnPath,
+  privateBookingHref,
 } from "@/features/bookings/selection";
+import { canonicalAdmissionSelection } from "@/features/learner-admission/input";
+import { getDomainAuthRuntime } from "@/lib/auth";
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Create a local learner",
@@ -22,7 +27,17 @@ export default async function CreateLearnerPage({
 }: {
   searchParams: Promise<{ next?: string | string[] }>;
 }) {
-  const selection = selectionFromReturnPath((await searchParams).next);
+  const rawNext = (await searchParams).next;
+  const runtime = await getDomainAuthRuntime();
+  if (runtime && isPrivateWorkflow(runtime)) {
+    const next = canonicalAdmissionSelection(rawNext);
+    redirect(
+      next
+        ? `/learner-admission/new?next=${encodeURIComponent(privateBookingHref(next))}`
+        : "/learner-admission/new",
+    );
+  }
+  const selection = selectionFromReturnPath(rawNext);
   const returnToBooking = selection
     ? bookingSelectionHref(selection)
     : undefined;

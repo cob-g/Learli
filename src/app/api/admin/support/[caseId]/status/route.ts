@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { handleSupportRequest } from "@/features/support/handler";
 export const dynamic = "force-dynamic";
 export async function PATCH(
@@ -6,7 +6,7 @@ export async function PATCH(
   context: { params: Promise<{ caseId: string }> },
 ) {
   return handleSupportRequest(
-    getAuthRuntime(),
+    await getDomainAuthRuntime(),
     request,
     "reviewer",
     (await context.params).caseId,

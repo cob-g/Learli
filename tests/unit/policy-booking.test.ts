@@ -4,6 +4,7 @@ import {
   bookingPolicyDigest,
   validateBookingCapability,
   disabledBooking,
+  supportsTutorCompletion,
 } from "@/features/booking-workflows/policy";
 import {
   workflowCreate,
@@ -35,6 +36,56 @@ const packet = () => ({
   contentDigest: bookingPolicyDigest(fields),
 });
 describe("explicit synthetic booking policy and unchanged legacy semantics", () => {
+  it("retains the exact historical v1 digest and admin completion capability", () => {
+    const historical = {
+      ...fields,
+      admissionPolicyId: "00000000-0000-4000-8000-000000000001",
+    };
+    expect(bookingPolicyDigest(historical)).toBe(
+      "98458fe6a50cc0332a20f524ede999aa9b4c4a7ad350dc7e8ca731c24f4cfe4a",
+    );
+    const p = validateBookingCapability(packet(), "test");
+    if (p.authority === "disabled")
+      throw new Error("Expected explicit test capability.");
+    expect(supportsTutorCompletion(p)).toBe(false);
+  });
+  it("binds the assigned tutor completion actor in a separate strict v2 receipt", () => {
+    const terms = {
+      ...fields,
+      version: "synthetic-booking-v2",
+      reference: "synthetic:booking:v2",
+      completionActor: "assigned_tutor",
+    } as const;
+    const value = {
+      ...terms,
+      policyId: randomUUID(),
+      contentDigest: bookingPolicyDigest(terms),
+    };
+    const p = validateBookingCapability(value, "test");
+    if (p.authority === "disabled")
+      throw new Error("Expected explicit test capability.");
+    expect(supportsTutorCompletion(p)).toBe(true);
+    expect(p.confirmationActor).toBe("assigned_mfa_admin");
+    expect(p.outcomeActor).toBe("assigned_mfa_admin");
+    for (const change of [
+      { completionActor: "parent" },
+      { completionActor: undefined },
+      { outcomeActor: "assigned_tutor" },
+      { reference: fields.reference },
+      { contentDigest: "a".repeat(64) },
+    ])
+      expect(() =>
+        validateBookingCapability({ ...value, ...change }, "test"),
+      ).toThrow();
+    for (const environment of ["development", "staging", "production"])
+      expect(() => validateBookingCapability(value, environment)).toThrow();
+    expect(() =>
+      validateBookingCapability(
+        { ...packet(), completionActor: "assigned_tutor" },
+        "test",
+      ),
+    ).toThrow();
+  });
   it("shipped default is disabled in every environment", () => {
     for (const e of ["test", "development", "staging", "production"])
       expect(validateBookingCapability(disabledBooking, e)).toEqual({

@@ -4,6 +4,9 @@ import {
   readinessCandidates,
 } from "@/features/tutor-screening/discovery";
 import { LessonTime } from "@/features/bookings/lesson-time";
+import { getDomainAuthRuntime } from "@/lib/auth";
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Synthetic tutor profile",
@@ -15,6 +18,9 @@ export default async function Page({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const runtime = await getDomainAuthRuntime();
+  if (runtime && isPrivateWorkflow(runtime))
+    redirect(`/tutors/${encodeURIComponent(slug)}`);
   const data = await loadPrivatePage(
     "/readiness/tutors/" + slug,
     async (runtime) => {

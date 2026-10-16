@@ -905,6 +905,22 @@ Official integration instructions: [Better Auth Next.js](https://better-auth.com
 
 ### 10.4 Roles and minor accounts
 
+**Parent workspace enrollment — owner-approved direction, 2026-10-16:** signup
+may carry Parent onboarding intent through the existing safe verification/sign-in
+continuation, without submitting a trusted role to Better Auth. A separate
+explicit authenticated POST enrolls only the caller's parent workspace. Additive
+migration0032 supplies the narrow `enroll_parent_workspace(text,text)` operation:
+current verified user, active access and unexpired exact session are checked
+after consistent identity locks; one parent grant and its audit commit atomically.
+Retries preserve one role/event and legitimate other roles. General runtime role
+INSERT/UPDATE/DELETE remains denied, and PUBLIC receives no function execution.
+The account boundary supports local and accepted hosted account runtimes while
+preserving exact ingress/origin/membership checks. Selecting Parent or receiving
+this role creates no learner, guardian link, consent approval or booking right.
+Blueprint: `prompts/features/m2-04-parent-onboarding.md`; actual verification and
+the remaining five-step parent workflow status belong in progress-tracker.
+Real-minor intake, operating booking rules and deployment remain separately gated.
+
 Local M5.6 delegated account restrictions (2026-10-11) add an owner-only fixture
 target registry, exact staff-to-target grants and append-only transition/capability
 history. Runtime changes existing user_access only through a narrow SECURITY
@@ -1677,6 +1693,25 @@ See the W6 child blueprint and contribution; combined verification remains in th
 progress tracker, distinct from isolated component acceptance.
 
 
+### Assigned tutor completion — owner decision, 2026-10-16
+
+Manual completion belongs to the assigned tutor after the saved scheduled end,
+with a database audit event. It is an administrative outcome, not attendance.
+Immutable `synthetic-booking-v1` receipts and their admin-only semantics remain
+unchanged. A distinct `synthetic-booking-v2` capability binds
+`completionActor=assigned_tutor` in its digest. Existing database mutation,
+authority and receipt guards share the assigned-tutor entitlement and current
+identity/session/role, beneficiary, screening and policy checks. Existing locks,
+revision checks, idempotency and atomic events/notice intents remain authoritative.
+Confirmation and no-show retain their existing assigned-admin test behavior.
+The private Tutor detail may show the control only after guarded eligibility;
+a hidden or disabled button never substitutes for server/database authorization.
+This software path is selected only by isolated test composition. Default runtime
+factories remain disabled; the other guardian/booking terms and exact staging
+activation are not selected by this decision. See
+`prompts/features/m5-05-assigned-tutor-completion.md` and the progress tracker for
+implementation and actual verification status.
+
 ### Integrated account, admission, screening and publication boundaries — 2026-10-13
 
 The isolated eight-area candidate now contains the W2 validated pooled database
@@ -1794,3 +1829,48 @@ keeps the shown name and granted-role links until the following guarded account
 read settles, which then updates or clears them. Error/denial and identity/session
 changes clear the context. Shared booking current-page markers require the exact
 matching scope; query scope never grants or selects an arbitrary workspace.
+
+
+### Private fictional workflow composition — owner choice, 2026-10-16
+
+The owner selected private staging with fictional test accounts only and payments
+disabled. Real-family intake remains disabled. The software implementation plan
+adds explicit target/origin/account/policy-bound composition for the existing
+admission, screening, booking and participant services; no environment flag alone
+confers authority. Hosted domain access must preserve signed ingress and existing
+current SQL authority; normal local defaults remain unchanged without a packet.
+Existing immutable synthetic rules remain QA inputs, not customer terms.
+Actual implementation/verification belongs in progress-tracker. Exact hosted
+activation/account cleanup is separate. See
+`docs/decisions/2026-10-16-private-fictional-staging.md` and
+`prompts/features/m8-03-private-fictional-workflow.md`.
+
+
+Private composition implementation evidence (2026-10-16): normal-build local
+rehearsal is verified through reviewed learner/Tutor onboarding, one shared
+booking and private link access. Full screening metadata and finite participants
+are enforced in final query/receipt scope; packet replacement during relevant
+waits rejects/rolls back. The existing database booking engine, defaults, authority
+and schema remain. Hosted target provisioning/activation and a hosted metadata
+adapter are still pending; do not infer a live staging system from local evidence.
+See `docs/qa/private-fictional-workflow-results-2026-10-16.md`.
+
+### Scoped private Admin composition — 2026-10-16
+
+The approved M5.6/M8.9 slice reuses current-MFA/exact-assignment services. Private
+Tutor queue/detail add the existing finite actor/Tutor policy predicates; private
+old local review mutations are denied rather than bypass current screening.
+Assigned staff booking list/detail share current workflow/policy/audience scope
+and disclose only coordination labels, schedule/state and permitted actions.
+No participant meeting-link access or broad Admin read scope is introduced.
+
+Account controls retain existing `local_fixture` target/grant and READ COMMITTED
+SQL mutation provenance, with additional **local-test** private packet intersection.
+Captured packet continuity and fresh SQL scope/MFA checks after function waits must
+complete before committing status plus immutable event. Existing legacy defaults
+remain; invalid private configuration cannot fall back. Hosted account management
+and real safeguarding remain disabled. Explicit trusted metadata provisioning
+cannot create roles/accounts, change status, revive revoked grants or bulk-authorize
+an audience. No new schema, runtime grant or infrastructure was added. See
+`prompts/features/m5-06-admin-workflow-acceptance.md`; execution evidence remains
+separate in progress-tracker.

@@ -1,6 +1,6 @@
 import { ZodError } from "zod";
 import type { AuthRuntime } from "@/lib/auth-factory";
-import { privateJson, sameLocalOrigin } from "@/lib/auth-handler";
+import { privateJson, sameDomainOrigin } from "@/lib/auth-handler";
 import { RuleError } from "@/lib/rule-error";
 import { PUBLIC_CANDIDATE_LIMITS } from "./input";
 import { readPublicCandidates, PublicAvailabilityUnavailable } from "./service";
@@ -15,7 +15,7 @@ export async function handlePublicCandidateRead(
       { message: "Local simulated open times are unavailable." },
       503,
     );
-  if (!sameLocalOrigin(request, runtime))
+  if (!sameDomainOrigin(request, runtime))
     return privateJson({ message: "Request origin is not allowed." }, 403);
   if (request.method !== "GET")
     return privateJson({ message: "Method not allowed." }, 405);

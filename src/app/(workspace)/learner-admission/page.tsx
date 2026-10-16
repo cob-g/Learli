@@ -5,6 +5,7 @@ import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { admissionContext } from "@/features/learner-admission/context";
 import { listMyAdmissions } from "@/features/learner-admission/service";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Your admission requests",
@@ -29,8 +30,10 @@ export default async function Page({
   }
   const result = await loadPrivatePage(
     cursor ? `/learner-admission?after=${cursor}` : "/learner-admission",
-    (runtime, headers) =>
-      listMyAdmissions(admissionContext(runtime), headers, cursor),
+    async (runtime, headers) => ({
+      ...(await listMyAdmissions(admissionContext(runtime), headers, cursor)),
+      privateWorkflow: isPrivateWorkflow(runtime),
+    }),
   );
   if (!result)
     return (
@@ -39,13 +42,14 @@ export default async function Page({
         message="We cannot open admission requests on this account."
       />
     );
-  const { items: rows, nextCursor } = result;
+  const { items: rows, nextCursor, privateWorkflow } = result;
   return (
     <div className="page-shell page-space">
       <h1 className="text-page-title">Your admission requests</h1>
       <p className="mt-4 max-w-prose text-body">
-        Synthetic readiness only. No real guardian consent, age or eligibility
-        is established.
+        {privateWorkflow
+          ? "Check each request’s current review status. Pending requests grant no learner or booking access."
+          : "Synthetic readiness only. No real guardian consent, age or eligibility is established."}
       </p>
       <div className="mt-6 max-w-5xl rounded-surface border border-border bg-surface p-6 sm:p-8">
         {rows.length ? (
@@ -56,7 +60,11 @@ export default async function Page({
                   {row.management === "self"
                     ? "Independent College Support"
                     : "Guardian-managed request"}
-                  . {row.state}.
+                  .{" "}
+                  {privateWorkflow
+                    ? row.state.charAt(0).toUpperCase() + row.state.slice(1)
+                    : row.state}
+                  .
                 </p>
                 <p className="mt-2 text-caption">
                   Policy: {row.policyVersion}. Requested{" "}

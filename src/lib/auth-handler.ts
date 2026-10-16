@@ -1,3 +1,4 @@
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 import { isAPIError } from "better-auth/api";
 import type { AuthRuntime } from "./auth-factory";
 import { syntheticEmail } from "./local-mode";
@@ -30,6 +31,13 @@ export function sameLocalOrigin(request: Request, runtime: AuthRuntime) {
     (request.method === "GET" ||
       request.headers.get("origin") === expected.origin)
   );
+}
+/** Hosted domain requests require both private workflow admission and the
+ * existing signed ingress/origin proof. Local semantics stay unchanged. */
+export function sameDomainOrigin(request: Request, runtime: AuthRuntime) {
+  return "hosted" in runtime
+    ? isPrivateWorkflow(runtime) && sameAccountOrigin(request, runtime)
+    : sameLocalOrigin(request, runtime);
 }
 export function sameAccountOrigin(request: Request, runtime: AuthRuntime) {
   return "hosted" in runtime

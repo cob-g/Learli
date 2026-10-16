@@ -1,3 +1,8 @@
+import {
+  privateActorPredicate,
+  privateBookingPredicate,
+} from "@/features/private-workflow/query";
+import type { PrivateWorkflowPacket } from "@/features/private-workflow/config";
 // Node-only, internal query. Never import from browser code or consumer features.
 import { sql } from "drizzle-orm";
 import type { Database } from "@/lib/db/connection";
@@ -5,7 +10,12 @@ import type { BookingListInput } from "./read-input";
 import type { StoredBookingRead } from "./read-projection";
 import type { BookingLearnerSummary } from "./read-model";
 
-type ReadActor = { userId: string; sessionId: string };
+type ReadActor = {
+  userId: string;
+  sessionId: string;
+  privateWorkflow?: boolean;
+  privatePacket?: PrivateWorkflowPacket;
+};
 export type ReadSnapshot = {
   timezone: string;
   snapshot: string;
@@ -43,7 +53,7 @@ export async function queryParticipantBookings(
   const readinessRelation =
     input.scope === "tutor"
       ? sql`tp.user_id=a.id AND public.has_current_booking_beneficiary(b.booked_by_user_id,l.id,b.admission_policy_id) AND public.has_current_tutor_screening(tp.id,'synthetic_readiness')`
-      : sql`public.has_current_learner_authority(a.id,${actor.sessionId},l.id,b.admission_policy_id)`;
+      : sql`${input.scope === "student" ? sql`l.management='self' AND l.user_id=a.id AND l.level='college_support'` : sql`l.management='guardian' AND l.user_id IS NULL`} AND public.has_current_learner_authority(a.id,${actor.sessionId},l.id,b.admission_policy_id)`;
   const filter =
     input.filter === "active"
       ? active
@@ -67,7 +77,7 @@ export async function queryParticipantBookings(
       JOIN user_access ua ON ua.user_id = u.id AND ua.status = 'active'
       JOIN session s ON s.user_id = u.id AND s.id = ${actor.sessionId}
         AND s.expires_at > statement_timestamp()
-      WHERE u.id = ${actor.userId} AND u.email_verified = true
+      WHERE ${privateActorPredicate(actor.privatePacket, sql`u.id`)} AND u.id = ${actor.userId} AND u.email_verified = true
         AND u.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$'
         AND EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id = u.id AND r.role = ${role})
         ${input.scope === "tutor" ? sql`AND EXISTS (SELECT 1 FROM tutor_profiles own WHERE own.user_id = u.id AND own.review_status <> 'suspended')` : sql``}
@@ -82,7 +92,7 @@ export async function queryParticipantBookings(
       JOIN tutor_profiles tp ON tp.id = b.tutor_id
       JOIN "user" tu ON tu.id = tp.user_id
       JOIN subjects sub ON sub.id = b.subject_id
-      WHERE ((b.source='local_simulation' AND l.source='local_fixture' AND ${relation}) OR (b.source='synthetic_readiness' AND l.source=b.source AND public.booking_workflow_policy_current(b.workflow_policy_id) AND ${readinessRelation})) AND ${filter}
+      WHERE ${privateBookingPredicate(actor.privatePacket, sql`b.id`)} AND ${actor.privateWorkflow ? sql`b.source='synthetic_readiness' AND` : sql``} ((b.source='local_simulation' AND l.source='local_fixture' AND ${relation}) OR (b.source='synthetic_readiness' AND l.source=b.source AND public.booking_workflow_policy_current(b.workflow_policy_id) AND ${readinessRelation})) AND ${filter}
         ${bookingId ? sql`AND b.id = ${bookingId}::uuid` : sql``}
         ${input.learnerId ? sql`AND l.id = ${input.learnerId}::uuid` : sql``}
     ), paged AS (
@@ -105,7 +115,7 @@ export async function queryParticipantBookings(
           ? sql`'[]'::jsonb`
           : sql`COALESCE((
         SELECT jsonb_agg(jsonb_build_object('id', lp.id, 'displayName', lp.display_name, 'level', lp.level) ORDER BY lp.created_at ASC, lp.id ASC)
-        FROM learner_profiles lp WHERE lp.status = 'active' AND ((lp.source='synthetic_readiness' AND EXISTS(SELECT 1 FROM learner_admissions la WHERE la.learner_id=lp.id AND public.has_current_learner_authority(a.id,${actor.sessionId},lp.id,la.policy_id))) OR (lp.source = 'local_fixture' AND ${input.scope === "student" ? sql`lp.management = 'self' AND lp.user_id = a.id AND lp.level = 'college_support'` : sql`lp.management = 'guardian' AND lp.user_id IS NULL AND EXISTS (SELECT 1 FROM guardian_learner_links gl WHERE gl.learner_id = lp.id AND gl.guardian_user_id = a.id AND gl.status = 'authorized' AND gl.source = 'local_fixture')`}))
+        FROM learner_profiles lp WHERE lp.status = 'active' AND ((lp.source='synthetic_readiness' AND ${input.scope === "student" ? sql`lp.management='self' AND lp.user_id=a.id AND lp.level='college_support'` : sql`lp.management='guardian' AND lp.user_id IS NULL`} AND EXISTS(SELECT 1 FROM learner_admissions la WHERE la.learner_id=lp.id AND public.has_current_learner_authority(a.id,${actor.sessionId},lp.id,la.policy_id))) OR (${actor.privateWorkflow ? sql`false` : sql`true`} AND lp.source = 'local_fixture' AND ${input.scope === "student" ? sql`lp.management = 'self' AND lp.user_id = a.id AND lp.level = 'college_support'` : sql`lp.management = 'guardian' AND lp.user_id IS NULL AND EXISTS (SELECT 1 FROM guardian_learner_links gl WHERE gl.learner_id = lp.id AND gl.guardian_user_id = a.id AND gl.status = 'authorized' AND gl.source = 'local_fixture')`}))
       ), '[]'::jsonb)`
       } AS learners
     FROM actor a

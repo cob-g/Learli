@@ -1,11 +1,11 @@
 import {
-  demoStateLabels,
   demoLiveState,
   type BookingState,
 } from "@/features/bookings/lifecycle-model";
 import Link from "next/link";
-import { Hourglass, TimerOff } from "lucide-react";
+import { Check, Hourglass, TimerOff } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
+import { bookingStatusLabel } from "@/features/private-workflow/notice";
 import {
   LessonTime,
   type LessonTimeValue,
@@ -44,14 +44,24 @@ export function nextTutorSimulation(
     )[0];
 }
 
-function SimulationStatus({ state }: { state: TutorAgendaBooking["state"] }) {
+function SimulationStatus({
+  state,
+  privateWorkflow = false,
+}: {
+  state: TutorAgendaBooking["state"];
+  privateWorkflow?: boolean;
+}) {
   const expired =
     !demoLiveState(state) && state !== "provisional" && state !== "confirmed";
-  const Icon = expired ? TimerOff : Hourglass;
+  const success =
+    privateWorkflow && (state === "confirmed" || state === "completed");
+  const Icon = success ? Check : expired ? TimerOff : Hourglass;
   return (
     <span className="inline-flex min-h-7 max-w-full items-center gap-1 rounded-tag border border-control bg-subtle px-2 text-label">
       <Icon size={16} aria-hidden="true" className="shrink-0 text-primary" />
-      <span className="min-w-0 wrap-anywhere">{demoStateLabels[state]}</span>
+      <span className="min-w-0 wrap-anywhere">
+        {bookingStatusLabel(state, privateWorkflow)}
+      </span>
     </span>
   );
 }
@@ -80,19 +90,34 @@ function ViewBooking({ booking }: { booking: TutorAgendaBooking }) {
   );
 }
 
-function Expiry({ booking }: { booking: TutorAgendaBooking }) {
+function Expiry({
+  booking,
+  privateWorkflow = false,
+}: {
+  booking: TutorAgendaBooking;
+  privateWorkflow?: boolean;
+}) {
+  if (
+    privateWorkflow &&
+    booking.state !== "provisional" &&
+    booking.state !== "expired" &&
+    !booking.state.startsWith("demo_")
+  )
+    return null;
   return (
     <div className="mt-2">
       <p className="text-small text-muted-foreground">
-        {booking.state === "confirmed"
-          ? "Original provisional deadline (confirmation does not expire)"
-          : booking.state === "provisional"
-            ? "Provisional hold expires at"
-            : booking.state === "demo_expired"
-              ? "Simulation expired at"
-              : demoLiveState(booking.state)
-                ? "Simulation expires at"
-                : "Original simulation deadline"}
+        {privateWorkflow && booking.state === "expired"
+          ? "Provisional hold expired at"
+          : booking.state === "confirmed"
+            ? "Original provisional deadline (confirmation does not expire)"
+            : booking.state === "provisional"
+              ? "Provisional hold expires at"
+              : booking.state === "demo_expired"
+                ? "Simulation expired at"
+                : demoLiveState(booking.state)
+                  ? "Simulation expires at"
+                  : "Original simulation deadline"}
       </p>
       <LessonTime value={booking.expiry} />
     </div>
@@ -105,12 +130,14 @@ export function TutorBookingAgenda({
   evaluatedAt,
   hasMoreActive,
   hasMoreHistory,
+  privateWorkflow = false,
 }: {
   active: readonly TutorAgendaBooking[];
   history: readonly TutorAgendaBooking[];
   evaluatedAt?: string;
   hasMoreActive: boolean;
   hasMoreHistory: boolean;
+  privateWorkflow?: boolean;
 }) {
   const next = nextTutorSimulation(active, evaluatedAt);
   const agenda = active.filter((booking) => booking.id !== next?.id);
@@ -122,51 +149,74 @@ export function TutorBookingAgenda({
           className="rounded-surface border border-border bg-surface p-6 md:p-8"
         >
           <h2 id="next-simulation-title" className="text-section-title">
-            Next future simulation
+            {privateWorkflow ? "Next session" : "Next future simulation"}
           </h2>
           <div className="mt-6 grid min-w-0 gap-6 md:grid-cols-2">
             <LessonTime value={next.time} variant="prominent" />
             <BookingIdentity booking={next} />
           </div>
           <div className="mt-4">
-            <SimulationStatus state={next.state} />
+            <SimulationStatus
+              state={next.state}
+              privateWorkflow={privateWorkflow}
+            />
           </div>
           <p className="mt-6 max-w-prose border-t border-border pt-6 text-small text-muted-foreground">
-            This is a local simulation, not a confirmed lesson.
+            {privateWorkflow
+              ? next.state === "confirmed"
+                ? "This booking is confirmed. Open its details to manage the private meeting link and session status."
+                : next.state === "provisional"
+                  ? "This provisional hold awaits an assigned review before confirmation."
+                  : "This is a local simulation, not a confirmed lesson."
+              : "This is a local simulation, not a confirmed lesson."}
           </p>
-          <Expiry booking={next} />
+          <Expiry booking={next} privateWorkflow={privateWorkflow} />
           <div className="mt-4">
             <ViewBooking booking={next} />
           </div>
         </section>
       ) : (
         <EmptyState
-          title="No future simulations"
+          title={
+            privateWorkflow ? "No upcoming sessions" : "No future simulations"
+          }
           href="/tutor/availability"
           action="Set availability"
         >
           <p>
-            Your assigned simulated bookings will appear here. A simulation does
-            not confirm a lesson.
+            {privateWorkflow
+              ? "Bookings assigned to you will appear here with their current status."
+              : "Your assigned simulated bookings will appear here. A simulation does not confirm a lesson."}
           </p>
         </EmptyState>
       )}
-      <BookingRows title="Simulation agenda" bookings={agenda} />
+      <BookingRows
+        title={privateWorkflow ? "Upcoming sessions" : "Simulation agenda"}
+        bookings={agenda}
+        privateWorkflow={privateWorkflow}
+      />
       {hasMoreActive && (
         <Link
           className="inline-flex min-h-11 items-center text-action"
           href="/bookings?scope=tutor&filter=active"
         >
-          View all active simulations
+          {privateWorkflow
+            ? "View all upcoming sessions"
+            : "View all active simulations"}
         </Link>
       )}
-      <BookingRows title="Simulation history" bookings={history} />
+      <BookingRows
+        title={privateWorkflow ? "History" : "Simulation history"}
+        bookings={history}
+        privateWorkflow={privateWorkflow}
+        history
+      />
       {hasMoreHistory && (
         <Link
           className="inline-flex min-h-11 items-center text-action"
           href="/bookings?scope=tutor&filter=history"
         >
-          View all simulation history
+          {privateWorkflow ? "View all history" : "View all simulation history"}
         </Link>
       )}
     </div>
@@ -176,9 +226,13 @@ export function TutorBookingAgenda({
 function BookingRows({
   title,
   bookings,
+  privateWorkflow = false,
+  history = false,
 }: {
   title: string;
   bookings: readonly TutorAgendaBooking[];
+  privateWorkflow?: boolean;
+  history?: boolean;
 }) {
   const groups = new Map<string, TutorAgendaBooking[]>();
   for (const booking of bookings) {
@@ -213,8 +267,14 @@ function BookingRows({
                       <BookingIdentity booking={booking} />
                     </div>
                     <div className="min-w-0 flex-1 md:text-right">
-                      <SimulationStatus state={booking.state} />
-                      <Expiry booking={booking} />
+                      <SimulationStatus
+                        state={booking.state}
+                        privateWorkflow={privateWorkflow}
+                      />
+                      <Expiry
+                        booking={booking}
+                        privateWorkflow={privateWorkflow}
+                      />
                       <ViewBooking booking={booking} />
                     </div>
                   </li>
@@ -225,9 +285,13 @@ function BookingRows({
         </div>
       ) : (
         <p className="mt-4 max-w-prose text-body text-muted-foreground">
-          {title === "Simulation history"
-            ? "No simulation history on this account."
-            : "No other active simulations assigned to you."}
+          {privateWorkflow
+            ? history
+              ? "No booking history on this account."
+              : "No other upcoming sessions assigned to you."
+            : title === "Simulation history"
+              ? "No simulation history on this account."
+              : "No other active simulations assigned to you."}
         </p>
       )}
     </section>

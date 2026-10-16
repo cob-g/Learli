@@ -27,7 +27,7 @@ export const bookingWorkflowPolicies = pgTable(
   (t) => [
     check(
       "booking_workflow_policy_shape",
-      sql`${t.version}='synthetic-booking-v1' AND ${t.reference}='synthetic:booking:v1' AND ${t.contentDigest} ~ '^[a-f0-9]{64}$'`,
+      sql`((${t.version}='synthetic-booking-v1' AND ${t.reference}='synthetic:booking:v1') OR (${t.version}='synthetic-booking-v2' AND ${t.reference}='synthetic:booking:v2')) AND ${t.contentDigest} ~ '^[a-f0-9]{64}$'`,
     ),
   ],
 );

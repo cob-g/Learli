@@ -1,3 +1,7 @@
+import {
+  isPrivateWorkflow,
+  privatePolicyEnvironment,
+} from "@/features/private-workflow/runtime";
 import { sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import type { AuthRuntime } from "@/lib/auth-factory";
@@ -59,13 +63,15 @@ export type ReviewerAdmissionDetail = AdmissionDetail & {
   }[];
 };
 function capability(context: AdmissionContext): EnabledAdmissionCapability {
+  privatePolicyEnvironment(context.runtime, "admission", context.admission);
   const cap = validateAdmissionCapability(context.admission);
   // No environment string enables readiness. The explicit validated capability is
   // required too. Hosted composition is a separately coordinated root contract.
   if (
     cap.authority !== "synthetic_test" ||
-    !["development", "test"].includes(context.runtime.environment) ||
-    !isLoopbackOrigin(context.runtime.origin)
+    (!isPrivateWorkflow(context.runtime) &&
+      (!["development", "test"].includes(context.runtime.environment) ||
+        !isLoopbackOrigin(context.runtime.origin)))
   )
     throw new AccessError(503);
   return cap;

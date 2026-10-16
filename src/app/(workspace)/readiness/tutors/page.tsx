@@ -2,6 +2,9 @@ import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { readinessDirectory } from "@/features/tutor-screening/discovery";
 import { learnerLevels } from "@/lib/db/schema/app";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
+import { getDomainAuthRuntime } from "@/lib/auth";
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { redirect } from "next/navigation";
 const levelLabels = Object.fromEntries(learnerLevelOptions);
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -14,6 +17,13 @@ export default async function Page({
   searchParams: Promise<{ subject?: string; level?: string }>;
 }) {
   const q = await searchParams;
+  const runtime = await getDomainAuthRuntime();
+  if (runtime && isPrivateWorkflow(runtime)) {
+    const query = new URLSearchParams();
+    if (typeof q.subject === "string") query.set("subject", q.subject);
+    if (typeof q.level === "string") query.set("level", q.level);
+    redirect(`/tutors${query.size ? `?${query}` : ""}`);
+  }
   const level = learnerLevels.find((l) => l === q.level);
   const tutors = await loadPrivatePage("/readiness/tutors", (runtime) =>
     readinessDirectory(runtime, {

@@ -407,6 +407,28 @@ Each requirement has an **ID**, **priority**, **status**, a user-visible outcome
 - Client-supplied role, account state, IDs, hidden buttons, or route slugs do not bypass checks.
 - Suspended/ineligible accounts cannot perform restricted booking/teaching actions.
 
+**Owner-approved parent onboarding direction (2026-10-16, M2.4/M2.9):** Parent
+selection during signup is intent, followed by mandatory email verification and
+a separate current authenticated parent-enrollment action. It grants only the
+caller a parent workspace, preserves other legitimate roles, and is retry-safe
+with one auditable initial grant. Generic signup still receives no roles. An
+existing verified account can choose Parent from account settings. This does
+not establish guardian authority, create a child or satisfy FAM-01/BKG-03's
+policy gates. The original safe tutor/slot continuation survives setup. See
+`prompts/features/m2-04-parent-onboarding.md`; implementation/verification status
+is recorded separately in progress-tracker.
+
+**Owner-approved College Student onboarding (2026-10-16, M8.9):** College Student
+selection is intent leading to the existing independent College Support admission
+and assigned eligibility review. Verification, current authorized self profile and
+trusted Student grant are required before corresponding access; no signup role
+grant or independent minor enrollment is introduced. Existing accounts can use
+Account settings, valid public tutor/time selections survive setup, and pending
+requests reopen instead of creating another self profile. Ordinary intake remains
+disabled without the explicit private fictional capability. See
+`docs/decisions/2026-10-16-college-student-onboarding.md` and
+`prompts/features/m8-09-student-workflow-acceptance.md`.
+
 #### AUTH-04 — Safe account settings `P1 [RECOMMENDED]`
 
 **As a user**, I can review/update my own permitted basic settings.
@@ -526,6 +548,16 @@ capture is the only delivery mechanism. See
 - Upcoming and past bookings show accurate status, learner's **minimum necessary** information, subject, and local schedule.
 - Tutor cannot view other tutors' bookings or unrelated children.
 - Changes update after committed booking transitions; empty states are handled.
+
+**Owner-approved Tutor acceptance corrections, 2026-10-16:**
+[the Tutor checklist](../docs/qa/tutor-workflow-checklist.md) uses registration,
+verification and the existing Become a tutor application entry. It verifies the
+actual profile fields and broad learner levels, with unsupported photos/pricing
+Not Applicable. Guardian-managed participation uses the Parent account; the same
+booking reference must agree across roles, private meeting coordination,
+assigned-Tutor administrative completion and history. Acceptance approval does
+not select open policies or constitute an executed normal journey. See
+[the decision](../docs/decisions/2026-10-16-tutor-workflow-acceptance.md).
 
 ### 7.4 Learners and guardian relationships (`FAM`)
 
@@ -663,6 +695,14 @@ guardian consent or commercial approval; see the local synthetic booking decisio
 - Student, guardian, and assigned tutor see only their corresponding records.
 - Completed, cancelled, and expired statuses are distinguished rather than silently deleting past bookings.
 
+**Owner-approved acceptance continuation, 2026-10-16:** the
+`docs/qa/parent-tutor-session-checklist.md` Steps 5–9 compare the same booking,
+learner, tutor, subject, status and scheduled instants across Parent/Tutor
+dashboards and details, allowing different account-local clock displays. Tutor
+saves the private meeting link before joining; unrelated parents/tutors must be
+denied. Guardian-managed children use the Parent account in this scenario. The
+checklist is approved acceptance scope; its complete execution remains pending.
+
 #### BKG-05 — Reschedule a lesson `P0 capability; [GATED] policy`
 
 **As an eligible participant**, I can move a booking when the approved policy allows it.
@@ -686,7 +726,7 @@ guardian consent or commercial approval; see the local synthetic booking decisio
 - A cancellation does not cause unsupported automatic payouts or refunds.
 - Cancellation result and booking/payment state cannot contradict each other.
 
-#### BKG-07 — Basic completion and no-show status `P1 [OPEN rules]`
+#### BKG-07 — Basic completion and no-show status `P1 [PARTIALLY AGREED; other rules OPEN]`
 
 **As a user**, I can understand the operational booking outcome.
 
@@ -695,6 +735,18 @@ guardian consent or commercial approval; see the local synthetic booking decisio
 - Authorized actions may set outcomes under an approved policy.
 - **“Completed” is a Learli administrative status, not verified Zoom/Meet attendance.**
 - Actual attendance claims require a later supported integration and appropriate privacy/consent review.
+
+The owner-approved session checklist requires an auditable manual outcome after
+the scheduled end. Ending a short external call early does not complete the
+booking. On 2026-10-16 the owner approved the recommendation that the assigned tutor
+performs this action, with an audit record (“yes ;approve ur recommmendation”).
+Current identity, exact booking assignment, eligibility and the saved scheduled
+end must be checked at the authoritative mutation. Parent and unrelated tutor
+accounts cannot complete a session. No-show authority and the remaining guardian,
+booking and operating policies remain open. Immutable older admin-only test
+policies retain their historical meaning; this approval does not enable their
+other fixed test terms in staging or production. See
+`docs/decisions/2026-10-16-assigned-tutor-completion.md`.
 
 ### 7.7 External lesson links (`MEET`)
 
@@ -740,6 +792,9 @@ guardian consent or commercial approval; see the local synthetic booking decisio
 
 - Upcoming, past, and changed bookings have accurate status and local timezone.
 - Private meeting link is restricted by the same rules as booking detail.
+- A legitimate Parent+Student account has separate self-managed Student and
+  guardian-managed Parent records and learner options in the corresponding views;
+  multiple grants do not merge those role-specific views.
 - No homework submissions, grades, lesson-progress charts, or file attachments.
 
 #### OPS-02 — Tutor booking dashboard `P0 [AGREED]`
@@ -1472,3 +1527,43 @@ remain open before real publication. Implementation is not whole OPS-06 acceptan
 Hosted-synthetic accounts and mocked Resend requests are restricted preparation;
 actual HTTPS ingress/provider delivery and a verified sender require separate
 acceptance. No real onboarding, commercial confirmation or payment flow is enabled.
+
+
+### Private fictional staging audience — owner choice, 2026-10-16
+
+The first connected Parent/Tutor workflow is for private fictional staging, with
+payments and real-family intake disabled. This resolves the audience question
+from the Tutor acceptance continuation, not the real-user consent, eligibility
+or commercial gates. Reuse the existing synthetic QA policy identities and
+assigned-Tutor completion after saved end; labels must make the private fictional
+scope clear without claiming real attendance, qualifications or payment. The
+normal build must retain guardian-review, ownership, overlap and retry safeguards.
+Implementation/results are tracked separately; no deployed target is implied.
+See [the decision](../docs/decisions/2026-10-16-private-fictional-staging.md) and
+[software blueprint](../prompts/features/m8-03-private-fictional-workflow.md).
+
+### Scoped private Admin acceptance — owner approval, 2026-10-16
+
+M5.6/M8.9, ADM-01–04: owner approved the Admin cross-check recommendation under
+`prompts/features/m5-06-admin-workflow-acceptance.md` (**AUTHORIZED — build-feature
+delegation**). Private fictional audience/payments-off scope remains. Current MFA,
+exact existing record grants and finite packet membership all apply; no general
+all-user/booking permission follows from an Admin role. Private old Tutor review
+cannot bypass current evidence-based screening or the finite audience.
+
+The bounded local-test account tool gains literal name, trusted-role and status
+filters, bounded pagination, read-only role display and existing atomic audited
+suspend/restore. Explicit owner metadata grants one nonself/non-Admin target;
+no automatic packet grants, role changes, account creation/deletion or revoked-grant
+revival. Hosted account administration remains unsupported. Staff booking lookup
+uses exact current workflow grants, minimal participant labels/relationship,
+subject/time/state and safe filters/pagination, without private meeting credentials
+or arbitrary overrides. Existing sessions/bookings/history are retained; restoring
+access does not satisfy independent Tutor/learner eligibility.
+
+Dashboard aggregate totals, public review publication, payments, real-family
+intake, real safeguarding and hosted activation remain separate/gated. Subject
+history continues using current display names with stable references. See
+`docs/decisions/2026-10-16-scoped-admin-workflow.md` and the corrected Admin checklist.
+Actual implementation/verification belongs in progress-tracker; no launch gate is
+completed by this authorization.

@@ -43,9 +43,12 @@ export function parsePublicBookingDiscovery(
   const parsed = publicBookingDiscoveryInput.safeParse(params);
   return parsed.success ? parsed.data : null;
 }
-export function bookingDiscoveryHref(input: PublicBookingDiscovery) {
+export function bookingDiscoveryHref(
+  input: PublicBookingDiscovery,
+  privateWorkflow = false,
+) {
   const discovery = publicBookingDiscoveryInput.parse(input);
-  return `/bookings/demo?${new URLSearchParams(discovery)}`;
+  return `${privateWorkflow ? "/bookings/new" : "/bookings/demo"}?${new URLSearchParams(discovery)}`;
 }
 export function discoveryFromReturnPath(
   next: unknown,
@@ -53,7 +56,7 @@ export function discoveryFromReturnPath(
   const path = safeReturnPath(typeof next === "string" ? next : undefined);
   const url = new URL(path, "http://learli.invalid");
   if (
-    url.pathname !== "/bookings/demo" ||
+    !["/bookings/demo", "/bookings/new"].includes(url.pathname) ||
     url.search.length > 2048 ||
     url.hash ||
     [...url.searchParams.keys()].some(
@@ -83,9 +86,12 @@ export function parsePublicBookingSelection(
 }
 
 /** Canonical URL from validated fields only; no caller-provided next destination. */
-export function bookingSelectionHref(input: PublicBookingSelection) {
+export function bookingSelectionHref(
+  input: PublicBookingSelection,
+  privateWorkflow = false,
+) {
   const choice = publicBookingSelectionInput.parse(input);
-  return `/bookings/demo?${new URLSearchParams({ ...choice, startAtUtc: new Date(choice.startAtUtc).toISOString(), endAtUtc: new Date(choice.endAtUtc).toISOString() })}`;
+  return `${privateWorkflow ? "/bookings/new" : "/bookings/demo"}?${new URLSearchParams({ ...choice, startAtUtc: new Date(choice.startAtUtc).toISOString(), endAtUtc: new Date(choice.endAtUtc).toISOString() })}`;
 }
 
 export function selectionFromReturnPath(
@@ -94,7 +100,7 @@ export function selectionFromReturnPath(
   const path = safeReturnPath(typeof next === "string" ? next : undefined);
   const url = new URL(path, "http://learli.invalid");
   if (
-    url.pathname !== "/bookings/demo" ||
+    !["/bookings/demo", "/bookings/new"].includes(url.pathname) ||
     url.search.length > 2048 ||
     url.hash ||
     [...url.searchParams.keys()].some(
@@ -109,9 +115,20 @@ export function selectionFromReturnPath(
 export function safeBookingReturnPath(next: unknown) {
   const path = safeReturnPath(typeof next === "string" ? next : undefined);
   const url = new URL(path, "http://learli.invalid");
-  if (url.pathname !== "/bookings/demo") return path;
+  if (!["/bookings/demo", "/bookings/new"].includes(url.pathname)) return path;
+  const privateWorkflow = url.pathname === "/bookings/new";
   const choice = selectionFromReturnPath(path);
-  if (choice) return bookingSelectionHref(choice);
+  if (choice) return bookingSelectionHref(choice, privateWorkflow);
   const discovery = discoveryFromReturnPath(path);
-  return discovery ? bookingDiscoveryHref(discovery) : "/bookings/demo";
+  return discovery
+    ? bookingDiscoveryHref(discovery, privateWorkflow)
+    : privateWorkflow
+      ? "/bookings/new"
+      : "/bookings/demo";
+}
+
+/** Presentation conversion only; validators still canonicalize the public fields. */
+export function privateBookingHref(path: string) {
+  const safe = safeBookingReturnPath(path);
+  return safe.replace(/^\/bookings\/demo(?=\?|$)/, "/bookings/new");
 }

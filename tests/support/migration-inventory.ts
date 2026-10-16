@@ -2,6 +2,14 @@
 import { readFileSync } from "node:fs";
 import { loadCandidate } from "../../scripts/staging-migrations/journal";
 import { expectedProtections } from "../../scripts/staging-migrations/protections";
+import { runtimeGrantsSql } from "../../scripts/runtime-grants";
+
+/** Historical prefix fixtures lack the additive0032 function. Latest-target
+ * verification still uses the full canonical policy and exact function set. */
+export const runtimeGrantsBeforeParent = runtimeGrantsSql
+  .split("\n")
+  .filter((line) => !line.includes("FUNCTION public.enroll_parent_workspace("))
+  .join("\n");
 export const currentMigrationCandidate = loadCandidate(process.cwd());
 export const currentMigrationFunctionCount = expectedProtections(
   currentMigrationCandidate.entries.flatMap((entry) => entry.statements),

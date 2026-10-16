@@ -6,6 +6,7 @@ import { readLearnerCreationContext } from "@/features/learners/service";
 import { listLearnerGroups } from "@/features/learners/composition";
 import { levelNames } from "@/features/subjects/catalog";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Your learners",
@@ -23,7 +24,11 @@ export default async function LearnersPage() {
             .then((context) => context.modes)
             .catch(() => [])
         : [];
-      return { ...base, createModes };
+      return {
+        ...base,
+        createModes,
+        privateWorkflow: isPrivateWorkflow(runtime),
+      };
     },
   );
   if (!groups)
@@ -34,12 +39,16 @@ export default async function LearnersPage() {
       />
     );
   const learners = [...groups.demo, ...groups.readiness];
-  const canCreate = groups.demoAllowed && groups.createModes.length > 0;
+  const { privateWorkflow } = groups;
+  const canCreate =
+    !privateWorkflow && groups.demoAllowed && groups.createModes.length > 0;
   return (
     <div className="page-shell page-space">
       <h1 className="text-page-title">Your learners</h1>
       <p className="mt-4 max-w-prose text-body text-muted-foreground">
-        Local testing only. Use fictional learner details.
+        {privateWorkflow
+          ? "Only learners with current authorized access appear here. Check admission requests for pending reviews."
+          : "Local testing only. Use fictional learner details."}
       </p>
       {learners.length ? (
         <ul className="mt-8 max-w-5xl divide-y divide-border">
@@ -54,7 +63,9 @@ export default async function LearnersPage() {
                 </h2>
                 <p className="mt-2 text-caption">
                   {groups.readiness.some((row) => row.id === learner.id)
-                    ? "Synthetic reviewed admission"
+                    ? privateWorkflow
+                      ? "Reviewed admission"
+                      : "Synthetic reviewed admission"
                     : "Local demonstration"}
                 </p>
                 <p className="mt-2 text-body">
@@ -74,8 +85,9 @@ export default async function LearnersPage() {
         <section className="mt-8 max-w-prose">
           <h2 className="text-item-title">No learner profiles available</h2>
           <p className="mt-2 text-body">
-            This account has no authorized local learner profiles. Create a
-            fictional profile for the local demonstration.
+            {privateWorkflow
+              ? "Request an admission review to add a learner. A pending request does not grant profile or booking access."
+              : "This account has no authorized local learner profiles. Create a fictional profile for the local demonstration."}
           </p>
         </section>
       )}
@@ -89,8 +101,19 @@ export default async function LearnersPage() {
       {groups.admissionEnabled && (
         <LearnerLink
           href="/learner-admission/new"
-          className="action action-outline ms-4 mt-8"
-          label="Request admission review"
+          className={
+            privateWorkflow
+              ? "action action-primary mt-8"
+              : "action action-outline ms-4 mt-8"
+          }
+          label={privateWorkflow ? "Add a learner" : "Request admission review"}
+        />
+      )}
+      {privateWorkflow && (
+        <LearnerLink
+          href="/learner-admission"
+          className="ms-4 mt-8 inline-flex min-h-11 items-center"
+          label="Admission requests"
         />
       )}
       <Link

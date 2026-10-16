@@ -37,10 +37,18 @@ export function currentWorkspace(
   return roles.length === 1 ? roles[0] : null;
 }
 /** Deployment-level switches; never per user, so the sidebar cannot flash. */
-export type WorkspaceLinkOptions = { screening?: boolean };
+export type WorkspaceLinkOptions = {
+  screening?: boolean;
+  privateWorkflow?: boolean;
+  privateAccounts?: boolean;
+};
 export function workspaceLinks(
   role: Role | null,
-  { screening = false }: WorkspaceLinkOptions = {},
+  {
+    screening = false,
+    privateWorkflow = false,
+    privateAccounts = false,
+  }: WorkspaceLinkOptions = {},
 ): WorkspaceLink[] {
   switch (role) {
     case "parent":
@@ -48,6 +56,12 @@ export function workspaceLinks(
       return [
         { href: `/${role}`, label: "Bookings", exact: true },
         { href: "/learners", label: "Learners" },
+        ...(privateWorkflow
+          ? [
+              { href: "/learner-admission", label: "Learner requests" },
+              { href: "/bookings/new", label: "Book a session", exact: true },
+            ]
+          : []),
       ];
     case "tutor":
       return [
@@ -62,18 +76,30 @@ export function workspaceLinks(
     case "admin":
       return [
         { href: "/admin", label: "Overview", exact: true },
-        ...adminAreas.map(([, href, label]) => ({
-          href,
-          label,
-          exclude:
-            href === "/admin/support" ? "/admin/support/dispatch" : undefined,
-        })),
+        ...(privateWorkflow
+          ? [{ href: "/admin/bookings", label: "Assigned bookings" }]
+          : []),
+        ...adminAreas
+          .filter(
+            ([area]) =>
+              !privateWorkflow ||
+              !["reviews", "publication-reviews", "accounts"].includes(area) ||
+              (area === "accounts" && privateAccounts),
+          )
+          .map(([area, href, label]) => ({
+            href,
+            label: privateWorkflow && area === "accounts" ? "Accounts" : label,
+            exclude:
+              href === "/admin/support" ? "/admin/support/dispatch" : undefined,
+          })),
         { href: "/admin/support/dispatch", label: "Support assignment" },
         {
           href: "/admin/learner-admission",
           label: "Learner admission reviews",
         },
-        { href: "/admin/safeguarding", label: "Safeguarding cases" },
+        ...(!privateWorkflow
+          ? [{ href: "/admin/safeguarding", label: "Safeguarding cases" }]
+          : []),
       ];
     default:
       return [];

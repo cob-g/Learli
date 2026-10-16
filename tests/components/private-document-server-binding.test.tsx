@@ -24,7 +24,7 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 vi.mock("@/lib/auth", () => ({
-  getAuthRuntime: () => null,
+  getDomainAuthRuntime: async () => null,
   getAccountAuthRuntime: async () => state.runtime,
 }));
 vi.mock("@/lib/auth-client", () => ({

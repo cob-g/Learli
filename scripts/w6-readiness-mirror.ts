@@ -174,6 +174,15 @@ try {
     }),
     { mode: 0o600 },
   );
+  // Test-owned, reloadable capability lets one serial acceptance case select
+  // v2 and restore v1 without changing the shipped disabled factory.
+  const bookingPacket = path.join(
+    root,
+    ".local/booking-workflows/browser-policy.json",
+  );
+  await writeFile(bookingPacket, JSON.stringify(workflow.booking), {
+    mode: 0o600,
+  });
   const copied = [
     "src",
     ...(existsSync(path.join(root, "public")) ? ["public"] : []),
@@ -249,7 +258,7 @@ try {
     ],
     [
       "src/features/booking-workflows/composition.ts",
-      `import type {AuthRuntime} from '@/lib/auth-factory';import type {BookingWorkflowContext} from './service';import {validateBookingCapability} from './policy';export function bookingWorkflowContext(runtime:AuthRuntime):BookingWorkflowContext{return {runtime,booking:validateBookingCapability(${JSON.stringify(workflow.booking)},runtime.environment)}}`,
+      `import {readFileSync} from 'node:fs';import type {AuthRuntime} from '@/lib/auth-factory';import type {BookingWorkflowContext} from './service';import {validateBookingCapability} from './policy';export function bookingWorkflowContext(runtime:AuthRuntime):BookingWorkflowContext{return {runtime,booking:validateBookingCapability(JSON.parse(readFileSync(${JSON.stringify(bookingPacket)},'utf8')),runtime.environment)}}`,
     ],
     [
       "src/features/review-publication/composition.ts",

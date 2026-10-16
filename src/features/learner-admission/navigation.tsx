@@ -1,10 +1,18 @@
 import { LearnerLink } from "@/features/learners/learner-link";
-export function AdmissionEntry() {
+export function AdmissionEntry({
+  privateWorkflow = false,
+}: {
+  privateWorkflow?: boolean;
+}) {
   return (
     <LearnerLink
       href="/learner-admission"
       className="me-6 mt-8 inline-flex min-h-11 items-center"
-      label="Learner admission requests"
+      label={
+        privateWorkflow
+          ? "Learner requests and review status"
+          : "Learner admission requests"
+      }
     />
   );
 }

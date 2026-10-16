@@ -43,22 +43,29 @@ export function BookingDetailView({
   scope,
   meetingSection,
   reviewSection,
+  privateWorkflow = false,
 }: {
   booking: BookingDetail;
   scope: BookingReadScope;
   meetingSection?: ReactNode;
   reviewSection?: ReactNode;
+  privateWorkflow?: boolean;
 }) {
   return (
     <div className="page-shell page-space">
-      <LifecycleHeading booking={booking} />
+      <LifecycleHeading booking={booking} privateWorkflow={privateWorkflow} />
       <p className="mt-3 max-w-prose text-small text-muted-foreground">
-        {booking.source === "synthetic_readiness"
-          ? "Synthetic readiness booking. Confirmation and outcomes exercise software only; no payment or attendance is established."
-          : "Local simulated booking. No payment or meeting is arranged."}
+        {privateWorkflow
+          ? "Review your saved lesson details and booking status. Payments are disabled."
+          : booking.source === "synthetic_readiness"
+            ? "Synthetic readiness booking. Confirmation and outcomes exercise software only; no payment or attendance is established."
+            : "Local simulated booking. No payment or meeting is arranged."}
       </p>
       <div className="mt-8 max-w-5xl rounded-surface border border-border bg-surface p-6 sm:p-8">
-        <BookingReadStatus booking={booking} />
+        <BookingReadStatus
+          booking={booking}
+          privateWorkflow={privateWorkflow}
+        />
         <dl className="mt-6 grid min-w-0 gap-8 md:grid-cols-2">
           <div className="min-w-0 border-b border-border pb-6 md:col-span-2">
             <dt className="text-label text-muted-foreground">
@@ -110,7 +117,9 @@ export function BookingDetailView({
             className="mt-4 inline-flex min-h-11 items-center text-action"
             href={bookingDetailPath(booking.currentHeadId, scope)}
           >
-            View current simulation
+            {privateWorkflow
+              ? "View current booking"
+              : "View current simulation"}
           </a>
         )}
         <section className="mt-8 border-t border-border pt-8">
@@ -127,7 +136,12 @@ export function BookingDetailView({
                   className="grid min-w-0 gap-3 py-6 sm:grid-cols-2"
                 >
                   <h3 className="mb-2 text-item-title">
-                    {bookingEventLabels[event.event]}
+                    {privateWorkflow
+                      ? bookingEventLabels[event.event].replace(
+                          /^Synthetic /,
+                          "",
+                        )
+                      : bookingEventLabels[event.event]}
                   </h3>
                   <LessonTime value={event.time} />
                 </li>
@@ -162,9 +176,11 @@ export function BookingDetailView({
 export function BookingHistoryView({
   result,
   learnerId,
+  privateWorkflow = false,
 }: {
   result: BookingPage;
   learnerId?: string;
+  privateWorkflow?: boolean;
 }) {
   const selected = result.learners.find((learner) => learner.id === learnerId);
   const query = (page: number) =>
@@ -175,7 +191,7 @@ export function BookingHistoryView({
         {selected ? `Bookings for ${selected.displayName}` : "Your bookings"}
       </h1>
       <p className="mt-3 max-w-prose text-small text-muted-foreground">
-        Local simulated bookings for{" "}
+        {privateWorkflow ? "Bookings for " : "Local simulated bookings for "}
         {result.scope === "tutor"
           ? "your assigned learners"
           : result.scope === "guardian"
@@ -209,7 +225,10 @@ export function BookingHistoryView({
                   {levelNames([booking.learner.level]).join()}
                 </p>
                 <div className="mt-3">
-                  <BookingReadStatus booking={booking} />
+                  <BookingReadStatus
+                    booking={booking}
+                    privateWorkflow={privateWorkflow}
+                  />
                 </div>
               </div>
               <BookingReadLink

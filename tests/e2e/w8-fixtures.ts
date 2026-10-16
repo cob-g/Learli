@@ -101,7 +101,7 @@ export async function register(browser: Browser, name: string) {
       ])
     ).rows[0].email_verified,
   ).toBe(true);
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(f.password);
   const submitted = page.waitForResponse(
     (r) =>

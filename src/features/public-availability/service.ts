@@ -1,3 +1,8 @@
+import {
+  getPrivateWorkflow,
+  assertPrivateWorkflowUnchanged,
+  isPrivateWorkflow,
+} from "@/features/private-workflow/runtime";
 import { blockingBookingPredicate } from "@/features/booking-workflows/model";
 // Node-only read service, also used directly by isolated PostgreSQL tests.
 import { and, asc, gt, inArray, lt, sql } from "drizzle-orm";
@@ -34,7 +39,7 @@ export type PublicTutorCandidates = {
   times: PublicCandidateTime[];
 };
 export type PublicCandidates = {
-  source: "local_simulation";
+  source: "local_simulation" | "synthetic_readiness";
   generatedAtUtc: string;
   from: string;
   to: string;
@@ -63,9 +68,14 @@ export async function readPublicCandidates(
   scope: ScreeningScope = "local_demo",
 ): Promise<PublicCandidates> {
   assertLocal(runtime);
+  if (isPrivateWorkflow(runtime)) scope = "synthetic_readiness";
   if (scope !== "local_demo" && scope !== "synthetic_readiness")
     throw overload();
-  if (scope === "synthetic_readiness" && runtime.environment !== "test")
+  if (
+    scope === "synthetic_readiness" &&
+    runtime.environment !== "test" &&
+    !isPrivateWorkflow(runtime)
+  )
     throw overload();
   return readCandidates(runtime, publicCandidateQueryInput.parse(input), scope);
 }
@@ -77,9 +87,14 @@ export async function readPublicDirectoryCandidates(
   scope: ScreeningScope = "local_demo",
 ): Promise<PublicCandidates> {
   assertLocal(runtime);
+  if (isPrivateWorkflow(runtime)) scope = "synthetic_readiness";
   if (scope !== "local_demo" && scope !== "synthetic_readiness")
     throw overload();
-  if (scope === "synthetic_readiness" && runtime.environment !== "test")
+  if (
+    scope === "synthetic_readiness" &&
+    runtime.environment !== "test" &&
+    !isPrivateWorkflow(runtime)
+  )
     throw overload();
   return readCandidates(
     runtime,
@@ -89,6 +104,7 @@ export async function readPublicDirectoryCandidates(
 }
 
 function assertLocal(runtime: AuthRuntime) {
+  if (isPrivateWorkflow(runtime)) return;
   if (
     !["development", "test"].includes(runtime.environment) ||
     !isLoopbackOrigin(runtime.origin)
@@ -106,14 +122,9 @@ async function readCandidates(
     },
   scope: ScreeningScope = "local_demo",
 ): Promise<PublicCandidates> {
-  if (
-    !["development", "test"].includes(runtime.environment) ||
-    !isLoopbackOrigin(runtime.origin)
-  )
-    throw new PublicAvailabilityUnavailable(
-      "Local simulated open times are unavailable.",
-    );
-  return runtime.db.transaction(
+  assertLocal(runtime);
+  const packet = getPrivateWorkflow(runtime);
+  const result = await runtime.db.transaction(
     async (tx) => {
       const clock = await tx.execute<{ milliseconds: number }>(
         sql`SELECT floor(extract(epoch FROM clock_timestamp()) * 1000)::float8 AS milliseconds`,
@@ -129,9 +140,12 @@ async function readCandidates(
           language: query.language,
         },
         scope,
+        packet,
       );
       const base = {
-        source: "local_simulation" as const,
+        source: packet
+          ? ("synthetic_readiness" as const)
+          : ("local_simulation" as const),
         generatedAtUtc: now.toISOString(),
         from: range.from.toISOString(),
         to: range.to.toISOString(),
@@ -142,7 +156,7 @@ async function readCandidates(
       if (!eligibleSlugs.length || range.from >= range.to)
         return {
           ...base,
-          tutors: query.tutorSlugs.map((tutorSlug) => ({
+          tutors: query.tutorSlugs.map((tutorSlug): PublicTutorCandidates => ({
             tutorSlug,
             state: eligibleSlugs.includes(tutorSlug) ? "empty" : "unavailable",
             times: [],
@@ -249,4 +263,6 @@ async function readCandidates(
     },
     { isolationLevel: "repeatable read", accessMode: "read only" },
   );
+  assertPrivateWorkflowUnchanged(runtime, packet);
+  return result;
 }

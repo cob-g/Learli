@@ -1,3 +1,4 @@
+import { getPrivateWorkflow } from "@/features/private-workflow/runtime";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { hostedHeadersAllowed, hostedProviderHeaders } from "./ingress";
 
@@ -27,5 +28,8 @@ export function providerHeaders(
   return headers;
 }
 export function permitsAccountEmail(runtime: AuthRuntime, email: string) {
+  const privateWorkflow = getPrivateWorkflow(runtime);
+  if (privateWorkflow && !privateWorkflow.accountEmails.includes(email))
+    return false;
   return !("hosted" in runtime) || runtime.hosted.accountEmails.includes(email);
 }

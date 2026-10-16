@@ -5,11 +5,21 @@ import { useRef, useState, type FormEvent } from "react";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { authClient } from "@/lib/auth-client";
 import { safeBookingReturnPath } from "@/features/bookings/selection";
+import {
+  isParentOnboardingPath,
+  parentContinuation,
+  parentOnboardingHref,
+} from "@/features/parent-onboarding/continuation";
+import {
+  isStudentOnboardingPath,
+  studentContinuation,
+  studentOnboardingHref,
+} from "@/features/student-onboarding/continuation";
 
 type Mode = "sign-in" | "sign-up" | "forgot" | "reset" | "verify";
 const labels: Record<Mode, string> = {
   "sign-in": "Sign in",
-  "sign-up": "Create test account",
+  "sign-up": "Create account",
   forgot: "Request reset link",
   reset: "Save new password",
   verify: "Resend verification",
@@ -32,8 +42,28 @@ export function AuthForm({
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
+  const [accountType, setAccountType] = useState(
+    isParentOnboardingPath(next)
+      ? "parent"
+      : isStudentOnboardingPath(next)
+        ? "student"
+        : "later",
+  );
   const status = useRef<HTMLParagraphElement>(null);
-  const returnTo = safeBookingReturnPath(next);
+  const studentIntent = isStudentOnboardingPath(next);
+  const unwrappedStudent = studentIntent ? studentContinuation(next) : next;
+  const returnTo =
+    mode === "sign-up" && accountType === "parent"
+      ? parentOnboardingHref(unwrappedStudent)
+      : mode === "sign-up" && accountType === "student"
+        ? studentOnboardingHref(
+            isParentOnboardingPath(next) ? parentContinuation(next) : next,
+          )
+        : mode === "sign-up" && studentIntent
+          ? safeBookingReturnPath(unwrappedStudent)
+          : studentIntent
+            ? studentOnboardingHref(next)
+            : safeBookingReturnPath(next);
   const notice = (text: string, error = false) => {
     setMessage(text);
     setFailed(error);
@@ -173,6 +203,32 @@ export function AuthForm({
           <legend className="sr-only">Account access</legend>
           {mode === "sign-up" && (
             <div className="space-y-2">
+              <label className="block text-label" htmlFor="accountType">
+                Account type
+              </label>
+              <select
+                className="field"
+                id="accountType"
+                name="accountType"
+                value={accountType}
+                onChange={(event) =>
+                  setAccountType(
+                    event.target.value === "parent"
+                      ? "parent"
+                      : event.target.value === "student"
+                        ? "student"
+                        : "later",
+                  )
+                }
+              >
+                <option value="later">Choose later</option>
+                <option value="parent">Parent or guardian</option>
+                <option value="student">College Student</option>
+              </select>
+            </div>
+          )}
+          {mode === "sign-up" && (
+            <div className="space-y-2">
               <label className="block text-label" htmlFor="name">
                 Display name
               </label>
@@ -189,7 +245,7 @@ export function AuthForm({
           {mode !== "reset" && (
             <div className="space-y-2">
               <label className="block text-label" htmlFor="email">
-                Test email
+                Email
               </label>
               <input
                 className="field"
@@ -206,8 +262,8 @@ export function AuthForm({
                 className="text-small wrap-anywhere text-muted-foreground"
               >
                 {hosted
-                  ? "Use an explicitly configured synthetic .test account."
-                  : "Use a synthetic address, such as learner@example.test."}
+                  ? "Use an allowed address ending in .test."
+                  : "Use an address ending in .test in this environment."}
               </p>
             </div>
           )}
@@ -278,7 +334,7 @@ export function AuthForm({
               className="inline-flex min-h-11 items-center"
               href={`/sign-up?next=${encodeURIComponent(returnTo)}`}
             >
-              Create test account
+              Create account
             </Link>
             <Link
               className="inline-flex min-h-11 items-center"

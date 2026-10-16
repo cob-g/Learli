@@ -5,8 +5,11 @@ import { createAuthMessageConstructors } from "@/lib/email/transactional-message
 import { createResendTransport } from "@/lib/email/resend-transport";
 import type { HostedAuthConfig } from "./config";
 import type { AccountMail } from "./composition";
+import { createPrivateAccountCapture } from "./private-capture";
 
 export function hostedAccountMail(config: HostedAuthConfig) {
+  if (config.mail.mode === "private-capture")
+    return createPrivateAccountCapture(config);
   const transport = createResendTransport(
     config.mail.mode === "disabled" ? undefined : config.mail.transport,
   );
@@ -17,6 +20,8 @@ export function bindAccountMail(
   config: HostedAuthConfig,
   transport: ReturnType<typeof createResendTransport>,
 ) {
+  if (config.mail.mode === "private-capture")
+    return createPrivateAccountCapture(config);
   const constructors = createAuthMessageConstructors(
     config.mail.mode === "disabled"
       ? undefined

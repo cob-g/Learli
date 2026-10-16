@@ -1,3 +1,4 @@
+import { getPrivateWorkflow } from "@/features/private-workflow/runtime";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import type { BookingWorkflowContext } from "./service";
 import { disabledBooking } from "./policy";
@@ -5,5 +6,8 @@ import { disabledBooking } from "./policy";
 export function bookingWorkflowContext(
   runtime: AuthRuntime,
 ): BookingWorkflowContext {
-  return { runtime, booking: disabledBooking };
+  return {
+    runtime,
+    booking: getPrivateWorkflow(runtime)?.booking ?? disabledBooking,
+  };
 }

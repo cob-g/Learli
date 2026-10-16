@@ -9,15 +9,25 @@ import { reviewActionNames } from "./review-rules";
 import { loadTutorProfile } from "./service";
 import { getScreeningContext } from "@/features/tutor-screening/composition";
 import { readScreening } from "@/features/tutor-screening/service";
+import {
+  getPrivateWorkflow,
+  assertPrivateWorkflowUnchanged,
+} from "@/features/private-workflow/runtime";
+import type { PrivateWorkflowPacket } from "@/features/private-workflow/config";
+import {
+  privateActorPredicate,
+  privateTutorPredicate,
+} from "@/features/private-workflow/query";
 function assigned(
   runtime: AuthRuntime,
   userId: string,
   sessionId: string,
   tutorId: SQL | string = sql`${tutorProfiles.id}`,
+  packet: PrivateWorkflowPacket | null = getPrivateWorkflow(runtime),
 ): SQL {
   const readiness =
     getScreeningContext(runtime).screening.mode === "synthetic_test";
-  return sql`public.has_tutor_screening_authority(${userId},${sessionId},${tutorId}, CASE WHEN EXISTS(SELECT 1 FROM tutor_screening_cases c WHERE c.tutor_id=${tutorId}) THEN 'synthetic_readiness' ELSE 'local_fixture' END) AND (${readiness} OR NOT EXISTS(SELECT 1 FROM tutor_screening_cases c WHERE c.tutor_id=${tutorId}))`;
+  return sql`${privateActorPredicate(packet, sql`${userId}`)} AND ${privateTutorPredicate(packet, sql`${tutorId}::uuid`)} AND public.has_tutor_screening_authority(${userId},${sessionId},${tutorId}, CASE WHEN EXISTS(SELECT 1 FROM tutor_screening_cases c WHERE c.tutor_id=${tutorId}) THEN 'synthetic_readiness' ELSE 'local_fixture' END) AND (${readiness} OR NOT EXISTS(SELECT 1 FROM tutor_screening_cases c WHERE c.tutor_id=${tutorId}))`;
 }
 
 export const reviewInput = z.strictObject({
@@ -38,10 +48,11 @@ export async function listTutorApplications(
   status?: ReviewStatus,
   page = 1,
 ) {
+  const packet = getPrivateWorkflow(runtime);
   const identity = await requireRole(runtime, headers, "admin");
   const safe = Number.isInteger(page) && page >= 1 && page <= 1000 ? page : 1;
   const filter = and(
-    assigned(runtime, identity.userId, identity.sessionId),
+    assigned(runtime, identity.userId, identity.sessionId, undefined, packet),
     status ? eq(tutorProfiles.reviewStatus, status) : undefined,
   );
   const [{ total }] = await runtime.db
@@ -63,6 +74,7 @@ export async function listTutorApplications(
     .limit(reviewQueueLimit + 1)
     .offset((safe - 1) * reviewQueueLimit);
   await recheckAdminAssurance(runtime.db, identity);
+  assertPrivateWorkflowUnchanged(runtime, packet);
   return {
     total,
     applications: applications.slice(0, reviewQueueLimit),
@@ -77,6 +89,7 @@ export async function readTutorApplication(
   headers: Headers,
   profileId: string,
 ) {
+  const packet = getPrivateWorkflow(runtime);
   const identity = await requireRole(runtime, headers, "admin");
   if (!z.uuid().safeParse(profileId).success)
     throw new RuleError(404, notFound);
@@ -84,14 +97,14 @@ export async function readTutorApplication(
     runtime.db,
     and(
       eq(tutorProfiles.id, profileId),
-      assigned(runtime, identity.userId, identity.sessionId),
+      assigned(runtime, identity.userId, identity.sessionId, undefined, packet),
     )!,
-    assigned(runtime, identity.userId, identity.sessionId, profileId),
+    assigned(runtime, identity.userId, identity.sessionId, profileId, packet),
   );
   if (!profile) throw new RuleError(404, notFound);
   await recheckAdminAssurance(runtime.db, identity);
   const permission = await runtime.db.execute<{ allowed: boolean }>(
-    sql`SELECT ${assigned(runtime, identity.userId, identity.sessionId)} AS allowed FROM ${tutorProfiles} WHERE ${tutorProfiles.id}=${profileId}::uuid`,
+    sql`SELECT ${assigned(runtime, identity.userId, identity.sessionId, undefined, packet)} AS allowed FROM ${tutorProfiles} WHERE ${tutorProfiles.id}=${profileId}::uuid`,
   );
   if (!permission.rows[0]?.allowed) throw new RuleError(404, notFound);
   const { userId, ...application } = profile;
@@ -101,9 +114,10 @@ export async function readTutorApplication(
     profileId,
   );
   const fresh = await runtime.db.execute<{ allowed: boolean }>(
-    sql`SELECT ${assigned(runtime, identity.userId, identity.sessionId)} AS allowed FROM ${tutorProfiles} WHERE ${tutorProfiles.id}=${profileId}::uuid`,
+    sql`SELECT ${assigned(runtime, identity.userId, identity.sessionId, undefined, packet)} AS allowed FROM ${tutorProfiles} WHERE ${tutorProfiles.id}=${profileId}::uuid`,
   );
   if (!fresh.rows[0]?.allowed) throw new RuleError(404, notFound);
+  assertPrivateWorkflowUnchanged(runtime, packet);
   return {
     ...application,
     ownedByReviewer: userId === identity.userId,
@@ -122,25 +136,36 @@ export async function reviewTutorApplication(
   profileId: string,
   input: unknown,
 ) {
+  const packet = getPrivateWorkflow(runtime);
   const identity = await requireRole(runtime, headers, "admin");
+  // Private reviews use current evidence-based screening, never retained local grants.
+  if (packet) throw new AccessError(404);
   const { action } = reviewInput.parse(input);
   if (!z.uuid().safeParse(profileId).success)
     throw new RuleError(404, notFound);
-  const r = await runtime.db.execute<{
-    outcome: string;
-    status: ReviewStatus | null;
-  }>(
-    sql`SELECT * FROM public.review_local_tutor_application(${identity.userId},${identity.sessionId},${profileId}::uuid,${action})`,
+  return runtime.db.transaction(
+    async (tx) => {
+      const r = await tx.execute<{
+        outcome: string;
+        status: ReviewStatus | null;
+      }>(
+        sql`SELECT * FROM public.review_local_tutor_application(${identity.userId},${identity.sessionId},${profileId}::uuid,${action})`,
+      );
+      // The function may have waited on the profile/assignment. Keep its writes
+      // uncommitted until a newly enabled or replaced packet has been ruled out.
+      assertPrivateWorkflowUnchanged(runtime, packet);
+      const row = r.rows[0];
+      if (row?.outcome === "forbidden")
+        throw new RuleError(403, "This action is unavailable.");
+      if (row?.outcome === "not_found") throw new RuleError(404, notFound);
+      if (row?.outcome === "conflict")
+        throw new RuleError(
+          409,
+          "This application changed. Reload the page and try again.",
+        );
+      if (!row?.status || row.outcome !== "saved") throw new AccessError(503);
+      return { reviewStatus: row.status };
+    },
+    { isolationLevel: "read committed" },
   );
-  const row = r.rows[0];
-  if (row?.outcome === "forbidden")
-    throw new RuleError(403, "This action is unavailable.");
-  if (row?.outcome === "not_found") throw new RuleError(404, notFound);
-  if (row?.outcome === "conflict")
-    throw new RuleError(
-      409,
-      "This application changed. Reload the page and try again.",
-    );
-  if (!row?.status || row.outcome !== "saved") throw new AccessError(503);
-  return { reviewStatus: row.status };
 }

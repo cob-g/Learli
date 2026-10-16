@@ -1,7 +1,7 @@
 import "../home.css";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
 import { resolveMatch, matchLimit } from "@/features/matching/match";
 import { MatchQuestions } from "@/features/matching/questions";
@@ -104,7 +104,7 @@ async function Matching({ searchParams }: MatchingProps) {
     subject: match.subject.slug,
     preferences: match.preferences,
   };
-  const runtime = getAuthRuntime();
+  const runtime = await getDomainAuthRuntime();
   let availability: MatchingAvailability;
   try {
     if (!runtime) throw new Error("Availability is not configured.");

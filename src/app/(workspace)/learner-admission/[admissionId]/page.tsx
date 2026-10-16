@@ -1,12 +1,17 @@
-import { selectionFromReturnPath } from "@/features/bookings/selection";
+import {
+  privateBookingHref,
+  selectionFromReturnPath,
+} from "@/features/bookings/selection";
 import type { Metadata } from "next";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { admissionContext } from "@/features/learner-admission/context";
 import { readMyAdmission } from "@/features/learner-admission/service";
+import { canonicalAdmissionSelection } from "@/features/learner-admission/input";
 
 import { LearnerLink } from "@/features/learners/learner-link";
 import { levelNames } from "@/features/subjects/catalog";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Admission request",
@@ -14,22 +19,36 @@ export const metadata: Metadata = {
 };
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ admissionId: string }>;
+  searchParams: Promise<{ next?: string | string[] }>;
 }) {
   const { admissionId } = await params;
-  const row = await loadPrivatePage(
-    `/learner-admission/${admissionId}`,
-    (runtime, headers) =>
-      readMyAdmission(admissionContext(runtime), headers, admissionId),
+  const incomingNext = canonicalAdmissionSelection((await searchParams).next);
+  const query = incomingNext
+    ? `?${new URLSearchParams({ next: incomingNext })}`
+    : "";
+  const result = await loadPrivatePage(
+    `/learner-admission/${encodeURIComponent(admissionId)}${query}`,
+    async (runtime, headers) => ({
+      row: await readMyAdmission(
+        admissionContext(runtime),
+        headers,
+        admissionId,
+      ),
+      privateWorkflow: isPrivateWorkflow(runtime),
+    }),
   );
-  if (!row)
+  if (!result)
     return (
       <UnavailablePage
         title="Admission unavailable"
         message="We cannot open this admission request on this account."
       />
     );
+  const { row, privateWorkflow } = result;
+  const next = incomingNext ?? row.next;
   return (
     <div className="page-shell page-space">
       <LearnerLink
@@ -39,8 +58,9 @@ export default async function Page({
       />
       <h1 className="mt-4 text-page-title">Admission request</h1>
       <p className="mt-4 max-w-prose text-body">
-        Synthetic readiness only. This record establishes no real consent or
-        eligibility.
+        {privateWorkflow
+          ? "This request records the learner’s review status and current access."
+          : "Synthetic readiness only. This record establishes no real consent or eligibility."}
       </p>
       <section
         className="mt-6 max-w-prose rounded-surface border border-border bg-surface p-6 sm:p-8"
@@ -60,44 +80,71 @@ export default async function Page({
           .
         </p>
         <p className="mt-4 text-caption">
-          Policy: {row.policyVersion}. Synthetic readiness only.
+          Policy: {row.policyVersion}.
+          {!privateWorkflow && " Synthetic readiness only."}
         </p>
-        <p className="mt-4 text-body">Status: {row.state}.</p>
+        <p className="mt-4 text-body">
+          Status:{" "}
+          {privateWorkflow
+            ? row.state.charAt(0).toUpperCase() + row.state.slice(1)
+            : row.state}
+          .
+        </p>
         <p className="mt-2 text-body">
           {row.state === "pending"
             ? "Assigned review is required. Learner access is not authorized."
             : row.state === "authorized"
               ? row.currentAccess
-                ? "Synthetic learner access is currently authorized."
+                ? privateWorkflow
+                  ? "Learner access is currently authorized."
+                  : "Synthetic learner access is currently authorized."
                 : "An authorization decision is recorded, but current learner access is unavailable."
               : "Current learner access is unavailable. The decision history is retained."}
         </p>
       </section>
       <>
         {row.state === "authorized" && row.currentAccess && (
-          <LearnerLink
-            href="/learners"
-            className="action action-primary mt-8"
-            label="Your authorized learners"
-          />
+          <div className="mt-8 flex flex-wrap items-center gap-6">
+            {row.management === "self" && (
+              <LearnerLink
+                href="/student"
+                className="action action-primary"
+                label="Student workspace"
+              />
+            )}
+            <LearnerLink
+              href="/learners"
+              className="action action-primary"
+              label="Your authorized learners"
+            />
+            {privateWorkflow && (
+              <LearnerLink
+                href="/tutors"
+                className="inline-flex min-h-11 items-center"
+                label="Find a tutor"
+              />
+            )}
+          </div>
         )}
-        {row.next && (
+        {next && (
           <section className="mt-8 max-w-prose">
             <h2 className="text-section-title">
-              {selectionFromReturnPath(row.next)
+              {selectionFromReturnPath(next)
                 ? "Your selected tutor and time"
                 : "Your selected tutor and subject"}
             </h2>
             <p className="mt-2 text-body">
-              The original public selection is retained. Its availability and
-              learner authority must be checked again; no time is reserved by
-              admission.
+              {incomingNext
+                ? "This visit’s public selection is retained without changing the saved admission request."
+                : "The original public selection is retained."}{" "}
+              Its availability and learner authority must be checked again; no
+              time is reserved by admission.
             </p>
             <LearnerLink
               className="mt-2 inline-flex min-h-11 items-center"
-              href={row.next}
+              href={privateWorkflow ? privateBookingHref(next) : next}
               label={
-                selectionFromReturnPath(row.next)
+                selectionFromReturnPath(next)
                   ? "Return to selected tutor and time"
                   : "Return to selected tutor and subject"
               }

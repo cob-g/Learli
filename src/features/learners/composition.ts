@@ -1,3 +1,4 @@
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { AccessError, requireIdentity } from "@/lib/permissions/access";
 import { admissionContext } from "@/features/learner-admission/context";
@@ -13,9 +14,9 @@ export async function listLearnerGroups(
   headers: Headers,
 ) {
   const identity = await requireIdentity(runtime, headers);
-  const demoAllowed = identity.roles.some(
-    (r) => r === "parent" || r === "student",
-  );
+  const demoAllowed =
+    !isPrivateWorkflow(runtime) &&
+    identity.roles.some((r) => r === "parent" || r === "student");
   const context = admissionContext(runtime);
   if (!demoAllowed && context.admission.authority === "disabled")
     throw new AccessError(403);
@@ -31,6 +32,16 @@ export async function readComposedLearner(
   headers: Headers,
   id: string,
 ) {
+  // Private staging uses reviewed admissions only; legacy fixture guards stay local.
+  if (isPrivateWorkflow(runtime))
+    return {
+      profile: await readAdmittedLearner(
+        admissionContext(runtime),
+        headers,
+        id,
+      ),
+      reviewed: true,
+    };
   // Never choose an error path from a foreign record's source/existence.
   try {
     return {

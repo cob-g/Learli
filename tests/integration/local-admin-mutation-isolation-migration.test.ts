@@ -19,6 +19,7 @@ import {
 } from "../../scripts/staging-migrations/protections";
 import { verifyRuntimeGrants } from "../../scripts/staging-migrations/privileges";
 import { runtimeGrantsSql } from "../../scripts/runtime-grants";
+import { runtimeGrantsBeforeParent } from "../support/migration-inventory";
 
 const candidate = loadCandidate(process.cwd());
 const names = [
@@ -145,7 +146,12 @@ describe("0031 local administrative mutation isolation forward migration", () =>
     expect(next.id).not.toBe(prior.id);
     expect({ ...next, id: prior.id, prevId: prior.prevId }).toEqual(prior);
   });
-  it.each(["fresh", "populated0030"] as const)(
+  it.each([
+    "fresh",
+    "populated0030",
+    "populated0031",
+    "populated0032",
+  ] as const)(
     "%s retains row/history/owner/search-path/execute ACL contracts and exact current protections",
     async (mode) => {
       assertOwnedReadinessDatabase(process.cwd());
@@ -185,8 +191,18 @@ describe("0031 local administrative mutation isolation forward migration", () =>
           ).toEqual({ name: database, owner: "learli_owner" });
           if (mode === "fresh") await apply(client, candidate.entries.length);
           else {
-            await apply(client, 31);
-            await client.query(runtimeGrantsSql);
+            const baselineLength =
+              mode === "populated0032"
+                ? 33
+                : mode === "populated0031"
+                  ? 32
+                  : 31;
+            await apply(client, baselineLength);
+            await client.query(
+              baselineLength < 33
+                ? runtimeGrantsBeforeParent
+                : runtimeGrantsSql,
+            );
             const parent = randomUUID(),
               tutorOwner = randomUUID(),
               learner = randomUUID(),
@@ -228,24 +244,39 @@ describe("0031 local administrative mutation isolation forward migration", () =>
                 "SELECT id,hash,created_at FROM drizzle.__drizzle_migrations ORDER BY id",
               )
             ).rows;
-            expect(ledger).toHaveLength(31);
+            expect(ledger).toHaveLength(baselineLength);
             await apply(client, candidate.entries.length);
             expect(await rowHashes(client)).toEqual(rows);
             expect(
               (
                 await client.query(
-                  "SELECT id,hash,created_at FROM drizzle.__drizzle_migrations ORDER BY id LIMIT 31",
+                  `SELECT id,hash,created_at FROM drizzle.__drizzle_migrations ORDER BY id LIMIT ${baselineLength}`,
                 )
               ).rows,
             ).toEqual(ledger);
             const after = await functions(client);
-            expect(after).toHaveLength(definitions.length);
+            expect(after).toHaveLength(
+              definitions.length + (baselineLength < 33 ? 1 : 0),
+            );
+            expect(
+              after.filter((f) => f.name === "enroll_parent_workspace"),
+            ).toHaveLength(1);
             for (const old of definitions) {
               const next = after.find((f) => f.name === old.name);
               expect(next).toBeDefined();
               if (names.includes(old.name)) {
                 expect({ ...next, body: old.body }).toEqual(old);
                 expect(next?.body).toContain("ERRCODE='25001'");
+              } else if (
+                [
+                  "booking_workflow_policy_current",
+                  "has_booking_workflow_task",
+                ].includes(old.name)
+              ) {
+                // The additive0033 policy upgrade changes only these two bodies.
+                // Exact current bodies are verified below; metadata/ACLs persist.
+                expect({ ...next, body: old.body }).toEqual(old);
+                expect(next?.body).not.toBe(old.body);
               } else expect(next).toEqual(old);
             }
             // Verify effective privileges before any re-grant: OR REPLACE must retain ACLs.

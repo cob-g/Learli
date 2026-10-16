@@ -95,7 +95,7 @@ async function signIn(
   navigate = true,
 ) {
   if (navigate) await page.goto("/sign-in?next=%2Faccount");
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(credential);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(`${hostedBrowserOrigin}/account`);
@@ -105,10 +105,10 @@ async function register(page: Page, email: string) {
   await page
     .getByLabel("Display name", { exact: true })
     .fill("Synthetic HTTPS owner");
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page
-    .getByRole("button", { name: "Create test account", exact: true })
+    .getByRole("button", { name: "Create account", exact: true })
     .click();
   await expect(
     page
@@ -363,14 +363,12 @@ test("unknown reset is generic, real reset ends sessions and expired/reused prov
 }) => {
   await signIn(page);
   await page.goto("/forgot-password");
-  await page
-    .getByLabel("Test email", { exact: true })
-    .fill("unknown@example.test");
+  await page.getByLabel("Email", { exact: true }).fill("unknown@example.test");
   await page.getByRole("button", { name: "Request reset link" }).click();
   await expect(
     page.getByRole("status").filter({ hasText: "If an account matches" }),
   ).toBeVisible();
-  await page.getByLabel("Test email", { exact: true }).fill(activeEmail);
+  await page.getByLabel("Email", { exact: true }).fill(activeEmail);
   const requested = page.waitForResponse(
     (response) =>
       new URL(response.url()).pathname === "/api/auth/request-password-reset" &&
@@ -393,7 +391,7 @@ test("unknown reset is generic, real reset ends sessions and expired/reused prov
     page.getByRole("alert").filter({ hasText: "missing or expired" }),
   ).toBeVisible();
   await page.goto("/forgot-password");
-  await page.getByLabel("Test email", { exact: true }).fill(activeEmail);
+  await page.getByLabel("Email", { exact: true }).fill(activeEmail);
   const requestedAgain = page.waitForResponse(
     (response) =>
       new URL(response.url()).pathname === "/api/auth/request-password-reset" &&
@@ -471,9 +469,7 @@ test("real TOTP enrollment/password challenge, recovery reuse, rotation and disa
   ).toBeVisible();
   await page.goto("/account");
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
-  await page
-    .getByLabel("Test email", { exact: true })
-    .fill("admin@example.test");
+  await page.getByLabel("Email", { exact: true }).fill("admin@example.test");
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(/\/two-factor/);
@@ -492,9 +488,7 @@ test("real TOTP enrollment/password challenge, recovery reuse, rotation and disa
   await expect(page).toHaveURL(`${hostedBrowserOrigin}/account`);
   expect(await page.content()).not.toContain(secret!);
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
-  await page
-    .getByLabel("Test email", { exact: true })
-    .fill("admin@example.test");
+  await page.getByLabel("Email", { exact: true }).fill("admin@example.test");
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(/\/two-factor/);
@@ -586,7 +580,7 @@ test("320/390/1440 keyboard and axe; no-JS mutation safety; SDK error and truthf
       ),
     ).toBe(true);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-    await page.getByLabel("Test email", { exact: true }).focus();
+    await page.getByLabel("Email", { exact: true }).focus();
     await page.keyboard.press("Tab");
     await expect(page.getByLabel("Password", { exact: true })).toBeFocused();
     const capture = path.join(directory, `sign-in-${width}.png`);
@@ -595,8 +589,8 @@ test("320/390/1440 keyboard and axe; no-JS mutation safety; SDK error and truthf
   }
   await page.emulateMedia({ forcedColors: "active", reducedMotion: "reduce" });
   await page.goto("/sign-in");
-  await expect(page.getByLabel("Test email", { exact: true })).toBeVisible();
-  await page.getByLabel("Test email", { exact: true }).focus();
+  await expect(page.getByLabel("Email", { exact: true })).toBeVisible();
+  await page.getByLabel("Email", { exact: true }).focus();
   await page.keyboard.press("Tab");
   await expect(page.getByLabel("Password", { exact: true })).toBeFocused();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
@@ -625,7 +619,7 @@ test("320/390/1440 keyboard and axe; no-JS mutation safety; SDK error and truthf
     expect(await nativePage.locator("form").getAttribute("method")).toBe(
       "post",
     );
-    await nativePage.getByRole("link", { name: "Create test account" }).click();
+    await nativePage.getByRole("link", { name: "Create account" }).click();
     await expect(nativePage.getByRole("heading", { level: 1 })).toBeVisible();
     expect(nativePage.url()).not.toMatch(/password|name=/);
     await nativePage.goto("/account");
@@ -652,10 +646,10 @@ test("320/390/1440 keyboard and axe; no-JS mutation safety; SDK error and truthf
       .getByLabel("Display name", { exact: true })
       .fill("Synthetic refused delivery");
     await page
-      .getByLabel("Test email", { exact: true })
+      .getByLabel("Email", { exact: true })
       .fill("failure@example.test");
     await page.getByLabel("Password", { exact: true }).fill(password);
-    await page.getByRole("button", { name: "Create test account" }).click();
+    await page.getByRole("button", { name: "Create account" }).click();
     await expect(
       page.getByRole("alert").filter({ hasText: "could not be completed" }),
     ).toBeVisible();
@@ -715,12 +709,10 @@ test("revoked cookie/failed reauthentication and account switch clear old privat
   await clientNavigation;
   await (await publicDocument).finished();
   await page.waitForLoadState("load");
-  await expect(page.getByLabel("Test email", { exact: true })).toBeEnabled();
+  await expect(page.getByLabel("Email", { exact: true })).toBeEnabled();
   await expect(page).toHaveURL(isSessionsSignIn);
   expect(await page.content()).not.toContain(activeEmail);
-  await page
-    .getByLabel("Test email", { exact: true })
-    .fill("unlisted@example.test");
+  await page.getByLabel("Email", { exact: true }).fill("unlisted@example.test");
   await page
     .getByLabel("Password", { exact: true })
     .fill("W3-incorrect-private-test-password");
@@ -741,7 +733,7 @@ test("revoked cookie/failed reauthentication and account switch clear old privat
   // Observe the fresh public document before interacting with its hydrated form.
   await (await restoredPublicDocument).finished();
   await page.waitForLoadState("load");
-  await expect(page.getByLabel("Test email", { exact: true })).toBeEnabled();
+  await expect(page.getByLabel("Email", { exact: true })).toBeEnabled();
   await expect(
     page.getByText(`Signed in as ${activeEmail}`, { exact: true }),
   ).toHaveCount(0);
@@ -775,4 +767,80 @@ test("revoked cookie/failed reauthentication and account switch clear old privat
       state().privateMarkers.some((marker) => document.includes(marker)),
     ).toBe(false);
   }
+});
+
+test("hosted parent enrollment uses current membership and ingress without granting a guardian relationship", async ({
+  page,
+}) => {
+  await signIn(page, "second@example.test", password);
+  const id = await owner(
+    async (pool) =>
+      (
+        await pool.query('SELECT id FROM "user" WHERE email=$1', [
+          "second@example.test",
+        ])
+      ).rows[0].id as string,
+  );
+  expect(
+    (
+      await owner((pool) =>
+        pool.query("SELECT role FROM user_roles WHERE user_id=$1", [id]),
+      )
+    ).rows,
+  ).toEqual([]);
+  await page.goto("/parent/onboarding?next=%2Ftutors");
+  await expect(
+    page.getByRole("heading", {
+      name: "Set up your parent workspace",
+      exact: true,
+    }),
+  ).toBeVisible();
+  const csrf = await page.request.post("/api/account/parent-onboarding", {
+    headers: { origin: "https://unrelated.test" },
+    data: {},
+  });
+  expect(csrf.status()).toBe(403);
+  const forged = await page.request.post("/api/account/parent-onboarding", {
+    headers: { origin: hostedBrowserOrigin },
+    data: { role: "admin" },
+  });
+  expect(forged.status()).toBe(400);
+  expect(
+    (
+      await owner((pool) =>
+        pool.query("SELECT role FROM user_roles WHERE user_id=$1", [id]),
+      )
+    ).rows,
+  ).toEqual([]);
+  await page
+    .getByRole("button", { name: "Continue as parent", exact: true })
+    .click();
+  await expect(page).toHaveURL(`${hostedBrowserOrigin}/tutors`);
+  expect(
+    (
+      await owner((pool) =>
+        pool.query("SELECT role FROM user_roles WHERE user_id=$1", [id]),
+      )
+    ).rows,
+  ).toEqual([{ role: "parent" }]);
+  expect(
+    (
+      await owner((pool) =>
+        pool.query(
+          "SELECT count(*)::int AS count FROM guardian_learner_links WHERE guardian_user_id=$1",
+          [id],
+        ),
+      )
+    ).rows[0].count,
+  ).toBe(0);
+  expect(
+    (
+      await owner((pool) =>
+        pool.query(
+          "SELECT count(*)::int AS count FROM audit_events WHERE target_user_id=$1 AND action='parent_role.self_granted'",
+          [id],
+        ),
+      )
+    ).rows[0].count,
+  ).toBe(1);
 });

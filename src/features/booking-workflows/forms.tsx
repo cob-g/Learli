@@ -7,6 +7,7 @@ import type { WorkflowAction } from "./input";
 function useMutation(
   endpoint: string,
   destination: (r: { id: string }) => string,
+  privateWorkflow = false,
 ) {
   const ready = useHydrated(),
     [pending, setPending] = useState(false),
@@ -63,8 +64,9 @@ function useMutation(
         </p>
         <noscript>
           <p className="mt-4 text-body">
-            Enable JavaScript to change a synthetic booking. Navigation and
-            saved history remain readable.
+            {privateWorkflow
+              ? "Enable JavaScript to change a booking. Navigation and saved history remain readable."
+              : "Enable JavaScript to change a synthetic booking. Navigation and saved history remain readable."}
           </p>
         </noscript>
       </>
@@ -76,6 +78,7 @@ export function WorkflowRequestForm({
   times,
   scope,
   requestedTime,
+  privateWorkflow = false,
 }: {
   choice: {
     learnerId: string;
@@ -86,10 +89,12 @@ export function WorkflowRequestForm({
   times: LessonTimeValue[];
   requestedTime?: Pick<LessonTimeValue, "startAtUtc" | "endAtUtc">;
   scope: "guardian" | "student";
+  privateWorkflow?: boolean;
 }) {
   const m = useMutation(
     "/api/bookings/demo",
     (r) => `/bookings/${r.id}?scope=${scope}`,
+    privateWorkflow,
   );
   const selected = times.find(
     (t) =>
@@ -117,7 +122,9 @@ export function WorkflowRequestForm({
       className="mt-8 space-y-4"
     >
       <fieldset>
-        <legend className="text-section-title">Choose a synthetic time</legend>
+        <legend className="text-section-title">
+          {privateWorkflow ? "Choose a time" : "Choose a synthetic time"}
+        </legend>
         <div className="mt-4 space-y-2">
           {orderedTimes.slice(0, 24).map((t) => (
             <label
@@ -137,7 +144,7 @@ export function WorkflowRequestForm({
         </div>
         <details className="mt-4">
           <summary className="min-h-11 cursor-pointer py-2 text-action">
-            More synthetic times
+            {privateWorkflow ? "More times" : "More synthetic times"}
           </summary>
           {orderedTimes.slice(24).map((t) => (
             <label
@@ -151,9 +158,9 @@ export function WorkflowRequestForm({
         </details>
       </fieldset>
       <p className="max-w-prose text-body">
-        Synthetic test terms: a ten-minute provisional hold requires an assigned
-        prerequisite review. Confirmation is software evidence only. No
-        commercial entitlement or attendance is established.
+        {privateWorkflow
+          ? "Your request creates a ten-minute provisional hold. An assigned reviewer must confirm it before the hold expires."
+          : "Synthetic test terms: a ten-minute provisional hold requires an assigned prerequisite review. Confirmation is software evidence only. No commercial entitlement or attendance is established."}
       </p>
       <button
         type="submit"
@@ -161,8 +168,12 @@ export function WorkflowRequestForm({
         disabled={!m.ready || m.pending || m.uncertain}
       >
         {m.pending
-          ? "Requesting synthetic booking…"
-          : "Request synthetic booking"}
+          ? privateWorkflow
+            ? "Requesting booking…"
+            : "Requesting synthetic booking…"
+          : privateWorkflow
+            ? "Request booking"
+            : "Request synthetic booking"}
       </button>
       {m.notice}
     </form>
@@ -182,6 +193,13 @@ const labels: Record<WorkflowAction, string> = {
   cancel: "Cancel synthetic booking",
   reschedule: "Move synthetic booking",
 };
+const privateLabels: Record<WorkflowAction, string> = {
+  confirm: "Confirm booking prerequisites",
+  complete: "Record administrative completion",
+  no_show: "Record administrative no-show",
+  cancel: "Cancel booking",
+  reschedule: "Reschedule booking",
+};
 export function WorkflowActionForm({
   bookingId,
   revision,
@@ -189,6 +207,7 @@ export function WorkflowActionForm({
   scope = "student",
   admin = false,
   times = [],
+  privateWorkflow = false,
 }: {
   bookingId: string;
   revision: number;
@@ -196,9 +215,13 @@ export function WorkflowActionForm({
   scope?: string;
   admin?: boolean;
   times?: LessonTimeValue[];
+  privateWorkflow?: boolean;
 }) {
-  const m = useMutation(`/api/bookings/${bookingId}/workflow/${action}`, (r) =>
-    admin ? `/admin/bookings/${r.id}` : `/bookings/${r.id}?scope=${scope}`,
+  const m = useMutation(
+    `/api/bookings/${bookingId}/workflow/${action}`,
+    (r) =>
+      admin ? `/admin/bookings/${r.id}` : `/bookings/${r.id}?scope=${scope}`,
+    privateWorkflow,
   );
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -239,27 +262,52 @@ export function WorkflowActionForm({
         </fieldset>
       )}
       <p className="my-4 max-w-prose text-small">
-        {action === "complete" || action === "no_show"
-          ? "This is an administrative synthetic outcome, never evidence of attendance. Disputed outcomes retain the support path."
-          : action === "confirm"
-            ? "Only your exact assigned prerequisite review and current MFA permit this synthetic confirmation."
-            : "Synthetic cancellation or replacement requires at least one hour before the saved start. The original terms and history persist; a replacement needs a new private link."}
+        {action === "complete" && !admin
+          ? "Record completion after the scheduled end. This records your administrative outcome, not verified meeting attendance. Contact support if the outcome is disputed."
+          : action === "complete" || action === "no_show"
+            ? privateWorkflow
+              ? "This records an administrative outcome. It does not verify meeting attendance. Contact support if the outcome is disputed."
+              : "This is an administrative synthetic outcome, never evidence of attendance. Disputed outcomes retain the support path."
+            : action === "confirm"
+              ? privateWorkflow
+                ? "Confirmation requires your exact assigned prerequisite review and current MFA."
+                : "Only your exact assigned prerequisite review and current MFA permit this synthetic confirmation."
+              : privateWorkflow
+                ? "Staging changes require at least one hour before the saved start. The original terms and history remain; a rescheduled booking needs a new private link."
+                : "Synthetic cancellation or replacement requires at least one hour before the saved start. The original terms and history persist; a replacement needs a new private link."}
       </p>
       <button
         className="action action-outline transition-none"
         type="submit"
         disabled={!m.ready || m.pending || m.uncertain}
       >
-        {m.pending ? "Saving synthetic change…" : labels[action]}
+        {m.pending
+          ? action === "complete" && !admin
+            ? "Saving completion…"
+            : privateWorkflow
+              ? "Saving change…"
+              : "Saving synthetic change…"
+          : action === "complete" && !admin
+            ? "Mark session completed"
+            : privateWorkflow
+              ? privateLabels[action]
+              : labels[action]}
       </button>
       {m.notice}
     </form>
   );
 }
-export function BookingDisputeForm({ bookingId }: { bookingId: string }) {
+export function BookingDisputeForm({
+  bookingId,
+  privateWorkflow = false,
+}: {
+  bookingId: string;
+  privateWorkflow?: boolean;
+}) {
   const m = useMutation(
     `/api/bookings/${bookingId}/dispute`,
     (r) => `/safeguarding/cases/${r.id}`,
+    privateWorkflow,
   );
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -301,8 +349,9 @@ export function BookingDisputeForm({ bookingId }: { bookingId: string }) {
         />
       </div>
       <p className="max-w-prose text-small">
-        This request creates a synthetic response case bound to this booking. No
-        real response service or attendance investigation is established.
+        {privateWorkflow
+          ? "This request creates a test support case for this booking. It does not establish a real response service or an attendance investigation."
+          : "This request creates a synthetic response case bound to this booking. No real response service or attendance investigation is established."}
       </p>
       <button
         className="action action-primary transition-none"
@@ -310,8 +359,12 @@ export function BookingDisputeForm({ bookingId }: { bookingId: string }) {
         type="submit"
       >
         {m.pending
-          ? "Saving synthetic dispute…"
-          : "Save synthetic booking dispute"}
+          ? privateWorkflow
+            ? "Saving dispute…"
+            : "Saving synthetic dispute…"
+          : privateWorkflow
+            ? "Save booking dispute"
+            : "Save synthetic booking dispute"}
       </button>
       {m.notice}
     </form>

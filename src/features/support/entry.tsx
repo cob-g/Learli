@@ -2,7 +2,7 @@ import "server-only";
 import Link from "next/link";
 import { z } from "zod";
 import { headers } from "next/headers";
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { AccessError } from "@/lib/permissions/access";
 import { listCases } from "./service";
 import { DemoNotice } from "./presentation";
@@ -22,7 +22,7 @@ export async function SupportEntry({
     anonymous = false;
   let booking: SupportBookingContext | undefined;
   try {
-    const runtime = getAuthRuntime();
+    const runtime = await getDomainAuthRuntime();
     if (runtime) {
       await listCases(runtime, await headers(), "requester");
       if (bookingId !== undefined)

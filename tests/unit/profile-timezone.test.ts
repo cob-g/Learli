@@ -17,7 +17,7 @@ vi.mock("next/headers", () => ({
   },
 }));
 vi.mock("@/lib/auth", () => ({
-  getAuthRuntime: () => ({
+  getDomainAuthRuntime: async () => ({
     auth: { api: { getSession: state.session } },
     db: { select: state.select },
   }),

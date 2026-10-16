@@ -1,5 +1,476 @@
 # Learli — Progress Tracker
 
+## 2026-10-16 — Scoped Admin workflow verified locally
+
+- Owner approved the Admin recommendation (“okay approve recomendation do it”).
+  Blueprint `prompts/features/m5-06-admin-workflow-acceptance.md` is
+  **AUTHORIZED — build-feature delegation**, primary M5.6, related M8.9/M8.8 and
+  ADM-01–04/AUTH/FAM/BKG/OPS. Prior fictional-only/payments-off scope remains.
+  Dashboard totals, hosted account controls, public ratings and deployment are
+  separate; no real-family intake or policy activation is authorized here.
+- Preserved exact 1,143-file dirty baseline on
+  `feature/staging-interface-cleanup-20261016` at `572cf4d` under
+  `.local/admin-workflow-20261016/`. All earlier Parent/Tutor/Student results keep
+  their scope. No reset, commit, merge, push, account purge or provider operation.
+- Implemented finite private Tutor legacy-assignment scope, shared assigned
+  booking list/detail/API, exact-target account name/role/status filters,
+  pagination/read-only roles/history and safe suspend/restore. Navigation and
+  explicit local metadata-only single-target account grants are connected.
+- Actual owned-PG Tutor scope reproduction: three failures/two passes before
+  repair. Queue/detail admitted an outside-packet retained legacy grant; old review
+  mutated it. Final scope regression passed six/six, including observed lock-wait
+  packet activation and transactional rollback.
+- No schema/runtime grant/dependency change. Reuse existing READ COMMITTED
+  mutation/event/replay semantics, real current MFA and exact grants. Account
+  controls retain local-test provenance and hosted refusal; packet membership
+  alone supplies no account/booking grant. Private old Tutor-review mutation is
+  denied in favor of current assigned evidence-based screening.
+- Cross-author read-only Review PASS, READY FOR VERIFICATION, zero open confirmed
+  findings. Account author reviewed browser/root; browser author reviewed account
+  and Tutor/booking implementation; Tutor/booking author also reviewed root/shared
+  source. Subsequent test repairs independently re-reviewed; Review ran no checks.
+- Final `npm run check` PASS: format/lint/TypeScript plus 130 files / 1,990 tests,
+  test phase 12.18s. Test-env production build PASS with four existing dynamic
+  filesystem tracing warnings; 140 traces exclude local state/env. Affected actual
+  PostgreSQL PASS: 20 files / 339 tests, 143.50s, serialized. Existing 34 migrations
+  current; none applied. Application/configuration stayed unchanged after build.
+- Combined normal-build Chromium Playwright PASS:3/3 cases, 35.8s, no retries:
+  Admin 16.4s, Student 10.8s, Parent/Tutor 6.8s. Actual verification/MFA, assigned
+  screening/admission, scoped accounts/grants, booking lookup, subject corrections,
+  status/audits/replays, saved records, foreign denials and actual logout checked.
+  Admin queue/catalog invalid form/accounts/dialog 320/390/1440px overflow/Axe and
+  keyboard checks passed; not a full manual accessibility/visual audit.
+- Disclosed already-ended synthetic fixtures complete through actual assigned
+  Tutor controls; no newly elapsed full lesson or attendance claim. Real external
+  email/video and hosted activation NOT RUN. Fresh browser bookings remain distinct.
+- Failed attempts retained: worker SQL permission/new-endpoint Origin corrections;
+  Review caught a historical fixture/live-operator mismatch and a runbook omission.
+  Browser attempt 1 failed 3/3 on route/fixture-set/auth isolation assumptions;
+  attempt 2 passed Parent/Tutor but exposed navigation timing/session-counter issues.
+  Test-only corrections preserve exact assertions, real requests and production
+  limits; attempt3 and the final full check passed. Recovery record:
+  `prompts/recovery/2026-10-16-admin-workflow-validation.md`.
+- QA: `docs/qa/admin-workflow-results-2026-10-16.md` and corrected checklist.
+  Fifty scoped files against preserved baseline, prior work retained. Test PG
+  stopped after zero other clients/data retained; browser 3121 stopped. Owner
+  preview 3000 retained same process/health 200 on its prior configuration, not this
+  private rehearsal. No provider write, commit, merge, push, deployment or purge.
+- Next: reviewed exact isolated hosted target/adapter preparation and authorized
+  staging acceptance. Dashboard totals stay optional/separate; local acceptance
+  does not complete M5/M8 or approve real-family/public-review/payment launch.
+
+## 2026-10-16 — College Student workflow verified locally
+
+- Owner-approved recommendation implemented under
+  `prompts/features/m8-09-student-workflow-acceptance.md`,
+  **AUTHORIZED — build-feature delegation**; M8.9 and AUTH/FAM/BKG/MEET/OPS.
+  Scope remains private fictional accounts with payments disabled. No separately
+  human-reviewed blueprint, hosted target or deployment authority is implied.
+- Added College Student signup intent and Account setup/current-status entry,
+  reusing reviewed independent College Support admission. No early role grant,
+  guardian link, minor intake or new data model. Public selection survives real
+  signup/verification/admission; existing requests reopen without mutating the
+  saved selection. Workspace links require current authorization.
+- Fixed both readiness booking read predicates so Parent/Student scopes separate
+  their own guardian/self-managed records. Actual PostgreSQL regression first
+  showed five failures/two passes; repaired seven/seven PASS. This was same-account
+  role-view mixing, not a demonstrated foreign-account data leak. Ownership,
+  current evidence, atomic booking and assigned Tutor/admin safeguards remain.
+- Cross-author read-only Review: plan alignment, integrity, unintended changes
+  and documentation PASS; READY FOR VERIFICATION, zero open confirmed findings.
+  SQL reviewed independently by browser author; onboarding/browser/root harness
+  reviewed independently by SQL author; coordinator reviewed overall delta.
+  Subsequent test-only repairs received scoped independent Review as well.
+- Separate verification: `npm run check` PASS, 127 unit/component files and 1,943
+  tests plus format/lint/TypeScript; production build PASS with four existing
+  dynamic filesystem tracing warnings. All 138 generated traces exclude local
+  state/env references. Affected actual PostgreSQL selection: 237/237 in 14 files,
+  95.16 seconds. Existing 34 migrations were current; none applied.
+- Combined normal-build Chromium Playwright PASS, two cases/21.3 seconds:
+  Student 12.5 seconds and existing Parent/Tutor 6.9 seconds. Actual reviewed College
+  accounts, owned profile/refresh, Science/College Support discovery and selected
+  time, one reservation under double-click/retry, stale-slot conflict, assigned
+  confirmation, shared dashboards/private links, Student reschedule/cancel,
+  accurate audited versions/history, foreign/role denials and actual logout.
+- Separate already-ended synthetic Science booking completed through actual
+  assigned Tutor UI, one attributed event/retry, Student completed history.
+  It is not the new future booking or elapsed lesson/attendance. Real video,
+  email delivery and full-duration newly booked completion remain NOT RUN.
+  Onboarding/history 390px/1440px overflow/Axe and onboarding keyboard navigation
+  passed; this is bounded UI evidence, not a complete screen-reader/visual audit.
+- Failed check under coordinator umask077 was corrected by restoring normal
+  fixture permissions; no source/assertion weakening. Four initial browser runs
+  exposed test URL serialization, response-lifetime and ambiguous-alert issues.
+  Targeted test-only repairs preserve actual server responses, click/retry/state
+  assertions; the fifth combined run passed. Failed logs and diagnosis preserved.
+- Results/checklist: `docs/qa/student-workflow-results-2026-10-16.md` and
+  `docs/qa/student-workflow-checklist.md`; recovery record under
+  `prompts/recovery/2026-10-16-student-workflow-validation.md`. Exact 1,128-file dirty
+  baseline and final hashes/evidence under `.local/student-workflow-20261016/`.
+- Existing dirty branch `feature/staging-interface-cleanup-20261016` at 572cf4d and
+  earlier work preserved. No new migration, grants, dependencies, provider write,
+  commit, merge, push, deployment or account purge. Final integrated
+  `npm run check` rerun also passed all 1,943 tests and static
+  checks after browser repairs. Diff whitespace, five new local links, preserved
+  baseline and runtime-source hashes passed. Owned test PostgreSQL stopped after
+  zero other clients, synthetic data retained; browser server on3121 stopped. Owner
+  preview on3000 preserved on its prior configuration, same process and health200.
+- Next: exact isolated hosted target/adapter preparation and specifically
+  authorized staging acceptance. Payments/real-family launch gates remain; this
+  local acceptance does not mark M8 or production readiness complete.
+
+## 2026-10-16 — Private fictional workflow verified locally; hosted activation pending
+
+- Owner selected the recommended private staging with fictional accounts and
+  payments disabled (“chooos e recomendedn”). Audience and assigned-Tutor completion
+  actor are resolved. See `docs/decisions/2026-10-16-private-fictional-staging.md`;
+  do not ask those decisions again. No real-family intake or actual hosted target.
+- Blueprint `prompts/features/m8-03-private-fictional-workflow.md`, M8.3/M8.9 plus
+  AUTH/TUT/FAM/BKG/MEET/OPS, is **AUTHORIZED — build-feature delegation**. It is not
+  separate human blueprint review, provider-write, purge or deployment authority.
+- Implemented explicit private target/origin/account/receipt composition, async
+  domain accessor, signed hosted ingress reuse, reviewed learner navigation,
+  `/bookings/new`, finite scoped discovery, participant/link/history presentation,
+  bounded private account mail capture and metadata-only local operator. Legacy
+  defaults and existing atomic PostgreSQL booking/ownership/MFA safeguards remain.
+- Review repaired local learner fallback/fixture projection, finite target scope,
+  full screening receipt binding and packet changes during booking/meeting waits.
+  The same-version mismatch was reproduced RED before the shared predicate fix;
+  actual lock-wait tests verify rollback without link/history changes.
+- Read-only Review: plan alignment, integrity, unintended-change audit and software
+  documentation PASS; READY FOR VERIFICATION, no open confirmed source findings.
+  Runtime/service/operator/capture review was independent; UI author independence
+  is limited and coordinator inspected that presentation separately.
+- Separate verification: `npm run check` PASS (format/lint/typecheck,1886 tests in123
+  unit/component files); unused-import warning removed and final lint clean.
+  Production build PASS with four dynamic-filesystem tracing warnings;137 generated
+  traces contain zero `.local`/local-env references. `git diff --check` PASS.
+- PostgreSQL:336 affected tests passed in19 files; hosted-provider compatibility8
+  passed separately with its required owned TLS port —344 final passing cases.
+  The first hosted setup attempt lacked that port and failed/eight skipped; other
+  tests passed. This is recorded as setup failure, not hidden or a product defect.
+- Normal-build Chromium Playwright PASS,1 connected case (8.7s;10.2s total): actual
+  registrations/verification, Parent enrollment, inactive pending child with zero
+  links, assigned evidence/authorization, Tutor profile/screening/availability,
+  directory Math/Middle School filters, same-booking provisional/confirmation,
+  Parent/Tutor agendas, persisted private link, intercepted same meeting destination,
+  unrelated access denials and Parent history.390px/1440px history layout/Axe PASS.
+  Startup URL mismatch and incorrect locator attempts remain in the recovery log.
+- Fresh same-booking post-end completion and a real video call were NOT RUN.
+  Premature completion was denied without state change; separate deterministic
+  completion tests cover post-end state/audit/retries/history. Do not report9/9
+  full-duration browser completion or delivery/attendance from these fixtures.
+- Evidence/report: `docs/qa/private-fictional-workflow-results-2026-10-16.md`,
+  `docs/operations/private-fictional-workflow.md`, private logs/baselines under
+  `.local/private-fictional-workflow-20261016/`. Historical default-app blocked
+  attempt and prior checklist evidence retain their scope.
+- All prior uncommitted work preserved on `feature/staging-interface-cleanup-20261016`
+  at572cf4d. No new migration, privilege change, commit, merge, push, provider write,
+  deployment or account purge. Existing34 test migrations were already current.
+- Closeout: actual local metadata operator `prepare` PASS; no assignments or
+  confirmation grants created. Owned test PostgreSQL stopped after zero other
+  clients, synthetic data retained; browser/TLS test servers stopped. Existing
+  owner preview3000 preserved, health200; it is not the private rehearsal.
+- **Next:** choose/prepare an exact isolated hosted target and its reviewed adapter,
+  then perform target-approved staging acceptance. Hosted CLI provisioning remains
+  unsupported in this slice; no staging deployment/launch claim. Real business,
+  safeguarding and payment launch gates remain open. M8 is not marked complete.
+
+## 2026-10-16 — Tutor checklist corrections implemented; normal integration gated
+
+- Owner approved the Tutor cross-check recommendation (“okay lets do ur
+  recommendation”). Primary M8.9; AUTH-01–05, TUT-01–06, PUB-03/04, FAM-01,
+  BKG-01–07, MEET-01–03 and OPS-02/03/04. Blueprint
+  `prompts/features/m8-09-tutor-workflow-acceptance.md` Part A is
+  **AUTHORIZED — build-feature delegation**, not separate human inspection of
+  the generated blueprint. Dependent Part B remains blocked on operating scope.
+- Saved `docs/qa/tutor-workflow-checklist.md` and the owner decision. Corrections:
+  register/verify → Become a tutor/application, name in Account Settings, combined
+  Teaching background, broad levels including College Support, photos/pricing
+  Not Applicable, guardian-managed participation through Parent and one shared
+  booking reference through both dashboards, private link, completion and history.
+  No signup feature, grade engine, photo upload, pricing or Tutor acceptance
+  action is invented. PRD TUT-06 and build-plan M8.9 link the accepted scope.
+- Checklist keeps complete-journey checks NOT RUN/BLOCKED. The last Parent attempt
+  stopped at Add Child and supplies no normal booking. Earlier63 isolated feature
+  passes retain their scope; availability/notification browser suites were not in
+  that selection. No new live call, delivery or completed journey is claimed.
+- Weekly hours may be removed without silently moving/cancelling saved bookings;
+  the checklist tests retained state and busy-slot exclusion. Dated time off has
+  its separate active-booking conflict guard. No new schedule policy was enacted.
+- Current implementation delta is documentation only. Existing uncommitted app,
+  tests, migrations0032/0033 and private evidence preserved on
+  `feature/staging-interface-cleanup-20261016` at base `572cf4d`. Baseline retained
+  in `.local/tutor-workflow-acceptance-20261016/`; all853 prior source hashes
+  matched before this unit. No app/config/schema/provider operation or activation.
+- Independent read-only Review of exact six-file Part A delta: plan alignment,
+  integrity, unintended-change audit and documentation PASS; zero findings;
+  READY FOR VERIFICATION. This reviews documentation only, not the existing app
+  diff or Part B. Reviewer executed no checks or mutations.
+- Separate Verify: scoped Prettier PASS for the new checklist/decision/blueprint,
+  all9 new local links resolve, `git diff --check` PASS and all853 source hashes
+  unchanged. Three context files contain additions only; both prior Parent QA
+  files are byte-identical. Part A acceptance documentation is verified. App
+  suites/build/browser/DB were NOT RUN for this doc-only unit; earlier application
+  results remain historical. Evidence: the private run JSON and doc-check record.
+- One material audience question is pending: private fictional staging without
+  payments (recommended) versus real-family pilot. It changes consent, screening
+  and confirmation requirements; general checklist approval does not select the
+  missing terms. Completion actor remains resolved as assigned Tutor after saved
+  end with an audit. Exact target/account cleanup remains separately gated.
+- Next: resolve the pending audience answer, then plan the dependent normal
+  guardian/booking integration under its actual operating policy.
+  Do not promote test-only policy literals to staging terms or delete truthful
+  simulation labels to conceal unavailable behavior. No commit/merge/deployment.
+
+## 2026-10-16 — Parent workflow attempted in Playwright; normal journey blocked
+
+- Owner requested actual Playwright execution of the nine-step Parent checklist.
+  Restart recovery checked completed work before resuming. No application or
+  existing tracked test source changed; prior onboarding/interface/completion
+  work remains uncommitted on `feature/staging-interface-cleanup-20261016` at
+  base `572cf4d`. All **853/853** source/test/script/migration/config hashes match
+  the previous verified state before and after this verification.
+- Default application: UI Parent signup, captured-email verification, sign-in
+  and explicit enrollment **PASS**. Only Parent was granted, with one audit and
+  zero automatic guardian links. The same account is **BLOCKED at Add Child**:
+  normal admission collects no child details, only fictional local learner
+  creation exists, and no exact Grade 8 field is available. No grade equivalence
+  or guardian authority was fabricated. Ordinary booking remains simulated and
+  the account has no authorized learner. The empty Parent dashboard is accurate.
+- Nine-step journey: Step 1 PASS; Steps 2/4/5 BLOCKED; Steps 3/6/7/8/9 NOT RUN
+  for the same new Parent/child/booking. Full-journey readiness remains incomplete.
+  Results: `docs/qa/parent-workflow-playwright-results-2026-10-16.md`; approved
+  `docs/qa/parent-tutor-session-checklist.md` now links this actual attempt and
+  preserves the historical result-at-approval table.
+- Separate existing Chromium feature suite **63/63 PASS across 12 files** in
+  **144.38s**, one worker/no dependency expansion, zero failed/skipped/flaky and
+  no global errors. Covers auth, tutor catalog, local learners, booking entry,
+  Parent/Tutor dashboards, history, private meeting links, policy mirror and
+  combined simulation paths. Assigned Tutor completion uses a separate already-
+  ended confirmed historical v2 fixture; Parent details and dashboard were
+  checked, not the new Parent's booking or a dedicated history persistence flow.
+- Private default-flow observation passed twice; final **1/1** observation waits
+  for the loaded booking heading before its capture. Initial loading-state
+  capture retained privately. Observation PASS records the application blocker;
+  it is not a passed journey. Private harness only changes evidence paths,
+  selection/server cwd and waits; shipped compositions were not overridden.
+- Fresh test-env optimized build **PASS**, three inherited local-mail tracing
+  warnings. Owned loopback PostgreSQL test DB already contained all 34 migrations;
+  none replayed after restart. Existing fixture setup clears synthetic tutor
+  inventory only in that isolated test DB. No production/staging/provider write,
+  real notification, payment, external call, account purge or policy activation.
+- One read-only agent mapped assertions and independently reviewed evidence.
+  Counts/statuses matched; wording corrected to distinguish Parent dashboard
+  from a dedicated history check. This is an evidence-report review, not a new
+  application Review or independent runtime execution. Root ran the browsers.
+- Evidence: `.local/parent-workflow-playwright-20261016/` contains configs, source
+  hashes, JSON reports, logs and private captures. Seven report links and scoped
+  documentation formatting/diff checks PASS. Existing unit/full PostgreSQL and
+  broader browser results remain historical, with their original applicability;
+  they were not rerun for this standalone verification.
+- Owned test web ports 3100/3098/3093/3293/55703 and PostgreSQL55432 stopped;
+  synthetic data retained. Owner preview3000 health200 observed and preserved.
+  Existing Neon preview was not migrated. No commit/merge/push/deployment.
+- Next: settle the pending operating boundary/exact staging target and integrate
+  normal child/guardian and approved booking behavior, then rerun one Parent's
+  same-child/same-booking checklist. Completion actor remains resolved. Live
+  Zoom/Meet connection needs a separately authorized manual check; private link
+  validation/access/redirect checks do not establish participant attendance.
+
+## 2026-10-16 — Assigned tutor completion software verified; activation gated
+
+- Owner approved assigned-tutor manual completion after scheduled end, with an
+  audit record (“yes ;approve ur recommmendation”). This resolves the earlier
+  completion-actor question. Decision:
+  `docs/decisions/2026-10-16-assigned-tutor-completion.md`; blueprint
+  `prompts/features/m5-05-assigned-tutor-completion.md`, **AUTHORIZED — build-feature
+  delegation**. This is not separate human approval of the generated blueprint.
+- Implemented strict v2 policy/digest, authoritative assigned-tutor entitlement,
+  guarded private Tutor completion control and matching Parent/Tutor history.
+  Existing locks/revisions, idempotency, post-write/receipt rechecks, atomic audit
+  and notice intents are reused. Parents/unassigned tutors/stale or revoked
+  actors and early/cancelled/provisional work are denied. Confirmation/no-show
+  remain assigned-admin test actions; immutable v1 policies retain their meaning.
+- Additive0033 changes the version/reference check and exactly two function
+  bodies; no new runtime grant/function/role. All 66 prior migration/snapshot
+  files, including the uncommitted0032 Parent enrollment work, are unchanged.
+  Migration ran only on this checkout's owned loopback test database 55432.
+- Same-agent read-only Review: plan alignment, integrity, unintended-change and
+  documentation PASS, READY FOR VERIFICATION; scoped repair re-review PASS.
+  This is not an independent review or launch authorization.
+- Separate executed Verify on final applicable state:
+  - `npm run check` PASS: formatting, lint without warnings, typecheck and
+    **1,770 unit/component tests /119 files**. Final log `check-after-repair.log`.
+  - Focused actual PostgreSQL PASS **28/3**; full
+    `LEARLI_STAGING_TEST_PORT=55703 npm run test:integration` PASS **1,033/71** in
+    433.42s, no failures/skips. Includes legacy completion, authority denials,
+    four concurrent identical retries yielding one event, rollback, post-lock/
+    post-write revocation, fresh/populated migrations and exact grant protections.
+  - Test-env production build PASS, repeated after the UI repair. Three inherited
+    local-mail file-pattern warnings remain; no new dependency/infrastructure.
+  - Selected Chromium browser projects auth, hosted-auth, tutor-dashboard,
+    booking-history, booking-meeting-links and policy-booking, no-deps/workers1:
+    **71/71 PASS in a single final run**, including assigned Tutor completion,
+    HTTP replay/one event, Parent detail/history, 390/1440 layout/axe/keyboard,
+    no-JS mutation safety and private fixture leakage checks.
+  - Final **853-file** source/test/script/migration/config manifest unchanged;
+    diff whitespace and three local documentation links PASS. Phone/desktop
+    completion captures inspected. No claim of other engines or full E2E suite.
+- Initial browser run retained: **62 passed /2 failed /7 not run**. It exposed
+  actual Parent setup enabled-color interpolation (contrast 1.27) and an incorrect
+  name-only selector in the new test (existing UI combines name and level).
+  Reused `transition-none` on the single Parent button, corrected the exact
+  combined name/level assertion, re-reviewed, reran check/build and all 71 browsers.
+  No assertion, permission or accessibility check was weakened. PostgreSQL results
+  remain applicable: repairs changed no backend/schema/integration behavior.
+  Recovery: `prompts/recovery/2026-10-16-tutor-completion-validation.md`.
+- Evidence: `.local/tutor-completion-20261016/verification.json`, source hashes,
+  original/final logs and private captures. All prior Parent/interface work stays
+  uncommitted on `feature/staging-interface-cleanup-20261016` at base `572cf4d`.
+- **Remaining scope:** shipped policy factories are still disabled. Full approved
+  registration→child→booking→external call→history journey is **NOT RUN** and not
+  staging-ready. Guardian/booking/meeting-reuse rules and exact staging/account
+  cleanup targets remain unresolved; payment and real-family intake unapproved.
+  The completion actor no longer needs a decision. Neither 0032 nor0033 was applied
+  to the existing Neon development preview. No provider operation, real mail,
+  external call, account purge, commit, merge, push or deployment.
+- Owned test servers/PG stopped with synthetic data retained. Owner preview 3000
+  health 200 observed at closeout and preserved on its existing Neon development
+  configuration. Next: settle the pending operating boundary and exact target,
+  then plan/integrate the linked-child and normal booking/staging journey; retain
+  the verified completion capability and checklist without enabling test terms.
+
+## 2026-10-16 — Parent/Tutor session checklist approved and recorded
+
+- Owner approved the recommended Steps 5–9 checklist after the source cross-check:
+  “ok appporove hte recommended checklist”. Saved at
+  `docs/qa/parent-tutor-session-checklist.md`; approval is acceptance scope, not
+  a passed manual test or evidence of a live session.
+- Captures shared booking identity/schedule/status across dashboards, tutor link
+  entry before join, guardian-managed access through Parent, cross-account
+  denials and manual audited completion after scheduled end, followed by history.
+  Optional tutor acceptance stays conditional; live completion actor and the
+  operating/target policies remain open. No actor authority was silently changed.
+- Updated the parent/staging blueprints, existing owner decision, PRD and M5 build
+  plan. This turn changes documentation only; the prior verified Parent code,
+  migration and interface cleanup are preserved. Full checklist execution is
+  **NOT RUN**; Step 8 remains **BLOCKED** on the applicable operating/actor policy.
+- Same-agent read-only documentation Review PASS: approved scope recorded, no
+  implementation/QA completion invented and remaining policies still open.
+  Scoped Markdown format, two local-link targets and `git diff --check` PASS.
+  All 842 previously verified source/test/migration hashes match; application
+  suites were not rerun for this documentation-only change. No provider
+  migration, account deletion, commit or deployment.
+- A focused completion-actor question was sent: assigned tutor with an audit
+  record (recommended), or assigned admin only. No answer or actor policy is
+  inferred from elapsed time; the earlier staging-audience/target question also
+  remains unresolved.
+- Next: resolve the remaining operating boundary/target and outcome actor, then
+  implement/verify the dependent child-booking-session journey within this scope.
+
+## 2026-10-16 — Parent account onboarding verified; remaining journey gated
+
+- Owner approved the recommended registration → child → tutor → booking →
+  dashboard journey. This first independent M2.4/M2.9 unit covers Parent account
+  enrollment, AUTH-01/02/03/05 and OPS-03. Blueprint
+  `prompts/features/m2-04-parent-onboarding.md` is **AUTHORIZED — build-feature
+  delegation**, not separate human inspection of that generated document.
+- Implemented: optional Parent signup selection retained through mandatory email
+  verification/sign-in; explicit authenticated parent setup; existing-account
+  entry; self-only Parent grant and atomic audit in additive migration0032.
+  Ordinary signup remains roleless and legitimate multiple roles are preserved.
+  Parent selection creates no learner or guardian link and grants no authority
+  over a child. Database role tables remain read-only to the application.
+- The prior verified interface cleanup is preserved on
+  `feature/staging-interface-cleanup-20261016` at base `572cf4d`. Pre-parent copies
+  live in `.local/parent-onboarding-20261016/baseline/`; only the six expected
+  shared source/test/context paths changed from that checkpoint. Historical SQL
+  and snapshots are unchanged; journal has one appended entry, with the generated
+  schema snapshot changing only the audit action constraint plus metadata.
+- Same-agent read-only Review: plan alignment, integrity, unintended-change and
+  documentation PASS; READY FOR VERIFICATION. Re-review of the historical fixture
+  repair passed. This is not an independent reviewer or a full-journey signoff.
+- Separate Verify: full `npm run check` PASS (format, lint, typecheck and **1,768
+  tests in 119 files**); test-env production build PASS with three inherited
+  local-mail file-pattern warnings. Focused parent/migration PostgreSQL tests
+  **28/28 PASS**, including populated 0031→0032, concurrent enrollment, forged
+  authority, current-after-lock denial and atomic audit failure/retry.
+- Broad PostgreSQL run: **1,004 passed in 69 files**, with eight hosted-auth cases
+  skipped by a setup failure because this shell lacked CI's TLS port assignment.
+  The unchanged hosted suite reran with `LEARLI_STAGING_TEST_PORT=55703` and
+  **8/8 passed**. Aggregate: **1,012 unique passing cases in 70 files across the
+  two runs**, not one all-green full command. The earlier five historical fixture
+  failures and their correction are retained in the recovery note and logs.
+- Chromium browser validation **73/73 PASS**, no failures/skips, using the
+  documented TLS assignment and projects desktop, phone, narrow, auth,
+  account-sessions, account-password and hosted-auth, `--no-deps --workers=1`.
+  New actual UI registration → verification → explicit Parent → local parent
+  dashboard tests use no SQL role grant for the new parent. Existing-account,
+  safe tutor-search continuation and HTTPS parent enrollment also passed.
+  Four signup/setup captures at 390/1440 were inspected; no horizontal overflow.
+  Automated keyboard, axe, no-JS and permission checks passed in those projects.
+- Evidence: `.local/parent-onboarding-20261016/verification.json`, exact logs,
+  captures and **842 source/test/migration hashes**, unchanged at final validation.
+  Recovery: `prompts/recovery/2026-10-16-parent-onboarding-validation.md`.
+  Other browser projects and Firefox/WebKit were not rerun. The complete new
+  child-to-booking journey is NOT yet implemented/verified.
+- Only owned loopback databases and mocked mail were used. Test migration0032
+  was applied there; test servers are stopped and local PostgreSQL data retained.
+  The owner's preview was left untouched. No provider migration, account purge,
+  commit, push or deployment occurred; the current Neon-backed preview therefore
+  still needs its reviewed migration before new Parent enrollment can work there.
+- Remaining scope **BLOCKED on material inputs**: whether the first version is
+  private staging with fictional data, admin-approved guardian links/bookings
+  and no payments, versus real-family intake; dependent guardian/booking rules
+  and the exact hosting/data-cleanup target. The question remains unanswered.
+  The remaining approved journey and simulation replacement are still active
+  work, not completed or canceled. Next: resolve that operating boundary, then
+  plan and implement the linked-child/booking/staging unit without inventing
+  consent, duration/hold/confirmation, payment or provider policy.
+
+## 2026-10-16 — Initial staging interface cleanup verified; remaining scope blocked
+
+- Owner request: remove website simulation content/creation, retain only admin
+  before owner-created test accounts, and prepare staging. Blueprint:
+  `prompts/features/m8-03-staging-interface-cleanup.md`, Part A **AUTHORIZED —
+  build-feature delegation**. Branch `feature/staging-interface-cleanup-20261016`
+  starts at `572cf4d`; original working tree was clean.
+- Part A implemented: remove fabricated home testimonials in all environments, move
+  carousel examples into test-only fixtures, retire the preview helper, and use
+  ordinary account/auth/session labels. Existing E2E accessible-name selectors
+  are adapted; security/ownership assertions and runtime restrictions remain.
+- Pre-change baseline: focused Vitest home/carousel/hydration/hosted-auth-form/
+  preview-helper command passed 26 cases in five files.
+- Same-agent read-only Part A Review: plan alignment, integrity, unintended-change
+  and documentation PASS; no confirmed scoped findings; READY FOR VERIFICATION.
+  Full-request completion remains blocked on the material choices below.
+- Separate Verify on the reviewed source: `npm run check` PASS (format, lint,
+  typecheck and 1,751 unit/component cases in 117 files); `node
+  scripts/with-test-env.mjs npm run build` PASS. Three unmodified local-mail
+  dynamic-file-pattern build warnings remain recorded, not suppressed.
+- Selected actual Chromium commands passed **69/69**, no failures/skips:
+  `npm run test:e2e -- --project=desktop --project=phone --project=narrow
+  --project=auth --project=account-sessions --project=account-password
+  --project=hosted-auth --no-deps --workers=1`. These cover public responsive/
+  accessibility, local/HTTPS auth, MFA, account/session/password and ownership
+  boundaries. Four home/signup captures at 390/1440 were inspected; no horizontal
+  overflow or sample testimonial section. Other browser projects, standalone PG
+  integration, Firefox/WebKit and hosted provider acceptance were not rerun.
+  Evidence: ignored `.local/staging-interface-cleanup-20261016/verification.json`
+  and command logs/captures; source hashes bind the reviewed implementation.
+- Remaining scope is **BLOCKED**, not completed: owner must identify the account
+  cleanup target and choose removal versus usable replacement of simulation-only
+  booking/admission workflows. Automated regression tests are retained by default.
+  Read-only Neon metadata found only `learli-local-development` and `production`;
+  no staging branch exists in that inventory. No application records were read,
+  deleted or migrated; no provider write, push or deployment occurred.
+- Current manual preview remains running at `http://127.0.0.1:3000`. Test suites
+  must stay on the separate loopback PostgreSQL test configuration, not Neon.
+- Changes remain uncommitted on the feature branch. Next: resolve the target
+  database and simulation-workflow choice before dependent implementation,
+  account cleanup or staging activation; retain the automated regression suite.
+
 ## 2026-10-16 — Preserved SECURITY POLICE records committed and merged
 
 Owner explicitly authorized settling the separate security work and merging it

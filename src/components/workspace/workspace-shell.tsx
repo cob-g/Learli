@@ -48,12 +48,16 @@ export function WorkspaceShell({
   children,
   initialAccount = null,
   screeningEnabled = false,
+  privateWorkflow = false,
+  privateAccounts = false,
 }: {
   children: ReactNode;
   /** The server's guarded account read for this document, if it succeeded. */
   initialAccount?: (Account & { sessionId: string }) | null;
   /** Deployment-level screening switch decided by the server layout. */
   screeningEnabled?: boolean;
+  privateWorkflow?: boolean;
+  privateAccounts?: boolean;
 }) {
   const pathname = usePathname();
   const scope = useSearchParams().get("scope");
@@ -87,6 +91,8 @@ export function WorkspaceShell({
           scope={scope}
           userId={chromeUser}
           screeningEnabled={screeningEnabled}
+          privateWorkflow={privateWorkflow}
+          privateAccounts={privateAccounts}
           // Better Auth also flags its first load as refetching; only a
           // refresh of a settled session discards the shown account.
           refreshing={session.isRefetching && !session.isPending}
@@ -104,6 +110,8 @@ export function WorkspaceShell({
           account={null}
           roles={null}
           screeningEnabled={screeningEnabled}
+          privateWorkflow={privateWorkflow}
+          privateAccounts={privateAccounts}
           message={
             session.error
               ? "Account status unavailable."
@@ -129,6 +137,8 @@ function AccountChrome({
   confirmed,
   initial,
   screeningEnabled,
+  privateWorkflow,
+  privateAccounts,
 }: {
   pathname: string;
   userId: string;
@@ -138,6 +148,8 @@ function AccountChrome({
   confirmed: boolean;
   initial: Account | null;
   screeningEnabled: boolean;
+  privateWorkflow: boolean;
+  privateAccounts: boolean;
 }) {
   const [attempt, setAttempt] = useState(0);
   const pathKey = JSON.stringify([pathname, scope, refreshing]);
@@ -191,6 +203,8 @@ function AccountChrome({
       pathname={pathname}
       scope={scope}
       screeningEnabled={screeningEnabled}
+      privateWorkflow={privateWorkflow}
+      privateAccounts={privateAccounts}
       account={result?.account ?? null}
       roles={result?.account?.roles ?? null}
       preserveContext={result === null}
@@ -219,6 +233,8 @@ function WorkspaceChrome({
   scope,
   preserveContext = false,
   screeningEnabled = false,
+  privateWorkflow = false,
+  privateAccounts = false,
 }: {
   pathname: string;
   account: Account | null;
@@ -229,6 +245,8 @@ function WorkspaceChrome({
   scope?: string | null;
   preserveContext?: boolean;
   screeningEnabled?: boolean;
+  privateWorkflow?: boolean;
+  privateAccounts?: boolean;
 }) {
   const routeKey = JSON.stringify([pathname, scope]);
   const [openRoute, setOpenRoute] = useState<string | null>(null);
@@ -246,7 +264,11 @@ function WorkspaceChrome({
   useEffect(() => {
     if (open) panel.current?.querySelector<HTMLElement>("a, summary")?.focus();
   }, [open]);
-  const links = workspaceLinks(role, { screening: screeningEnabled });
+  const links = workspaceLinks(role, {
+    screening: screeningEnabled,
+    privateWorkflow,
+    privateAccounts,
+  });
   const common = [
     ...(role === null
       ? (roles ?? [])

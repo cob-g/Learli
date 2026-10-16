@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { privateJson } from "@/lib/auth-handler";
 import { handleSubjectRenameRequest } from "@/features/subjects/handler";
 
@@ -11,7 +11,7 @@ export async function PATCH(
 ) {
   try {
     return await handleSubjectRenameRequest(
-      getAuthRuntime(),
+      await getDomainAuthRuntime(),
       request,
       (await context.params).subjectId,
     );

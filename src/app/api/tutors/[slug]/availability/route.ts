@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { handlePublicCandidateRead } from "@/features/public-availability/handler";
 export const dynamic = "force-dynamic";
 export async function GET(
@@ -6,7 +6,7 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   return handlePublicCandidateRead(
-    getAuthRuntime(),
+    await getDomainAuthRuntime(),
     request,
     (await params).slug,
   );

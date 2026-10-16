@@ -182,9 +182,7 @@ test("new verified guardian and tutor cross admission, screening, booking, SDK n
     .click();
   await expect(parent.page).toHaveURL(/\/sign-in\?/);
   expect(new URL(parent.page.url()).searchParams.get("next")).toBe(discovery);
-  await parent.page
-    .getByLabel("Test email", { exact: true })
-    .fill(parent.email);
+  await parent.page.getByLabel("Email", { exact: true }).fill(parent.email);
   await parent.page.getByLabel("Password", { exact: true }).fill(f.password);
   await parent.page
     .getByRole("button", { name: "Sign in", exact: true })
@@ -524,9 +522,7 @@ test("new verified guardian and tutor cross admission, screening, booking, SDK n
     ).status(),
   ).toBe(200);
   await parent.page.goto("/sign-in");
-  await parent.page
-    .getByLabel("Test email", { exact: true })
-    .fill(outsider.email);
+  await parent.page.getByLabel("Email", { exact: true }).fill(outsider.email);
   await parent.page.getByLabel("Password", { exact: true }).fill(f.password);
   await parent.page
     .getByRole("button", { name: "Sign in", exact: true })

@@ -5,6 +5,12 @@ import { TargetView } from "@/features/account-restrictions/presentation";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { safePage } from "@/features/support/input";
 import { AdminShell } from "@/features/admin/admin-shell";
+import { getPrivateWorkflow } from "@/features/private-workflow/runtime";
+import {
+  accountQueryFromSearch,
+  accountSearchParams,
+  accountTargetHref,
+} from "@/features/account-restrictions/input";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Local account access",
@@ -15,13 +21,31 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ targetId: string }>;
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { targetId } = await params;
-  const page = safePage((await searchParams).page);
-  const detail = await loadPrivatePage(
-    `/admin/accounts/${encodeURIComponent(targetId)}`,
-    (runtime, headers) => readTarget(runtime, headers, targetId, page),
+  const query = await searchParams;
+  const search = accountSearchParams(query);
+  let path = `/admin/accounts/${encodeURIComponent(targetId)}`;
+  try {
+    const current = accountQueryFromSearch(search, true);
+    path = accountTargetHref(
+      targetId,
+      current,
+      "historyPage" in current ? Number(current.historyPage) : 1,
+    );
+  } catch {
+    /* Invalid private filters show the guarded unavailable state. */
+  }
+  const detail = await loadPrivatePage(path, (runtime, headers) =>
+    readTarget(
+      runtime,
+      headers,
+      targetId,
+      getPrivateWorkflow(runtime)
+        ? accountQueryFromSearch(search, true)
+        : safePage(query.page),
+    ),
   );
   if (!detail)
     return (

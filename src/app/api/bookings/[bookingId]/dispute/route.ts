@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { handleJsonMutation } from "@/lib/mutation-handler";
 import { privateJson } from "@/lib/auth-handler";
 import { bookingWorkflowContext } from "@/features/booking-workflows/composition";
@@ -9,7 +9,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ bookingId: string }> },
 ) {
-  const runtime = getAuthRuntime(),
+  const runtime = await getDomainAuthRuntime(),
     { bookingId } = await params;
   if (!runtime)
     return privateJson({ message: "Booking dispute unavailable." }, 503);

@@ -17,6 +17,11 @@ import { createDatabase } from "../../src/lib/db/connection";
 import { inspectW6BrowserPrivacy } from "../support/w6-browser-privacy";
 import { restoreW6BrowserTutor } from "../support/w6-browser-fixtures";
 import { totpCode } from "../support/admin-mfa";
+import {
+  bookingPolicyDigest,
+  validateBookingCapability,
+} from "../../src/features/booking-workflows/policy";
+import { historicalWorkflowBooking } from "../support/booking-workflows-fixtures";
 process.env.PLAYWRIGHT_NO_COPY_PROMPT = "1";
 test.use({ trace: "off", screenshot: "off", video: "off" });
 test.describe.configure({ mode: "serial" });
@@ -108,7 +113,7 @@ async function login(browser: Browser, email: string, secondFactor?: string) {
     page = await context.newPage();
   contexts.push(context);
   await page.goto("/sign-in");
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(fixture.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   if (secondFactor) {
@@ -434,9 +439,7 @@ test("parent request -> assigned browser MFA confirmation -> private link -> mov
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(page).toHaveURL(/\/sign-in/);
   expect((await page.content()).includes(moved)).toBe(false);
-  await page
-    .getByLabel("Test email", { exact: true })
-    .fill(fixture.college.email);
+  await page.getByLabel("Email", { exact: true }).fill(fixture.college.email);
   await page.getByLabel("Password", { exact: true }).fill(fixture.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(fixture.origin + "/account");
@@ -665,4 +668,188 @@ test("assigned browser MFA administrative completion and no-show preserve explic
 
 test("public/auth HTML, anonymous errors and emitted clients omit current private fixture and transient MFA values", async () => {
   await inspectW6BrowserPrivacy(fixture, staffSecret);
+});
+
+test("assigned Tutor completes an ended v2 session once and Parent history agrees", async ({
+  browser,
+}) => {
+  const packetPath = ".local/booking-workflows/browser-policy.json";
+  const original = await readFile(packetPath, "utf8");
+  const prior = validateBookingCapability(JSON.parse(original), "test");
+  if (prior.authority === "disabled")
+    throw new Error("Expected owned test policy");
+  const terms = {
+    ...prior,
+    version: "synthetic-booking-v2",
+    reference: "synthetic:booking:v2",
+    completionActor: "assigned_tutor",
+  } as const;
+  const policy = validateBookingCapability(
+    {
+      ...terms,
+      policyId: randomUUID(),
+      contentDigest: bookingPolicyDigest(terms),
+    },
+    "test",
+  );
+  if (policy.authority === "disabled")
+    throw new Error("Expected owned tutor policy");
+  await owner.pool.query(
+    "INSERT INTO booking_workflow_policies(id,version,reference,content_digest,terms) VALUES($1,$2,$3,$4,$5::jsonb)",
+    [
+      policy.policyId,
+      policy.version,
+      policy.reference,
+      policy.contentDigest,
+      JSON.stringify(policy),
+    ],
+  );
+  try {
+    await owner.pool.query(
+      "UPDATE booking_workflow_policy_head SET policy_id=$1,enabled=true WHERE source='synthetic_readiness'",
+      [policy.policyId],
+    );
+    await writeFile(packetPath, JSON.stringify(policy), { mode: 0o600 });
+    const now = Date.now();
+    const booking = await historicalWorkflowBooking(
+      { owner },
+      {
+        profile: { id: fixture.tutor.profileId },
+        learner: { id: fixture.parent.learnerId },
+        requester: { id: fixture.parent.id },
+        booking: policy,
+        admission: { policyId: policy.admissionPolicyId },
+      },
+      fixture.reviewer,
+      {
+        state: "confirmed",
+        start: new Date(now - 7200000),
+        end: new Date(now - 3600000),
+        created: new Date(now - 86400000),
+        expires: new Date(now - 85800000),
+      },
+    );
+    const tutor = await login(browser, fixture.tutor.email);
+    const parent = await login(browser, fixture.parent.email);
+    const path = `/bookings/${booking.id}?scope=tutor`;
+    await tutor.page.goto(path);
+    const button = tutor.page.getByRole("button", {
+      name: "Mark session completed",
+      exact: true,
+    });
+    await expect(button).toBeEnabled();
+    await expect(
+      tutor.page.getByRole("heading", {
+        name: "Synthetic booking confirmed",
+        exact: true,
+      }),
+    ).toBeVisible();
+    for (const width of [390, 1440]) {
+      await tutor.page.setViewportSize({ width, height: 900 });
+      await accessible(tutor.page);
+      await tutor.page.screenshot({
+        path: `.local/tutor-completion-20261016/tutor-${width}.png`,
+        fullPage: true,
+      });
+    }
+    const noScript = await browser.newContext({
+      baseURL: fixture.origin,
+      javaScriptEnabled: false,
+      storageState: await tutor.context.storageState(),
+    });
+    contexts.push(noScript);
+    const inert = await noScript.newPage();
+    await inert.goto(path);
+    await expect(
+      inert.getByRole("button", {
+        name: "Mark session completed",
+        exact: true,
+      }),
+    ).toBeDisabled();
+    const denied = await parent.context.request.post(
+      `/api/bookings/${booking.id}/workflow/complete`,
+      {
+        headers: { origin: fixture.origin },
+        data: {
+          requestId: randomUUID(),
+          expectedRevision: 0,
+          reasonCode: "synthetic_completed",
+        },
+      },
+    );
+    expect(denied.status()).toBe(404);
+    await button.focus();
+    await expect(button).toBeFocused();
+    const request = tutor.page.waitForRequest(
+      (r) =>
+        r.method() === "POST" &&
+        r.url().endsWith(`/api/bookings/${booking.id}/workflow/complete`),
+    );
+    await tutor.page.keyboard.press("Enter");
+    const submitted = (await request).postDataJSON();
+    await expect(
+      tutor.page.getByRole("heading", {
+        name: "Synthetic administrative completion",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      tutor.page.getByRole("button", {
+        name: "Mark session completed",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    const replay = await tutor.context.request.post(
+      `/api/bookings/${booking.id}/workflow/complete`,
+      { headers: { origin: fixture.origin }, data: submitted },
+    );
+    expect(replay.status()).toBe(200);
+    expect(
+      (
+        await owner.pool.query(
+          "SELECT state,workflow_revision FROM bookings WHERE id=$1",
+          [booking.id],
+        )
+      ).rows[0],
+    ).toEqual({ state: "completed", workflow_revision: 1 });
+    expect(
+      (
+        await owner.pool.query(
+          "SELECT actor_user_id FROM booking_lifecycle_events WHERE booking_id=$1 AND event='workflow_completed'",
+          [booking.id],
+        )
+      ).rows,
+    ).toEqual([{ actor_user_id: fixture.tutor.id }]);
+    await parent.page.goto(`/bookings/${booking.id}?scope=guardian`);
+    await expect(
+      parent.page.getByRole("heading", {
+        name: "Synthetic administrative completion",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      parent.page.getByText(`${fixture.parent.learnerName} · High School`, {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      parent.page.getByRole("button", {
+        name: "Mark session completed",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await parent.page.goto("/parent");
+    await expect(
+      parent.page
+        .locator(`a[href='/bookings/${booking.id}?scope=guardian']`)
+        .first(),
+    ).toBeVisible();
+    await accessible(parent.page);
+  } finally {
+    await writeFile(packetPath, original, { mode: 0o600 });
+    await owner.pool.query(
+      "UPDATE booking_workflow_policy_head SET policy_id=$1,enabled=true WHERE source='synthetic_readiness'",
+      [prior.policyId],
+    );
+  }
 });

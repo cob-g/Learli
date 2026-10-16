@@ -1,6 +1,6 @@
 import { ZodError } from "zod";
 import type { AuthRuntime } from "@/lib/auth-factory";
-import { privateJson, sameLocalOrigin } from "@/lib/auth-handler";
+import { privateJson, sameDomainOrigin } from "@/lib/auth-handler";
 import { handleJsonMutation } from "@/lib/mutation-handler";
 import { AccessError } from "@/lib/permissions/access";
 import { describeLearnerIssues } from "@/features/learners/input";
@@ -25,7 +25,7 @@ export async function handleAdmissionRequest(
   if (!runtime)
     return privateJson({ message: "Admission is unavailable." }, 503);
   const active = context ?? admissionContext(runtime);
-  if (!sameLocalOrigin(request, runtime))
+  if (!sameDomainOrigin(request, runtime))
     return privateJson({ message: "Request origin is not allowed." }, 403);
   if (request.method === "POST") {
     // This runs BEFORE readSmallJson. Disabled intake never deserializes child data.

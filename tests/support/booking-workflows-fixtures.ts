@@ -26,12 +26,11 @@ import type { BookingWorkflowContext } from "@/features/booking-workflows/servic
 export async function provisionBookingPolicy(
   w: World,
   admissionPolicyId: string,
+  completion: "admin" | "tutor" = "admin",
 ): Promise<EnabledBookingPolicy> {
   const fields = {
     authority: "synthetic_test",
     source: "synthetic_readiness",
-    version: "synthetic-booking-v1",
-    reference: "synthetic:booking:v1",
     admissionPolicyId,
     durationMinutes: 60,
     stepMinutes: 30,
@@ -46,11 +45,24 @@ export async function provisionBookingPolicy(
     disputePath: "/support",
     meetingAccess: "confirmed_until_end",
   } as const;
+  const terms =
+    completion === "tutor"
+      ? ({
+          ...fields,
+          version: "synthetic-booking-v2",
+          reference: "synthetic:booking:v2",
+          completionActor: "assigned_tutor",
+        } as const)
+      : ({
+          ...fields,
+          version: "synthetic-booking-v1",
+          reference: "synthetic:booking:v1",
+        } as const);
   const cap = validateBookingCapability(
     {
-      ...fields,
+      ...terms,
       policyId: randomUUID(),
-      contentDigest: bookingPolicyDigest(fields),
+      contentDigest: bookingPolicyDigest(terms),
     },
     "test",
   );
@@ -121,6 +133,7 @@ export async function workflowFixture(
   w: World,
   reviewer: TestAccount,
   management: "guardian" | "self" = "guardian",
+  completion: "admin" | "tutor" = "admin",
 ) {
   const family = await admittedFixture(w, reviewer, management),
     screen = await screeningFixture(w, reviewer),
@@ -157,7 +170,11 @@ export async function workflowFixture(
       endMinute: 1440,
     })),
   });
-  const booking = await provisionBookingPolicy(w, family.admission.policyId),
+  const booking = await provisionBookingPolicy(
+      w,
+      family.admission.policyId,
+      completion,
+    ),
     context: BookingWorkflowContext = { runtime: w.runtime, booking };
   return {
     ...family,
@@ -187,22 +204,31 @@ export async function grantWorkflowTask(
 /** Test-owned historical records are inserted once with all guards/history enabled.
  * They are explicit synthetic fixtures, not runtime confirmation/attendance proof. */
 export async function historicalWorkflowBooking(
-  w: World,
-  f: Awaited<ReturnType<typeof workflowFixture>>,
-  reviewer: TestAccount,
+  w: Pick<World, "owner">,
+  f: {
+    profile: { id: string };
+    learner: { id: string };
+    requester: { id: string };
+    booking: Pick<EnabledBookingPolicy, "policyId" | "version">;
+    admission: { policyId: string };
+  },
+  reviewer: Pick<TestAccount, "id">,
   options: {
     state: "provisional" | "confirmed";
     start: Date;
     end: Date;
     expires: Date;
     created: Date;
+    subjectSlug?: string;
   },
 ) {
   const id = randomUUID(),
     key = randomUUID(),
     eventId = randomUUID(),
     subject = (
-      await w.owner.pool.query("SELECT id FROM subjects WHERE slug='math'")
+      await w.owner.pool.query("SELECT id FROM subjects WHERE slug=$1", [
+        options.subjectSlug ?? "math",
+      ])
     ).rows[0].id;
   const client = await w.owner.pool.connect();
   try {

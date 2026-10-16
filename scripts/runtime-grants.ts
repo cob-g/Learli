@@ -53,6 +53,7 @@ export const runtimeGrantsSql = `
     GRANT SELECT, INSERT, DELETE ON tutor_availability_exceptions TO learli_app;
     GRANT SELECT, INSERT, DELETE ON tutor_teaching_languages TO learli_app;
     GRANT EXECUTE ON FUNCTION grant_tutor_role(text) TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.enroll_parent_workspace(text,text) TO learli_app;
     GRANT SELECT ON account_restriction_targets, account_restriction_grants, account_restriction_events TO learli_app;
     GRANT EXECUTE ON FUNCTION public.change_local_account_access(text,text,text,integer,text,text,uuid) TO learli_app;
     GRANT EXECUTE ON FUNCTION public.create_local_learner(text,text,uuid,text,text,text,text) TO learli_app;

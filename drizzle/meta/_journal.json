@@ -225,6 +225,20 @@
       "when": 1791984079388,
       "tag": "0031_local_admin_mutation_isolation",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1792122017816,
+      "tag": "0032_parent_workspace_enrollment",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1792132514157,
+      "tag": "0033_assigned_tutor_completion",
+      "breakpoints": true
     }
   ]
 }

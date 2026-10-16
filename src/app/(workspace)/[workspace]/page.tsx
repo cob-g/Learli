@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { roles, type Role } from "@/lib/db/schema/app";
 import { AccessError, requireRole } from "@/lib/permissions/access";
 import { readAccount } from "@/features/account/service";
@@ -24,7 +24,7 @@ export default async function WorkspacePage({
   if (workspace === "student" || workspace === "parent") notFound();
   let account;
   try {
-    const runtime = getAuthRuntime();
+    const runtime = await getDomainAuthRuntime();
     if (!runtime) throw new AccessError(503);
     const requestHeaders = await headers();
     await requireRole(runtime, requestHeaders, workspace as Role);

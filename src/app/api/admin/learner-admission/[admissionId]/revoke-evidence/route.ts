@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { handleAdmissionRequest } from "@/features/learner-admission/handler";
 export const dynamic = "force-dynamic";
 export async function POST(
@@ -6,7 +6,7 @@ export async function POST(
   { params }: { params: Promise<{ admissionId: string }> },
 ) {
   return handleAdmissionRequest(
-    getAuthRuntime(),
+    await getDomainAuthRuntime(),
     request,
     (await params).admissionId,
     "revoke-evidence",

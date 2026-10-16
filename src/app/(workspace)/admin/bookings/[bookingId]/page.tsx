@@ -5,6 +5,14 @@ import { bookingWorkflowContext } from "@/features/booking-workflows/composition
 import { readWorkflowTask } from "@/features/booking-workflows/service";
 import { WorkflowActionForm } from "@/features/booking-workflows/forms";
 import { LessonTime } from "@/features/bookings/lesson-time";
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { bookingStatusLabel } from "@/features/private-workflow/notice";
+import Link from "next/link";
+import { levelNames } from "@/features/subjects/catalog";
+import {
+  staffBookingInput,
+  staffBookingsHref,
+} from "@/features/booking-workflows/staff-input";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Assigned synthetic booking task",
@@ -12,31 +20,105 @@ export const metadata: Metadata = {
 };
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ bookingId: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const returnFilters = staffBookingInput.safeParse(
+    await (searchParams ?? Promise.resolve({})),
+  );
   const { bookingId } = await params,
-    task = await loadPrivatePage(
+    result = await loadPrivatePage(
       `/admin/bookings/${bookingId}`,
-      (runtime, headers) =>
-        readWorkflowTask(bookingWorkflowContext(runtime), headers, bookingId),
+      async (runtime, headers) => ({
+        task: await readWorkflowTask(
+          bookingWorkflowContext(runtime),
+          headers,
+          bookingId,
+        ),
+        privateWorkflow: isPrivateWorkflow(runtime),
+      }),
     );
+  const task = result?.task;
+  const privateWorkflow = result?.privateWorkflow ?? false;
+  const state =
+    task &&
+    (
+      [
+        "provisional",
+        "confirmed",
+        "completed",
+        "no_show",
+        "expired",
+        "cancelled",
+        "replaced",
+      ] as const
+    ).find((value) => value === task.state);
   return (
     <div className="page-shell page-space">
-      <h1 className="text-page-title">Assigned synthetic booking task</h1>
+      <h1 className="text-page-title">
+        {privateWorkflow
+          ? "Assigned booking task"
+          : "Assigned synthetic booking task"}
+      </h1>
+      {privateWorkflow && (
+        <Link
+          className="mt-4 inline-flex min-h-11 items-center"
+          href={staffBookingsHref(
+            returnFilters.success
+              ? returnFilters.data
+              : staffBookingInput.parse({}),
+          )}
+        >
+          Assigned bookings
+        </Link>
+      )}
       {task ? (
         <>
           <p className="mt-4 text-body">
             {task.subject} ·{" "}
-            {Object.entries(workflowLabels).find(
-              ([key]) => key === task.state,
-            )?.[1] ?? "Synthetic state unavailable"}
-            . This is administrative software testing, never attendance
-            evidence.
+            {privateWorkflow
+              ? state
+                ? bookingStatusLabel(state, true)
+                : "Booking status unavailable"
+              : (Object.entries(workflowLabels).find(
+                  ([key]) => key === task.state,
+                )?.[1] ?? "Synthetic state unavailable")}
+            .{" "}
+            {privateWorkflow
+              ? "Administrative outcomes do not verify meeting attendance."
+              : "This is administrative software testing, never attendance evidence."}
           </p>
           <div className="mt-4">
             <LessonTime value={task.time} />
           </div>
+          {"learnerName" in task && (
+            <section
+              className="mt-8 max-w-prose"
+              aria-labelledby="booking-participants"
+            >
+              <h2 id="booking-participants" className="text-section-title">
+                Booking participants
+              </h2>
+              <p className="mt-3 text-body">Tutor: {task.tutorName}.</p>
+              <p className="mt-2 text-body">
+                Learner: {task.learnerName} ·{" "}
+                {levelNames([task.learnerLevel]).join()}.
+              </p>
+              <p className="mt-2 text-body">
+                Requested by: {task.requesterName} (
+                {task.relationship === "self"
+                  ? "independent learner"
+                  : "authorized guardian"}
+                ).
+              </p>
+              <p className="mt-3 text-caption wrap-anywhere">
+                Logical booking: {task.logicalBookingId}. Revision{" "}
+                {task.revision}.
+              </p>
+            </section>
+          )}
           {task.actions.map((action) => (
             <WorkflowActionForm
               key={`${action}:${task.workflowRevision}`}
@@ -44,6 +126,7 @@ export default async function Page({
               revision={task.workflowRevision}
               action={action}
               admin
+              privateWorkflow={privateWorkflow}
             />
           ))}
         </>

@@ -1,13 +1,10 @@
-import type { Review } from "./review-carousel";
+import type { Review } from "@/features/home/review-carousel";
 
 /**
  * SAMPLE CONTENT. Nobody said these things.
  *
- * They were written for the design preview so the review carousel can be seen
- * with natural text, and the home page labels them "Sample reviews". They are
- * never rendered in production (see preview-content.ts). When Learli has real
- * reviews, published under an approved review policy, pass those to the
- * carousel instead and delete this file.
+ * Test-only examples for carousel interaction and hydration coverage.
+ * Application pages must never import these fabricated testimonials.
  *
  * Kept deliberately modest: no names, no numbers, no prices, no results and no
  * claims about tutors being checked. Each one only describes something the

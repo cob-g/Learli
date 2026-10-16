@@ -33,6 +33,210 @@ async function mail(email: string, kind: LocalMessage["kind"]) {
   throw new Error("Local mail capture was not created.");
 }
 
+test("Parent selection survives UI registration and verification, and explicit enrollment grants no child access", async ({
+  page,
+}) => {
+  const email = `parent-onboarding-${randomUUID()}@learli.test`;
+  await page.goto("/sign-up");
+  await page.getByLabel("Account type", { exact: true }).selectOption("parent");
+  await page
+    .getByLabel("Display name", { exact: true })
+    .fill("Parent onboarding tester");
+  await page.getByLabel("Email", { exact: true }).fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page
+    .getByRole("button", { name: "Create account", exact: true })
+    .click();
+  await expect(page.getByRole("status")).toContainText("verification message");
+  const id = (
+    await owner.pool.query('SELECT id FROM "user" WHERE email=$1', [email])
+  ).rows[0].id as string;
+  const roles = async () =>
+    (
+      await owner.pool.query(
+        "SELECT role FROM user_roles WHERE user_id=$1 ORDER BY role",
+        [id],
+      )
+    ).rows.map((r) => r.role);
+  expect(await roles()).toEqual([]);
+  await page.goto((await mail(email, "verification")).url);
+  await expect(
+    page.getByRole("heading", { name: "Sign in", exact: true }),
+  ).toBeVisible();
+  expect(new URL(page.url()).searchParams.get("next")).toBe(
+    "/parent/onboarding",
+  );
+  expect(await roles()).toEqual([]);
+  await page.getByLabel("Email", { exact: true }).fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page).toHaveURL("/parent/onboarding");
+  expect(await roles()).toEqual([]);
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(
+      (
+        await new AxeBuilder({ page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+          .analyze()
+      ).violations,
+    ).toEqual([]);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  }
+  const button = page.getByRole("button", {
+    name: "Continue as parent",
+    exact: true,
+  });
+  await button.focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL("/parent");
+  await expect(
+    page.getByRole("heading", { name: "Bookings", exact: true }),
+  ).toBeVisible();
+  expect(await roles()).toEqual(["parent"]);
+  expect(
+    (
+      await owner.pool.query(
+        "SELECT count(*)::int AS count FROM audit_events WHERE target_user_id=$1 AND action='parent_role.self_granted'",
+        [id],
+      )
+    ).rows[0].count,
+  ).toBe(1);
+  expect(
+    (
+      await owner.pool.query(
+        "SELECT count(*)::int AS count FROM guardian_learner_links WHERE guardian_user_id=$1",
+        [id],
+      )
+    ).rows[0].count,
+  ).toBe(0);
+  const replay = await page.request.post("/api/account/parent-onboarding", {
+    headers: { origin: process.env.APP_URL! },
+    data: {},
+  });
+  expect(replay.status()).toBe(200);
+  expect(await replay.json()).toEqual({ ready: true, granted: false });
+  const forged = await page.request.post("/api/account/parent-onboarding", {
+    headers: { origin: process.env.APP_URL! },
+    data: { role: "admin" },
+  });
+  expect(forged.status()).toBe(400);
+  expect(await roles()).toEqual(["parent"]);
+  await page.goto("/parent/onboarding");
+  await expect(page).toHaveURL("/parent");
+  expect(
+    (
+      await owner.pool.query(
+        "SELECT count(*)::int AS count FROM audit_events WHERE target_user_id=$1 AND action='parent_role.self_granted'",
+        [id],
+      )
+    ).rows[0].count,
+  ).toBe(1);
+});
+
+test("existing roleless account can choose Parent, while native setup GET and form fallback cannot grant it", async ({
+  browser,
+  page,
+}) => {
+  const email = `parent-existing-${randomUUID()}@learli.test`;
+  expect(
+    (
+      await page.request.post("/api/auth/sign-up/email", {
+        headers: { origin: process.env.APP_URL! },
+        data: {
+          email,
+          password,
+          name: "Existing parent tester",
+          callbackURL: "/account",
+        },
+      })
+    ).status(),
+  ).toBe(200);
+  await page.goto((await mail(email, "verification")).url);
+  await page.goto("/sign-in");
+  await page.getByLabel("Email", { exact: true }).fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page).toHaveURL("/account");
+  const id = (
+    await owner.pool.query('SELECT id FROM "user" WHERE email=$1', [email])
+  ).rows[0].id as string;
+  const native = await browser.newContext({
+    storageState: await page.context().storageState(),
+    javaScriptEnabled: false,
+  });
+  try {
+    const nativePage = await native.newPage();
+    await nativePage.goto(`${process.env.APP_URL}/parent/onboarding`);
+    await expect(
+      nativePage.getByRole("button", {
+        name: "Continue as parent",
+        exact: true,
+      }),
+    ).toBeDisabled();
+    const fallback = await native.request.post(
+      `${process.env.APP_URL}/api/account/parent-onboarding`,
+      { headers: { origin: process.env.APP_URL! }, form: {} },
+    );
+    expect(fallback.status()).toBe(400);
+    expect(
+      (
+        await owner.pool.query("SELECT role FROM user_roles WHERE user_id=$1", [
+          id,
+        ])
+      ).rows,
+    ).toEqual([]);
+  } finally {
+    await native.close();
+  }
+  await page
+    .getByRole("link", { name: "Set up parent workspace", exact: true })
+    .click();
+  await expect(page).toHaveURL("/parent/onboarding");
+  await page
+    .getByRole("button", { name: "Continue as parent", exact: true })
+    .click();
+  await expect(page).toHaveURL("/parent");
+  expect(
+    (
+      await owner.pool.query("SELECT role FROM user_roles WHERE user_id=$1", [
+        id,
+      ])
+    ).rows,
+  ).toEqual([{ role: "parent" }]);
+});
+
+test("parent setup preserves the original safe tutor search after verification and enrollment", async ({
+  page,
+}) => {
+  const email = `parent-return-${randomUUID()}@learli.test`;
+  const next = "/tutors?subject=math&level=middle_school";
+  await page.goto(`/sign-up?${new URLSearchParams({ next })}`);
+  await page.getByLabel("Account type", { exact: true }).selectOption("parent");
+  await page
+    .getByLabel("Display name", { exact: true })
+    .fill("Parent return tester");
+  await page.getByLabel("Email", { exact: true }).fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page
+    .getByRole("button", { name: "Create account", exact: true })
+    .click();
+  await expect(page.getByRole("status")).toContainText("verification message");
+  await page.goto((await mail(email, "verification")).url);
+  await page.getByLabel("Email", { exact: true }).fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page).toHaveURL(new RegExp("/parent/onboarding\\?next="));
+  await page
+    .getByRole("button", { name: "Continue as parent", exact: true })
+    .click();
+  await expect(page).toHaveURL(next);
+});
+
 test("local signup, verification, safe return, settings and logout work end to end", async ({
   page,
 }) => {
@@ -47,15 +251,15 @@ test("local signup, verification, safe return, settings and logout work end to e
   await page
     .getByLabel("Display name", { exact: true })
     .fill("Browser learner");
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
-  await page.getByRole("button", { name: "Create test account" }).click();
+  await page.getByRole("button", { name: "Create account" }).click();
   await expect(page.getByRole("status")).toContainText("verification message");
   await page.goto((await mail(email, "verification")).url);
   await expect(
     page.getByRole("heading", { name: "Sign in", exact: true }),
   ).toBeVisible();
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL("/tutors?subject=math");
@@ -166,7 +370,7 @@ test("phone account navigation preserves session recovery and header logout", as
   });
   await page.goto((await mail(email, "verification")).url);
   await page.goto("/sign-in?next=%2Fsubjects");
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL("/subjects");
@@ -237,7 +441,7 @@ test("password recovery stays local and produces a usable new login", async ({
   });
   await page.goto((await mail(email, "verification")).url);
   await page.goto("/forgot-password");
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByRole("button", { name: "Request reset link" }).click();
   await expect(page.getByRole("status")).toContainText("If an account matches");
   await page.goto((await mail(email, "reset")).url);
@@ -248,7 +452,7 @@ test("password recovery stays local and produces a usable new login", async ({
     "Your password was changed",
   );
   await page.goto("/sign-in?next=https%3A%2F%2Fexample.com");
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(newPassword);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL("/account");
@@ -267,7 +471,7 @@ test("workspace pages enforce trusted role grants", async ({ page }) => {
     "INSERT INTO user_roles (user_id, role) VALUES ($1, 'parent'), ($1, 'tutor')",
     [user.id],
   );
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL("/account");
@@ -308,7 +512,7 @@ test("auth forms are accessible and fit desktop, phone and narrow screens", asyn
           .analyze()
       ).violations,
     ).toEqual([]);
-    await page.getByLabel("Test email", { exact: true }).focus();
+    await page.getByLabel("Email", { exact: true }).focus();
     await page.keyboard.press("Tab");
     await expect(page.getByLabel("Password", { exact: true })).toBeFocused();
     await page.getByRole("heading", { name: "Sign in", exact: true }).click();

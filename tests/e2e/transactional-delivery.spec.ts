@@ -113,7 +113,7 @@ async function signIn(page: Page, email: string, secondFactor?: string) {
     "UPDATE rate_limit SET count=0 WHERE key LIKE '%/sign-in/email%'",
   );
   await page.goto(`${fixture.origin}/sign-in`);
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(fixture.password);
   const submitted = page.waitForResponse(
     (response) =>

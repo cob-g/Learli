@@ -173,6 +173,7 @@ export async function verifyRuntimeGrants(client: PoolClient) {
     "update_admitted_learner(text,text,uuid,uuid,text,text)",
     "has_current_learner_authority(text,text,uuid,uuid)",
     "grant_tutor_role(text)",
+    "enroll_parent_workspace(text,text)",
     "submit_private_review(text,text,uuid,integer,uuid,integer,text)",
     "moderate_private_review(text,text,uuid,integer,uuid,text)",
     "has_admin_assurance(text,text,integer)",
@@ -181,7 +182,7 @@ export async function verifyRuntimeGrants(client: PoolClient) {
     "change_local_support_assignment(text,text,uuid,integer,text,text,uuid)",
   ]);
   if (
-    functions.rows.length !== 86 ||
+    functions.rows.length !== 87 ||
     functions.rows.some(
       (row) =>
         !row.safe ||

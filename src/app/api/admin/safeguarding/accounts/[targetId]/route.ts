@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { handleJsonMutation } from "@/lib/mutation-handler";
 import { privateJson } from "@/lib/auth-handler";
 import { getSafeguardingContext } from "@/features/safeguarding/composition";
@@ -7,7 +7,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ targetId: string }> },
 ) {
-  const runtime = getAuthRuntime();
+  const runtime = await getDomainAuthRuntime();
   if (
     runtime &&
     getSafeguardingContext(runtime).safeguarding.mode === "disabled"

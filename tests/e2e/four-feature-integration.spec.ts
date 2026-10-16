@@ -453,9 +453,7 @@ test("same-browser sign-out and different account sign-in clear prior private me
     const signedOutLinkStatus = (
       await f.parent.context.request.get(api)
     ).status();
-    await f.parent.page
-      .getByLabel("Test email", { exact: true })
-      .fill(other.email);
+    await f.parent.page.getByLabel("Email", { exact: true }).fill(other.email);
     await f.parent.page.getByLabel("Password", { exact: true }).fill(password);
     await f.parent.page
       .getByRole("button", { name: "Sign in", exact: true })
@@ -548,9 +546,7 @@ test("revoked-session reauthentication as another actor clears prior meeting pay
     const beforeSigninHasPrivatePayload = (
       await f.parent.page.content()
     ).includes(privateUrl);
-    await f.parent.page
-      .getByLabel("Test email", { exact: true })
-      .fill(other.email);
+    await f.parent.page.getByLabel("Email", { exact: true }).fill(other.email);
     await f.parent.page.getByLabel("Password", { exact: true }).fill(password);
     await f.parent.page
       .getByRole("button", { name: "Sign in", exact: true })
@@ -661,7 +657,7 @@ for (const sessionLoss of ["revoked", "expired"] as const) {
       const beforeSigninHasPrivatePayload = await hasPrivatePayload();
       expect(beforeSigninHasPrivatePayload).toBe(false);
       await f.parent.page
-        .getByLabel("Test email", { exact: true })
+        .getByLabel("Email", { exact: true })
         .fill(f.parent.email);
       await f.parent.page
         .getByLabel("Password", { exact: true })

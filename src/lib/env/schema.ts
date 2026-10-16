@@ -34,6 +34,7 @@ const serverEnvSchema = z
     DATABASE_MODE: z.enum(["local", "neon-development"]).default("local"),
     NEON_DEVELOPMENT_CONFIG_FILE: optionalValue(z.string().min(1)),
     HOSTED_AUTH_CONFIG_FILE: optionalValue(z.string().min(1)),
+    PRIVATE_WORKFLOW_CONFIG_FILE: optionalValue(z.string().min(1).max(4096)),
     HOSTED_INGRESS_SECRET: optionalValue(z.string().min(32).max(512)),
     APP_URL: httpUrl.default("http://localhost:3000"),
     DATABASE_URL: optionalValue(databaseUrl),
@@ -44,6 +45,20 @@ const serverEnvSchema = z
     EMAIL_FROM: optionalValue(z.email()),
   })
   .superRefine((env, ctx) => {
+    if (
+      env.PRIVATE_WORKFLOW_CONFIG_FILE &&
+      !(
+        (env.APP_ENV === "test" &&
+          env.AUTH_MODE === "local" &&
+          env.DATABASE_MODE === "local") ||
+        (env.APP_ENV === "staging" && env.AUTH_MODE === "hosted-synthetic")
+      )
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["PRIVATE_WORKFLOW_CONFIG_FILE"],
+        message: "Explicit fictional staging or owned local test mode required",
+      });
     if (env.DATABASE_MODE === "neon-development") {
       if (
         env.APP_ENV !== "development" ||

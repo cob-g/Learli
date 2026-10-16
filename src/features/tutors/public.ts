@@ -1,7 +1,11 @@
+import {
+  getPrivateWorkflow,
+  isPrivateWorkflow,
+} from "@/features/private-workflow/runtime";
 import "server-only";
 import { publicationContext } from "@/features/review-publication/composition";
 import { requirePublicationPolicy } from "@/features/review-publication/service";
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { listSubjects } from "@/features/subjects/service";
 import {
   findEligibleTutor,
@@ -21,10 +25,15 @@ export const tutorsPerPage = 20;
  */
 export async function readPublicCatalog() {
   try {
-    const runtime = getAuthRuntime();
+    const runtime = await getDomainAuthRuntime();
     if (!runtime) return { tutors: [] as PublicTutor[], subjects: [] };
     const [tutors, catalog] = await Promise.all([
-      listEligibleTutors(runtime.db),
+      listEligibleTutors(
+        runtime.db,
+        {},
+        isPrivateWorkflow(runtime) ? "synthetic_readiness" : "local_demo",
+        getPrivateWorkflow(runtime),
+      ),
       listSubjects(runtime.db, true),
     ]);
     const offered = new Set(
@@ -47,14 +56,20 @@ export type PublicCatalog = NonNullable<
 /** undefined when the read failed, null when no eligible tutor has that slug. */
 export async function readPublicTutor(slug: string) {
   try {
-    const runtime = getAuthRuntime();
+    const runtime = await getDomainAuthRuntime();
     if (!runtime) return null;
     const context = publicationContext(runtime);
-    const scope =
-      context.publication.authority === "disabled"
+    const scope = isPrivateWorkflow(runtime)
+      ? "synthetic_readiness"
+      : context.publication.authority === "disabled"
         ? "local_demo"
         : (requirePublicationPolicy(context), "synthetic_readiness");
-    return await findEligibleTutor(runtime.db, slug, scope);
+    return await findEligibleTutor(
+      runtime.db,
+      slug,
+      scope,
+      getPrivateWorkflow(runtime),
+    );
   } catch {
     return undefined;
   }
@@ -67,7 +82,7 @@ export async function readDirectoryTimes(
   preferences: MatchPreferences,
 ) {
   try {
-    const runtime = getAuthRuntime();
+    const runtime = await getDomainAuthRuntime();
     if (!runtime) return null;
     return await readDirectoryAvailability(
       runtime,

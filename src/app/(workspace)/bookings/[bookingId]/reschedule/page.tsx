@@ -11,6 +11,7 @@ import { DemoRescheduleForm } from "@/features/bookings/lifecycle-controls";
 import { BookingUnavailable } from "@/features/bookings/read-presentation";
 import { LessonTime } from "@/features/bookings/lesson-time";
 import { formatLessonTime } from "@/features/bookings/format-time";
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Reschedule simulation",
@@ -51,6 +52,7 @@ export default async function Page({
           : await readDemoRescheduleCandidates(runtime, headers, bookingId);
       return {
         booking,
+        privateWorkflow: isPrivateWorkflow(runtime),
         times: times.map((t) =>
           formatLessonTime(
             new Date(t.startAtUtc),
@@ -67,11 +69,14 @@ export default async function Page({
     );
   return (
     <div className="page-shell page-space">
-      <h1 className="text-page-title">Reschedule simulation</h1>
+      <h1 className="text-page-title">
+        {data.privateWorkflow ? "Reschedule booking" : "Reschedule simulation"}
+      </h1>
       <p className="mt-4 max-w-prose text-body">
         For {data.booking.learner.displayName} with{" "}
-        {data.booking.tutor.displayName}. Local synthetic testing only; no
-        lesson, payment or attendance is recorded.
+        {data.booking.tutor.displayName}.
+        {!data.privateWorkflow &&
+          " Local synthetic testing only; no lesson, payment or attendance is recorded."}
       </p>
       <section className="mt-6">
         <h2 className="text-item-title">Original scheduled time</h2>
@@ -84,6 +89,7 @@ export default async function Page({
           action="reschedule"
           scope={scope.data}
           times={data.times}
+          privateWorkflow={data.privateWorkflow}
         />
       ) : (
         <DemoRescheduleForm

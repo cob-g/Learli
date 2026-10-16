@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { handleWorkflowMutation } from "@/features/booking-workflows/handler";
 import { privateJson } from "@/lib/auth-handler";
 import type { WorkflowAction } from "@/features/booking-workflows/input";
@@ -13,7 +13,7 @@ export async function POST(
   )
     return privateJson({ message: "Booking action unavailable." }, 404);
   return handleWorkflowMutation(
-    getAuthRuntime(),
+    await getDomainAuthRuntime(),
     request,
     bookingId,
     action as WorkflowAction,

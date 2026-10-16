@@ -40,7 +40,9 @@
     "staging:database": "tsx scripts/staging-database.ts",
     "start:hosted": "node --import tsx scripts/start-hosted-auth.ts",
     "delivery:drain": "node --conditions=react-server --import tsx scripts/transactional-delivery.ts",
-    "neon:database": "tsx scripts/neon-database.ts"
+    "neon:database": "tsx scripts/neon-database.ts",
+    "test:e2e:private": "node scripts/with-test-env.mjs node_modules/.bin/playwright test --config playwright.private-workflow.config.ts",
+    "private-workflow:operator": "node --import tsx scripts/private-workflow.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.7",

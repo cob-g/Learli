@@ -54,7 +54,7 @@ async function login(browser: Browser, email: string, secondFactor?: string) {
     page = await context.newPage();
   contexts.push(context);
   await page.goto("/sign-in");
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(fixture.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   if (secondFactor) {
@@ -617,9 +617,7 @@ test("foreign actor/noncompleted/default-disabled and no-JS/private document lif
     (await nojs.request.get(`/api/bookings/${id}/publication-review`)).status(),
   ).toBe(401);
   await parent.goto("/sign-in");
-  await parent
-    .getByLabel("Test email", { exact: true })
-    .fill(fixture.parent.email);
+  await parent.getByLabel("Email", { exact: true }).fill(fixture.parent.email);
   await parent
     .getByLabel("Password", { exact: true })
     .fill("Fictional-wrong-password-only");
@@ -632,9 +630,7 @@ test("foreign actor/noncompleted/default-disabled and no-JS/private document lif
   expect(
     (await parent.content()).includes("Fictional private lifetime review"),
   ).toBe(false);
-  await parent
-    .getByLabel("Test email", { exact: true })
-    .fill(fixture.tutor.email);
+  await parent.getByLabel("Email", { exact: true }).fill(fixture.tutor.email);
   await parent.getByLabel("Password", { exact: true }).fill(fixture.password);
   await parent.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(parent).toHaveURL(screeningMirrorOrigin + "/account");

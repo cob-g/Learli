@@ -32,14 +32,20 @@ export function ReviewNotice({
   status,
   editHref,
   publicHref,
+  privateWorkflow = false,
 }: {
   status: ReviewStatus | null;
   editHref?: string;
   /** The tutor's public page, once approved. */
   publicHref?: string;
+  privateWorkflow?: boolean;
 }) {
-  const { title, body } = notices[status ?? "none"];
+  const { title, body: defaultBody } = notices[status ?? "none"];
   const approved = status === "approved";
+  const body =
+    approved && privateWorkflow
+      ? "Your profile is approved. Current screening is also required for discovery and bookings."
+      : defaultBody;
   const Icon = approved ? CircleCheck : Info;
   return (
     <section

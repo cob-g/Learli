@@ -3,11 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import { Hourglass, TimerOff, CircleCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { demoLiveState, demoStateLabels } from "./lifecycle-model";
+import { demoLiveState } from "./lifecycle-model";
+import { bookingStatusLabel } from "@/features/private-workflow/notice";
 import type { BookingSummary } from "./read-model";
 
 /** Only a display projection; never appends history or claims a DB transition. */
-export function BookingReadStatus({ booking }: { booking: BookingSummary }) {
+export function BookingReadStatus({
+  booking,
+  privateWorkflow = false,
+}: {
+  booking: BookingSummary;
+  privateWorkflow?: boolean;
+}) {
   const [elapsed, setElapsed] = useState(false);
   const router = useRouter();
   // Refresh once per deadline so a lagging server snapshot cannot loop.
@@ -64,24 +71,34 @@ export function BookingReadStatus({ booking }: { booking: BookingSummary }) {
         <Icon aria-hidden="true" size={16} className="shrink-0" />
         <span className="min-w-0 wrap-anywhere">
           {expired
-            ? booking.source === "synthetic_readiness"
-              ? "Synthetic booking expired"
-              : "Simulation expired"
-            : demoStateLabels[booking.state]}
+            ? privateWorkflow
+              ? "Expired"
+              : booking.source === "synthetic_readiness"
+                ? "Synthetic booking expired"
+                : "Simulation expired"
+            : bookingStatusLabel(booking.state, privateWorkflow)}
         </span>
       </span>
       <p className="text-small text-muted-foreground">
-        {booking.source === "synthetic_readiness"
-          ? booking.state === "provisional"
-            ? "Synthetic test only. Assigned prerequisite review is required before confirmation; the saved provisional deadline is finite."
-            : booking.state === "confirmed"
-              ? "Synthetic confirmation only. The original provisional deadline no longer expires this booking; no payment or attendance is established."
-              : "Synthetic administrative history only. For a disputed outcome, contact support; no attendance was observed."
-          : expired
-            ? "The simulation lifetime has elapsed. This record is retained in your history."
-            : demoLiveState(booking.state)
-              ? "This local simulation expires at the saved deadline. No lesson is confirmed."
-              : "This synthetic administrative outcome is retained in history. No payment or attendance is recorded."}
+        {privateWorkflow
+          ? expired
+            ? "The provisional deadline elapsed. This record remains in your history."
+            : booking.state === "provisional"
+              ? "Awaiting assigned review before confirmation. This request expires at the saved deadline."
+              : booking.state === "confirmed"
+                ? "The booking is confirmed. Join using the private meeting details when available. No payment or attendance is established."
+                : "This saved outcome remains in your history. Ending a video call does not update the booking."
+          : booking.source === "synthetic_readiness"
+            ? booking.state === "provisional"
+              ? "Synthetic test only. Assigned prerequisite review is required before confirmation; the saved provisional deadline is finite."
+              : booking.state === "confirmed"
+                ? "Synthetic confirmation only. The original provisional deadline no longer expires this booking; no payment or attendance is established."
+                : "Synthetic administrative history only. For a disputed outcome, contact support; no attendance was observed."
+            : expired
+              ? "The simulation lifetime has elapsed. This record is retained in your history."
+              : demoLiveState(booking.state)
+                ? "This local simulation expires at the saved deadline. No lesson is confirmed."
+                : "This synthetic administrative outcome is retained in history. No payment or attendance is recorded."}
       </p>
     </div>
   );

@@ -398,10 +398,10 @@ test("real browser signup, captured verification, sign-in, settings and sign-out
   await page
     .getByLabel("Display name", { exact: true })
     .fill("Synthetic browser account");
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page
-    .getByRole("button", { name: "Create test account", exact: true })
+    .getByRole("button", { name: "Create account", exact: true })
     .click();
   await expect(page.getByRole("status")).toContainText("verification message");
   const user = await wave.owner.pool.query<{ id: string }>(
@@ -784,7 +784,7 @@ for (const sessionLoss of ["revoked", "expired"] as const) {
     ).toBeVisible();
     await assertPrivateAbsent(f.parent.page, f.values);
     await f.parent.page
-      .getByLabel("Test email", { exact: true })
+      .getByLabel("Email", { exact: true })
       .fill(f.parent.email);
     await f.parent.page
       .getByLabel("Password", { exact: true })

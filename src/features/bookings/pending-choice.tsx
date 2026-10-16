@@ -1,6 +1,6 @@
 import "server-only";
 import Link from "next/link";
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { readPublicTutor } from "@/features/tutors/public";
 import { levelNames } from "@/features/subjects/catalog";
 import { readPublicCandidates } from "@/features/public-availability/service";
@@ -27,7 +27,7 @@ export async function PendingBookingChoice({ next }: { next?: string }) {
     );
   let message = "Times are checked again after sign-in. No time is reserved.";
   try {
-    const runtime = getAuthRuntime();
+    const runtime = await getDomainAuthRuntime();
     if (!runtime) throw new Error("Local preview unavailable");
     const result = await readPublicCandidates(runtime, {
       tutorSlugs: [choice.tutorSlug],

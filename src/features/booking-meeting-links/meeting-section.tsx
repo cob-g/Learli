@@ -8,10 +8,12 @@ export function BookingMeetingSection({
   bookingId,
   initial,
   inactive = false,
+  privateWorkflow = false,
 }: {
   bookingId: string;
   initial: MeetingSectionState;
   inactive?: boolean;
+  privateWorkflow?: boolean;
 }) {
   const endpoint = `/api/bookings/${encodeURIComponent(bookingId)}/meeting-link`;
   const [meeting, setMeeting] = useState(initial);
@@ -71,7 +73,9 @@ export function BookingMeetingSection({
       return;
     requestId.current ??= crypto.randomUUID();
     setPending(true);
-    setMessage("Saving test meeting link…");
+    setMessage(
+      privateWorkflow ? "Saving meeting link…" : "Saving test meeting link…",
+    );
     try {
       const response = await fetch(endpoint, {
         method: "PUT",
@@ -97,12 +101,16 @@ export function BookingMeetingSection({
         } else
           setMessage(
             response.status === 400
-              ? "Enter a supported HTTPS Zoom or Google Meet test link."
+              ? privateWorkflow
+                ? "Enter a supported HTTPS Zoom or Google Meet link."
+                : "Enter a supported HTTPS Zoom or Google Meet test link."
               : "The save could not be confirmed. Retry with the same entered link or reload.",
           );
         return;
       }
-      const saved = "Test meeting link saved. No meeting was arranged.";
+      const saved = privateWorkflow
+        ? "Private meeting link saved."
+        : "Test meeting link saved. No meeting was arranged.";
       if (await reload()) setMessage(saved);
       else
         setMessage(
@@ -124,12 +132,12 @@ export function BookingMeetingSection({
       aria-busy={pending}
     >
       <h2 id="meeting-heading" className="text-section-title">
-        Test meeting link
+        {privateWorkflow ? "Private meeting link" : "Test meeting link"}
       </h2>
       <p className="mt-2 max-w-prose text-small text-muted-foreground">
-        Local simulation only. A tutor-supplied test link opens externally on
-        Zoom or Google Meet. Learli does not host calls, arrange a lesson, check
-        meeting settings or verify attendance.
+        {privateWorkflow
+          ? "The tutor provides the private Zoom or Google Meet link. It opens externally; Learli does not host calls, check meeting settings or verify attendance."
+          : "Local simulation only. A tutor-supplied test link opens externally on Zoom or Google Meet. Learli does not host calls, arrange a lesson, check meeting settings or verify attendance."}
       </p>
       {meeting.state === "present" && (
         <div className="mt-4">
@@ -140,7 +148,7 @@ export function BookingMeetingSection({
             rel="noopener noreferrer"
             referrerPolicy="no-referrer"
           >
-            Open test link on{" "}
+            {privateWorkflow ? "Open meeting on " : "Open test link on "}
             {meeting.provider === "zoom" ? "Zoom" : "Google Meet"} (new tab)
           </a>
           <p className="mt-2 text-small text-muted-foreground">
@@ -151,24 +159,32 @@ export function BookingMeetingSection({
       )}
       {meeting.state === "missing" && (
         <p className="mt-4 text-body">
-          No test meeting link has been provided.
+          {privateWorkflow
+            ? "The tutor has not provided a meeting link yet."
+            : "No test meeting link has been provided."}
         </p>
       )}
       {meeting.state === "expired" && (
         <p className="mt-4 text-body">
-          {inactive
-            ? "This simulation is no longer active. Its test meeting link is unavailable."
-            : "This simulation has expired. Its test meeting link is unavailable."}
+          {privateWorkflow
+            ? "The meeting link is unavailable because this booking is no longer active."
+            : inactive
+              ? "This simulation is no longer active. Its test meeting link is unavailable."
+              : "This simulation has expired. Its test meeting link is unavailable."}
         </p>
       )}
       {meeting.state === "unavailable" && (
         <p className="mt-4 text-body">
-          The test meeting link is unavailable on this account.
+          {privateWorkflow
+            ? "The meeting link is unavailable on this account."
+            : "The test meeting link is unavailable on this account."}
         </p>
       )}
       {meeting.state === "error" && (
         <p className="mt-4 text-body">
-          Test meeting links could not be loaded. Try again.
+          {privateWorkflow
+            ? "Meeting links could not be loaded. Try again."
+            : "Test meeting links could not be loaded. Try again."}
         </p>
       )}
       {canEdit && (
@@ -180,7 +196,9 @@ export function BookingMeetingSection({
         >
           <div>
             <label className="text-label" htmlFor="test-meeting-url">
-              Zoom or Google Meet test link
+              {privateWorkflow
+                ? "Zoom or Google Meet link"
+                : "Zoom or Google Meet test link"}
             </label>
             <input
               id="test-meeting-url"
@@ -202,8 +220,8 @@ export function BookingMeetingSection({
               id="meeting-format"
               className="mt-2 text-small text-muted-foreground"
             >
-              Use a supported HTTPS joining link. It is private to this
-              reservation. Revision{" "}
+              Use a supported HTTPS joining link. It is private to this{" "}
+              {privateWorkflow ? "booking" : "reservation"}. Revision{" "}
               {meeting.state === "present" ? meeting.revision : 0}.
             </p>
           </div>
@@ -215,12 +233,18 @@ export function BookingMeetingSection({
             {pending
               ? "Saving…"
               : meeting.state === "present"
-                ? "Replace test meeting link"
-                : "Save test meeting link"}
+                ? privateWorkflow
+                  ? "Replace meeting link"
+                  : "Replace test meeting link"
+                : privateWorkflow
+                  ? "Save meeting link"
+                  : "Save test meeting link"}
           </button>
           <noscript>
             <p className="text-body">
-              Enable JavaScript to save or replace a test meeting link.
+              {privateWorkflow
+                ? "Enable JavaScript to save or replace a meeting link."
+                : "Enable JavaScript to save or replace a test meeting link."}
             </p>
           </noscript>
         </form>

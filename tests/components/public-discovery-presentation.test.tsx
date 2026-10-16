@@ -1,10 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
-const state = vi.hoisted(() => ({ catalog: vi.fn(), preview: vi.fn() }));
-vi.mock("@/features/home/preview-content", () => ({
-  previewContentAllowed: state.preview,
-}));
+const state = vi.hoisted(() => ({ catalog: vi.fn() }));
 vi.mock("@/features/tutors/public", () => ({
   readPublicCatalog: state.catalog,
   tutorsHref: ({ subject, level }: { subject?: string; level?: string }) =>
@@ -19,9 +16,8 @@ import Home from "@/app/(marketing)/page";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // As in production: no preview content unless a test turns it on.
-  state.preview.mockReturnValue(false);
 });
+afterEach(() => vi.unstubAllEnvs());
 const render = async () => renderToStaticMarkup(await Home());
 
 describe("public home catalog truth", () => {
@@ -122,13 +118,12 @@ describe("public home catalog truth", () => {
         },
       ],
     });
-    state.preview.mockReturnValue(true);
     const blocks = [
       ...(await render()).matchAll(
         /<script type="application\/ld\+json">(.*?)<\/script>/g,
       ),
     ].map((match) => JSON.parse(match[1]));
-    // One entry, the same whatever tutors or sample reviews the page shows.
+    // One entry, independent of the tutor catalog.
     expect(blocks).toEqual([
       {
         "@context": "https://schema.org",
@@ -158,27 +153,21 @@ describe("public home catalog truth", () => {
     }
   });
 
-  it("shows no reviews at all where preview content is not allowed", async () => {
-    state.catalog.mockResolvedValue({ tutors: [], subjects: [] });
-    const html = await render();
-    expect(html).not.toContain("home-reviews");
-    expect(html).not.toContain("their own words");
-    expect(html).not.toContain("<blockquote");
-  });
-
-  it("labels the preview's reviews as samples that are not from customers", async () => {
-    state.catalog.mockResolvedValue({ tutors: [], subjects: [] });
-    state.preview.mockReturnValue(true);
-    const html = await render();
-    expect(html).toContain("Sample reviews");
-    expect(html).toContain("They are not from Learli customers.");
-    expect(html.match(/<blockquote/g)).toHaveLength(3);
-    // Still exactly one page heading, and the doors still follow.
-    expect(html.match(/<h1/g)).toHaveLength(1);
-    expect(html.indexOf("their own words")).toBeLessThan(
-      html.indexOf("Looking for a tutor?"),
-    );
-  });
+  it.each([undefined, "development", "test", "staging", "production"])(
+    "never publishes fabricated testimonials with APP_ENV=%s",
+    async (environment) => {
+      vi.stubEnv("APP_ENV", environment);
+      state.catalog.mockResolvedValue({ tutors: [], subjects: [] });
+      const html = await render();
+      expect(html).not.toContain("home-reviews");
+      expect(html).not.toContain("Sample reviews");
+      expect(html).not.toContain("their own words");
+      expect(html).not.toContain("<blockquote");
+      expect(html.match(/<h1/g)).toHaveLength(1);
+      expect(html).toContain("Looking for a tutor?");
+      expect(html).toContain('href="/become-a-tutor"');
+    },
+  );
 
   it("sets the lesson photograph between what Learli and the tutor each look after", async () => {
     state.catalog.mockResolvedValue({ tutors: [], subjects: [] });

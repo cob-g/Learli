@@ -112,17 +112,15 @@ test("one matching choice survives verification into private family/tutor views 
   await expect(page).toHaveURL(/\/sign-in\?next=/);
   const next = new URL(page.url()).searchParams.get("next")!;
   expect(next.includes("learnerId")).toBe(false);
-  await page
-    .getByRole("link", { name: "Create test account", exact: true })
-    .click();
+  await page.getByRole("link", { name: "Create account", exact: true }).click();
   const email = `combined-parent-${randomUUID()}@learli.test`;
   await page
     .getByLabel("Display name", { exact: true })
     .fill("Synthetic combined parent");
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page
-    .getByRole("button", { name: "Create test account", exact: true })
+    .getByRole("button", { name: "Create account", exact: true })
     .click();
   await expect(
     page.getByRole("status").filter({ hasText: "verification message" }),
@@ -160,7 +158,7 @@ test("one matching choice survives verification into private family/tutor views 
     "INSERT INTO guardian_learner_links(guardian_user_id,learner_id,source,status) VALUES($1,$2,'local_fixture','authorized')",
     [parentId, learnerId],
   );
-  await page.getByLabel("Test email", { exact: true }).fill(email);
+  await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(/\/bookings\/demo\?/);

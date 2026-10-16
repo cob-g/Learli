@@ -1,10 +1,20 @@
+import {
+  privateActorPredicate,
+  privateBookingPredicate,
+} from "@/features/private-workflow/query";
+import type { PrivateWorkflowPacket } from "@/features/private-workflow/config";
 // Node-only. The URL projection exists only in this private feature.
 import { sql } from "drizzle-orm";
 import type { Database } from "@/lib/db/connection";
 import type { MeetingProvider } from "@/lib/validation/meeting-link";
 
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
-export type MeetingActor = { userId: string; sessionId: string };
+export type MeetingActor = {
+  userId: string;
+  sessionId: string;
+  privateWorkflow?: boolean;
+  privatePacket?: PrivateWorkflowPacket;
+};
 export type MeetingSnapshot = {
   source: "local_simulation" | "synthetic_readiness";
   live: boolean;
@@ -28,7 +38,7 @@ export async function queryPrivateMeeting(
       JOIN user_access ua ON ua.user_id=u.id AND ua.status='active'
       JOIN session s ON s.user_id=u.id AND s.id=${actor.sessionId}
         AND s.expires_at > statement_timestamp()
-      WHERE u.id=${actor.userId} AND u.email_verified=true
+      WHERE ${privateActorPredicate(actor.privatePacket, sql`u.id`)} AND u.id=${actor.userId} AND u.email_verified=true
         AND u.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$'
     ), permitted AS (
       SELECT b.id, b.source, a.now,
@@ -42,7 +52,7 @@ export async function queryPrivateMeeting(
         AND tu.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$'
       JOIN user_access ta ON ta.user_id=tu.id AND ta.status='active'
       JOIN learner_profiles l ON l.id=b.learner_id AND l.status='active' AND ((b.source='local_simulation' AND l.source='local_fixture') OR (b.source='synthetic_readiness' AND l.source=b.source AND public.has_current_booking_beneficiary(b.booked_by_user_id,l.id,b.admission_policy_id) AND public.has_current_tutor_screening(tp.id,'synthetic_readiness')))
-      WHERE EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id=tu.id AND r.role='tutor')
+      WHERE ${privateBookingPredicate(actor.privatePacket, sql`b.id`)} AND ${actor.privateWorkflow ? sql`b.source='synthetic_readiness' AND` : sql``} EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id=tu.id AND r.role='tutor')
         AND (
           (tp.user_id=a.id AND EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id=a.id AND r.role='tutor'))
           ${

@@ -356,7 +356,7 @@ test("stale moderation, uncertain retry, session expiry and account-switch Back 
     await expect(page).toHaveURL(/\/sign-in/);
     expect(await page.content()).not.toContain(token);
     // A different actor signs in through the real form in the same browser document.
-    await page.getByLabel("Test email", { exact: true }).fill(f.admin.email);
+    await page.getByLabel("Email", { exact: true }).fill(f.admin.email);
     await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await completeBrowserAdminChallenge(page, f.admin.email);

@@ -16,6 +16,7 @@ import {
 import { loadCandidate } from "../../scripts/staging-migrations/journal";
 import { verifyProtections } from "../../scripts/staging-migrations/protections";
 import { runtimeGrantsSql } from "../../scripts/runtime-grants";
+import { runtimeGrantsBeforeParent } from "../support/migration-inventory";
 import { verifyRuntimeGrants } from "../../scripts/staging-migrations/privileges";
 import { acceptedDeliveryPredecessor } from "../support/transactional-delivery-source";
 import { currentDeliveryMaterial } from "@/features/transactional-delivery/recipient";
@@ -219,7 +220,11 @@ describe("W4 fresh and populated0026→0027 forward preservation", () => {
       await pool.query(
         runtimeGrantsSql
           .split("\n")
-          .filter((line) => !line.includes("ON transactional_deliveries"))
+          .filter(
+            (line) =>
+              !line.includes("ON transactional_deliveries") &&
+              !line.includes("FUNCTION public.enroll_parent_workspace("),
+          )
           .join("\n"),
       );
       const url = (user: string) =>
@@ -257,7 +262,7 @@ describe("W4 fresh and populated0026→0027 forward preservation", () => {
         Object.values(before.counts).filter((n) => n > 0).length,
       ).toBeGreaterThan(15);
       await apply(pool, 27, 28);
-      await pool.query(runtimeGrantsSql);
+      await pool.query(runtimeGrantsBeforeParent);
       const after = await records(pool, before.columns);
       expect(after.values).toEqual(before.values);
       expect(after.counts).toEqual(before.counts);

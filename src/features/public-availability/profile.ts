@@ -1,7 +1,9 @@
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { providerHeaders } from "@/features/hosted-auth/request";
 import "server-only";
 import { eq } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { tutorProfiles } from "@/lib/db/schema";
 import { isValidTimeZone } from "@/lib/time/time-zone";
 import { timeZoneLabel } from "@/lib/time/zones";
@@ -15,6 +17,7 @@ import {
 } from "@/features/bookings/selection";
 
 export type ProfilePreview = {
+  privateWorkflow?: boolean;
   subjectSlug: string;
   level: string;
   timezone: string;
@@ -35,12 +38,12 @@ export async function loadProfilePreview(
   );
   const level = publicLevelInput.safeParse(params.level);
   const zone = publicZoneInput.safeParse(params.displayTimezone);
-  const runtime = getAuthRuntime();
+  const runtime = await getDomainAuthRuntime();
   let savedZone: string | undefined;
   if (runtime && !zone.success) {
     try {
       const session = await runtime.auth.api.getSession({
-        headers: await headers(),
+        headers: providerHeaders(runtime, await headers()),
       });
       if (session && isValidTimeZone(session.user.timezone))
         savedZone = session.user.timezone;
@@ -71,6 +74,7 @@ export async function loadProfilePreview(
     ? zone.data
     : (savedZone ?? visitZone ?? teachingZone);
   const result: ProfilePreview = {
+    privateWorkflow: !!runtime && isPrivateWorkflow(runtime),
     subjectSlug: subject.success ? subject.data : "",
     level: level.success ? level.data : "",
     timezone,

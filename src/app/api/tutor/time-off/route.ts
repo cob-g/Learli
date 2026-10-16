@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { privateJson } from "@/lib/auth-handler";
 import {
   handleTimeOffRead,
@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   try {
-    return await handleTimeOffRead(getAuthRuntime(), request);
+    return await handleTimeOffRead(await getDomainAuthRuntime(), request);
   } catch {
     return privateJson(
       { message: "This service is unavailable. Try again later." },
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
 }
 export async function POST(request: Request) {
   try {
-    return await handleTimeOffSave(getAuthRuntime(), request);
+    return await handleTimeOffSave(await getDomainAuthRuntime(), request);
   } catch {
     return privateJson(
       { message: "This service is unavailable. Try again later." },

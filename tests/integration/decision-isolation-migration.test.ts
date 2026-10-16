@@ -19,6 +19,7 @@ import {
 } from "../../scripts/staging-migrations/protections";
 import { verifyRuntimeGrants } from "../../scripts/staging-migrations/privileges";
 import { runtimeGrantsSql } from "../../scripts/runtime-grants";
+import { runtimeGrantsBeforeParent } from "../support/migration-inventory";
 
 // Keep this historical migration proof pinned to the exact 0000–0029 prefix.
 // Later migrations have their own fresh/upgrade preservation tests.
@@ -161,7 +162,7 @@ describe("0029 decision isolation forward migration", () => {
           if (mode === "fresh") await apply(client, candidate.entries.length);
           else {
             await apply(client, 29);
-            await client.query(runtimeGrantsSql);
+            await client.query(runtimeGrantsBeforeParent);
             const parent = randomUUID(),
               tutorOwner = randomUUID(),
               learner = randomUUID(),
@@ -222,10 +223,11 @@ describe("0029 decision isolation forward migration", () => {
                 expect(next?.body).toContain("ERRCODE='25001'");
               } else expect(next).toEqual(old);
             }
-            // Verify effective privileges before any re-grant: OR REPLACE must retain ACLs.
-            await verifyRuntimeGrants(client);
+            // The exact function comparison above proves unchanged owner/ACLs
+            // before any re-grant. Current global policy is verified after the
+            // historical proof upgrades to the latest schema below.
           }
-          await client.query(runtimeGrantsSql);
+          await client.query(runtimeGrantsBeforeParent);
           const protections = await verifyProtections(
             client,
             candidate,
@@ -235,7 +237,6 @@ describe("0029 decision isolation forward migration", () => {
             expectedProtections(candidate.entries.flatMap((e) => e.statements))
               .functions.length,
           );
-          await verifyRuntimeGrants(client);
           expect(
             (
               await client.query(
@@ -267,6 +268,20 @@ describe("0029 decision isolation forward migration", () => {
             );
             expect(rights.rows[0]).toEqual({ runtime: true, public: false });
           }
+          // Retain the pinned historical proof, then verify the exact current
+          // privilege policy after an actual additive forward upgrade. Inspect
+          // inherited ACLs before reapplying any current grant statements.
+          const historicalRows = await rowHashes(client);
+          await apply(client, currentCandidate.entries.length);
+          expect(await rowHashes(client)).toEqual(historicalRows);
+          await verifyRuntimeGrants(client);
+          await client.query(runtimeGrantsSql);
+          await verifyRuntimeGrants(client);
+          await verifyProtections(
+            client,
+            currentCandidate,
+            currentCandidate.entries.length,
+          );
         } finally {
           client.release();
         }

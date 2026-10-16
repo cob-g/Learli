@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { handleDemoLifecycleChange } from "@/features/bookings/lifecycle-handler";
 export const dynamic = "force-dynamic";
 export async function POST(
@@ -7,7 +7,7 @@ export async function POST(
 ) {
   const { bookingId } = await params;
   return handleDemoLifecycleChange(
-    getAuthRuntime(),
+    await getDomainAuthRuntime(),
     request,
     bookingId,
     "reschedule",

@@ -1,8 +1,9 @@
+import { assertPrivateWorkflowUnchanged } from "@/features/private-workflow/runtime";
 // Public Node-only service; routes/pages/tests only. Client imports model types.
 import { z } from "zod";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { AccessError } from "@/lib/permissions/access";
-import { resolveLocalSyntheticSession } from "@/lib/permissions/local-synthetic-session";
+import { resolveCoordinationSession } from "@/lib/permissions/coordination-session";
 import { isValidTimeZone } from "@/lib/time/time-zone";
 import {
   bookingListInput,
@@ -25,9 +26,13 @@ export async function listParticipantBookings(
   headers: Headers,
   input: unknown,
 ): Promise<BookingPage> {
-  const actor = await resolveLocalSyntheticSession(runtime, headers);
+  const actor = await resolveCoordinationSession(runtime, headers);
   const values = bookingListInput.parse(input);
   const snapshot = await queryParticipantBookings(runtime.db, actor, values);
+  assertPrivateWorkflowUnchanged(
+    runtime,
+    "privatePacket" in actor ? actor.privatePacket : null,
+  );
   if (!snapshot || !isValidTimeZone(snapshot.timezone))
     throw new AccessError(404);
   return projectPage(snapshot, values, snapshot.items);
@@ -66,7 +71,7 @@ export async function listParticipantBookingOverview(
   headers: Headers,
   input: unknown,
 ): Promise<BookingOverview> {
-  const actor = await resolveLocalSyntheticSession(runtime, headers);
+  const actor = await resolveCoordinationSession(runtime, headers);
   const values = bookingOverviewInput.parse(input);
   const snapshot = await queryParticipantBookings(
     runtime.db,
@@ -74,6 +79,10 @@ export async function listParticipantBookingOverview(
     { ...values, filter: "all" },
     undefined,
     true,
+  );
+  assertPrivateWorkflowUnchanged(
+    runtime,
+    "privatePacket" in actor ? actor.privatePacket : null,
   );
   if (!snapshot || !isValidTimeZone(snapshot.timezone))
     throw new AccessError(404);
@@ -100,7 +109,7 @@ export async function readParticipantBooking(
   bookingId: string,
   scope: BookingReadScope,
 ): Promise<BookingDetail> {
-  const actor = await resolveLocalSyntheticSession(runtime, headers);
+  const actor = await resolveCoordinationSession(runtime, headers);
   if (
     !z.uuid().safeParse(bookingId).success ||
     !bookingReadScope.safeParse(scope).success
@@ -111,6 +120,10 @@ export async function readParticipantBooking(
     actor,
     { scope, filter: "all", page: 1, pageSize: 1 },
     bookingId,
+  );
+  assertPrivateWorkflowUnchanged(
+    runtime,
+    "privatePacket" in actor ? actor.privatePacket : null,
   );
   if (!snapshot?.items[0] || !isValidTimeZone(snapshot.timezone))
     throw new AccessError(404);

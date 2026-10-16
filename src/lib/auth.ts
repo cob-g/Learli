@@ -1,4 +1,5 @@
 import "server-only";
+import { getPrivateWorkflow } from "@/features/private-workflow/runtime";
 import {
   createLocalAuth,
   type LocalAuthRuntime,
@@ -68,4 +69,23 @@ export async function getAccountAuthRuntime(): Promise<AuthRuntime | null> {
   return selectHostedSingleton(state, fingerprint, () =>
     createHostedAuth(config),
   );
+}
+
+/** Domain access is separately opt-in for fictional staging; account auth alone
+ * grants no learner, tutor, booking or policy authority. */
+export async function getDomainAuthRuntime(): Promise<AuthRuntime | null> {
+  const env = getServerEnv();
+  if (env.AUTH_MODE === "local") {
+    const runtime = getAuthRuntime();
+    if (runtime && process.env.PRIVATE_WORKFLOW_CONFIG_FILE)
+      getPrivateWorkflow(runtime);
+    return runtime;
+  }
+  if (
+    env.AUTH_MODE !== "hosted-synthetic" ||
+    !process.env.PRIVATE_WORKFLOW_CONFIG_FILE
+  )
+    return null;
+  const runtime = await getAccountAuthRuntime();
+  return runtime && getPrivateWorkflow(runtime) ? runtime : null;
 }

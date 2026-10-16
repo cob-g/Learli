@@ -124,14 +124,20 @@ export function AdmissionForm({
   policyDigest,
   zones,
   next,
+  privateWorkflow = false,
+  initialManagement = "guardian",
 }: {
   requestId: string;
   policyVersion: string;
   policyDigest: string;
   zones: { value: string; label: string }[];
   next?: string;
+  privateWorkflow?: boolean;
+  initialManagement?: "guardian" | "self";
 }) {
-  const [management, setManagement] = useState<"guardian" | "self">("guardian");
+  const [management, setManagement] = useState<"guardian" | "self">(
+    initialManagement,
+  );
   const state = useSubmission();
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -173,7 +179,9 @@ export function AdmissionForm({
     >
       <fieldset disabled={state.disabled} className="space-y-6">
         <legend className="text-section-title">
-          Synthetic admission request
+          {privateWorkflow
+            ? "Learner admission request"
+            : "Synthetic admission request"}
         </legend>
         <div>
           <label htmlFor="management" className="text-label">
@@ -193,7 +201,9 @@ export function AdmissionForm({
         </div>
         <div>
           <label className="text-label" htmlFor="displayName">
-            Fictional display name
+            {privateWorkflow
+              ? "Learner display name"
+              : "Fictional display name"}
           </label>
           <input
             id="displayName"
@@ -226,8 +236,9 @@ export function AdmissionForm({
           </div>
         ) : (
           <p className="text-body">
-            College Support. Independent eligibility needs separate reviewer
-            evidence; no guardian is required.
+            {privateWorkflow
+              ? "College Support. An assigned reviewer must confirm independent eligibility before booking access is available."
+              : "College Support. Independent eligibility needs separate reviewer evidence; no guardian is required."}
           </p>
         )}
         <div>
@@ -260,8 +271,10 @@ export function AdmissionForm({
 }
 export function AdmissionReviewForms({
   admission,
+  privateWorkflow = false,
 }: {
   admission: ReviewerAdmissionDetail;
+  privateWorkflow?: boolean;
 }) {
   const state = useSubmission();
   const [confirm, setConfirm] = useState(false);
@@ -298,7 +311,9 @@ export function AdmissionReviewForms({
         >
           <fieldset disabled={state.disabled} className="space-y-4">
             <legend className="text-section-title">
-              Record synthetic evidence
+              {privateWorkflow
+                ? "Record test evidence"
+                : "Record synthetic evidence"}
             </legend>
             <div>
               <label htmlFor="checkCode" className="text-label">
@@ -320,7 +335,9 @@ export function AdmissionReviewForms({
             </div>
             <div>
               <label htmlFor="reference" className="text-label">
-                Opaque synthetic reference
+                {privateWorkflow
+                  ? "Opaque test reference"
+                  : "Opaque synthetic reference"}
               </label>
               <input
                 id="reference"
@@ -399,7 +416,9 @@ export function AdmissionReviewForms({
                 </label>
                 <select name="action" id="action" className="field mt-2">
                   <option value="authorize">
-                    Authorize synthetic admission
+                    {privateWorkflow
+                      ? "Authorize test learner access"
+                      : "Authorize synthetic admission"}
                   </option>
                   <option value="reject">Reject request</option>
                 </select>

@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { privateJson } from "@/lib/auth-handler";
 import { handleTutorReviewRequest } from "@/features/tutors/handler";
 export const runtime = "nodejs";
@@ -9,7 +9,7 @@ export async function POST(
 ) {
   try {
     return await handleTutorReviewRequest(
-      getAuthRuntime(),
+      await getDomainAuthRuntime(),
       request,
       (await context.params).profileId,
     );

@@ -5,6 +5,7 @@ import { readComposedLearner } from "@/features/learners/composition";
 import { LearnerForm } from "@/features/learners/learner-form";
 import { listTimeZoneOptions } from "@/lib/time/zones";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Edit learner profile",
@@ -18,7 +19,10 @@ export default async function LearnerPage({
   const { learnerId } = await params;
   const context = await loadPrivatePage(
     `/learners/${encodeURIComponent(learnerId)}`,
-    (runtime, headers) => readComposedLearner(runtime, headers, learnerId),
+    async (runtime, headers) => ({
+      ...(await readComposedLearner(runtime, headers, learnerId)),
+      privateWorkflow: isPrivateWorkflow(runtime),
+    }),
   );
   if (!context)
     return (
@@ -39,9 +43,11 @@ export default async function LearnerPage({
       <p className="mt-4 max-w-prose text-body wrap-anywhere">
         Profile for {profile.displayName}
       </p>
-      <p className="mt-2 max-w-prose text-body text-muted-foreground">
-        Local testing only. Use fictional learner details.
-      </p>
+      {!context.privateWorkflow && (
+        <p className="mt-2 max-w-prose text-body text-muted-foreground">
+          Local testing only. Use fictional learner details.
+        </p>
+      )}
       <LearnerForm
         profile={profile}
         reviewed={reviewed}

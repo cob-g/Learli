@@ -10,14 +10,18 @@ import { TutorBookingRefresh } from "@/features/tutors/booking-refresh";
 import { ReviewNotice } from "@/features/tutors/review-notice";
 import { SignOut } from "@/features/auth/sign-out";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Your bookings",
   robots: { index: false, follow: false },
 };
 export default async function TutorWorkspacePage() {
-  const data = await loadPrivatePage("/tutor", readTutorBookingWorkspace);
-  if (!data)
+  const result = await loadPrivatePage("/tutor", async (runtime, headers) => ({
+    data: await readTutorBookingWorkspace(runtime, headers),
+    privateWorkflow: isPrivateWorkflow(runtime),
+  }));
+  if (!result)
     return (
       <>
         <UnavailablePage
@@ -40,12 +44,14 @@ export default async function TutorWorkspacePage() {
         </nav>
       </>
     );
+  const { data, privateWorkflow } = result;
   return (
     <div className="page-shell page-space">
       <h1 className="text-page-title">Your bookings</h1>
       <p className="mt-3 max-w-prose text-small text-muted-foreground">
-        Local simulated bookings assigned to you. Times use your current account
-        time zone.
+        {privateWorkflow
+          ? "Manage sessions assigned to you. Times use your current account time zone."
+          : "Local simulated bookings assigned to you. Times use your current account time zone."}
       </p>
       <div className="mt-6 border-y border-border py-3">
         <TutorBookingRefresh />
@@ -57,6 +63,7 @@ export default async function TutorWorkspacePage() {
           evaluatedAt={data.overview?.active.snapshotAtUtc}
           hasMoreActive={data.overview?.active.hasNext ?? false}
           hasMoreHistory={data.overview?.history.hasNext ?? false}
+          privateWorkflow={privateWorkflow}
         />
       </div>
       <div className="mt-12">
@@ -64,6 +71,7 @@ export default async function TutorWorkspacePage() {
           status={data.profile?.reviewStatus ?? null}
           editHref="/tutor/profile"
           publicHref={data.profile ? `/tutors/${data.profile.slug}` : undefined}
+          privateWorkflow={privateWorkflow}
         />
       </div>
       <SignOut />

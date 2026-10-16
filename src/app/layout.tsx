@@ -6,6 +6,9 @@ import { NavigationProgress } from "@/components/shared/navigation-progress";
 import { BrowserTimeZone } from "@/features/public-availability/profile-zone";
 import { siteMetadata } from "@/lib/seo/metadata";
 import { indexingAllowed, siteOrigin } from "@/lib/seo/site";
+import { getDomainAuthRuntime } from "@/lib/auth";
+import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { PrivateWorkflowNotice } from "@/features/private-workflow/notice";
 import "./globals.css";
 import "@/components/shared/site-shell.css";
 
@@ -37,9 +40,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 export const viewport: Viewport = { colorScheme: "light" };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const runtime = process.env.PRIVATE_WORKFLOW_CONFIG_FILE
+    ? await getDomainAuthRuntime()
+    : null;
+  const privateWorkflow = !!runtime && isPrivateWorkflow(runtime);
   return (
     <html lang="en" className={`${lexend.variable} ${literata.variable}`}>
       <body className="flex min-h-dvh flex-col bg-background font-sans text-body text-foreground antialiased">
@@ -49,6 +56,7 @@ export default function RootLayout({
         <GlassEffects />
         <NavigationProgress />
         <BrowserTimeZone />
+        {privateWorkflow && <PrivateWorkflowNotice />}
         {children}
       </body>
     </html>

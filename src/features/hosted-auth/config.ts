@@ -1,4 +1,5 @@
 import { isIP } from "node:net";
+import path from "node:path";
 import { z } from "zod";
 import { parseServerEnv } from "@/lib/env/schema";
 import { stagingDatabaseConfig } from "@/lib/db/staging-config";
@@ -81,6 +82,21 @@ const packetSchema = z.strictObject({
     .discriminatedUnion("mode", [
       z.strictObject({ mode: z.literal("disabled") }),
       z.strictObject({
+        mode: z.literal("private-capture"),
+        appOrigin: z.string().refine(hostedOrigin),
+        directory: z
+          .string()
+          .min(1)
+          .max(4096)
+          .refine(
+            (value) =>
+              path.isAbsolute(value) &&
+              path.resolve(value) === value &&
+              value.includes(`${path.sep}.local${path.sep}`) &&
+              !/[\u0000-\u001f\u007f]/.test(value),
+          ),
+      }),
+      z.strictObject({
         mode: z.literal("resend-single-attempt"),
         transport: transportSchema,
         identitySecret: secret,
@@ -119,6 +135,11 @@ export function parseHostedAuthConfig(
       target: parsed.target,
       purpose: "runtime",
     });
+    if (
+      parsed.mail.mode === "private-capture" &&
+      parsed.mail.appOrigin !== env.APP_URL
+    )
+      throw new Error();
     if (parsed.mail.mode === "resend-single-attempt") {
       const t = parsed.mail.transport;
       if (
@@ -136,7 +157,7 @@ export function parseHostedAuthConfig(
     if (parsed.ingress.mode === "trusted-proxy")
       Object.freeze(parsed.ingress.trustedPeerAddresses);
     Object.freeze(parsed.ingress);
-    if (parsed.mail.mode !== "disabled") {
+    if (parsed.mail.mode === "resend-single-attempt") {
       Object.freeze(parsed.mail.transport.verifiedSender);
       Object.freeze(parsed.mail.transport.allowedRecipients);
       Object.freeze(parsed.mail.transport);

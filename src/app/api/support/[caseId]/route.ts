@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { handleSupportRequest } from "@/features/support/handler";
 export const dynamic = "force-dynamic";
 export async function GET(
@@ -6,7 +6,7 @@ export async function GET(
   context: { params: Promise<{ caseId: string }> },
 ) {
   return handleSupportRequest(
-    getAuthRuntime(),
+    await getDomainAuthRuntime(),
     request,
     "requester",
     (await context.params).caseId,

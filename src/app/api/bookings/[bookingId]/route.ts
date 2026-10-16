@@ -1,4 +1,4 @@
-import { getAuthRuntime } from "@/lib/auth";
+import { getDomainAuthRuntime } from "@/lib/auth";
 import { handleBookingRead } from "@/features/bookings/read-handler";
 export const dynamic = "force-dynamic";
 export async function GET(
@@ -6,5 +6,5 @@ export async function GET(
   context: { params: Promise<{ bookingId: string }> },
 ) {
   const { bookingId } = await context.params;
-  return handleBookingRead(getAuthRuntime(), request, bookingId);
+  return handleBookingRead(await getDomainAuthRuntime(), request, bookingId);
 }
