@@ -1,5 +1,20 @@
 # Learli — Progress Tracker
 
+## 2026-10-16 — Cross-role booking acceptance committed and merged locally
+
+- Owner explicitly requested “commit and merge everything”. All nine reviewed
+  test/documentation paths committed as `968671a1b4c9e2f10ea88db2189aef0082b44003`
+  on `feature/cross-role-booking-acceptance-20261016`; local main fast-forwarded
+  from `7d2b155` to that exact commit without conflicts.
+- Preserved the accepted 570-file source fingerprint. Existing check/build,
+  PostgreSQL169 and browser3/3 evidence below remains applicable; Git integration
+  did not change the tested application or tests. No checks were rerun solely
+  for the merge. This closeout updates only tracker/results documentation.
+- No push, deployment, migration, account purge or service change. Feature
+  branches retained; no worktree cleanup was requested for this operation.
+  Real provider/hosted acceptance and launch gates remain separate. Local memory
+  handoff is maintained separately and stays ignored/untracked.
+
 ## 2026-10-16 — Cross-role booking acceptance verified locally
 
 - Owner approved the cross-role recommendation. Blueprint

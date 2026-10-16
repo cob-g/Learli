@@ -110,5 +110,16 @@ security matrix and independent child login are not established by this pass.
 After zero other cluster client connections were observed, the owned test cluster
 was stopped with data retained. Browser 3121 stopped; owner preview 3000 retains
 its original process and configuration. No hosted/provider operation, account
-purge, commit, merge, push or deployment occurred. Changes remain uncommitted on
-the feature branch. This is local acceptance, not M8 or production readiness.
+purge, commit, merge, push or deployment occurred during verification. At that
+closeout, changes remained uncommitted on the feature branch. This is local
+acceptance, not M8 or production readiness.
+
+## Subsequent local Git integration
+
+The owner explicitly requested “commit and merge everything”. All nine reviewed
+test/documentation files committed as `968671a1b4c9e2f10ea88db2189aef0082b44003`;
+local main fast-forwarded from `7d2b155` to that exact source commit. The accepted
+570 source hashes remain unchanged. Only tracker/results closeout documentation
+was edited after integration; no application or test change invalidated the
+recorded verification. No push, deployment, provider operation or branch/worktree
+deletion occurred. The earlier uncommitted status is historical.
