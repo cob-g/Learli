@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { randomUUID } from "node:crypto";
 import type { Metadata } from "next";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
@@ -8,7 +9,7 @@ import { AdmissionForm } from "@/features/learner-admission/forms";
 import { LearnerLink } from "@/features/learners/learner-link";
 import { listTimeZoneOptions } from "@/lib/time/zones";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { privateBookingHref } from "@/features/bookings/selection";
 import { initialAdmissionManagement } from "@/features/student-onboarding/continuation";
 export const dynamic = "force-dynamic";
@@ -33,7 +34,8 @@ export default async function Page({
   const path = `/learner-admission/new${query.size ? `?${query}` : ""}`;
   const context = await loadPrivatePage(path, async (runtime, headers) => ({
     ...(await readAdmissionIntake(admissionContext(runtime), headers)),
-    privateWorkflow: isPrivateWorkflow(runtime),
+    privateWorkflow: hasPersistentWorkflow(runtime),
+    localWorkflow: getLocalWorkflow(runtime) !== null,
   }));
   if (!context)
     return (
@@ -58,9 +60,11 @@ export default async function Page({
       {context.enabled ? (
         <>
           <p className="mt-4 max-w-prose rounded-control border border-border bg-subtle p-4 text-small text-muted-foreground">
-            {privateWorkflow
-              ? "Use fictional learner details. This staging review does not establish real age, consent or guardian identity."
-              : "Synthetic readiness only. Use fictional details. A review does not establish real age, consent or guardian identity."}
+            {context.localWorkflow
+              ? "Collect only the learner information needed to arrange tutoring. An assigned reviewer must check guardian authority or independent eligibility before access is granted."
+              : privateWorkflow
+                ? "Use fictional learner details. This staging review does not establish real age, consent or guardian identity."
+                : "Synthetic readiness only. Use fictional details. A review does not establish real age, consent or guardian identity."}
           </p>
           <div className="mt-6 max-w-xl rounded-surface border border-border bg-surface p-6 sm:p-8">
             <AdmissionForm

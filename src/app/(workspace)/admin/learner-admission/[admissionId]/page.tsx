@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import type { Metadata } from "next";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { admissionContext } from "@/features/learner-admission/context";
@@ -6,7 +7,7 @@ import { AdmissionReviewForms } from "@/features/learner-admission/forms";
 import { LearnerLink } from "@/features/learners/learner-link";
 import { levelNames } from "@/features/subjects/catalog";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Admission request",
@@ -26,7 +27,8 @@ export default async function Page({
         headers,
         admissionId,
       ),
-      privateWorkflow: isPrivateWorkflow(runtime),
+      privateWorkflow: hasPersistentWorkflow(runtime),
+      localWorkflow: getLocalWorkflow(runtime) !== null,
     }),
   );
   if (!result)
@@ -46,9 +48,11 @@ export default async function Page({
       />
       <h1 className="mt-4 text-page-title">Admission request</h1>
       <p className="mt-4 max-w-prose text-body">
-        {privateWorkflow
-          ? "Review the fictional learner request and record the required test evidence. This does not establish real consent or eligibility."
-          : "Synthetic readiness only. This record establishes no real consent or eligibility."}
+        {result.localWorkflow
+          ? "Review the learner request and record the evidence for the required checks before deciding access."
+          : privateWorkflow
+            ? "Review the fictional learner request and record the required test evidence. This does not establish real consent or eligibility."
+            : "Synthetic readiness only. This record establishes no real consent or eligibility."}
       </p>
       <h2 className="mt-8 text-section-title">{row.learner.displayName}</h2>
       <p className="mt-2 text-body">

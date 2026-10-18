@@ -85,6 +85,7 @@ describe("private admission forms", () => {
             id: randomUUID(),
             displayName: "Fictional",
             level: "elementary",
+            grade: null,
             timezone: "UTC",
             management: "guardian",
           },
@@ -101,5 +102,36 @@ describe("private admission forms", () => {
     expect(
       screen.getByRole("button", { name: "Revoke admission" }),
     ).toBeEnabled();
+  });
+  it("saves a guardian Grade 8 request as pending rather than claiming child authorization", async () => {
+    const id = randomUUID();
+    const fetch = vi.fn().mockResolvedValue(Response.json({ id }));
+    vi.stubGlobal("fetch", fetch);
+    render(<AdmissionForm {...props} privateWorkflow parentChildFlow />);
+    expect(screen.queryByLabelText("Request type")).toBeNull();
+    fireEvent.change(screen.getByLabelText("Learner display name"), {
+      target: { value: "Fictional Grade Eight" },
+    });
+    fireEvent.change(screen.getByLabelText("Learner level"), {
+      target: { value: "middle_school" },
+    });
+    fireEvent.change(screen.getByLabelText("Grade (optional)"), {
+      target: { value: "8" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save child request" }));
+    await screen.findByRole("heading", { name: "Child request saved" });
+    expect(screen.getByRole("status")).toHaveTextContent("Pending review");
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toMatchObject({
+      management: "guardian",
+      level: "middle_school",
+      grade: 8,
+    });
+    expect(screen.getByRole("link", { name: "My Children" })).toHaveAttribute(
+      "href",
+      "/parent/children",
+    );
+    expect(
+      screen.getByRole("link", { name: "View saved request" }),
+    ).toHaveAttribute("href", `/learner-admission/${id}`);
   });
 });

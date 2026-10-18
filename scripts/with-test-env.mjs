@@ -10,6 +10,7 @@ const env = {
   // supply them.
   DATABASE_MODE: "local",
   NEON_DEVELOPMENT_CONFIG_FILE: "",
+  LOCAL_WORKFLOW_MODE: "disabled",
   // Private workflow browser tests explicitly opt in through their own config.
   PRIVATE_WORKFLOW_CONFIG_FILE: "",
 };

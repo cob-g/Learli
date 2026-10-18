@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import {
   isPrivateWorkflow,
   privatePolicyEnvironment,
@@ -13,10 +14,7 @@ import {
 } from "@/lib/permissions/access";
 import { RuleError } from "@/lib/rule-error";
 import { isLoopbackOrigin } from "@/lib/local-mode";
-import {
-  adminAssurancePredicate,
-  requireAdminAssurance,
-} from "@/features/admin-security/assurance";
+import { requireAdminAssurance } from "@/features/admin-security/assurance";
 import {
   currentLearnerAuthorityPredicate,
   readCurrentAuthorizedLearner,
@@ -65,10 +63,13 @@ export type ReviewerAdmissionDetail = AdmissionDetail & {
 function capability(context: AdmissionContext): EnabledAdmissionCapability {
   privatePolicyEnvironment(context.runtime, "admission", context.admission);
   const cap = validateAdmissionCapability(context.admission);
+  if (cap.authority === "disabled") throw new AccessError(503);
   // No environment string enables readiness. The explicit validated capability is
   // required too. Hosted composition is a separately coordinated root contract.
   if (
-    cap.authority !== "synthetic_test" ||
+    (cap.authority === "local_operation"
+      ? !getLocalWorkflow(context.runtime)
+      : cap.authority !== "synthetic_test") ||
     (!isPrivateWorkflow(context.runtime) &&
       (!["development", "test"].includes(context.runtime.environment) ||
         !isLoopbackOrigin(context.runtime.origin)))
@@ -78,16 +79,12 @@ function capability(context: AdmissionContext): EnabledAdmissionCapability {
 }
 export function requesterPredicate(
   identity: Pick<Identity, "userId" | "sessionId">,
+  source: string | SQL = "synthetic_readiness",
 ): SQL {
-  return sql`EXISTS(SELECT 1 FROM public.session s JOIN public."user" u ON u.id=s.user_id JOIN public.user_access x ON x.user_id=u.id
-    WHERE s.id=${identity.sessionId} AND s.user_id=${identity.userId} AND s.expires_at>clock_timestamp() AND u.email_verified AND u.email LIKE '%.test' AND x.status='active')`;
+  return sql`public.workflow_identity(${identity.userId},${identity.sessionId},${source})`;
 }
-function reviewerPredicate(identity: Identity): SQL {
-  return sql`${requesterPredicate(identity)} AND ${adminAssurancePredicate(identity.userId, identity.sessionId)} AND a.requester_user_id<>${identity.userId}
-    AND EXISTS(SELECT 1 FROM public.learner_admission_assignments x JOIN public.learner_admission_reviewers r
-    ON r.user_id=x.reviewer_user_id AND r.source=x.source AND r.capability_code=x.capability_code
-    JOIN public.learner_admission_policies p ON p.id=a.policy_id WHERE x.admission_id=a.id AND x.reviewer_user_id=${identity.userId}
-    AND x.source=a.source AND x.capability_code=p.reviewer_capability_code AND r.active)`;
+function reviewerPredicate(identity: Identity, source: string): SQL {
+  return sql`a.source=${source} AND public.admission_reviewer_allowed(${identity.userId},${identity.sessionId},a.id) AND (a.source<>'local_operation' OR public.admission_policy_current(a.policy_id))`;
 }
 export async function readAdmissionIntake(
   context: AdmissionContext,
@@ -99,7 +96,7 @@ export async function readAdmissionIntake(
   const cap = capability(context);
   const current = await context.runtime.db.execute<{
     available: boolean;
-  }>(sql`SELECT ${requesterPredicate(identity)} AND EXISTS(SELECT 1 FROM public.learner_admission_policy_state s JOIN public.learner_admission_policies p ON p.id=s.current_policy_id
+  }>(sql`SELECT ${requesterPredicate(identity, cap.source)} AND EXISTS(SELECT 1 FROM public.learner_admission_policy_state s JOIN public.learner_admission_policies p ON p.id=s.current_policy_id
     WHERE p.id=${cap.policyId}::uuid AND p.content_digest=${cap.contentDigest} AND p.version=${cap.version} AND s.enabled) AS available`);
   return current.rows[0]?.available
     ? {
@@ -170,26 +167,27 @@ export async function createAdmission(
           outcome: string;
           admission_id: string | null;
         }>(
-          sql`SELECT * FROM public.create_learner_admission(${identity.userId},${identity.sessionId},${value.requestId}::uuid,${cap.policyId}::uuid,${value.management},${value.displayName},${value.level},${value.timezone},${next})`,
+          sql`SELECT * FROM public.create_learner_admission_with_grade(${identity.userId},${identity.sessionId},${value.requestId}::uuid,${cap.policyId}::uuid,${value.management},${value.displayName},${value.level},${value.timezone},${next},${value.grade ?? null}::integer)`,
         );
         const id = checkOutcome(result.rows[0]);
-        return readRequesterDetail(tx, identity, id);
+        return readRequesterDetail(tx, identity, id, cap.source);
       },
       { isolationLevel: "read committed" },
     ),
   );
 }
 const summary = sql`a.id,a.management,a.state,a.revision,a.policy_version AS "policyVersion",a.created_at AS "createdAt"`;
-const detail = sql`${summary},json_build_object('id',l.id,'displayName',l.display_name,'level',l.level,'timezone',l.timezone,'management',l.management) AS learner,a.selection_path AS next`;
+const detail = sql`${summary},json_build_object('id',l.id,'displayName',l.display_name,'level',l.level,'grade',l.grade,'timezone',l.timezone,'management',l.management) AS learner,a.selection_path AS next`;
 async function readRequesterDetail(
   db: Pick<Database, "execute">,
   identity: Identity,
   id: string,
+  source: string,
 ) {
   if (!z.uuid().safeParse(id).success) throw new AccessError(404);
   const result =
     await db.execute<AdmissionDetail>(sql`SELECT ${detail},${currentLearnerAuthorityPredicate({ ...identity, learnerId: sql`l.id`, policyId: sql`a.policy_id` })} AS "currentAccess" FROM public.learner_admissions a JOIN public.learner_profiles l ON l.id=a.learner_id
-    WHERE a.id=${id}::uuid AND a.requester_user_id=${identity.userId} AND ${requesterPredicate(identity)}`);
+    WHERE a.id=${id}::uuid AND a.source=${source} AND a.requester_user_id=${identity.userId} AND ${requesterPredicate(identity, source)}`);
   const row = result.rows[0];
   if (!row) throw new AccessError(404);
   return { ...row, next: canonicalAdmissionSelection(row.next) };
@@ -199,11 +197,12 @@ export async function readMyAdmission(
   headers: Headers,
   id: string,
 ) {
-  capability(context);
+  const cap = capability(context);
   return readRequesterDetail(
     context.runtime.db,
     await requireIdentity(context.runtime, headers),
     id,
+    cap.source,
   );
 }
 export type AdmissionPage = {
@@ -215,11 +214,12 @@ async function admissionPage(
   identity: Identity,
   reviewer: boolean,
   input: unknown,
+  source: string,
 ): Promise<AdmissionPage> {
   const cursor = admissionListCursor(input);
   const visible = reviewer
-    ? reviewerPredicate(identity)
-    : sql`a.requester_user_id=${identity.userId} AND ${requesterPredicate(identity)}`;
+    ? reviewerPredicate(identity, source)
+    : sql`a.source=${source} AND a.requester_user_id=${identity.userId} AND ${requesterPredicate(identity, source)}`;
   const comparison = reviewer
     ? sql`(a.created_at,a.id)>(SELECT created_at,id FROM point)`
     : sql`(a.created_at,a.id)<(SELECT created_at,id FROM point)`;
@@ -255,28 +255,29 @@ export async function listMyAdmissions(
   const identity = await requireIdentity(context.runtime, headers);
   if (context.admission.authority === "disabled")
     return { items: [], nextCursor: null };
-  capability(context);
-  return admissionPage(context.runtime.db, identity, false, cursor);
+  const cap = capability(context);
+  return admissionPage(context.runtime.db, identity, false, cursor, cap.source);
 }
 export async function listAssignedAdmissions(
   context: AdmissionContext,
   headers: Headers,
   cursor: unknown = null,
 ): Promise<AdmissionPage> {
-  capability(context);
+  const cap = capability(context);
   const identity = await requireAdminAssurance(context.runtime, headers);
-  return admissionPage(context.runtime.db, identity, true, cursor);
+  return admissionPage(context.runtime.db, identity, true, cursor, cap.source);
 }
 async function readReviewerDetail(
   db: Pick<Database, "execute">,
   identity: Identity,
   id: string,
+  source: string,
 ) {
   if (!z.uuid().safeParse(id).success) throw new AccessError(404);
   const result =
     await db.execute<ReviewerAdmissionDetail>(sql`SELECT ${detail},false AS "currentAccess",COALESCE((SELECT json_agg(json_build_object('id',e.id,'checkCode',e.check_code,'reference',e.reference,'revoked',e.revoked_at IS NOT NULL) ORDER BY e.recorded_at,e.id)
     FROM public.learner_admission_evidence e WHERE e.admission_id=a.id),'[]'::json) AS evidence
-    FROM public.learner_admissions a JOIN public.learner_profiles l ON l.id=a.learner_id WHERE a.id=${id}::uuid AND ${reviewerPredicate(identity)}`);
+    FROM public.learner_admissions a JOIN public.learner_profiles l ON l.id=a.learner_id WHERE a.id=${id}::uuid AND ${reviewerPredicate(identity, source)}`);
   const row = result.rows[0];
   if (!row) throw new AccessError(404);
   return { ...row, next: canonicalAdmissionSelection(row.next) };
@@ -286,11 +287,12 @@ export async function readAssignedAdmission(
   headers: Headers,
   id: string,
 ) {
-  capability(context);
+  const cap = capability(context);
   return readReviewerDetail(
     context.runtime.db,
     await requireAdminAssurance(context.runtime, headers),
     id,
+    cap.source,
   );
 }
 export async function mutateAdmissionReview(
@@ -300,10 +302,10 @@ export async function mutateAdmissionReview(
   kind: "evidence" | "decision" | "revoke-evidence",
   input: unknown,
 ) {
-  capability(context);
+  const cap = capability(context);
   const identity = await requireAdminAssurance(context.runtime, headers);
   // Permission precedes validation, so foreign/missing requests give no field feedback.
-  await readReviewerDetail(context.runtime.db, identity, id);
+  await readReviewerDetail(context.runtime.db, identity, id, cap.source);
   const command =
     kind === "evidence"
       ? evidenceInput.parse(input)
@@ -325,7 +327,7 @@ export async function mutateAdmissionReview(
           admission_id: string | null;
         }>(query);
         checkOutcome(result.rows[0]);
-        return readReviewerDetail(tx, identity, id);
+        return readReviewerDetail(tx, identity, id, cap.source);
       },
       { isolationLevel: "read committed" },
     ),
@@ -342,7 +344,7 @@ export async function listAdmittedLearners(
   const cap = capability(context);
   const identity = await requireIdentity(context.runtime, headers);
   const result = await context.runtime.db
-    .execute<PrivateLearner>(sql`SELECT l.id,l.display_name AS "displayName",l.level,l.timezone,l.management FROM public.learner_profiles l WHERE
+    .execute<PrivateLearner>(sql`SELECT l.id,l.display_name AS "displayName",l.level,l.grade,l.timezone,l.management FROM public.learner_profiles l WHERE
     ${currentLearnerAuthorityPredicate({ ...identity, learnerId: sql`l.id`, policyId: cap.policyId })} ORDER BY l.created_at,l.id LIMIT 100`);
   return result.rows;
 }
@@ -367,14 +369,21 @@ export async function updateAdmittedLearner(
   input: unknown,
 ) {
   const cap = capability(context);
-  await readAdmittedLearner(context, headers, id);
+  const profile = await readAdmittedLearner(context, headers, id);
   const identity = await requireIdentity(context.runtime, headers);
   const value = admittedLearnerInput.parse(input);
+  if (profile.level === "college_support" && value.grade != null)
+    throw new RuleError(
+      400,
+      "College Support profiles do not use a school grade.",
+    );
   return finalAuthority(
     context.runtime.db.transaction(
       async (tx) => {
         const result = await tx.execute<{ updated: boolean }>(
-          sql`SELECT public.update_admitted_learner(${identity.userId},${identity.sessionId},${id}::uuid,${cap.policyId}::uuid,${value.displayName},${value.timezone}) AS updated`,
+          value.grade === undefined
+            ? sql`SELECT public.update_admitted_learner(${identity.userId},${identity.sessionId},${id}::uuid,${cap.policyId}::uuid,${value.displayName},${value.timezone}) AS updated`
+            : sql`SELECT public.update_admitted_learner_with_grade(${identity.userId},${identity.sessionId},${id}::uuid,${cap.policyId}::uuid,${value.displayName},${value.timezone},${value.grade}::integer) AS updated`,
         );
         if (!result.rows[0]?.updated) throw new AccessError(404);
         return readCurrentAuthorizedLearner(tx, identity, id, cap.policyId);

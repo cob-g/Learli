@@ -27,7 +27,7 @@ export const bookingWorkflowPolicies = pgTable(
   (t) => [
     check(
       "booking_workflow_policy_shape",
-      sql`((${t.version}='synthetic-booking-v1' AND ${t.reference}='synthetic:booking:v1') OR (${t.version}='synthetic-booking-v2' AND ${t.reference}='synthetic:booking:v2')) AND ${t.contentDigest} ~ '^[a-f0-9]{64}$'`,
+      sql`((${t.version}='synthetic-booking-v1' AND ${t.reference}='synthetic:booking:v1') OR (${t.version}='synthetic-booking-v2' AND ${t.reference}='synthetic:booking:v2') OR (${t.version}='local-booking-v1' AND ${t.reference}='local:booking:v1')) AND ${t.contentDigest} ~ '^[a-f0-9]{64}$'`,
     ),
   ],
 );
@@ -43,7 +43,7 @@ export const bookingWorkflowPolicyHead = pgTable(
   (t) => [
     check(
       "booking_workflow_policy_head_source",
-      sql`${t.source}='synthetic_readiness'`,
+      sql`${t.source} IN ('synthetic_readiness','local_operation')`,
     ),
   ],
 );
@@ -60,14 +60,14 @@ export const bookingWorkflowGrants = pgTable(
       .$type<"confirm" | "complete" | "no_show">()
       .notNull(),
     active: boolean("active").notNull().default(false),
-    validUntil: timestamp("valid_until", { withTimezone: true }).notNull(),
+    validUntil: timestamp("valid_until", { withTimezone: true }),
     reference: text("reference").notNull(),
   },
   (t) => [
     primaryKey({ columns: [t.logicalBookingId, t.actorUserId, t.action] }),
     check(
       "booking_workflow_grant_shape",
-      sql`${t.action} IN ('confirm','complete','no_show') AND isfinite(${t.validUntil}) AND ${t.reference} ~ '^synthetic:[0-9a-f-]{36}$'`,
+      sql`${t.action} IN ('confirm','complete','no_show') AND ((${t.validUntil} IS NOT NULL AND isfinite(${t.validUntil}) AND ${t.reference} ~ '^synthetic:[0-9a-f-]{36}$') OR (${t.validUntil} IS NULL AND ${t.reference} ~ '^local:[0-9a-f-]{36}$'))`,
     ),
   ],
 );

@@ -22,3 +22,4 @@ export * from "./learner-admission";
 export * from "./booking-workflows";
 export * from "./review-publication";
 export * from "./transactional-delivery";
+export * from "./local-workflow";

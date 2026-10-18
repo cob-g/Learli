@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { adminAssurancePredicate } from "@/features/admin-security/assurance";
 // Node-only. Dispatcher projection deliberately has no report text or booking join.
 import { sql } from "drizzle-orm";
@@ -18,22 +19,25 @@ async function actor(runtime: AuthRuntime, headers: Headers) {
     !isLoopbackOrigin(runtime.origin)
   )
     throw new AccessError(503);
-  return requireRole(runtime, headers, "admin");
+  return {
+    ...(await requireRole(runtime, headers, "admin")),
+    local: !!getLocalWorkflow(runtime),
+  };
 }
-function current(identity: Identity) {
+function current(identity: Identity & { local?: boolean }) {
   return sql`${adminAssurancePredicate(identity.userId, identity.sessionId)} AND EXISTS(SELECT 1 FROM session s JOIN "user" u ON u.id=s.user_id JOIN user_access a ON a.user_id=u.id
     WHERE s.id=${identity.sessionId} AND s.user_id=${identity.userId} AND s.expires_at>statement_timestamp() AND u.email_verified
-    AND u.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$' AND a.status='active'
-    AND EXISTS(SELECT 1 FROM user_roles role WHERE role.user_id=u.id AND role.role='admin'))`;
+    AND (${identity.local === true} OR u.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$') AND a.status='active'
+    AND EXISTS(SELECT 1 FROM user_roles role WHERE role.user_id=u.id AND role.role='admin')) AND (${identity.local !== true} OR public.has_local_workflow_staff(${identity.userId},${identity.sessionId},'support'))`;
 }
-function caseScope(identity: Identity) {
-  return sql`c.source='local_synthetic' AND c.requester_user_id<>${identity.userId} AND EXISTS (
-    SELECT 1 FROM support_dispatch_grants g WHERE g.case_id=c.id AND g.dispatcher_user_id=${identity.userId} AND g.source='local_fixture' AND g.status='authorized')`;
+function caseScope(identity: Identity & { local?: boolean }) {
+  return sql`c.source=${identity.local ? "local_operation" : "local_synthetic"} AND c.requester_user_id<>${identity.userId} AND EXISTS (
+    SELECT 1 FROM support_dispatch_grants g WHERE g.case_id=c.id AND g.dispatcher_user_id=${identity.userId} AND g.source=${identity.local ? "local_operation" : "local_fixture"} AND g.status='authorized')`;
 }
 function eligible(id: ReturnType<typeof sql>) {
   return sql`EXISTS(SELECT 1 FROM support_reviewers r JOIN "user" u ON u.id=r.user_id JOIN user_access eligible_access ON eligible_access.user_id=u.id
-    WHERE r.user_id=${id} AND r.source='local_fixture' AND r.status='authorized' AND eligible_access.status='active' AND u.email_verified
-    AND u.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$' AND EXISTS(SELECT 1 FROM user_roles role WHERE role.user_id=u.id AND role.role='admin'))`;
+    WHERE r.user_id=${id} AND r.source=CASE WHEN c.source='local_operation' THEN 'local_operation' ELSE 'local_fixture' END AND r.status='authorized' AND eligible_access.status='active' AND u.email_verified
+    AND (r.source='local_operation' OR u.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$') AND EXISTS(SELECT 1 FROM user_roles role WHERE role.user_id=u.id AND role.role='admin'))`;
 }
 const summarySchema = z.object({
   id: z.uuid(),
@@ -86,13 +90,13 @@ export async function readDispatchCase(
       coalesce((SELECT jsonb_agg(row.item ORDER BY row.name,row.id) FROM (
         SELECT choice.reviewer_user_id AS id,u.name,jsonb_build_object('id',choice.reviewer_user_id,'name',u.name) AS item
         FROM support_reviewer_choices choice JOIN "user" u ON u.id=choice.reviewer_user_id
-        WHERE choice.case_id=c.id AND choice.source='local_fixture' AND choice.status='authorized' AND ${eligible(sql`choice.reviewer_user_id`)}
+        WHERE choice.case_id=c.id AND choice.source=CASE WHEN c.source='local_operation' THEN 'local_operation' ELSE 'local_fixture' END AND choice.status='authorized' AND ${eligible(sql`choice.reviewer_user_id`)}
         AND choice.reviewer_user_id NOT IN (${identity.userId},c.requester_user_id)
         AND NOT EXISTS(SELECT 1 FROM support_case_assignments a WHERE a.case_id=c.id AND a.reviewer_user_id=choice.reviewer_user_id)
         ORDER BY u.name,choice.reviewer_user_id LIMIT 21
       ) row),'[]'::jsonb) AS choices,
       coalesce((SELECT jsonb_agg(to_jsonb(row) ORDER BY row.revision DESC) FROM (
-        SELECT e.kind,e.revision,e.created_at AS "createdAt",CASE WHEN e.actor_user_id=${identity.userId} THEN 'You' ELSE 'Authorized dispatcher fixture' END AS actor
+        SELECT e.kind,e.revision,e.created_at AS "createdAt",CASE WHEN e.actor_user_id=${identity.userId} THEN 'You' ELSE ${identity.local ? "Authorized dispatcher" : "Authorized dispatcher fixture"} END AS actor
         FROM support_assignment_events e WHERE e.case_id=c.id ORDER BY e.revision DESC LIMIT 21 OFFSET ${(page - 1) * 20}
       ) row),'[]'::jsonb) AS history
     FROM support_cases c WHERE c.id=${caseId}::uuid AND ${current(identity)} AND ${caseScope(identity)}`);
@@ -108,7 +112,11 @@ export async function readDispatchCase(
         kind: z.enum(["assign", "reassign", "escalate"]),
         revision: z.number().int(),
         createdAt: z.string(),
-        actor: z.enum(["You", "Authorized dispatcher fixture"]),
+        actor: z.enum([
+          "You",
+          "Authorized dispatcher fixture",
+          "Authorized dispatcher",
+        ]),
       }),
     )
     .parse(row.history);

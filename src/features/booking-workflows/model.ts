@@ -35,7 +35,7 @@ export const workflowEventLabels: Record<WorkflowEvent, string> = {
 };
 /** All consumers must use the same source-aware blocking predicate. */
 export function blockingBookingPredicate(alias: SQL, now: SQL | Date): SQL {
-  return sql`((${alias}.source='local_simulation' AND ${alias}.state IN ('demo_reserved','demo_confirmed') AND ${alias}.expires_at>${now}) OR (${alias}.source='synthetic_readiness' AND (${alias}.state='confirmed' OR (${alias}.state='provisional' AND ${alias}.expires_at>${now}))))`;
+  return sql`((${alias}.source='local_simulation' AND ${alias}.state IN ('demo_reserved','demo_confirmed') AND ${alias}.expires_at>${now}) OR (${alias}.source IN('synthetic_readiness','local_operation') AND (${alias}.state='confirmed' OR (${alias}.state='provisional' AND ${alias}.expires_at>${now}))))`;
 }
 export type WorkflowReceipt = {
   id: string;
@@ -46,3 +46,23 @@ export type WorkflowReceipt = {
   state: WorkflowState;
   policyVersion: string;
 };
+
+export type WorkflowSource = "synthetic_readiness" | "local_operation";
+export function workflowReason(
+  action: import("./input").WorkflowAction | "create" | "expire",
+  source: WorkflowSource,
+) {
+  const suffix =
+    action === "confirm"
+      ? "prerequisite_review"
+      : action === "complete"
+        ? "completed"
+        : action === "no_show"
+          ? "no_show"
+          : action === "create"
+            ? "request"
+            : action === "expire"
+              ? "expiry"
+              : "participant_change";
+  return `${source === "local_operation" ? "local" : "synthetic"}_${suffix}`;
+}

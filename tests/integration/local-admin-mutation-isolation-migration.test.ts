@@ -19,9 +19,20 @@ import {
 } from "../../scripts/staging-migrations/protections";
 import { verifyRuntimeGrants } from "../../scripts/staging-migrations/privileges";
 import { runtimeGrantsSql } from "../../scripts/runtime-grants";
-import { runtimeGrantsBeforeParent } from "../support/migration-inventory";
+import {
+  runtimeGrantsBeforeParent,
+  runtimeGrantsBeforeGrade,
+  runtimeGrantsBeforeOperation,
+  expectLocalOperationRowPreservation,
+} from "../support/migration-inventory";
 
-const candidate = loadCandidate(process.cwd());
+const currentCandidate = loadCandidate(process.cwd());
+// Prove the original0031 isolation and its0032–0034 additions before later
+// migrations intentionally extend these shared administrative functions.
+const candidate = {
+  ...currentCandidate,
+  entries: currentCandidate.entries.slice(0, 35),
+};
 const names = [
   "change_local_account_access",
   "change_local_support_assignment",
@@ -48,7 +59,7 @@ async function functions(client: PoolClient) {
       AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.classid='pg_proc'::regclass AND d.objid=p.oid AND d.deptype='e') ORDER BY p.proname`)
   ).rows;
 }
-async function rowHashes(client: PoolClient) {
+async function rowHashes(client: PoolClient, beforeGrade = false) {
   const tables = (
     await client.query<{ name: string }>(
       "SELECT tablename AS name FROM pg_tables WHERE schemaname='public' ORDER BY tablename",
@@ -58,14 +69,14 @@ async function rowHashes(client: PoolClient) {
   for (const { name } of tables) {
     if (!/^[a-z_]+$/.test(name)) throw new Error("Invalid fixture table.");
     const rows = await client.query(
-      `SELECT to_jsonb(t) AS row FROM public."${name}" t ORDER BY to_jsonb(t)::text`,
+      `SELECT to_jsonb(t)${beforeGrade && name === "learner_profiles" ? " - 'grade'" : ""} AS row FROM public."${name}" t ORDER BY to_jsonb(t)::text`,
     );
     hashes[name] = digest(JSON.stringify(rows.rows));
   }
   return hashes;
 }
 async function apply(client: PoolClient, until: number) {
-  if (until === candidate.entries.length) {
+  if (until === currentCandidate.entries.length) {
     // The public migrator skips the already-recorded canonical prefix on upgrade.
     await migrate(drizzle(client), { migrationsFolder: "drizzle" });
     return;
@@ -201,7 +212,7 @@ describe("0031 local administrative mutation isolation forward migration", () =>
             await client.query(
               baselineLength < 33
                 ? runtimeGrantsBeforeParent
-                : runtimeGrantsSql,
+                : runtimeGrantsBeforeGrade,
             );
             const parent = randomUUID(),
               tutorOwner = randomUUID(),
@@ -246,7 +257,9 @@ describe("0031 local administrative mutation isolation forward migration", () =>
             ).rows;
             expect(ledger).toHaveLength(baselineLength);
             await apply(client, candidate.entries.length);
-            expect(await rowHashes(client)).toEqual(rows);
+            // Existing columns stay byte-equivalent; the new grade column has
+            // separate0034 preservation coverage and is included on reruns.
+            expect(await rowHashes(client, true)).toEqual(rows);
             expect(
               (
                 await client.query(
@@ -256,7 +269,7 @@ describe("0031 local administrative mutation isolation forward migration", () =>
             ).toEqual(ledger);
             const after = await functions(client);
             expect(after).toHaveLength(
-              definitions.length + (baselineLength < 33 ? 1 : 0),
+              definitions.length + (baselineLength < 33 ? 1 : 0) + 3,
             );
             expect(
               after.filter((f) => f.name === "enroll_parent_workspace"),
@@ -279,15 +292,16 @@ describe("0031 local administrative mutation isolation forward migration", () =>
                 expect(next?.body).not.toBe(old.body);
               } else expect(next).toEqual(old);
             }
-            // Verify effective privileges before any re-grant: OR REPLACE must retain ACLs.
-            await verifyRuntimeGrants(client);
+            // The exact metadata comparison above proves every inherited ACL.
+            // New0034 functions/column rights are applied separately.
+            await client.query(runtimeGrantsBeforeOperation);
             await verifyProtections(
               client,
               candidate,
               candidate.entries.length,
             );
           }
-          await client.query(runtimeGrantsSql);
+          await client.query(runtimeGrantsBeforeOperation);
           const protections = await verifyProtections(
             client,
             candidate,
@@ -297,7 +311,6 @@ describe("0031 local administrative mutation isolation forward migration", () =>
             expectedProtections(candidate.entries.flatMap((e) => e.statements))
               .functions.length,
           );
-          await verifyRuntimeGrants(client);
           expect(
             (
               await client.query(
@@ -319,7 +332,6 @@ describe("0031 local administrative mutation isolation forward migration", () =>
           }
           expect(await functions(client)).toEqual(beforeRerun);
           expect(await rowHashes(client)).toEqual(rowsBeforeRerun);
-          await verifyRuntimeGrants(client);
           await verifyProtections(client, candidate, candidate.entries.length);
           expect(
             (
@@ -336,6 +348,42 @@ describe("0031 local administrative mutation isolation forward migration", () =>
             );
             expect(rights.rows[0]).toEqual({ runtime: true, public: false });
           }
+          // Current operation has separate source-aware bodies. Preserve every
+          // historical row/column and function identity/owner/ACL before applying
+          // its explicitly additive runtime grants; never replay0031 over it.
+          const historicalRows = await rowHashes(client),
+            inheritedFunctions = await functions(client);
+          await apply(client, currentCandidate.entries.length);
+          expectLocalOperationRowPreservation(
+            historicalRows,
+            await rowHashes(client),
+          );
+          const upgradedFunctions = await functions(client);
+          for (const inherited of inheritedFunctions) {
+            const upgraded = upgradedFunctions.find(
+              (fn) => fn.oid === inherited.oid,
+            );
+            expect({ ...upgraded, body: inherited.body }).toEqual(inherited);
+          }
+          await client.query(runtimeGrantsSql);
+          await verifyRuntimeGrants(client);
+          await verifyProtections(
+            client,
+            currentCandidate,
+            currentCandidate.entries.length,
+          );
+          const currentDefinitions = await functions(client),
+            currentRows = await rowHashes(client);
+          await apply(client, currentCandidate.entries.length);
+          expect(await functions(client)).toEqual(currentDefinitions);
+          expect(await rowHashes(client)).toEqual(currentRows);
+          expect(
+            (
+              await client.query(
+                "SELECT count(*)::int AS n FROM drizzle.__drizzle_migrations",
+              )
+            ).rows[0].n,
+          ).toBe(currentCandidate.entries.length);
         } finally {
           client.release();
         }

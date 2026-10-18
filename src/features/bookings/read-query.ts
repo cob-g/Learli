@@ -14,6 +14,7 @@ type ReadActor = {
   userId: string;
   sessionId: string;
   privateWorkflow?: boolean;
+  localWorkflow?: boolean;
   privatePacket?: PrivateWorkflowPacket;
 };
 export type ReadSnapshot = {
@@ -49,10 +50,10 @@ export async function queryParticipantBookings(
             SELECT 1 FROM guardian_learner_links g
             WHERE g.guardian_user_id = a.id AND g.learner_id = l.id
               AND g.status = 'authorized' AND g.source = 'local_fixture')`;
-  const active = sql`(((b.source='local_simulation' AND b.state IN ('demo_reserved','demo_confirmed') AND b.expires_at>a.now) OR (b.source='synthetic_readiness' AND (b.state='confirmed' OR (b.state='provisional' AND b.expires_at>a.now)))) AND b.end_at_utc>a.now)`;
+  const active = sql`(((b.source='local_simulation' AND b.state IN ('demo_reserved','demo_confirmed') AND b.expires_at>a.now) OR (b.source IN('synthetic_readiness','local_operation') AND (b.state='confirmed' OR (b.state='provisional' AND b.expires_at>a.now)))) AND b.end_at_utc>a.now)`;
   const readinessRelation =
     input.scope === "tutor"
-      ? sql`tp.user_id=a.id AND public.has_current_booking_beneficiary(b.booked_by_user_id,l.id,b.admission_policy_id) AND public.has_current_tutor_screening(tp.id,'synthetic_readiness')`
+      ? sql`tp.user_id=a.id AND public.has_current_booking_beneficiary(b.booked_by_user_id,l.id,b.admission_policy_id) AND public.has_current_tutor_screening(tp.id,b.source)`
       : sql`${input.scope === "student" ? sql`l.management='self' AND l.user_id=a.id AND l.level='college_support'` : sql`l.management='guardian' AND l.user_id IS NULL`} AND public.has_current_learner_authority(a.id,${actor.sessionId},l.id,b.admission_policy_id)`;
   const filter =
     input.filter === "active"
@@ -78,7 +79,7 @@ export async function queryParticipantBookings(
       JOIN session s ON s.user_id = u.id AND s.id = ${actor.sessionId}
         AND s.expires_at > statement_timestamp()
       WHERE ${privateActorPredicate(actor.privatePacket, sql`u.id`)} AND u.id = ${actor.userId} AND u.email_verified = true
-        AND u.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$'
+        AND (${actor.localWorkflow === true} OR u.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$')
         AND EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id = u.id AND r.role = ${role})
         ${input.scope === "tutor" ? sql`AND EXISTS (SELECT 1 FROM tutor_profiles own WHERE own.user_id = u.id AND own.review_status <> 'suspended')` : sql``}
     ), permitted AS (
@@ -86,13 +87,13 @@ export async function queryParticipantBookings(
         b.source, b.workflow_revision, b.workflow_policy_id, b.logical_booking_id, b.revision,
         tu.name AS tutor_name, tp.slug AS tutor_slug, sub.name AS subject_name, sub.slug AS subject_slug,
         l.id AS learner_id, l.display_name AS learner_name, l.level AS learner_level, b.end_at_utc
-      FROM actor a JOIN bookings b ON b.source IN ('local_simulation','synthetic_readiness')
+      FROM actor a JOIN bookings b ON b.source IN ('local_simulation','synthetic_readiness','local_operation')
       JOIN learner_profiles l ON l.id = b.learner_id
         AND l.status = 'active'
       JOIN tutor_profiles tp ON tp.id = b.tutor_id
       JOIN "user" tu ON tu.id = tp.user_id
       JOIN subjects sub ON sub.id = b.subject_id
-      WHERE ${privateBookingPredicate(actor.privatePacket, sql`b.id`)} AND ${actor.privateWorkflow ? sql`b.source='synthetic_readiness' AND` : sql``} ((b.source='local_simulation' AND l.source='local_fixture' AND ${relation}) OR (b.source='synthetic_readiness' AND l.source=b.source AND public.booking_workflow_policy_current(b.workflow_policy_id) AND ${readinessRelation})) AND ${filter}
+      WHERE ${actor.localWorkflow === true ? sql`b.source='local_operation'` : sql`b.source<>'local_operation'`} AND public.workflow_identity(a.id,${actor.sessionId},CASE WHEN b.source='local_simulation' THEN 'synthetic_readiness' ELSE b.source END) AND ${privateBookingPredicate(actor.privatePacket, sql`b.id`)} AND ${actor.privateWorkflow ? sql`b.source='synthetic_readiness' AND` : sql``} ((b.source='local_simulation' AND l.source='local_fixture' AND ${relation}) OR (b.source IN('synthetic_readiness','local_operation') AND l.source=b.source AND public.booking_workflow_policy_current(b.workflow_policy_id) AND ${readinessRelation})) AND ${filter}
         ${bookingId ? sql`AND b.id = ${bookingId}::uuid` : sql``}
         ${input.learnerId ? sql`AND l.id = ${input.learnerId}::uuid` : sql``}
     ), paged AS (
@@ -115,7 +116,7 @@ export async function queryParticipantBookings(
           ? sql`'[]'::jsonb`
           : sql`COALESCE((
         SELECT jsonb_agg(jsonb_build_object('id', lp.id, 'displayName', lp.display_name, 'level', lp.level) ORDER BY lp.created_at ASC, lp.id ASC)
-        FROM learner_profiles lp WHERE lp.status = 'active' AND ((lp.source='synthetic_readiness' AND ${input.scope === "student" ? sql`lp.management='self' AND lp.user_id=a.id AND lp.level='college_support'` : sql`lp.management='guardian' AND lp.user_id IS NULL`} AND EXISTS(SELECT 1 FROM learner_admissions la WHERE la.learner_id=lp.id AND public.has_current_learner_authority(a.id,${actor.sessionId},lp.id,la.policy_id))) OR (${actor.privateWorkflow ? sql`false` : sql`true`} AND lp.source = 'local_fixture' AND ${input.scope === "student" ? sql`lp.management = 'self' AND lp.user_id = a.id AND lp.level = 'college_support'` : sql`lp.management = 'guardian' AND lp.user_id IS NULL AND EXISTS (SELECT 1 FROM guardian_learner_links gl WHERE gl.learner_id = lp.id AND gl.guardian_user_id = a.id AND gl.status = 'authorized' AND gl.source = 'local_fixture')`}))
+        FROM learner_profiles lp WHERE lp.status = 'active' AND ((lp.source=${actor.localWorkflow === true ? "local_operation" : "synthetic_readiness"} AND ${input.scope === "student" ? sql`lp.management='self' AND lp.user_id=a.id AND lp.level='college_support'` : sql`lp.management='guardian' AND lp.user_id IS NULL`} AND EXISTS(SELECT 1 FROM learner_admissions la WHERE la.learner_id=lp.id AND public.has_current_learner_authority(a.id,${actor.sessionId},lp.id,la.policy_id))) OR (${actor.privateWorkflow || actor.localWorkflow ? sql`false` : sql`true`} AND lp.source = 'local_fixture' AND ${input.scope === "student" ? sql`lp.management = 'self' AND lp.user_id = a.id AND lp.level = 'college_support'` : sql`lp.management = 'guardian' AND lp.user_id IS NULL AND EXISTS (SELECT 1 FROM guardian_learner_links gl WHERE gl.learner_id = lp.id AND gl.guardian_user_id = a.id AND gl.status = 'authorized' AND gl.source = 'local_fixture')`}))
       ), '[]'::jsonb)`
       } AS learners
     FROM actor a

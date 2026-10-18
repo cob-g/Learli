@@ -1,6 +1,7 @@
 import "server-only";
 import Link from "next/link";
 import { getDomainAuthRuntime } from "@/lib/auth";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { readPublicTutor } from "@/features/tutors/public";
 import { levelNames } from "@/features/subjects/catalog";
 import { readPublicCandidates } from "@/features/public-availability/service";
@@ -12,6 +13,8 @@ import { selectionFromReturnPath } from "./selection";
 export async function PendingBookingChoice({ next }: { next?: string }) {
   const choice = selectionFromReturnPath(next);
   if (!choice) return null;
+  const runtime = await getDomainAuthRuntime();
+  const privateWorkflow = !!runtime && hasPersistentWorkflow(runtime);
   const tutor = await readPublicTutor(choice.tutorSlug);
   const offering = tutor?.offerings.find(
     (row) =>
@@ -21,13 +24,14 @@ export async function PendingBookingChoice({ next }: { next?: string }) {
   if (!tutor || !offering)
     return (
       <p className="mt-4 max-w-prose text-body">
-        This tutor isn&apos;t taking simulated bookings for that choice right
-        now. <Link href="/tutors">Browse all tutors</Link>
+        {privateWorkflow
+          ? "This tutor isn't taking bookings for that choice right now."
+          : "This tutor isn't taking simulated bookings for that choice right now."}{" "}
+        <Link href="/tutors">Browse all tutors</Link>
       </p>
     );
   let message = "Times are checked again after sign-in. No time is reserved.";
   try {
-    const runtime = await getDomainAuthRuntime();
     if (!runtime) throw new Error("Local preview unavailable");
     const result = await readPublicCandidates(runtime, {
       tutorSlugs: [choice.tutorSlug],
@@ -53,7 +57,9 @@ export async function PendingBookingChoice({ next }: { next?: string }) {
       className="mt-4 space-y-2 border-b border-border pb-4"
     >
       <h2 id="pending-booking-title" className="text-item-title">
-        Your simulated booking choice
+        {privateWorkflow
+          ? "Your booking choice"
+          : "Your simulated booking choice"}
       </h2>
       <p className="text-body">
         {tutor.displayName} · {offering.subjectName} ·{" "}

@@ -1,10 +1,11 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import Link from "next/link";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { readOwnTutorProfile } from "@/features/tutors/service";
 import { getScreeningContext } from "@/features/tutor-screening/composition";
 import { readScreening } from "@/features/tutor-screening/service";
 import { ScreeningRequest } from "@/features/tutor-screening/forms";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Tutor screening",
@@ -20,7 +21,8 @@ export default async function Page() {
       const profile = await readOwnTutorProfile(runtime, headers);
       return {
         disabled: false as const,
-        privateWorkflow: isPrivateWorkflow(runtime),
+        privateWorkflow: hasPersistentWorkflow(runtime),
+        localWorkflow: getLocalWorkflow(runtime) !== null,
         profile,
         detail: profile
           ? await readScreening(context, headers, profile.id, "owner")
@@ -49,12 +51,19 @@ export default async function Page() {
             ? "Screening status: "
             : "Synthetic screening: "}
           {data.detail.state}. Required{" "}
-          {data.privateWorkflow ? "test" : "fictional"} checks:{" "}
-          {data.detail.requiredCodes.join(", ")}. Your assigned reviewer decides
-          eligibility.
+          {data.localWorkflow
+            ? "review"
+            : data.privateWorkflow
+              ? "test"
+              : "fictional"}{" "}
+          checks: {data.detail.requiredCodes.join(", ")}. Your assigned reviewer
+          decides eligibility.
         </p>
       ) : (
-        <ScreeningRequest tutorId={data.profile.id} />
+        <ScreeningRequest
+          tutorId={data.profile.id}
+          privateWorkflow={data.privateWorkflow}
+        />
       )}
     </section>
   );

@@ -81,10 +81,19 @@ describe("dedicated workspace presentation", () => {
       }),
     );
     const nav = screen.getByRole("navigation", { name: "Parent work areas" });
+    expect(
+      within(nav).getByRole("link", { name: "Parent Dashboard" }),
+    ).toHaveAttribute("aria-current", "page");
+    expect(
+      within(nav).getByRole("link", { name: "Parent Dashboard" }),
+    ).toHaveAttribute("href", "/parent");
     expect(within(nav).getByRole("link", { name: "Bookings" })).toHaveAttribute(
-      "aria-current",
-      "page",
+      "href",
+      "/bookings?scope=guardian",
     );
+    expect(
+      within(nav).getByRole("link", { name: "Bookings" }),
+    ).not.toHaveAttribute("aria-current");
     expect(screen.getByRole("link", { name: "Find a tutor" })).toHaveAttribute(
       "href",
       "/tutors",
@@ -124,6 +133,22 @@ describe("dedicated workspace presentation", () => {
     ).toHaveAttribute("aria-current", "page");
   });
   it("uses explicit granted roles, valid shared context and unambiguous grants", () => {
+    expect(workspaceLinks("parent")).toEqual(
+      expect.arrayContaining([
+        { href: "/parent/profile", label: "Parent Profile", exact: true },
+        { href: "/parent/children", label: "My Children" },
+      ]),
+    );
+    expect(workspaceLinks("student")).toContainEqual({
+      href: "/learners",
+      label: "Learners",
+    });
+    expect(
+      isCurrentLink("/parent/children/new", {
+        href: "/parent/children",
+        label: "My Children",
+      }),
+    ).toBe(true);
     expect(currentWorkspace("/admin/tutors", ["tutor"])).toBeNull();
     expect(currentWorkspace("/bookings", ["tutor", "parent"])).toBeNull();
     expect(currentWorkspace("/account", ["parent"])).toBe("parent");
@@ -480,15 +505,43 @@ it("keeps selected multi-role intent through a same-session refresh and applies 
   ).toBeVisible();
 });
 
-it("marks shared booking lists and detail return scopes only for the matching workspace", () => {
-  const parent = workspaceLinks("parent")[0];
+it("marks parent dashboard and guardian bookings as separate destinations with exact scopes", () => {
+  const parent = workspaceLinks("parent");
+  const dashboard = parent.find((link) => link.href === "/parent")!;
+  const bookings = parent.find(
+    (link) => link.href === "/bookings?scope=guardian",
+  )!;
+  expect(dashboard.label).toBe("Parent Dashboard");
+  expect(bookings.label).toBe("Bookings");
+  expect(isCurrentLink("/parent", dashboard)).toBe(true);
+  expect(isCurrentLink("/parent", bookings)).toBe(false);
+  expect(isCurrentLink("/parent/children", dashboard)).toBe(false);
+  for (const path of ["/bookings", "/bookings/opaque-id"]) {
+    expect(isCurrentLink(path, dashboard, "guardian")).toBe(false);
+    expect(isCurrentLink(path, bookings, "guardian")).toBe(true);
+    for (const scope of [
+      undefined,
+      null,
+      "student",
+      "tutor",
+      "admin",
+      "Guardian",
+      "unknown",
+    ])
+      expect(isCurrentLink(path, bookings, scope)).toBe(false);
+  }
+  expect(isCurrentLink("/bookings/new", bookings, "guardian")).toBe(false);
   const student = workspaceLinks("student")[0];
   const tutor = workspaceLinks("tutor")[0];
-  expect(isCurrentLink("/bookings", parent, "guardian")).toBe(true);
-  expect(isCurrentLink("/bookings/opaque-id", parent, "guardian")).toBe(true);
-  expect(isCurrentLink("/bookings/opaque-id", student, "guardian")).toBe(false);
-  expect(isCurrentLink("/bookings", tutor, "tutor")).toBe(true);
-  expect(isCurrentLink("/bookings", parent)).toBe(false);
+  for (const [link, scope] of [
+    [student, "student"],
+    [tutor, "tutor"],
+  ] as const) {
+    expect(link.label).toBe("Bookings");
+    for (const path of [link.href, "/bookings", "/bookings/opaque-id"])
+      expect(isCurrentLink(path, link, scope)).toBe(true);
+    expect(isCurrentLink("/bookings/opaque-id", link, "guardian")).toBe(false);
+  }
 });
 
 it("closes the native workspace chooser on role selection without losing keyboard focus", async () => {

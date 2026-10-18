@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import type { Metadata } from "next";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { readDispatchCase } from "@/features/support/dispatch-service";
@@ -7,6 +8,7 @@ import { categoryLabels } from "@/features/support/input";
 import { AdminShell } from "@/features/admin/admin-shell";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { safePage } from "@/features/support/input";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Local case assignment",
@@ -26,21 +28,29 @@ export default async function Page({
 }) {
   const { caseId } = await params,
     page = safePage((await searchParams).page);
-  const detail = await loadPrivatePage(
+  const result = await loadPrivatePage(
     `/admin/support/dispatch/${caseId}`,
-    (runtime, headers) => readDispatchCase(runtime, headers, caseId, page),
+    async (runtime, headers) => ({
+      detail: await readDispatchCase(runtime, headers, caseId, page),
+      privateWorkflow: hasPersistentWorkflow(runtime),
+      localWorkflow: getLocalWorkflow(runtime) !== null,
+    }),
   );
-  if (!detail)
+  if (!result?.detail)
     return (
       <UnavailablePage
         title="Assignment unavailable"
         message="We cannot find that case assignment on this account."
       />
     );
+  const { detail, privateWorkflow, localWorkflow } = result;
   return (
     <AdminShell current="support">
       <h1 className="text-page-title">Local case assignment</h1>
-      <DemoNotice />
+      <DemoNotice
+        privateWorkflow={privateWorkflow}
+        localWorkflow={localWorkflow}
+      />
       <dl className="mt-8 max-w-xl space-y-4">
         <div>
           <dt className="text-label">Case reference</dt>

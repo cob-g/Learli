@@ -8,7 +8,7 @@ import type { AuthRuntime } from "@/lib/auth-factory";
 import { session, user } from "@/lib/db/schema";
 import { requireIdentity } from "@/lib/permissions/access";
 import { recheckIdentity } from "@/lib/permissions/recheck";
-import { syntheticEmail } from "@/lib/local-mode";
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { RuleError } from "@/lib/rule-error";
 import { refusedMailResponse } from "@/features/hosted-auth/mail-attempt";
 import type { EmailChangeInput } from "./input";
@@ -49,7 +49,6 @@ export async function changeOwnEmail(
     )
       throw new EmailFreshnessError();
     if (
-      !syntheticEmail(current.email) ||
       !permitsAccountEmail(runtime, current.email) ||
       (input.action !== "start" &&
         !permitsAccountEmail(runtime, input.newEmail)) ||
@@ -63,7 +62,7 @@ export async function changeOwnEmail(
       input.action !== "start" &&
       input.newEmail === current.email.toLowerCase()
     )
-      throw new RuleError(400, "Choose a different synthetic .test address.");
+      throw new RuleError(400, "Choose a different email address.");
     const headers = providerHeaders(runtime, requestHeaders, true);
     headers.set("content-type", "application/json");
     headers.delete("content-length");
@@ -84,7 +83,8 @@ export async function changeOwnEmail(
                 body: JSON.stringify(body),
               }),
             );
-          if (!("hosted" in runtime)) return dispatch();
+          if (!("hosted" in runtime) && !getLocalWorkflow(runtime))
+            return dispatch();
           const attempt = await runtime.mailAttempt.run(dispatch);
           return attempt.failed
             ? refusedMailResponse(attempt.value)

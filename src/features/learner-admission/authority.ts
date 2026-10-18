@@ -22,7 +22,7 @@ export async function readCurrentAuthorizedLearner(
   policyId: string,
 ): Promise<PrivateLearner> {
   const result =
-    await db.execute<PrivateLearner>(sql`SELECT l.id,l.display_name AS "displayName",l.level,l.timezone,l.management FROM public.learner_profiles l
+    await db.execute<PrivateLearner>(sql`SELECT l.id,l.display_name AS "displayName",l.level,l.grade,l.timezone,l.management FROM public.learner_profiles l
     WHERE l.id=${learnerId}::uuid AND ${currentLearnerAuthorityPredicate({ ...identity, learnerId, policyId })}`);
   const row = result.rows[0];
   if (!row) throw new AccessError(404);

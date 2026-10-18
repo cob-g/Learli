@@ -32,7 +32,7 @@ export const caseInput = z.strictObject({
     error: "Choose a category.",
   }),
   subject: safeText(120, "a subject"),
-  body: safeText(2000, "a fictional description"),
+  body: safeText(2000, "a description"),
   bookingId: z.uuid().optional(),
 });
 export const statusInput = z.strictObject({

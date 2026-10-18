@@ -9,7 +9,7 @@ import {
   parsePublicBookingSelection,
   type SearchValues,
 } from "@/features/bookings/selection";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +37,7 @@ export default async function NewBookingPage({
       : "/bookings/new";
   const result = await loadPrivatePage(returnTo, async (runtime, headers) => {
     if (
-      !isPrivateWorkflow(runtime) ||
+      !hasPersistentWorkflow(runtime) ||
       bookingWorkflowContext(runtime).booking.authority === "disabled"
     )
       return null;

@@ -75,7 +75,7 @@ describe("parent registration intent", () => {
       "/tutors?subject=math&level=middle_school",
     );
     expect(screen.getByRole("status")).toHaveTextContent(
-      "Verify it before signing in",
+      "Registration request received.",
     );
     expect(
       screen.queryByRole("option", { name: /admin/i }),

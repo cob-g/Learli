@@ -1,13 +1,32 @@
 import { randomUUID } from "node:crypto";
+import { readFile, readdir } from "node:fs/promises";
+import path from "node:path";
 import { test, expect, type Browser, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { createDatabase } from "../../src/lib/db/connection";
+import {
+  localMailbox,
+  type LocalMessage,
+} from "../../src/lib/email/local-mail";
 
 // Only synthetic data. Auth cookies/passwords are never captured in traces.
 test.use({ trace: "off", screenshot: "off" });
 const baseURL = process.env.APP_URL!;
 const owner = createDatabase(process.env.DATABASE_URL_DIRECT ?? "", true);
 const password = "Synthetic-browser-learner-passphrase-123";
+async function verificationMail(email: string) {
+  const mailbox = localMailbox("test");
+  for (const file of (await readdir(mailbox))
+    .filter((file) => file.endsWith(".json"))
+    .sort()
+    .reverse()) {
+    const message = JSON.parse(
+      await readFile(path.join(mailbox, file), "utf8"),
+    ) as LocalMessage;
+    if (message.to === email && message.kind === "verification") return message;
+  }
+  throw new Error("Local verification capture was not created.");
+}
 async function actor(
   browser: Browser,
   role: "parent" | "student" | "tutor",
@@ -76,20 +95,178 @@ test.beforeEach(async () => {
 });
 test.afterAll(() => owner.pool.end());
 
+test("new Parent registers, verifies locally, enrolls and saves a Grade 8 child through the UI", async ({
+  page,
+}) => {
+  const email = `parent-child-journey-${randomUUID()}@learli.test`;
+  await page.goto("/sign-up");
+  await page
+    .getByRole("radio", { name: "Parent or guardian", exact: true })
+    .check();
+  await page
+    .getByLabel("Display name", { exact: true })
+    .fill("Fictional new parent");
+  await page.getByLabel("Email", { exact: true }).fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page
+    .getByRole("button", { name: "Create account", exact: true })
+    .click();
+  await expect(page.getByRole("status")).toContainText(
+    "Registration request received.",
+  );
+  const registered = await owner.pool.query<{
+    id: string;
+    email_verified: boolean;
+  }>('SELECT id,email_verified FROM "user" WHERE email=$1', [email]);
+  expect(registered.rowCount).toBe(1);
+  const id = registered.rows[0].id;
+  expect(registered.rows[0].email_verified).toBe(false);
+  const roles = async () =>
+    (
+      await owner.pool.query<{ role: string }>(
+        "SELECT role FROM user_roles WHERE user_id=$1 ORDER BY role",
+        [id],
+      )
+    ).rows.map((row) => row.role);
+  expect(await roles()).toEqual([]);
+  await page.goto((await verificationMail(email)).url);
+  await expect(
+    page.getByRole("heading", { name: "Sign in", exact: true }),
+  ).toBeVisible();
+  expect(await roles()).toEqual([]);
+  await page.getByLabel("Email", { exact: true }).fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page).toHaveURL("/parent/onboarding");
+  await page
+    .getByRole("button", { name: "Continue as parent", exact: true })
+    .click();
+  await expect(page).toHaveURL("/parent");
+  expect(await roles()).toEqual(["parent"]);
+  expect(
+    (
+      await owner.pool.query(
+        "SELECT learner_id FROM guardian_learner_links WHERE guardian_user_id=$1",
+        [id],
+      )
+    ).rowCount,
+  ).toBe(0);
+  await page
+    .getByRole("navigation", { name: "Parent work areas" })
+    .getByRole("link", { name: "Parent Profile", exact: true })
+    .click();
+  await expect(page).toHaveURL("/parent/profile");
+  await expect(
+    page.getByText(`Registered email: ${email}`, { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Display name", { exact: true })
+    .fill("Fictional parent updated");
+  await page
+    .getByLabel("Time zone", { exact: true })
+    .selectOption("Asia/Manila");
+  await page
+    .getByRole("button", { name: "Save settings", exact: true })
+    .click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Account settings saved." }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel("Display name", { exact: true })).toHaveValue(
+    "Fictional parent updated",
+  );
+  await expect(page.getByLabel("Time zone", { exact: true })).toHaveValue(
+    "Asia/Manila",
+  );
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: "My Children", exact: true })
+    .click();
+  await expect(page).toHaveURL("/parent/children");
+  await page.getByRole("link", { name: "Add Child", exact: true }).click();
+  await expect(page).toHaveURL("/parent/children/new");
+  await page
+    .getByLabel("Display name", { exact: true })
+    .fill("Fictional Grade Eight Child");
+  await page.getByLabel("Level", { exact: true }).selectOption("middle_school");
+  await page.getByLabel("Grade (optional)", { exact: true }).selectOption("8");
+  await page
+    .getByRole("button", { name: "Save child profile", exact: true })
+    .click();
+  await expect(
+    page
+      .getByRole("status")
+      .filter({ hasText: "Child profile saved for local testing." }),
+  ).toBeVisible();
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: "My Children", exact: true })
+    .last()
+    .click();
+  await expect(page).toHaveURL("/parent/children");
+  await expect(
+    page.getByRole("heading", { name: "My Children", exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", {
+      name: "Fictional Grade Eight Child",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Middle School · Grade 8", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("link", {
+      name: "Edit child profile for Fictional Grade Eight Child",
+      exact: true,
+    })
+    .click();
+  await expect(page).toHaveURL(/\/parent\/children\/[a-f0-9-]+$/);
+  await expect(
+    page.getByRole("heading", { name: "Edit child profile", exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByLabel("Grade (optional)", { exact: true }),
+  ).toHaveValue("8");
+  await expect(page.getByLabel("Time zone", { exact: true })).toHaveValue(
+    "Asia/Manila",
+  );
+  expect(await roles()).toEqual(["parent"]);
+  const created = await owner.pool.query<{
+    grade: number;
+    management: string;
+    level: string;
+  }>(
+    "SELECT l.grade,l.management,l.level FROM learner_creation_events e JOIN learner_profiles l ON l.id=e.learner_id WHERE e.actor_user_id=$1",
+    [id],
+  );
+  expect(created.rows).toEqual([
+    { grade: 8, management: "guardian", level: "middle_school" },
+  ]);
+});
+
 test("parent lists and edits authorized profiles with keyboard, responsive validation and error states", async ({
   browser,
 }, info) => {
   const parent = await actor(browser, "parent", 2);
   const page = parent.page;
   await page.goto("/parent");
-  await page.getByRole("link", { name: "Your learners", exact: true }).click();
+  await page
+    .getByRole("link", { name: "My Children", exact: true })
+    .last()
+    .click();
   await expect(
-    page.getByRole("link", { name: /Edit profile for/ }),
+    page.getByRole("link", { name: /Edit child profile for/ }),
   ).toHaveCount(2);
   await page
-    .getByRole("link", { name: "Edit profile for Synthetic private learner 0" })
+    .getByRole("link", {
+      name: "Edit child profile for Synthetic private learner 0",
+    })
     .click();
-  await expect(page).toHaveTitle("Edit learner profile | Learli");
+  await expect(page).toHaveTitle("Edit child profile | Learli");
   const longName =
     "Synthetic Álex María With A Long Multiword Learner Display Name For Testing";
   await page.getByLabel("Display name", { exact: true }).fill(longName);
@@ -265,30 +442,55 @@ test("empty profiles, wrong-role and suspended access are honest", async ({
   await Promise.all([parent.context.close(), tutor.context.close()]);
 });
 
-test("local parent creation keeps retry identity after commit uncertainty and is private across navigation", async ({
+test("Parent Profile to My Children saves Grade 8 without duplicates after commit uncertainty", async ({
   browser,
 }, info) => {
   const parent = await actor(browser, "parent");
   const page = parent.page;
-  await page.goto("/learners");
+  await page.goto("/parent/profile");
+  await expect(
+    page.getByRole("heading", { name: "Parent Profile", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Display name", { exact: true })
+    .fill("Fictional parent profile");
+  await page
+    .getByLabel("Time zone", { exact: true })
+    .selectOption("Asia/Manila");
+  await page
+    .getByRole("button", { name: "Save settings", exact: true })
+    .focus();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("status").filter({ hasText: "Account settings saved." }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel("Display name", { exact: true })).toHaveValue(
+    "Fictional parent profile",
+  );
+  await expect(page.getByLabel("Time zone", { exact: true })).toHaveValue(
+    "Asia/Manila",
+  );
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: "My Children", exact: true })
+    .click();
   let finishNavigation: () => void = () => {};
   const navigationGate = new Promise<void>((resolve) => {
     finishNavigation = resolve;
   });
-  await page.route("**/learners/new**", async (route) => {
+  await page.route("**/parent/children/new**", async (route) => {
     const response = await route.fetch();
     await navigationGate;
     await route.fulfill({ response });
   });
   try {
-    await page
-      .getByRole("link", { name: "Create a local learner", exact: true })
-      .click();
+    await page.getByRole("link", { name: "Add Child", exact: true }).click();
     await expect(
       page.getByText("Loading learner profiles…", { exact: true }),
     ).toBeVisible();
     finishNavigation();
-    await expect(page).toHaveTitle("Create a local learner | Learli");
+    await expect(page).toHaveTitle("Add Child | Learli");
   } finally {
     finishNavigation();
     await page.unrouteAll({ behavior: "wait" });
@@ -297,7 +499,7 @@ test("local parent creation keeps retry identity after commit uncertainty and is
     page.getByText(/does not verify real consent, age or guardian identity/),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Create local learner", exact: true })
+    .getByRole("button", { name: "Save child profile", exact: true })
     .click();
   await expect(page.getByLabel("Display name", { exact: true })).toBeFocused();
   await expect(
@@ -307,6 +509,7 @@ test("local parent creation keeps retry identity after commit uncertainty and is
     "Synthetic onboarding Álex With A Long Display Name For Local Testing";
   await page.getByLabel("Display name", { exact: true }).fill(privateName);
   await page.getByLabel("Level", { exact: true }).selectOption("high_school");
+  await page.getByLabel("Grade (optional)", { exact: true }).selectOption("8");
   for (const [width, height] of [
     [390, 844],
     [320, 720],
@@ -343,7 +546,7 @@ test("local parent creation keeps retry identity after commit uncertainty and is
   await button.focus();
   await page.keyboard.press("Enter");
   await expect(
-    page.getByRole("button", { name: "Creating local learner…", exact: true }),
+    page.getByRole("button", { name: "Saving child profile…", exact: true }),
   ).toHaveAttribute("aria-disabled", "true");
   await page.keyboard.press("Enter");
   await page.screenshot({
@@ -361,27 +564,45 @@ test("local parent creation keeps retry identity after commit uncertainty and is
     .getByRole("button", { name: "Retry this request", exact: true })
     .click();
   await expect(
-    page.getByRole("status").filter({ hasText: "Local learner created" }),
+    page
+      .getByRole("status")
+      .filter({ hasText: "Child profile saved for local testing." }),
   ).toBeFocused();
   const rows = await owner.pool.query(
-    "SELECT e.learner_id FROM learner_creation_events e WHERE e.actor_user_id=$1",
+    "SELECT e.learner_id,l.grade FROM learner_creation_events e JOIN learner_profiles l ON l.id=e.learner_id WHERE e.actor_user_id=$1",
     [parent.id],
   );
   expect(rows.rowCount).toBe(1);
+  expect(rows.rows[0].grade).toBe(8);
   const id = rows.rows[0].learner_id as string;
   await page
-    .getByRole("link", { name: "Edit local profile", exact: true })
+    .getByRole("link", { name: "Edit child profile", exact: true })
     .click();
   await expect(page.getByLabel("Display name", { exact: true })).toHaveValue(
     privateName,
   );
-  await page.getByRole("link", { name: "Your learners", exact: true }).click();
+  await expect(
+    page.getByLabel("Grade (optional)", { exact: true }),
+  ).toHaveValue("8");
+  await page.reload();
+  await expect(
+    page.getByLabel("Grade (optional)", { exact: true }),
+  ).toHaveValue("8");
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: "My Children", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: privateName, exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByText("High School · Grade 8", { exact: true }),
+  ).toBeVisible();
   const publicResponse = await parent.context.request.get("/tutors");
   expect(await publicResponse.text()).not.toContain(privateName);
-  const privateResponse = await parent.context.request.get("/learners/new");
+  const privateResponse = await parent.context.request.get(
+    "/parent/children/new",
+  );
   expect(privateResponse.headers()["cache-control"]).toContain("no-store");
   const html = await privateResponse.text();
   expect(html.match(/<title>[^<]+<\/title>/)?.[0]).not.toContain(privateName);
@@ -389,7 +610,7 @@ test("local parent creation keeps retry identity after commit uncertainty and is
   await page.goto("/sign-in");
   await expect(page).toHaveURL(/\/sign-in/);
   expect(await page.content()).not.toContain(privateName);
-  await page.goto("/learners");
+  await page.goto("/parent/children");
   await expect(
     page.getByRole("heading", { name: privateName, exact: true }),
   ).toBeVisible();
@@ -468,6 +689,69 @@ test("local own College Support creation is singular and session loss denies mut
     ).rowCount,
   ).toBe(0);
   await Promise.all([self.context.close(), parent.context.close()]);
+});
+
+test("parent child routes deny another family, non-parent roles and logged-out visits", async ({
+  browser,
+}) => {
+  const parent = await actor(browser, "parent", 1);
+  const otherParent = await actor(browser, "parent");
+  const student = await actor(browser, "student");
+  const tutor = await actor(browser, "tutor");
+  const privateName = "Synthetic private learner 0";
+  try {
+    await otherParent.page.goto(`/parent/children/${parent.ids[0]}`);
+    await expect(
+      otherParent.page.getByRole("heading", {
+        name: "Child profile unavailable",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      otherParent.page.getByText(privateName, { exact: true }),
+    ).toHaveCount(0);
+    for (const denied of [student, tutor]) {
+      for (const [path, title] of [
+        ["/parent/profile", "Parent profile unavailable"],
+        ["/parent/children", "Children unavailable"],
+        ["/parent/children/new", "Add Child unavailable"],
+      ]) {
+        await denied.page.goto(path);
+        await expect(
+          denied.page.getByRole("heading", { name: title, exact: true }),
+        ).toBeVisible();
+        await expect(
+          denied.page.getByLabel("Display name", { exact: true }),
+        ).toHaveCount(0);
+        await expect(
+          denied.page.getByLabel("Grade (optional)", { exact: true }),
+        ).toHaveCount(0);
+      }
+    }
+    await parent.context.request.post("/api/auth/sign-out", {
+      headers: { origin: baseURL },
+      data: {},
+    });
+    for (const path of [
+      "/parent/profile",
+      "/parent/children",
+      "/parent/children/new",
+      `/parent/children/${parent.ids[0]}`,
+    ]) {
+      await parent.page.goto(path);
+      await expect(parent.page).toHaveURL(/\/sign-in\?next=/);
+      await expect(
+        parent.page.getByText(privateName, { exact: true }),
+      ).toHaveCount(0);
+    }
+  } finally {
+    await Promise.all([
+      parent.context.close(),
+      otherParent.context.close(),
+      student.context.close(),
+      tutor.context.close(),
+    ]);
+  }
 });
 
 test("unhydrated create form cannot submit private fields as a URL", async ({

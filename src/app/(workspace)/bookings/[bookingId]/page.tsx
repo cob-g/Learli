@@ -1,4 +1,4 @@
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { WorkflowActionForm } from "@/features/booking-workflows/forms";
 import { bookingWorkflowContext } from "@/features/booking-workflows/composition";
 import { readTutorCompletion } from "@/features/booking-workflows/service";
@@ -44,7 +44,7 @@ export default async function Page({
         bookingId,
         scope.data,
       ),
-      privateWorkflow: isPrivateWorkflow(runtime),
+      privateWorkflow: hasPersistentWorkflow(runtime),
     };
   });
   const detail = loaded?.detail;
@@ -118,6 +118,7 @@ export default async function Page({
               revision={completion.workflowRevision}
               action="complete"
               privateWorkflow={privateWorkflow}
+              source={detail.source}
               scope="tutor"
             />
           </section>
@@ -158,7 +159,7 @@ export default async function Page({
               attendance.
             </p>
           </section>
-        ) : detail.source === "synthetic_readiness" &&
+        ) : detail.source !== "local_simulation" &&
           scope.data !== "tutor" &&
           ["provisional", "confirmed"].includes(detail.state) ? (
           <section className="mt-8 border-t border-border pt-6">
@@ -184,6 +185,7 @@ export default async function Page({
                 revision={detail.workflowRevision ?? 0}
                 action="cancel"
                 privateWorkflow={privateWorkflow}
+                source={detail.source}
                 scope={scope.data}
               />
             </details>

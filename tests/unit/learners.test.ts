@@ -75,3 +75,40 @@ describe("local create request", () => {
       ).toBe(false);
   });
 });
+
+describe("optional exact school grade", () => {
+  it("preserves omission and null, and accepts grades without inferring a level", () => {
+    expect(learnerInput.parse(valid)).not.toHaveProperty("grade");
+    expect(learnerInput.parse({ ...valid, grade: null }).grade).toBeNull();
+    for (const grade of [1, 8, 12])
+      for (const level of ["elementary", "middle_school", "high_school"])
+        expect(learnerInput.parse({ ...valid, grade, level })).toMatchObject({
+          grade,
+          level,
+        });
+  });
+  it.each([0, 13, 8.5, "8", "", true, [], {}])(
+    "rejects invalid grade %j without coercion",
+    (grade) => {
+      expect(learnerInput.safeParse({ ...valid, grade }).success).toBe(false);
+      expect(
+        createLearnerInput.safeParse({
+          ...valid,
+          management: "guardian",
+          requestId: "5f977368-34a0-4bfe-a306-51b1b8959a36",
+          grade,
+        }).success,
+      ).toBe(false);
+    },
+  );
+  it("rejects a school grade for College Support while allowing null", () => {
+    expect(
+      learnerInput.safeParse({ ...valid, level: "college_support", grade: 8 })
+        .success,
+    ).toBe(false);
+    expect(
+      learnerInput.parse({ ...valid, level: "college_support", grade: null })
+        .grade,
+    ).toBeNull();
+  });
+});

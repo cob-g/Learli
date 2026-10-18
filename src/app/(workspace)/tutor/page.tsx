@@ -10,7 +10,7 @@ import { TutorBookingRefresh } from "@/features/tutors/booking-refresh";
 import { ReviewNotice } from "@/features/tutors/review-notice";
 import { SignOut } from "@/features/auth/sign-out";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Your bookings",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export default async function TutorWorkspacePage() {
   const result = await loadPrivatePage("/tutor", async (runtime, headers) => ({
     data: await readTutorBookingWorkspace(runtime, headers),
-    privateWorkflow: isPrivateWorkflow(runtime),
+    privateWorkflow: hasPersistentWorkflow(runtime),
   }));
   if (!result)
     return (

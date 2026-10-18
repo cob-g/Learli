@@ -5,7 +5,7 @@ import {
 } from "@/features/tutor-screening/discovery";
 import { LessonTime } from "@/features/bookings/lesson-time";
 import { getDomainAuthRuntime } from "@/lib/auth";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -19,7 +19,7 @@ export default async function Page({
 }) {
   const { slug } = await params;
   const runtime = await getDomainAuthRuntime();
-  if (runtime && isPrivateWorkflow(runtime))
+  if (runtime && hasPersistentWorkflow(runtime))
     redirect(`/tutors/${encodeURIComponent(slug)}`);
   const data = await loadPrivatePage(
     "/readiness/tutors/" + slug,

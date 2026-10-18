@@ -23,7 +23,7 @@ const render = (pathname: string) => {
 };
 
 describe("site header glass variant", () => {
-  it("uses the same transparent full-width bar on every route", () => {
+  it("uses the shared full-width bar and hydration hooks on every route", () => {
     for (const pathname of [
       "/",
       "/tutors",

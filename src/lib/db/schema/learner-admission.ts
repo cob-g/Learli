@@ -18,7 +18,7 @@ const time = (name: string) =>
   timestamp(name, { withTimezone: true }).defaultNow().notNull();
 const source = () =>
   text("source")
-    .$type<"synthetic_readiness">()
+    .$type<"synthetic_readiness" | "local_operation">()
     .notNull()
     .default("synthetic_readiness");
 export const learnerAdmissionPolicies = pgTable(
@@ -57,7 +57,7 @@ export const learnerAdmissionPolicies = pgTable(
     ),
     check(
       "learner_admission_policy_synthetic",
-      sql`${t.source}='synthetic_readiness' AND ${t.authority}='synthetic_test' AND ${t.version}='synthetic-admission-v1' AND ${t.reference}='synthetic:admission:v1' AND ${t.marketCode}='synthetic_test' AND ${t.noticeVersion}='synthetic-notice-v1' AND ${t.guardianProofMethod}='synthetic_guardian_review' AND ${t.independentEligibilityRule}='synthetic_independent_review' AND ${t.reviewerCapabilityCode}='learner_admission_review' AND ${t.revocationEffect}='deny_current_learner_access' AND ${t.contentDigest} ~ '^[a-f0-9]{64}$'`,
+      sql`((${t.source}='synthetic_readiness' AND ${t.authority}='synthetic_test' AND ${t.version}='synthetic-admission-v1' AND ${t.reference}='synthetic:admission:v1' AND ${t.marketCode}='synthetic_test' AND ${t.noticeVersion}='synthetic-notice-v1' AND ${t.guardianProofMethod}='synthetic_guardian_review' AND ${t.independentEligibilityRule}='synthetic_independent_review' AND ${t.reviewerCapabilityCode}='learner_admission_review' AND ${t.revocationEffect}='deny_current_learner_access' AND ${t.contentDigest} ~ '^[a-f0-9]{64}$') OR (${t.source}='local_operation' AND ${t.authority}='local_operation' AND ${t.version}='local-admission-v1' AND ${t.reference}='local:admission:v1' AND ${t.marketCode}='local_operation' AND ${t.noticeVersion}='local-notice-v1' AND ${t.guardianProofMethod}='local_guardian_review' AND ${t.independentEligibilityRule}='local_independent_review' AND ${t.reviewerCapabilityCode}='learner_admission_review' AND ${t.revocationEffect}='deny_current_learner_access' AND ${t.contentDigest} ~ '^[a-f0-9]{64}$'))`,
     ),
   ],
 );
@@ -129,7 +129,7 @@ export const learnerAdmissions = pgTable(
     }).onDelete("restrict"),
     check(
       "learner_admissions_shape",
-      sql`${t.source}='synthetic_readiness' AND ${t.management} IN ('guardian','self') AND ${t.state} IN ('pending','authorized','rejected','revoked') AND ${t.revision}>=0 AND ${t.requestFingerprint} ~ '^[a-f0-9]{64}$' AND (${t.selectionPath} IS NULL OR char_length(${t.selectionPath})<=2048)`,
+      sql`${t.source} IN ('synthetic_readiness','local_operation') AND ${t.management} IN ('guardian','self') AND ${t.state} IN ('pending','authorized','rejected','revoked') AND ${t.revision}>=0 AND ${t.requestFingerprint} ~ '^[a-f0-9]{64}$' AND (${t.selectionPath} IS NULL OR char_length(${t.selectionPath})<=2048)`,
     ),
   ],
 );
@@ -149,7 +149,7 @@ export const learnerAdmissionReviewers = pgTable(
     primaryKey({ columns: [t.userId, t.source, t.capabilityCode] }),
     check(
       "learner_admission_reviewers_scope",
-      sql`${t.source}='synthetic_readiness' AND ${t.capabilityCode}='learner_admission_review'`,
+      sql`${t.source} IN ('synthetic_readiness','local_operation') AND ${t.capabilityCode}='learner_admission_review'`,
     ),
   ],
 );
@@ -214,7 +214,7 @@ export const learnerAdmissionEvidence = pgTable(
     index("learner_admission_evidence_admission_idx").on(t.admissionId),
     check(
       "learner_admission_evidence_shape",
-      sql`${t.source}='synthetic_readiness' AND ${t.checkCode} IN ('guardian_authority','guardian_notice','independent_eligibility') AND ${t.reference} ~ '^[A-Za-z0-9:_-]{1,128}$' AND ${t.fingerprint} ~ '^[a-f0-9]{64}$' AND ${t.subjectUserId}<>${t.recordedByUserId} AND (${t.revokedAt} IS NULL OR ${t.revokedAt}>=${t.recordedAt})`,
+      sql`${t.source} IN ('synthetic_readiness','local_operation') AND ${t.checkCode} IN ('guardian_authority','guardian_notice','independent_eligibility') AND ${t.reference} ~ '^[A-Za-z0-9:_-]{1,128}$' AND ${t.fingerprint} ~ '^[a-f0-9]{64}$' AND ${t.subjectUserId}<>${t.recordedByUserId} AND (${t.revokedAt} IS NULL OR ${t.revokedAt}>=${t.recordedAt})`,
     ),
   ],
 );

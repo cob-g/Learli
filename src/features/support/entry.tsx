@@ -1,8 +1,10 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import "server-only";
 import Link from "next/link";
 import { z } from "zod";
 import { headers } from "next/headers";
 import { getDomainAuthRuntime } from "@/lib/auth";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { AccessError } from "@/lib/permissions/access";
 import { listCases } from "./service";
 import { DemoNotice } from "./presentation";
@@ -19,11 +21,15 @@ export async function SupportEntry({
   bookingId?: string;
 }) {
   let available = false,
-    anonymous = false;
+    anonymous = false,
+    privateWorkflow = false,
+    localWorkflow = false;
   let booking: SupportBookingContext | undefined;
   try {
     const runtime = await getDomainAuthRuntime();
     if (runtime) {
+      privateWorkflow = hasPersistentWorkflow(runtime);
+      localWorkflow = getLocalWorkflow(runtime) !== null;
       await listCases(runtime, await headers(), "requester");
       if (bookingId !== undefined)
         booking = await readBookingForReport(
@@ -47,12 +53,24 @@ export async function SupportEntry({
       <h1 className="text-page-title">
         {concern ? "Report a concern" : "Contact support"}
       </h1>
-      <DemoNotice />
+      <DemoNotice
+        privateWorkflow={privateWorkflow}
+        localWorkflow={localWorkflow}
+      />
       {available ? (
         <>
-          {booking && <SupportBookingSection booking={booking} />}
+          {booking && (
+            <SupportBookingSection
+              booking={booking}
+              privateWorkflow={privateWorkflow}
+            />
+          )}
           <div className="mt-6 max-w-xl rounded-surface border border-border bg-surface p-6 sm:p-8">
-            <CaseForm concern={concern} bookingId={bookingId} />
+            <CaseForm
+              concern={concern}
+              bookingId={bookingId}
+              localWorkflow={localWorkflow}
+            />
           </div>
           <Link
             href="/support"
@@ -67,15 +85,23 @@ export async function SupportEntry({
             {bookingId !== undefined && !anonymous
               ? "Booking context unavailable"
               : anonymous
-                ? "Sign in for fictional testing"
+                ? localWorkflow
+                  ? "Sign in for support"
+                  : "Sign in for fictional testing"
                 : "Local reporting unavailable"}
           </h2>
           <p className="mt-2 text-body">
             {anonymous
-              ? "Use an active verified synthetic account to save a fictional report."
-              : bookingId !== undefined
-                ? "This booking context is unavailable. You can try a standalone fictional report. Real support operations remain unavailable."
-                : "This account cannot use local reporting. Real support operations remain unavailable."}
+              ? localWorkflow
+                ? "Sign in with an active verified account to save a report."
+                : privateWorkflow
+                  ? "Use an active verified test account to save a fictional report."
+                  : "Use an active verified synthetic account to save a fictional report."
+              : localWorkflow
+                ? "This report cannot be opened on your current account. Check your sign-in status or try again."
+                : bookingId !== undefined
+                  ? "This booking context is unavailable. You can try a standalone fictional report. Real support operations remain unavailable."
+                  : "This account cannot use local reporting. Real support operations remain unavailable."}
           </p>
           {anonymous && (
             <Link
@@ -90,7 +116,9 @@ export async function SupportEntry({
               className="mt-4 inline-flex min-h-11 items-center"
               href={concern ? "/report-a-concern" : "/contact"}
             >
-              Create a standalone fictional report
+              {localWorkflow
+                ? "Create a standalone report"
+                : "Create a standalone fictional report"}
             </Link>
           )}
         </section>

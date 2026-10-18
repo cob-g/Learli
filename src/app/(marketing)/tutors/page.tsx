@@ -2,6 +2,8 @@ import "../home.css";
 import Link from "next/link";
 import { X } from "lucide-react";
 import { redirect } from "next/navigation";
+import { getDomainAuthRuntime } from "@/lib/auth";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { listTimeZoneOptions } from "@/lib/time/zones";
 import {
   parseDirectorySearch,
@@ -112,6 +114,8 @@ async function Directory({ searchParams }: DirectoryProps) {
     } else unavailable = true;
   }
   const invalid = optIn && !preferences;
+  const runtime = preferences ? await getDomainAuthRuntime() : null;
+  const privateWorkflow = !!runtime && hasPersistentWorkflow(runtime);
   const pages = Math.max(1, Math.ceil(matches.length / tutorsPerPage));
   const current = Math.min(page, pages);
   const shown = matches.slice(
@@ -165,9 +169,9 @@ async function Directory({ searchParams }: DirectoryProps) {
         <div className="min-w-0 flex-1">
           {preferences && !unavailable && (
             <p className="mb-4 max-w-prose text-small text-muted-foreground">
-              Local simulation: actual dated open times over the next 14 days,
-              for 60-minute lessons. Times are advisory and checked again when
-              reserving. No payment or confirmed lesson.
+              {privateWorkflow
+                ? "Available times over the next 14 days, for 60-minute lessons. Times are checked again when you request a booking. Confirmation requires assigned review."
+                : "Local simulation: actual dated open times over the next 14 days, for 60-minute lessons. Times are advisory and checked again when reserving. No payment or confirmed lesson."}
             </p>
           )}
           {invalid ? (

@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import {
   getPrivateWorkflow,
   privatePolicyEnvironment,
@@ -28,7 +29,11 @@ export function requireScreening(context: ScreeningContext) {
     context.screening,
     privatePolicyEnvironment(context.runtime, "screening", context.screening),
   );
-  if (cap.mode === "disabled") throw new AccessError(503);
+  if (
+    cap.mode === "disabled" ||
+    (cap.mode === "local_operation" && !getLocalWorkflow(context.runtime))
+  )
+    throw new AccessError(503);
   return cap;
 }
 type EnabledScreening = Exclude<ScreeningCapability, { mode: "disabled" }>;
@@ -97,7 +102,7 @@ async function mutateScreening(
         SELECT 1 FROM public.tutor_screening_cases c
         JOIN public.tutor_screening_policies p ON p.provenance=c.provenance AND p.version=c.policy_version
         JOIN public.tutor_profiles t ON t.id=c.tutor_id
-        WHERE c.tutor_id=${tutorId}::uuid AND ${privateScreeningPredicate(packet, identity)}
+        WHERE c.tutor_id=${tutorId}::uuid AND ${cap ? sql`c.provenance=${cap.provenance}` : sql`true`} AND ${cap?.mode === "local_operation" ? sql`EXISTS(SELECT 1 FROM public.tutor_screening_policy_heads current_head WHERE current_head.provenance=c.provenance AND current_head.version=c.policy_version AND current_head.status='enabled') AND p.valid_from<=clock_timestamp() AND p.valid_until IS NULL` : sql`true`} AND ${privateScreeningPredicate(packet, identity)}
           AND ${screeningActorPredicate(identity, scope)} AND ${privateReceipt}) AS allowed`);
       if (bound.rows[0]?.allowed !== true) throw new AccessError(503);
       unchangedPacket(context, cap, packet);
@@ -210,7 +215,10 @@ export async function readScreening(
   scope: "reviewer" | "owner" = "reviewer",
 ) {
   const packet = getPrivateWorkflow(context.runtime);
-  const cap = packet ? requireScreening(context) : null;
+  const cap =
+    packet || getLocalWorkflow(context.runtime)
+      ? requireScreening(context)
+      : null;
   if (packet && cap) privatePacket(context, cap);
   const identity =
     scope === "reviewer"
@@ -218,7 +226,7 @@ export async function readScreening(
       : await requireRole(context.runtime, headers, "tutor");
   if (!z.uuid().safeParse(tutorId).success) throw new AccessError(404);
   const r = await context.runtime.db.execute<{ detail: unknown }>(
-    sql`SELECT jsonb_build_object('revision',c.revision,'round',c.round,'state',c.state,'requiredCodes',p.required_check_codes,'checks',coalesce((SELECT jsonb_agg(jsonb_build_object('code',ck.check_code,'outcome',ck.outcome,'current',ck.outcome='passed' AND ck.checked_at<=clock_timestamp() AND ck.expires_at>clock_timestamp())) FROM tutor_screening_checks ck WHERE ck.tutor_id=c.tutor_id AND ck.round=c.round AND ck.policy_version=c.policy_version AND NOT EXISTS(SELECT 1 FROM tutor_screening_checks newer WHERE newer.tutor_id=ck.tutor_id AND newer.round=ck.round AND newer.check_code=ck.check_code AND newer.revision>ck.revision)),'[]'::jsonb)) detail FROM tutor_screening_cases c JOIN tutor_screening_policies p ON p.provenance=c.provenance AND p.version=c.policy_version JOIN tutor_profiles t ON t.id=c.tutor_id WHERE c.tutor_id=${tutorId}::uuid AND ${privateScreeningPredicate(packet, identity)} AND ${screeningActorPredicate(identity, scope)}`,
+    sql`SELECT jsonb_build_object('revision',c.revision,'round',c.round,'state',c.state,'requiredCodes',p.required_check_codes,'checks',coalesce((SELECT jsonb_agg(jsonb_build_object('code',ck.check_code,'outcome',ck.outcome,'current',ck.outcome='passed' AND ck.checked_at<=clock_timestamp() AND ck.expires_at>clock_timestamp())) FROM tutor_screening_checks ck WHERE ck.tutor_id=c.tutor_id AND ck.round=c.round AND ck.policy_version=c.policy_version AND NOT EXISTS(SELECT 1 FROM tutor_screening_checks newer WHERE newer.tutor_id=ck.tutor_id AND newer.round=ck.round AND newer.check_code=ck.check_code AND newer.revision>ck.revision)),'[]'::jsonb)) detail FROM tutor_screening_cases c JOIN tutor_screening_policies p ON p.provenance=c.provenance AND p.version=c.policy_version JOIN tutor_profiles t ON t.id=c.tutor_id WHERE c.tutor_id=${tutorId}::uuid AND ${cap ? sql`c.provenance=${cap.provenance}` : sql`true`} AND ${cap?.mode === "local_operation" ? sql`EXISTS(SELECT 1 FROM public.tutor_screening_policy_heads current_head WHERE current_head.provenance=c.provenance AND current_head.version=c.policy_version AND current_head.status='enabled') AND p.valid_from<=clock_timestamp() AND p.valid_until IS NULL` : sql`true`} AND ${privateScreeningPredicate(packet, identity)} AND ${screeningActorPredicate(identity, scope)}`,
   );
   if (packet && cap) unchangedPacket(context, cap, packet);
   if (!r.rows[0]) return null;

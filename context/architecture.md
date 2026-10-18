@@ -1,5 +1,31 @@
 # Learli — System Architecture
 
+### Ordinary local operation — 2026-10-18
+
+The owner superseded the separate private manual preview with one ordinary local
+application in the primary checkout on local `main`. Explicit `LOCAL_WORKFLOW_MODE`
+selects development/local auth on owned loopback `learli_dev`, restricted runtime
+credentials and no private/hosted packet. Normal valid email addresses use actual
+Better Auth verification with private local capture, never an external send.
+`local_operation` is additive provenance in the existing reviewed admission,
+screening and booking engine. Historical sources and receipts are not converted.
+Current policy heads, active verified identity, exact ownership, current MFA and
+assigned authority remain mandatory. One-time trusted owner setup grants an exact
+verified Admin; that Admin claims minimal unassigned metadata before reviewing a
+specific record. Claiming grants no evidence or automatic approval. Confirmed
+bookings survive their original hold; assigned Tutors complete only after saved end.
+No global finite audience or daily private-packet expiry governs this mode.
+
+Local no-money timing settings continue the previous workflow (60-minute lessons,
+30-minute starts, 60-minute notice,14-day horizon,10-minute provisional holds and
+60-minute change cutoffs). These are local operating settings, not commercial or
+public-launch policy. Payments, live email delivery, public review publication and
+full staffed safeguarding remain separately gated. See
+`docs/decisions/2026-10-18-ordinary-local-workflow.md` and the authorized blueprint
+`prompts/features/m8-03-local-operational-workflow.md`. Implementation/check status
+is recorded in the tracker; this section is not verification evidence.
+
+
 ### Private workspace document identity — 2026-10-15
 
 The workspace layout binds its private document to the guarded server user and
@@ -662,6 +688,25 @@ for identities owned by the existing private fixture manifest and preserves edit
 and revoked links on rerun. Browser creation/linking is absent. This local
 technical model is not an approved real-world age, consent or guardian policy;
 real onboarding and booking remain gated. See `prompts/features/m4-04-learner-profiles.md`.
+
+### Parent profile/children slice — 2026-10-17
+
+`/parent/profile`, `/parent/children`, `/parent/children/new` and the owned child
+edit route compose existing account, learner and admission services. They require
+the current Parent role; child reads/updates also require an authorized guardian
+relationship. Shared student/account routes remain supported. My Children
+separates currently accessible guardian profiles from bounded own-request status
+cards; a pending request grants no profile or booking authority.
+
+Additive migration0034 adds nullable `learner_profiles.grade`, constrained to1–12
+only for guardian-managed non-College profiles. No backfill or education-level
+mapping occurs. Omitted update preserves grade; explicit null clears it. The
+three uniquely named `_with_grade` SQL entry points preserve legacy functions
+and null-grade request fingerprints. Nonnull grade participates in the original
+idempotent request contract. Reviewed profile mutation still passes current
+policy/session/evidence/guardian checks; raw runtime writes stay protected. Local
+column-update grants add only grade. No public tutor DTO or authorization rule
+uses the school-grade metadata. See the parent Step2 decision and blueprint.
 
 ### 9.4 Tutor scheduling
 
@@ -1874,3 +1919,22 @@ cannot create roles/accounts, change status, revive revoked grants or bulk-autho
 an audience. No new schema, runtime grant or infrastructure was added. See
 `prompts/features/m5-06-admin-workflow-acceptance.md`; execution evidence remains
 separate in progress-tracker.
+
+### Separate local manual persistent preview — 2026-10-17
+
+The owner selected the existing private fictional composition in an independently
+owned manual checkout, not the ordinary development/Neon simulation runtime.
+`localhost:3200` uses its own `127.0.0.1:55433/learli_test`; automated tests remain
+on the other checkout’s port 55432. Generated secrets, finite packet and fictional
+accounts are private; `.env.test.local` refuses automated fixture runners there.
+Runtime has no owner connection. A bounded explicit owner dispatcher prepares
+at most 20 new assignments/grants and rechecks current authority after locks;
+actual assigned current-MFA Admin decisions remain separate. Revoked/missing
+capabilities and foreign assignments refuse rather than being repaired silently.
+No schema, permission expansion, state-machine replacement, payment or remote
+infrastructure change is introduced. Provisional holds remain ten minutes;
+confirmed bookings persist and only the assigned Tutor can complete after end.
+Old simulations retain provenance in their original database. Packet/evidence
+expiry is a deliberate maintenance boundary. See
+`docs/decisions/2026-10-17-manual-persistent-preview.md` and
+`docs/operations/manual-persistent-preview.md` for the exact local setup.

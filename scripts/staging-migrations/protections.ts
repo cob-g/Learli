@@ -37,6 +37,15 @@ const workflowBookingDefinitions: Record<string, string> = {
   bookings_tutor_no_overlap:
     "EXCLUDE USING gist (tutor_id WITH =, tstzrange(start_at_utc, end_at_utc, '[)'::text) WITH &&) WHERE ((state = ANY (ARRAY['demo_reserved'::text, 'demo_confirmed'::text, 'provisional'::text, 'confirmed'::text])))",
 };
+const localOperationBookingDefinitions: Record<string, string> = {
+  ...workflowBookingDefinitions,
+  bookings_demo_state: workflowBookingDefinitions.bookings_demo_state.replace(
+    "(source = 'synthetic_readiness'::text)",
+    "(source = ANY (ARRAY['synthetic_readiness'::text, 'local_operation'::text]))",
+  ),
+  bookings_local_source:
+    "CHECK ((source = ANY (ARRAY['local_simulation'::text, 'synthetic_readiness'::text, 'local_operation'::text])))",
+};
 // Keep grouping for mixed AND/OR expressions; removing parentheses could hide
 // a weakened revision predicate with a different logical precedence.
 const grouped = (text: string) => text.replace(/[\s"]+/g, "");
@@ -147,11 +156,16 @@ export async function verifyProtections(
   const hasWorkflow = candidate.entries
     .slice(0, applied)
     .some((e) => e.tag === "0025_booking_workflows");
-  const expectedBookingDefinitions = hasWorkflow
-    ? workflowBookingDefinitions
-    : hasLifecycle
-      ? lifecycleBookingDefinitions
-      : bookingDefinitions;
+  const hasLocalOperation = candidate.entries
+    .slice(0, applied)
+    .some((entry) => entry.tag === "0035_local_operational_workflow");
+  const expectedBookingDefinitions = hasLocalOperation
+    ? localOperationBookingDefinitions
+    : hasWorkflow
+      ? workflowBookingDefinitions
+      : hasLifecycle
+        ? lifecycleBookingDefinitions
+        : bookingDefinitions;
   const actual = await client.query<{
     name: string;
     body: string;

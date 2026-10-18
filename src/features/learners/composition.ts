@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { AccessError, requireIdentity } from "@/lib/permissions/access";
@@ -15,6 +16,7 @@ export async function listLearnerGroups(
 ) {
   const identity = await requireIdentity(runtime, headers);
   const demoAllowed =
+    !getLocalWorkflow(runtime) &&
     !isPrivateWorkflow(runtime) &&
     identity.roles.some((r) => r === "parent" || r === "student");
   const context = admissionContext(runtime);
@@ -24,7 +26,7 @@ export async function listLearnerGroups(
     demo: demoAllowed ? await listMyLearners(runtime, headers) : [],
     readiness: await listAdmittedLearners(context, headers),
     demoAllowed,
-    admissionEnabled: context.admission.authority === "synthetic_test",
+    admissionEnabled: context.admission.authority !== "disabled",
   };
 }
 export async function readComposedLearner(
@@ -33,7 +35,7 @@ export async function readComposedLearner(
   id: string,
 ) {
   // Private staging uses reviewed admissions only; legacy fixture guards stay local.
-  if (isPrivateWorkflow(runtime))
+  if (getLocalWorkflow(runtime) || isPrivateWorkflow(runtime))
     return {
       profile: await readAdmittedLearner(
         admissionContext(runtime),

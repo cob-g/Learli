@@ -1,12 +1,18 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { getPrivateWorkflow } from "@/features/private-workflow/runtime";
 import type { AuthRuntime } from "@/lib/auth-factory";
-import { disabledAdmission } from "./policy";
+import {
+  disabledAdmission,
+  localAdmissionPolicy,
+  validateAdmissionCapability,
+} from "./policy";
 import type { AdmissionContext } from "./service";
-/** Composition seam: shipped routes refuse policy-dependent intake. Root installs
- * an explicitly validated capability after its separate readiness composition. */
+/** Validated ordinary local identity and private readiness select separate policy receipts. */
 export function admissionContext(runtime: AuthRuntime): AdmissionContext {
   return {
     runtime,
-    admission: getPrivateWorkflow(runtime)?.admission ?? disabledAdmission,
+    admission: getLocalWorkflow(runtime)
+      ? validateAdmissionCapability(localAdmissionPolicy)
+      : (getPrivateWorkflow(runtime)?.admission ?? disabledAdmission),
   };
 }

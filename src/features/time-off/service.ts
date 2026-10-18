@@ -151,7 +151,7 @@ export async function saveOwnTimeOff(
       if (reservation)
         throw new RuleError(
           409,
-          "This period overlaps a simulated reservation. Choose another period or wait for the reservation to expire.",
+          "This period overlaps an active booking or reservation. Choose another period.",
         );
       await tx
         .insert(tutorAvailabilityExceptions)

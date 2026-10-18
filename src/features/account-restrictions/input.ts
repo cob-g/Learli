@@ -4,16 +4,22 @@ export const localReasons = [
   "local_access_test",
   "local_review_test",
   "local_restore_test",
+  "local_restrict",
+  "local_restore",
 ] as const;
 export const reasonLabels: Record<(typeof localReasons)[number], string> = {
   local_access_test: "Local access test",
   local_review_test: "Local review test",
   local_restore_test: "Local restoration test",
+  local_restrict: "Account restriction",
+  local_restore: "Account restoration",
 };
 export function restrictionReasonLabel(
   reason: (typeof localReasons)[number],
   privateWorkflow = false,
 ) {
+  if (reason === "local_restrict" || reason === "local_restore")
+    return reasonLabels[reason];
   return privateWorkflow
     ? {
         local_access_test: "Fictional access test",
@@ -102,7 +108,10 @@ export const changeInput = z
     requestKey: z.uuid(),
   })
   .superRefine((v, ctx) => {
-    if ((v.status === "active") !== (v.reason === "local_restore_test"))
+    if (
+      (v.status === "active") !==
+      ["local_restore_test", "local_restore"].includes(v.reason)
+    )
       ctx.addIssue({
         code: "custom",
         path: ["reason"],

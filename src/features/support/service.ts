@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import {
   adminAssurancePredicate,
   recheckAdminAssurance,
@@ -37,7 +38,12 @@ async function actor(
     !isLoopbackOrigin(runtime.origin)
   )
     throw new AccessError(503);
-  const identity = await requireIdentity(runtime, headers);
+  const identity = {
+    ...(await requireIdentity(runtime, headers)),
+    supportSource: getLocalWorkflow(runtime)
+      ? ("local_operation" as const)
+      : ("local_synthetic" as const),
+  };
   if (scope === "reviewer") {
     if (!identity.roles.includes("admin")) throw new AccessError(403);
     await recheckAdminAssurance(runtime.db, identity);
@@ -47,26 +53,43 @@ async function actor(
       .where(
         and(
           eq(supportReviewers.userId, identity.userId),
-          eq(supportReviewers.source, "local_fixture"),
+          eq(
+            supportReviewers.source,
+            identity.supportSource === "local_operation"
+              ? "local_operation"
+              : "local_fixture",
+          ),
           eq(supportReviewers.status, "authorized"),
         ),
       );
     if (!capability) throw new AccessError(403);
+    if (identity.supportSource === "local_operation") {
+      const current = await runtime.db.execute<{ allowed: boolean }>(
+        sql`SELECT public.has_local_workflow_staff(${identity.userId},${identity.sessionId},'support') AS allowed`,
+      );
+      if (!current.rows[0]?.allowed) throw new AccessError(403);
+    }
   }
   return identity;
 }
-function activeAccount(userId: string) {
-  return sql`EXISTS (SELECT 1 FROM "user" u JOIN user_access a ON a.user_id = u.id WHERE u.id = ${userId} AND u.email_verified = true AND u.email LIKE ${"%.test"} AND a.status = 'active')`;
+function activeAccount(userId: string, source: string) {
+  return sql`EXISTS (SELECT 1 FROM "user" u JOIN user_access a ON a.user_id = u.id WHERE u.id = ${userId} AND u.email_verified = true AND (${source}='local_operation' OR u.email LIKE ${"%.test"}) AND a.status = 'active')`;
 }
-function caseAccess(userId: string, scope: CaseScope, sessionId: string): SQL {
+function caseAccess(
+  userId: string,
+  scope: CaseScope,
+  sessionId: string,
+  source: "local_synthetic" | "local_operation",
+): SQL {
   return and(
-    eq(cases.source, "local_synthetic"),
-    activeAccount(userId),
+    eq(cases.source, source),
+    activeAccount(userId, source),
+    sql`public.workflow_identity(${userId},${sessionId},${source === "local_operation" ? "local_operation" : "synthetic_readiness"})`,
     scope === "requester"
       ? eq(cases.requesterUserId, userId)
       : sql`${adminAssurancePredicate(userId, sessionId)} AND ${cases.requesterUserId} <> ${userId} AND EXISTS (
        SELECT 1 FROM support_case_assignments a JOIN support_reviewers r ON r.user_id = a.reviewer_user_id JOIN user_roles g ON g.user_id = r.user_id
-       WHERE a.case_id = ${cases.id} AND a.reviewer_user_id = ${userId} AND r.source = 'local_fixture' AND r.status = 'authorized' AND g.role = 'admin')`,
+       WHERE a.case_id = ${cases.id} AND a.reviewer_user_id = ${userId} AND r.source = ${source === "local_operation" ? "local_operation" : "local_fixture"} AND r.status = 'authorized' AND g.role = 'admin') AND (${source}<>'local_operation' OR public.has_local_workflow_staff(${userId},${sessionId},'support'))`,
   ) as SQL;
 }
 const summary = {
@@ -92,7 +115,12 @@ async function selectCase(
     .where(
       and(
         eq(cases.id, caseId),
-        caseAccess(identity.userId, scope, identity.sessionId),
+        caseAccess(
+          identity.userId,
+          scope,
+          identity.sessionId,
+          identity.supportSource,
+        ),
       ),
     )
     .for(lock);
@@ -111,7 +139,14 @@ export async function listCases(
   const rows = await runtime.db
     .select(summary)
     .from(cases)
-    .where(caseAccess(identity.userId, scope, identity.sessionId))
+    .where(
+      caseAccess(
+        identity.userId,
+        scope,
+        identity.sessionId,
+        identity.supportSource,
+      ),
+    )
     .orderBy(desc(cases.createdAt), desc(cases.id))
     .limit(21)
     .offset((page - 1) * 20);
@@ -159,7 +194,13 @@ export async function readCase(
         ),
       )
       .orderBy(events.revision);
-    const booking = await queryCaseBooking(tx, identity, row.id, scope);
+    const booking = await queryCaseBooking(
+      tx,
+      identity,
+      row.id,
+      scope,
+      identity.supportSource,
+    );
     return { ...row, history, ...(booking === undefined ? {} : { booking }) };
   });
 }
@@ -185,7 +226,7 @@ export async function createCase(
       .where(
         and(
           eq(userAccess.userId, identity.userId),
-          activeAccount(identity.userId),
+          activeAccount(identity.userId, identity.supportSource),
         ),
       );
     if (!access) throw new AccessError(403);
@@ -204,6 +245,7 @@ export async function createCase(
         .from(supportCaseBookings)
         .where(eq(supportCaseBookings.caseId, existing.id));
       if (
+        existing.source !== identity.supportSource ||
         existing.category !== values.category ||
         existing.subject !== values.subject ||
         existing.body !== values.body ||
@@ -214,7 +256,12 @@ export async function createCase(
           "This request was already saved with different fields. Start a new report.",
         );
       if (values.bookingId)
-        await queryBookingForReport(tx, identity, values.bookingId);
+        await queryBookingForReport(
+          tx,
+          identity,
+          values.bookingId,
+          identity.supportSource,
+        );
       return { id: existing.id };
     }
     const recent = await tx
@@ -233,11 +280,20 @@ export async function createCase(
         "The local report limit was reached. Wait a few minutes and try again.",
       );
     if (values.bookingId)
-      await queryBookingForReport(tx, identity, values.bookingId);
+      await queryBookingForReport(
+        tx,
+        identity,
+        values.bookingId,
+        identity.supportSource,
+      );
     const { bookingId, ...reportValues } = values;
     const [created] = await tx
       .insert(cases)
-      .values({ ...reportValues, requesterUserId: identity.userId })
+      .values({
+        ...reportValues,
+        source: identity.supportSource,
+        requesterUserId: identity.userId,
+      })
       .returning({ id: cases.id });
     await tx.insert(events).values({
       caseId: created.id,
@@ -250,6 +306,10 @@ export async function createCase(
       await tx
         .insert(supportCaseBookings)
         .values({ caseId: created.id, bookingId });
+    const fresh = await tx.execute<{ allowed: boolean }>(
+      sql`SELECT public.workflow_identity(${identity.userId},${identity.sessionId},${identity.supportSource === "local_operation" ? "local_operation" : "synthetic_readiness"}) AS allowed`,
+    );
+    if (!fresh.rows[0]?.allowed) throw new AccessError(404);
     return created;
   });
 }
@@ -261,42 +321,65 @@ export async function changeCaseStatus(
   input: unknown,
 ) {
   const identity = await actor(runtime, headers, "reviewer");
-  return runtime.db.transaction(async (tx) => {
-    await selectCase(tx, identity, caseId, "reviewer", "update");
-    await recheckIdentity(tx, identity, "admin");
-    const row = await selectCase(tx, identity, caseId, "reviewer", "update");
-    const values = statusInput.parse(input);
-    if (row.revision !== values.revision)
-      throw new RuleError(
-        409,
-        "This case changed. Reload it before changing the status.",
-      );
-    if (row.status === values.status) return row;
-    if (!transitions[row.status].includes(values.status))
-      throw new RuleError(400, "That status change is not available.");
-    const [updated] = await tx
-      .update(cases)
-      .set({
-        status: values.status,
-        revision: row.revision + 1,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(cases.id, row.id),
-          caseAccess(identity.userId, "reviewer", identity.sessionId),
-        ),
-      )
-      .returning(summary);
-    if (!updated) throw new AccessError(404);
-    await tx.insert(events).values({
-      caseId: row.id,
-      action: "status_changed",
-      actorUserId: identity.userId,
-      previousStatus: row.status,
-      nextStatus: updated.status,
-      revision: updated.revision,
-    });
-    return updated;
-  });
+  return runtime.db.transaction(
+    async (tx) => {
+      await selectCase(tx, identity, caseId, "reviewer", "update");
+      await recheckIdentity(tx, identity, "admin");
+      const row = await selectCase(tx, identity, caseId, "reviewer", "update");
+      const values = statusInput.parse(input);
+      if (row.revision !== values.revision)
+        throw new RuleError(
+          409,
+          "This case changed. Reload it before changing the status.",
+        );
+      if (row.status === values.status) return row;
+      if (!transitions[row.status].includes(values.status))
+        throw new RuleError(400, "That status change is not available.");
+      const [updated] = await tx
+        .update(cases)
+        .set({
+          status: values.status,
+          revision: row.revision + 1,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(cases.id, row.id),
+            caseAccess(
+              identity.userId,
+              "reviewer",
+              identity.sessionId,
+              identity.supportSource,
+            ),
+          ),
+        )
+        .returning(summary);
+      if (!updated) throw new AccessError(404);
+      await tx.insert(events).values({
+        caseId: row.id,
+        action: "status_changed",
+        actorUserId: identity.userId,
+        previousStatus: row.status,
+        nextStatus: updated.status,
+        revision: updated.revision,
+      });
+      const [current] = await tx
+        .select({ id: cases.id })
+        .from(cases)
+        .where(
+          and(
+            eq(cases.id, row.id),
+            caseAccess(
+              identity.userId,
+              "reviewer",
+              identity.sessionId,
+              identity.supportSource,
+            ),
+          ),
+        );
+      if (!current) throw new AccessError(404);
+      return updated;
+    },
+    { isolationLevel: "read committed" },
+  );
 }

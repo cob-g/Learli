@@ -686,4 +686,196 @@
       display: none;
     }
   }
+
+  /* Owner's desktop navbar reference. Keep these rules inside the public
+     header: account controls and the wordmark also serve private workspaces. */
+  @media (min-width: 64rem) {
+    .site-header {
+      container: desktop-navbar / inline-size;
+      border-bottom: 1px solid
+        color-mix(in srgb, var(--brand-navy) 8%, transparent);
+      background: color-mix(in srgb, var(--bg-base) 86%, transparent);
+      -webkit-backdrop-filter: saturate(140%) blur(12px);
+      backdrop-filter: saturate(140%) blur(12px);
+    }
+    .site-header .site-header-bar {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2.25fr) minmax(0, 1fr);
+      align-items: start;
+      gap: 1.5rem;
+      max-width: 90rem;
+      min-height: 4.5rem;
+      margin-inline: auto;
+      padding: 0 2rem;
+      box-shadow: none;
+    }
+    .site-header .site-header-bar::before,
+    .site-header .site-header-bar::after {
+      display: none;
+    }
+    .site-header .brand-home {
+      min-height: 4.5rem;
+      padding: 0;
+    }
+    .site-header .site-header-navigation {
+      justify-self: center;
+      gap: 0.125rem;
+      min-height: 2.875rem;
+      max-width: 100%;
+      margin-block: 0.8125rem;
+      padding: 0 0.25rem;
+      border: 1px solid
+        color-mix(in srgb, var(--brand-navy) 16%, var(--bg-surface));
+      border-radius: calc(infinity * 1px);
+      background: var(--bg-surface);
+      box-shadow: 0 1px 2px
+        color-mix(in srgb, var(--text-primary) 4%, transparent);
+    }
+    .site-header-navigation .nav-link {
+      position: relative;
+      isolation: isolate;
+      justify-content: center;
+      min-height: 2.75rem;
+      max-width: 100%;
+      padding-inline: 1rem;
+      border-radius: calc(infinity * 1px);
+      font-weight: 500;
+      text-decoration-line: none;
+      overflow-wrap: anywhere;
+    }
+    /* The visible inset is 36px high at normal text size; the link keeps a
+       44px hit target without making the reference's capsule any taller. */
+    .site-header-navigation .nav-link::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: 0.25rem 0;
+      border-radius: inherit;
+      transition: background-color 150ms linear;
+    }
+    .site-header-navigation .nav-link:hover::before,
+    .site-header-navigation .nav-link[aria-current]::before {
+      background: color-mix(in srgb, var(--brand-mint) 26%, var(--bg-surface));
+    }
+    .site-header .site-header-account {
+      width: min(15rem, 100%);
+      min-height: 4.5rem;
+    }
+    .site-header .header-account {
+      min-height: 4.5rem;
+      padding-block: 0.75rem;
+    }
+    .site-header .header-account-trigger {
+      min-height: 3rem;
+      padding: 0.1875rem 0.75rem;
+      border-color: color-mix(in srgb, var(--brand-navy) 18%, transparent);
+      border-radius: calc(infinity * 1px);
+      background: var(--bg-surface);
+    }
+    .site-header .header-account-label > .text-small {
+      /* Its accessible name already says Account. Leave room for the full
+         display name in the compact desktop chip, including two-line names. */
+      display: none;
+    }
+    .site-header .header-account-trigger:hover,
+    .site-header .header-account-trigger[aria-expanded="true"] {
+      background: var(--bg-subtle);
+    }
+    .site-header .header-account-fallback {
+      min-height: 4.5rem;
+      padding-block: 0.875rem;
+    }
+    .site-header .site-header-account > .nav-link,
+    .site-header .header-account-fallback > .nav-link {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      width: fit-content;
+      max-width: 100%;
+      min-height: 2.75rem;
+      margin-inline-start: auto;
+      padding-inline: 1.125rem;
+      border: 1px solid transparent;
+      border-radius: calc(infinity * 1px);
+      font-weight: 500;
+      text-decoration-line: none;
+    }
+    .site-header .site-header-account > .nav-link {
+      margin-block: 0.875rem;
+      border-color: color-mix(in srgb, var(--brand-navy) 18%, transparent);
+      background: var(--bg-surface);
+    }
+    .site-header .site-header-account > .nav-link:hover {
+      background: color-mix(in srgb, var(--brand-mint) 26%, var(--bg-surface));
+    }
+    .site-header .header-account-fallback > .nav-link:hover {
+      border-color: color-mix(in srgb, var(--brand-navy) 18%, transparent);
+      background: var(--bg-surface);
+    }
+    .site-header .site-header-account > .nav-link[aria-current="page"]::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      flex: none;
+      border-radius: 50%;
+      background: var(--accent-primary);
+    }
+    /* Checking stays live and readable without resizing the bar when the
+       same slot later displays the account chip or its error/retry panel. */
+    .site-header[data-live]
+      .header-account-fallback
+      > [aria-live]:not(.header-account-panel) {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      inset-inline-end: 0;
+      width: min(18rem, calc(100vw - 1rem));
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-control);
+      border-radius: var(--radius-surface);
+      background: var(--bg-surface);
+    }
+    /* Font-relative containment gives enlarged desktop text a readable account
+       row without changing the ordinary reference-sized navigation. */
+    @container desktop-navbar (max-width: 50rem) {
+      .site-header .site-header-bar {
+        row-gap: 0;
+      }
+      .site-header .site-header-account {
+        grid-column: 1 / -1;
+        width: 100%;
+        max-width: none;
+      }
+      .site-header .header-account-trigger {
+        padding-block: 0.5rem;
+        border-radius: var(--radius-surface);
+      }
+    }
+    @supports not (
+      (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+    ) {
+      .site-header {
+        background: var(--bg-surface);
+      }
+    }
+    @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+      .site-header {
+        background: var(--bg-surface);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+      }
+    }
+    @media (forced-colors: active) {
+      .site-header {
+        border-color: CanvasText;
+        background: Canvas;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+      }
+      .site-header .site-header-navigation,
+      .site-header .header-account-trigger,
+      .site-header .site-header-account > .nav-link {
+        border-color: ButtonText;
+        box-shadow: none;
+      }
+    }
+  }
 }

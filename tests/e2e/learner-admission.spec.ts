@@ -80,7 +80,9 @@ async function signup(
     .getByRole("button", { name: "Create account", exact: true })
     .click();
   await expect(
-    page.getByText(/a verification message is available/),
+    page
+      .getByRole("status")
+      .filter({ hasText: "Registration request received." }),
   ).toBeVisible();
   await page.goto(await mailbox(email, origin));
   await expect(

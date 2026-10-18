@@ -78,6 +78,7 @@ export default defineConfig({
       name: "auth",
       testMatch: [
         "auth.spec.ts",
+        "registration-feedback.spec.ts",
         "header-navigation.spec.ts",
         "workspace-shell.spec.ts",
         "private-document-identity.spec.ts",

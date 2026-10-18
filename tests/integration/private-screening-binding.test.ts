@@ -35,7 +35,10 @@ import {
 } from "./support";
 import { observedLock, screeningFixture } from "./screening-fixtures";
 
-type EnabledScreening = Exclude<ScreeningCapability, { mode: "disabled" }>;
+type EnabledScreening = Extract<
+  ScreeningCapability,
+  { mode: "synthetic_test" }
+>;
 let w: World,
   reviewer: TestAccount,
   f: Awaited<ReturnType<typeof screeningFixture>>,

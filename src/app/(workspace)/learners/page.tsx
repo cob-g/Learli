@@ -6,7 +6,7 @@ import { readLearnerCreationContext } from "@/features/learners/service";
 import { listLearnerGroups } from "@/features/learners/composition";
 import { levelNames } from "@/features/subjects/catalog";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Your learners",
@@ -27,7 +27,7 @@ export default async function LearnersPage() {
       return {
         ...base,
         createModes,
-        privateWorkflow: isPrivateWorkflow(runtime),
+        privateWorkflow: hasPersistentWorkflow(runtime),
       };
     },
   );
@@ -70,6 +70,7 @@ export default async function LearnersPage() {
                 </p>
                 <p className="mt-2 text-body">
                   {levelNames([learner.level]).join()}
+                  {learner.grade != null ? ` · Grade ${learner.grade}` : ""}
                 </p>
               </div>
               <LearnerLink

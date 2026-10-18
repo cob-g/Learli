@@ -1,17 +1,13 @@
 // Explicit local test operations only. No dotenv, automatic startup or hosted adapter.
-import { lstatSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { z } from "zod";
 import { createDatabase } from "../src/lib/db/connection";
-import { localDatabaseConfig } from "../src/lib/db/local-config";
-import { readPrivateJson } from "./staging-database";
 import {
   privateWorkflowOperatorInput,
   runPrivateWorkflowOperation,
 } from "../src/features/private-workflow/operator";
-import { parsePrivateWorkflow } from "../src/features/private-workflow/config";
+import { loadOwnedPrivateWorkflow } from "./private-workflow-local";
 
 export async function privateWorkflowMain(
   argv: string[],
@@ -56,46 +52,16 @@ export async function privateWorkflowMain(
       ...(values.account ? { targetId: values.account } : {}),
       ...(values["valid-until"] ? { validUntil: values["valid-until"] } : {}),
     });
-    const config = localDatabaseConfig(process.env.DATABASE_URL_DIRECT, true);
-    const state = z
-      .object({
-        ports: z.object({ database: z.number().int() }),
-        ownerPassword: z.string().min(1),
-      })
-      .parse(readPrivateJson(root, ".local/database.json"));
-    const marker = lstatSync(path.join(root, ".local/postgres/learli-owned"));
-    if (
-      config.user !== "learli_owner" ||
-      config.host !== "127.0.0.1" ||
-      config.port !== state.ports.database ||
-      config.password !== state.ownerPassword ||
-      !marker.isFile() ||
-      marker.isSymbolicLink() ||
-      marker.uid !== process.getuid?.()
-    )
-      throw new Error();
-    const expected = {
-      origin: process.env.APP_URL ?? "",
-      database: {
-        mode: "local-test" as const,
-        host: "127.0.0.1" as const,
-        port: config.port,
-        database: "learli_test" as const,
-        runtimeRole: "learli_app" as const,
-      },
-    };
-    const packet = parsePrivateWorkflow(
-      readPrivateJson(root, values.config),
-      expected,
-    );
-    owner = createDatabase(process.env.DATABASE_URL_DIRECT!, true);
+    const local = loadOwnedPrivateWorkflow(root, values.config);
+    owner = createDatabase(local.ownerUrl, true);
     const connection = await owner.pool.connect();
     try {
       return await runPrivateWorkflowOperation(
         connection,
-        packet,
-        expected,
+        local.packet,
+        local.expected,
         command,
+        local.assertCurrent,
       );
     } finally {
       connection.release();

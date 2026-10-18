@@ -3,7 +3,7 @@ import { readinessDirectory } from "@/features/tutor-screening/discovery";
 import { learnerLevels } from "@/lib/db/schema/app";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
 import { getDomainAuthRuntime } from "@/lib/auth";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { redirect } from "next/navigation";
 const levelLabels = Object.fromEntries(learnerLevelOptions);
 export const dynamic = "force-dynamic";
@@ -18,7 +18,7 @@ export default async function Page({
 }) {
   const q = await searchParams;
   const runtime = await getDomainAuthRuntime();
-  if (runtime && isPrivateWorkflow(runtime)) {
+  if (runtime && hasPersistentWorkflow(runtime)) {
     const query = new URLSearchParams();
     if (typeof q.subject === "string") query.set("subject", q.subject);
     if (typeof q.level === "string") query.set("level", q.level);

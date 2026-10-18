@@ -8,9 +8,13 @@ import { screeningActions } from "./policy";
 export function ScreeningForm({
   tutorId,
   detail,
+  privateWorkflow = false,
+  localWorkflow = false,
 }: {
   tutorId: string;
   detail: ScreeningDetail;
+  privateWorkflow?: boolean;
+  localWorkflow?: boolean;
 }) {
   const router = useRouter(),
     ready = useHydrated(),
@@ -58,7 +62,11 @@ export function ScreeningForm({
       }
       key.current = null;
       startRefresh(() => router.refresh());
-      setMessage("Synthetic screening record saved.");
+      setMessage(
+        privateWorkflow
+          ? "Screening record saved."
+          : "Synthetic screening record saved.",
+      );
     } catch {
       setMessage("Screening could not be saved.");
     } finally {
@@ -70,11 +78,14 @@ export function ScreeningForm({
   return (
     <section className="mt-8" aria-labelledby="screening-title">
       <h2 id="screening-title" className="text-section-title">
-        Synthetic screening exercise
+        {privateWorkflow ? "Tutor screening" : "Synthetic screening exercise"}
       </h2>
       <p className="mt-4 max-w-prose text-body">
-        These fictional checks exercise software. No actual person or document
-        has been screened.
+        {localWorkflow
+          ? "Record the checks you performed for this application. Approval requires current evidence for every required check."
+          : privateWorkflow
+            ? "These checks use fictional evidence. No actual person or document has been screened."
+            : "These fictional checks exercise software. No actual person or document has been screened."}
       </p>
       <p className="mt-4 text-body">
         State: {detail.state}. Round {detail.round}. Revision {detail.revision}.
@@ -123,8 +134,11 @@ export function ScreeningForm({
         }}
       >
         <p className="text-small">
-          All fields are required. Use only synthetic opaque references and UTC
-          dates.
+          {localWorkflow
+            ? "All fields are required. Use opaque references to your review evidence and UTC dates. Keep personal documents and private contact details out of these fields."
+            : privateWorkflow
+              ? "All fields are required. Use only fictional evidence references and UTC dates."
+              : "All fields are required. Use only synthetic opaque references and UTC dates."}
         </p>
         <label className="block text-label">
           Required check
@@ -198,9 +212,13 @@ export function ScreeningForm({
             }}
           >
             {action === "approve"
-              ? "Approve synthetic screening"
+              ? privateWorkflow
+                ? "Approve screening"
+                : "Approve synthetic screening"
               : action === "reinstate"
-                ? "Reinstate synthetic screening"
+                ? privateWorkflow
+                  ? "Reinstate screening"
+                  : "Reinstate synthetic screening"
                 : action === "reopen"
                   ? "Reopen screening"
                   : action === "suspend"
@@ -213,7 +231,9 @@ export function ScreeningForm({
       </div>
       <ConfirmDialog
         ref={dialog}
-        title="Change synthetic screening?"
+        title={
+          privateWorkflow ? "Change screening?" : "Change synthetic screening?"
+        }
         confirmLabel="Confirm screening decision"
         dismissLabel="Keep current screening"
         pending={busy}
@@ -225,14 +245,21 @@ export function ScreeningForm({
         }}
       >
         <p>
-          Apply {action} to this exact fictional application. The server
-          rechecks current assignment, policy and required evidence.
+          Apply {action} to this exact {localWorkflow ? "tutor" : "fictional"}{" "}
+          application. The server rechecks current assignment, policy and
+          required evidence.
         </p>
       </ConfirmDialog>
     </section>
   );
 }
-export function ScreeningRequest({ tutorId }: { tutorId: string }) {
+export function ScreeningRequest({
+  tutorId,
+  privateWorkflow = false,
+}: {
+  tutorId: string;
+  privateWorkflow?: boolean;
+}) {
   const ready = useHydrated(),
     [message, setMessage] = useState(""),
     [busy, setBusy] = useState(false);
@@ -281,18 +308,21 @@ export function ScreeningRequest({ tutorId }: { tutorId: string }) {
       }}
     >
       <p className="max-w-prose text-body">
-        Request fictional readiness screening for this application. This is not
-        approval for real tutoring.
+        {privateWorkflow
+          ? "Request screening for this application. Your assigned reviewer must check the required evidence before approval."
+          : "Request fictional readiness screening for this application. This is not approval for real tutoring."}
       </p>
       <p role="alert" className="mt-4 text-body">
         {message}
       </p>
       <button className="action action-primary mt-4" disabled={!ready || busy}>
-        Request synthetic screening
+        {privateWorkflow ? "Request screening" : "Request synthetic screening"}
       </button>
       <noscript>
         <p className="mt-4 text-body">
-          Enable JavaScript to request synthetic screening.
+          {privateWorkflow
+            ? "Enable JavaScript to request screening."
+            : "Enable JavaScript to request synthetic screening."}
         </p>
       </noscript>
     </form>

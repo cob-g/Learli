@@ -1,5 +1,7 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import type { Metadata } from "next";
 import { AccessError } from "@/lib/permissions/access";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { listDispatchCases } from "@/features/support/dispatch-service";
 import { listCases } from "@/features/support/service";
@@ -22,13 +24,21 @@ export default async function Page({
     "/admin/support",
     async (runtime, headers) => {
       try {
-        return await listCases(runtime, headers, "reviewer", page);
+        return {
+          cases: await listCases(runtime, headers, "reviewer", page),
+          privateWorkflow: hasPersistentWorkflow(runtime),
+          localWorkflow: getLocalWorkflow(runtime) !== null,
+        };
       } catch (error) {
         if (!(error instanceof AccessError) || error.status !== 403)
           throw error;
         const dispatch = await listDispatchCases(runtime, headers);
         if (!dispatch.cases.length) throw error;
-        return { cases: [], page: 1, hasMore: false };
+        return {
+          cases: { cases: [], page: 1, hasMore: false },
+          privateWorkflow: hasPersistentWorkflow(runtime),
+          localWorkflow: getLocalWorkflow(runtime) !== null,
+        };
       }
     },
   );
@@ -42,15 +52,26 @@ export default async function Page({
   return (
     <AdminShell current="support">
       <h1 className="text-page-title">Assigned support cases</h1>
-      <DemoNotice />
+      <DemoNotice
+        privateWorkflow={result.privateWorkflow}
+        localWorkflow={result.localWorkflow}
+      />
       {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Native cross-permission navigation replaces the private document. */}
       <a
         className="mt-4 inline-flex min-h-11 items-center"
-        href="/admin/support/dispatch"
+        href={
+          result.localWorkflow ? "/admin/requests" : "/admin/support/dispatch"
+        }
       >
-        Manage local assignments
+        {result.localWorkflow
+          ? "Unassigned reviews"
+          : "Manage local assignments"}
       </a>
-      <CaseRows result={result} reviewer={true} />
+      <CaseRows
+        result={result.cases}
+        reviewer={true}
+        localWorkflow={result.localWorkflow}
+      />
     </AdminShell>
   );
 }

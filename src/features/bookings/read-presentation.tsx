@@ -94,7 +94,7 @@ export function BookingDetailView({
           </div>
           <div>
             <dt className="text-label text-muted-foreground">
-              {booking.source === "synthetic_readiness"
+              {booking.source !== "local_simulation"
                 ? "Original provisional deadline"
                 : [
                       "demo_cancelled",
@@ -167,7 +167,10 @@ export function BookingDetailView({
         <Link className="inline-flex min-h-11 items-center" href="/account">
           Change account time zone
         </Link>
-        <BookingSupportAction bookingId={booking.id} />
+        <BookingSupportAction
+          bookingId={booking.id}
+          privateWorkflow={privateWorkflow}
+        />
       </nav>
     </div>
   );
@@ -205,6 +208,7 @@ export function BookingHistoryView({
         pageSize={result.pageSize}
         learners={result.learners}
         learnerId={learnerId}
+        privateWorkflow={privateWorkflow}
       />
       {result.items.length ? (
         <ul className="mt-8 max-w-5xl divide-y divide-border rounded-surface border border-border bg-surface px-6 sm:px-8">

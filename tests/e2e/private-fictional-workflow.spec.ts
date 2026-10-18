@@ -9,7 +9,7 @@ import {
   type Route,
 } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, mkdirSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { createDatabase } from "../../src/lib/db/connection";
@@ -119,12 +119,16 @@ async function register(browser: Browser, role: string, next = "/account") {
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   if (role.startsWith("parent"))
-    await page.getByLabel("Account type").selectOption("parent");
+    await page
+      .getByRole("radio", { name: "Parent or guardian", exact: true })
+      .check();
   await page
     .getByRole("button", { name: "Create account", exact: true })
     .click();
   await expect(
-    page.getByText(/a verification message is available/),
+    page
+      .getByRole("status")
+      .filter({ hasText: "Registration request received." }),
   ).toBeVisible();
   const messages = readdirSync(path.join(process.cwd(), ".local/mail/test"))
     .filter((file) => file.endsWith(".json"))
@@ -211,6 +215,198 @@ async function savedBooking(id: string) {
       [id],
     )
   ).rows[0];
+}
+
+async function parentDashboardCapture(page: Page, name: string) {
+  const configured = process.env.LEARLI_PARENT_DASHBOARD_CAPTURE_DIR;
+  if (!configured) return;
+  const directory = path.resolve(configured);
+  if (!directory.startsWith(`${process.cwd()}/.local/`))
+    throw new Error(
+      "Parent dashboard captures require a private local directory.",
+    );
+  mkdirSync(directory, { recursive: true, mode: 0o700 });
+  await page.evaluate(() =>
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" }),
+  );
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  await page.screenshot({
+    path: path.join(directory, `${name}.png`),
+    fullPage: true,
+  });
+}
+
+async function parentDashboardStepFive(parent: Actor, bookingId: string) {
+  const response = await parent.context.request.get(
+    `/api/bookings/${bookingId}?scope=guardian`,
+  );
+  expect(response.status()).toBe(200);
+  const expected = (await response.json()) as BookingDetail;
+  expect(expected.state).toBe("confirmed");
+  const savedBefore = await savedBooking(bookingId);
+  const countsBefore = await counts(savedBefore.logical_booking_id);
+  const detailHref = `/bookings/${bookingId}?scope=guardian`;
+  await parent.page.goto("/account");
+  await parent.page
+    .getByRole("navigation", { name: "Your workspaces", exact: true })
+    .getByRole("link", { name: "Parent Dashboard", exact: true })
+    .click();
+  await expect(parent.page).toHaveURL(`${packet.origin}/parent`);
+  await expect(
+    parent.page.getByRole("heading", {
+      name: "Parent Dashboard",
+      exact: true,
+      level: 1,
+    }),
+  ).toBeVisible();
+  const areas = parent.page.getByRole("navigation", {
+    name: "Parent work areas",
+    exact: true,
+  });
+  await expect(
+    areas.getByRole("link", { name: "Parent Dashboard", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(
+    areas.getByRole("link", { name: "Bookings", exact: true }),
+  ).toHaveAttribute("href", "/bookings?scope=guardian");
+  await areas.getByRole("link", { name: "Bookings", exact: true }).click();
+  await expect(parent.page).toHaveURL(
+    `${packet.origin}/bookings?scope=guardian`,
+  );
+  await expect(
+    areas.getByRole("link", { name: "Bookings", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(
+    areas.getByRole("link", { name: "Parent Dashboard", exact: true }),
+  ).not.toHaveAttribute("aria-current");
+  await parent.page.goto(`/parent?learner=${expected.learner.id}`);
+
+  const assertCard = async () => {
+    const upcoming = parent.page.getByRole("region", {
+      name: /^Upcoming Sessions$/i,
+    });
+    await expect(
+      upcoming.getByRole("link", { name: /View booking for/ }),
+    ).toHaveCount(1);
+    await expect(upcoming.locator(`a[href="${detailHref}"]`)).toBeVisible();
+    await expect(
+      upcoming.getByText(`For ${expected.learner.displayName}`, {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      upcoming.getByText(
+        `${expected.subject.name} with ${expected.tutor.displayName}`,
+        { exact: true },
+      ),
+    ).toBeVisible();
+    await expect(
+      upcoming.getByText("Confirmed", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      upcoming.locator(`time[datetime="${expected.time.startAtUtc}"]`),
+    ).toHaveText(expected.time.date);
+    await expect(
+      upcoming.locator(`time[datetime="${expected.time.endAtUtc}"]`),
+    ).toHaveText(expected.time.time);
+    await expect(
+      upcoming.getByText(expected.time.zone, { exact: true }),
+    ).toBeVisible();
+    await expect(upcoming).not.toContainText(
+      /No other upcoming sessions|No upcoming sessions\./,
+    );
+    await expect(
+      parent.page.getByRole("main").locator(`a[href="${detailHref}"]`),
+    ).toHaveCount(1);
+  };
+
+  for (const width of [1440, 390, 320]) {
+    await parent.page.setViewportSize({
+      width,
+      height: width === 1440 ? 1000 : 844,
+    });
+    const upcomingLink = parent.page
+      .getByRole("main")
+      .getByRole("link", { name: "Upcoming Sessions", exact: true });
+    await expect(upcomingLink).toHaveAttribute(
+      "href",
+      `/parent?learner=${expected.learner.id}#active`,
+    );
+    await upcomingLink.focus();
+    await parent.page.keyboard.press("Enter");
+    await expect(parent.page).toHaveURL(
+      `${packet.origin}/parent?learner=${expected.learner.id}#active`,
+    );
+    await assertCard();
+    expect(
+      await parent.page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    expect(
+      (
+        await new AxeBuilder({ page: parent.page })
+          .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+          .analyze()
+      ).violations.map(({ id }) => id),
+    ).toEqual([]);
+    await parentDashboardCapture(parent.page, `parent-confirmed-${width}`);
+  }
+  await parent.page.setViewportSize({ width: 1440, height: 1000 });
+  await parent.page.evaluate(() => {
+    document.documentElement.style.fontSize = "200%";
+  });
+  expect(
+    await parent.page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await parentDashboardCapture(parent.page, "parent-confirmed-text-200");
+  await parent.page.evaluate(() => {
+    document.documentElement.style.fontSize = "";
+  });
+  await parent.page.setViewportSize({ width: 390, height: 844 });
+  await parent.page.emulateMedia({
+    reducedMotion: "reduce",
+    forcedColors: "active",
+  });
+  await parentDashboardCapture(parent.page, "parent-confirmed-accessible");
+  await parent.page.emulateMedia({
+    reducedMotion: "no-preference",
+    forcedColors: "none",
+  });
+  await parent.page
+    .getByRole("main")
+    .getByRole("link", { name: "Booking History", exact: true })
+    .click();
+  await expect(parent.page).toHaveURL(
+    `${packet.origin}/parent?learner=${expected.learner.id}#history`,
+  );
+  await parent.page
+    .getByRole("main")
+    .getByRole("link", { name: "Upcoming Sessions", exact: true })
+    .click();
+  await parent.page.locator(`a[href="${detailHref}"]`).click();
+  await expect(parent.page).toHaveURL(`${packet.origin}${detailHref}`);
+  await expect(
+    parent.page.locator(`time[datetime="${expected.time.startAtUtc}"]`).first(),
+  ).toBeVisible();
+  await expect(
+    parent.page.getByRole("heading", { name: "Confirmed", exact: true }),
+  ).toBeVisible();
+  await parent.page.goto(`/parent?learner=${expected.learner.id}`);
+  await parent.page.reload();
+  await assertCard();
+  await parent.page
+    .getByRole("link", { name: "Refresh bookings", exact: true })
+    .click();
+  await assertCard();
+  expect(new URL(parent.page.url()).searchParams.get("learner")).toBe(
+    expected.learner.id,
+  );
+  expect(await savedBooking(bookingId)).toEqual(savedBefore);
+  expect(await counts(savedBefore.logical_booking_id)).toEqual(countsBefore);
+  await parent.page.setViewportSize({ width: 1440, height: 900 });
 }
 
 async function counts(logicalId: string) {
@@ -670,6 +866,15 @@ test("normal private build connects guardian booking interruption, cross-role ch
   await operate({ action: "prepare", apply: true, reviewerEmail: admin.email });
 
   const parent = await register(browser, "parent");
+  await parent.page.setViewportSize({ width: 1440, height: 1000 });
+  await expect(
+    parent.page.getByRole("heading", {
+      name: "Parent Dashboard",
+      exact: true,
+      level: 1,
+    }),
+  ).toBeVisible();
+  await parentDashboardCapture(parent.page, "parent-empty-1440");
   const otherParent = await register(browser, "parent-other");
   const tutor = await register(browser, "tutor");
   const otherTutor = await register(browser, "tutor-other");
@@ -722,7 +927,7 @@ test("normal private build connects guardian booking interruption, cross-role ch
   console.info("Private workflow: accounts verified and Tutor profile saved.");
   await tutor.page.goto("/tutor/screening");
   await tutor.page
-    .getByRole("button", { name: "Request synthetic screening", exact: true })
+    .getByRole("button", { name: "Request screening", exact: true })
     .click();
   await expect(tutor.page.getByText(/Screening status: pending/)).toBeVisible();
   await operate({
@@ -735,7 +940,7 @@ test("normal private build connects guardian booking interruption, cross-role ch
   await admin.page.goto(`/admin/tutors/${profile.id}`);
   // Required evidence cannot be skipped even by a current, assigned MFA admin.
   await admin.page
-    .getByRole("button", { name: "Approve synthetic screening", exact: true })
+    .getByRole("button", { name: "Approve screening", exact: true })
     .click();
   await admin.page
     .getByRole("button", { name: "Confirm screening decision", exact: true })
@@ -762,7 +967,7 @@ test("normal private build connects guardian booking interruption, cross-role ch
     ).toBeVisible();
   }
   await admin.page
-    .getByRole("button", { name: "Approve synthetic screening", exact: true })
+    .getByRole("button", { name: "Approve screening", exact: true })
     .click();
   await admin.page
     .getByRole("button", { name: "Confirm screening decision", exact: true })
@@ -795,9 +1000,16 @@ test("normal private build connects guardian booking interruption, cross-role ch
     }),
   ).toBeVisible();
 
-  await parent.page.goto("/learners");
+  await parent.page.goto("/parent/profile");
+  await expect(
+    parent.page.getByRole("heading", { name: "Parent Profile", exact: true }),
+  ).toBeVisible();
   await parent.page
-    .getByRole("link", { name: "Add a learner", exact: true })
+    .getByRole("link", { name: "My Children", exact: true })
+    .last()
+    .click();
+  await parent.page
+    .getByRole("link", { name: "Add Child", exact: true })
     .click();
   await parent.page
     .getByLabel("Learner display name", { exact: true })
@@ -806,16 +1018,46 @@ test("normal private build connects guardian booking interruption, cross-role ch
     .getByLabel("Learner level", { exact: true })
     .selectOption("middle_school");
   await parent.page
+    .getByLabel("Grade (optional)", { exact: true })
+    .selectOption("8");
+  await parent.page
     .getByLabel("Time zone", { exact: true })
     .selectOption("Asia/Manila");
   await parent.page
-    .getByRole("button", { name: "Request admission review", exact: true })
+    .getByRole("button", { name: "Save child request", exact: true })
+    .click();
+  await expect(
+    parent.page.getByRole("heading", {
+      name: "Child request saved",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(parent.page.getByRole("status")).toContainText("Pending review");
+  await parent.page
+    .getByRole("link", { name: "My Children", exact: true })
+    .last()
+    .click();
+  await expect(
+    parent.page.getByText("Saved — pending review", { exact: true }),
+  ).toBeVisible();
+  await parent.page.reload();
+  await expect(
+    parent.page.getByText("Saved — pending review", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    parent.page.getByRole("link", {
+      name: /Edit child profile for Student A fictional/,
+    }),
+  ).toHaveCount(0);
+  await parent.page
+    .getByRole("link", { name: "View child request", exact: true })
     .click();
   await expect(parent.page).toHaveURL(/\/learner-admission\/[a-f0-9-]+$/);
   const admissionId = new URL(parent.page.url()).pathname.split("/").at(-1)!;
   await expect(
     parent.page.getByText(/Learner access is not authorized/),
   ).toBeVisible();
+  await expect(parent.page.getByText(/Grade 8\./)).toBeVisible();
   const pending = (
     await owner.pool.query<{ id: string; status: string; links: number }>(
       "SELECT l.id,l.status,(SELECT count(*)::int FROM guardian_learner_links g WHERE g.learner_id=l.id) links FROM learner_admissions a JOIN learner_profiles l ON l.id=a.learner_id WHERE a.id=$1",
@@ -868,12 +1110,52 @@ test("normal private build connects guardian booking interruption, cross-role ch
     .click();
   await expect(admin.page.getByText(/Status: authorized\./)).toBeVisible();
   console.info("Private workflow: learner review authorized.");
-  await parent.page.goto("/learners");
+  await parent.page.goto("/parent/children");
   await expect(
     parent.page.getByRole("heading", {
       name: "Student A fictional",
       exact: true,
     }),
+  ).toBeVisible();
+  await expect(
+    parent.page.getByText("Authorized — current reviewed access", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    parent.page.getByText("Middle School · Grade 8", { exact: true }),
+  ).toBeVisible();
+  await parent.page
+    .getByRole("link", {
+      name: "Edit child profile for Student A fictional",
+      exact: true,
+    })
+    .click();
+  await expect(parent.page.getByLabel("Level", { exact: true })).toBeDisabled();
+  await expect(
+    parent.page.getByLabel("Grade (optional)", { exact: true }),
+  ).toHaveValue("8");
+  await parent.page
+    .getByLabel("Grade (optional)", { exact: true })
+    .selectOption("9");
+  await parent.page
+    .getByRole("button", { name: "Save profile", exact: true })
+    .click();
+  await expect(
+    parent.page.getByRole("status").filter({ hasText: "Profile saved" }),
+  ).toBeVisible();
+  await parent.page.reload();
+  await expect(
+    parent.page.getByLabel("Grade (optional)", { exact: true }),
+  ).toHaveValue("9");
+  await parent.page
+    .getByLabel("Grade (optional)", { exact: true })
+    .selectOption("8");
+  await parent.page
+    .getByRole("button", { name: "Save profile", exact: true })
+    .click();
+  await expect(
+    parent.page.getByRole("status").filter({ hasText: "Profile saved" }),
   ).toBeVisible();
   expect(
     (
@@ -1023,6 +1305,7 @@ test("normal private build connects guardian booking interruption, cross-role ch
   ]);
   await sameViews(parent, tutor, admin, bookingId, "confirmed");
   console.info("Private workflow: shared booking confirmed.");
+  await parentDashboardStepFive(parent, bookingId);
   await parent.page.goto("/parent");
   await expect(
     parent.page

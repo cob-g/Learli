@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { privateJson, sameDomainOrigin } from "@/lib/auth-handler";
@@ -19,7 +20,7 @@ export async function handleLearnerRequest(
 ) {
   if (request.method === "POST" && !learnerId) {
     // A private learner must pass reviewed admission; hidden fixture forms are not authority.
-    if (runtime && isPrivateWorkflow(runtime))
+    if (runtime && (getLocalWorkflow(runtime) || isPrivateWorkflow(runtime)))
       return privateJson(
         { message: "Use learner admission to request a learner profile." },
         503,
@@ -47,7 +48,7 @@ export async function handleLearnerRequest(
   if (request.method !== "GET")
     return privateJson({ message: "Method not allowed." }, 405);
   try {
-    if (admissionContext(runtime).admission.authority === "synthetic_test") {
+    if (admissionContext(runtime).admission.authority !== "disabled") {
       if (learnerId)
         return privateJson(
           (await readComposedLearner(runtime, request.headers, learnerId))

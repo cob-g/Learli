@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
@@ -5,6 +6,7 @@ import { listCases } from "@/features/support/service";
 import { DemoNotice, CaseRows } from "@/features/support/presentation";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { safePage } from "@/features/support/input";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Your reports",
@@ -16,8 +18,13 @@ export default async function Page({
   searchParams: Promise<{ page?: string }>;
 }) {
   const page = safePage((await searchParams).page);
-  const result = await loadPrivatePage("/support", (runtime, headers) =>
-    listCases(runtime, headers, "requester", page),
+  const result = await loadPrivatePage(
+    "/support",
+    async (runtime, headers) => ({
+      cases: await listCases(runtime, headers, "requester", page),
+      privateWorkflow: hasPersistentWorkflow(runtime),
+      localWorkflow: getLocalWorkflow(runtime) !== null,
+    }),
   );
   if (!result)
     return (
@@ -30,14 +37,21 @@ export default async function Page({
     <div className="page-shell page-space">
       <div className="max-w-5xl">
         <h1 className="text-page-title">Your reports</h1>
-        <DemoNotice />
+        <DemoNotice
+          privateWorkflow={result.privateWorkflow}
+          localWorkflow={result.localWorkflow}
+        />
         <Link
           className="action action-primary mt-6 w-full sm:w-auto"
           href="/contact"
         >
-          Create fictional report
+          {result.localWorkflow ? "Create report" : "Create fictional report"}
         </Link>
-        <CaseRows result={result} reviewer={false} />
+        <CaseRows
+          result={result.cases}
+          reviewer={false}
+          localWorkflow={result.localWorkflow}
+        />
       </div>
     </div>
   );

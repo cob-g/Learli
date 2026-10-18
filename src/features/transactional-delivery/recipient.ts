@@ -62,7 +62,7 @@ export async function currentDeliveryMaterial(
     firstAttemptAt,
     recipientEmail: current.email,
     kind: kinds[current.kind],
-    source: "synthetic_readiness",
+    source: current.source,
     subject: current.subjectName,
     startAtUtc: new Date(current.startAtUtc).toISOString(),
     endAtUtc: new Date(current.endAtUtc).toISOString(),

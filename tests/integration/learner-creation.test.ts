@@ -99,6 +99,7 @@ describe("local synthetic creation against PostgreSQL", () => {
     const profile = await create(parent, values());
     expect(Object.keys(profile).sort()).toEqual([
       "displayName",
+      "grade",
       "id",
       "level",
       "management",

@@ -4,6 +4,7 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import type { LessonTimeValue } from "@/features/bookings/lesson-time";
 import { LessonTime } from "@/features/bookings/lesson-time";
 import type { WorkflowAction } from "./input";
+import { workflowReason } from "./model";
 function useMutation(
   endpoint: string,
   destination: (r: { id: string }) => string,
@@ -79,6 +80,7 @@ export function WorkflowRequestForm({
   scope,
   requestedTime,
   privateWorkflow = false,
+  source = "synthetic_readiness",
 }: {
   choice: {
     learnerId: string;
@@ -90,9 +92,12 @@ export function WorkflowRequestForm({
   requestedTime?: Pick<LessonTimeValue, "startAtUtc" | "endAtUtc">;
   scope: "guardian" | "student";
   privateWorkflow?: boolean;
+  source?: "synthetic_readiness" | "local_operation";
 }) {
+  const endpoint =
+    source === "local_operation" ? "/api/bookings" : "/api/bookings/demo";
   const m = useMutation(
-    "/api/bookings/demo",
+    endpoint,
     (r) => `/bookings/${r.id}?scope=${scope}`,
     privateWorkflow,
   );
@@ -117,7 +122,7 @@ export function WorkflowRequestForm({
   return (
     <form
       method="post"
-      action="/api/bookings/demo"
+      action={endpoint}
       onSubmit={submit}
       className="mt-8 space-y-4"
     >
@@ -208,6 +213,7 @@ export function WorkflowActionForm({
   admin = false,
   times = [],
   privateWorkflow = false,
+  source = "synthetic_readiness",
 }: {
   bookingId: string;
   revision: number;
@@ -216,6 +222,7 @@ export function WorkflowActionForm({
   admin?: boolean;
   times?: LessonTimeValue[];
   privateWorkflow?: boolean;
+  source?: "local_simulation" | "synthetic_readiness" | "local_operation";
 }) {
   const m = useMutation(
     `/api/bookings/${bookingId}/workflow/${action}`,
@@ -230,7 +237,10 @@ export function WorkflowActionForm({
     );
     await m.send({
       expectedRevision: revision,
-      reasonCode: reason[action],
+      reasonCode:
+        source === "local_operation"
+          ? workflowReason(action, source)
+          : reason[action],
       ...(action === "reschedule" && time
         ? {
             startAtUtc: time.startAtUtc,
@@ -273,7 +283,7 @@ export function WorkflowActionForm({
                 ? "Confirmation requires your exact assigned prerequisite review and current MFA."
                 : "Only your exact assigned prerequisite review and current MFA permit this synthetic confirmation."
               : privateWorkflow
-                ? "Staging changes require at least one hour before the saved start. The original terms and history remain; a rescheduled booking needs a new private link."
+                ? "Cancellation or rescheduling requires at least one hour before the saved start. The original terms and history remain; a rescheduled booking needs a new private link."
                 : "Synthetic cancellation or replacement requires at least one hour before the saved start. The original terms and history persist; a replacement needs a new private link."}
       </p>
       <button

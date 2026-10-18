@@ -6,7 +6,11 @@ export function screeningEligibilityPredicate(
   tutorId: SQL | string,
   scope: ScreeningScope = "local_demo",
 ): SQL {
-  if (scope !== "local_demo" && scope !== "synthetic_readiness")
+  if (
+    scope !== "local_demo" &&
+    scope !== "synthetic_readiness" &&
+    scope !== "local_operation"
+  )
     return sql`false`;
   return sql`public.has_current_tutor_screening(${tutorId}, ${scope})`;
 }

@@ -136,17 +136,23 @@ export class PrivateStudentBrowser {
     await page.getByLabel("Email", { exact: true }).fill(email!);
     await page.getByLabel("Password", { exact: true }).fill(password);
     if (college) {
-      await page.getByLabel("Account type").selectOption("student");
+      await page
+        .getByRole("radio", { name: "College Student", exact: true })
+        .check();
       await expect(
-        page.getByRole("option", { name: "College Student", exact: true }),
+        page.getByRole("radio", { name: "College Student", exact: true }),
       ).toBeAttached();
     } else if (intent === "parent")
-      await page.getByLabel("Account type").selectOption("parent");
+      await page
+        .getByRole("radio", { name: "Parent or guardian", exact: true })
+        .check();
     await page
       .getByRole("button", { name: "Create account", exact: true })
       .click();
     await expect(
-      page.getByText(/a verification message is available/),
+      page
+        .getByRole("status")
+        .filter({ hasText: "Registration request received." }),
     ).toBeVisible();
     const captured = readdirSync(path.join(process.cwd(), ".local/mail/test"))
       .filter((file) => file.endsWith(".json"))
@@ -447,7 +453,7 @@ export class PrivateStudentBrowser {
     ).rows[0];
     await tutor.page.goto("/tutor/screening");
     await tutor.page
-      .getByRole("button", { name: "Request synthetic screening", exact: true })
+      .getByRole("button", { name: "Request screening", exact: true })
       .click();
     await expect(
       tutor.page.getByText(/Screening status: pending/),
@@ -481,7 +487,7 @@ export class PrivateStudentBrowser {
       ).toBeVisible();
     }
     await admin.page
-      .getByRole("button", { name: "Approve synthetic screening", exact: true })
+      .getByRole("button", { name: "Approve screening", exact: true })
       .click();
     await admin.page
       .getByRole("button", { name: "Confirm screening decision", exact: true })

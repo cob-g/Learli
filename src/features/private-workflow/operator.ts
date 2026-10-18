@@ -34,12 +34,14 @@ export const privateWorkflowOperatorInput = z.discriminatedUnion("action", [
     ...common,
     action: z.literal("assign-admission"),
     admissionId: z.uuid(),
+    newOnly: z.literal(true).optional(),
   }),
   z.strictObject({
     ...common,
     action: z.literal("assign-screening"),
     tutorId: z.uuid(),
     validUntil: until,
+    newOnly: z.literal(true).optional(),
   }),
   z.strictObject({
     ...common,
@@ -51,6 +53,7 @@ export const privateWorkflowOperatorInput = z.discriminatedUnion("action", [
     action: z.literal("grant-confirmation"),
     bookingId: z.uuid(),
     validUntil: until,
+    newOnly: z.literal(true).optional(),
   }),
 ]);
 export type PrivateWorkflowOperatorCommand = z.infer<
@@ -273,6 +276,42 @@ async function screeningStaff(
   );
 }
 
+async function requireConnection(
+  connection: Connection,
+  packet: PrivateWorkflowPacket,
+) {
+  requireResult(packet.database.mode === "local-test");
+  const identity = await connection.query(
+    `SELECT current_user AS role,current_database() AS database,
+      host(inet_server_addr()) AS host,inet_server_port() AS port`,
+  );
+  const actual = identity.rows[0];
+  requireResult(
+    actual?.role === "learli_owner" &&
+      actual.database === "learli_test" &&
+      actual.port === packet.database.port &&
+      (packet.database.host === "localhost"
+        ? ["127.0.0.1", "::1"].includes(String(actual.host))
+        : actual.host === packet.database.host),
+  );
+}
+
+/** Read-only metadata inspection for the explicit owner's bounded dispatch.
+ * The caller owns its transaction; each later mutation repeats these checks. */
+export async function readPrivateWorkflowOperatorScope(
+  connection: Connection,
+  packetInput: unknown,
+  expected: PrivateWorkflowBinding,
+  email: string,
+) {
+  const packet = parsePrivateWorkflow(packetInput, expected);
+  await requireConnection(connection, packet);
+  await requireWindow(connection, packet);
+  const id = await reviewer(connection, reviewerEmail.parse(email), packet);
+  await requireHeads(connection, packet);
+  return id;
+}
+
 /** A dedicated connected owner client is required; this function owns its transaction.
  * Hosted CLI/connection admission is intentionally unsupported in this slice. */
 export async function runPrivateWorkflowOperation(
@@ -280,6 +319,7 @@ export async function runPrivateWorkflowOperation(
   packetInput: unknown,
   expected: PrivateWorkflowBinding,
   input: unknown,
+  assertCurrentPacket: () => void = () => {},
 ) {
   let transaction = false;
   try {
@@ -290,25 +330,14 @@ export async function runPrivateWorkflowOperation(
     await connection.query("BEGIN ISOLATION LEVEL READ COMMITTED");
     transaction = true;
     await connection.query("SET LOCAL lock_timeout='5s'");
-    const identity = await connection.query(
-      `SELECT current_user AS role,current_database() AS database,
-        host(inet_server_addr()) AS host,inet_server_port() AS port`,
-    );
-    const actual = identity.rows[0];
-    requireResult(
-      actual?.role === "learli_owner" &&
-        actual.database === "learli_test" &&
-        actual.port === packet.database.port &&
-        (packet.database.host === "localhost"
-          ? ["127.0.0.1", "::1"].includes(String(actual.host))
-          : actual.host === packet.database.host),
-    );
+    await requireConnection(connection, packet);
     await requireWindow(
       connection,
       packet,
       "validUntil" in command ? command.validUntil : undefined,
     );
     let id = await reviewer(connection, command.reviewerEmail, packet);
+    let changed = true;
     if (command.action === "prepare") {
       // Admission runtime mutations lock the actor before the policy head too.
       id = await reviewer(connection, command.reviewerEmail, packet, true);
@@ -398,6 +427,12 @@ export async function runPrivateWorkflowOperation(
         "SELECT reviewer_user_id FROM public.learner_admission_assignments WHERE admission_id=$1 FOR UPDATE",
         [command.admissionId],
       );
+      if (command.newOnly) {
+        requireResult(
+          !assigned.rows.length || assigned.rows[0].reviewer_user_id === id,
+        );
+        changed = !assigned.rows.length;
+      }
       if (assigned.rows[0]?.reviewer_user_id !== id) {
         // The locked admission serializes assignment writers. Avoid INSERT ...
         // ON CONFLICT here: its BEFORE INSERT audit would run before UPDATE too.
@@ -450,7 +485,24 @@ export async function runPrivateWorkflowOperation(
           !prior.rows.length ||
             prior.rows[0].provenance === "synthetic_readiness",
         );
-        await screeningStaff(connection, id, command.validUntil);
+        if (command.newOnly) {
+          requireResult(
+            !prior.rows.length ||
+              (prior.rows[0].reviewer_user_id === id &&
+                prior.rows[0].status === "authorized"),
+          );
+          // Dispatch must not renew expired staff authority or revive a
+          // revocation, even if its earlier discovery saw an eligible row.
+          const staff = await connection.query(
+            `SELECT user_id FROM public.tutor_screening_staff
+             WHERE user_id=$1 AND provenance='synthetic_readiness'
+               AND status='authorized' AND valid_until>clock_timestamp()
+             FOR SHARE`,
+            [id],
+          );
+          requireResult(staff.rows.length === 1);
+          changed = !prior.rows.length;
+        } else await screeningStaff(connection, id, command.validUntil);
         if (
           prior.rows[0]?.reviewer_user_id !== id ||
           prior.rows[0]?.status !== "authorized"
@@ -460,9 +512,8 @@ export async function runPrivateWorkflowOperation(
             : 0;
           await connection.query(
             `INSERT INTO public.tutor_screening_assignments(tutor_id,reviewer_user_id,provenance,status,assignment_revision)
-             VALUES($1,$2,'synthetic_readiness','authorized',$3) ON CONFLICT(tutor_id)
-             DO UPDATE SET reviewer_user_id=excluded.reviewer_user_id,status=excluded.status,
-               assignment_revision=excluded.assignment_revision,updated_at=clock_timestamp()`,
+             VALUES($1,$2,'synthetic_readiness','authorized',$3)
+             ${command.newOnly ? "" : "ON CONFLICT(tutor_id) DO UPDATE SET reviewer_user_id=excluded.reviewer_user_id,status=excluded.status,assignment_revision=excluded.assignment_revision,updated_at=clock_timestamp()"}`,
             [command.tutorId, id, revision],
           );
           await connection.query(
@@ -492,17 +543,35 @@ export async function runPrivateWorkflowOperation(
           booking.rows.length === 1 &&
             packet.accountEmails.includes(String(booking.rows[0].email)),
         );
-        await connection.query(
-          `INSERT INTO public.booking_workflow_grants(logical_booking_id,actor_user_id,action,active,valid_until,reference)
+        if (command.newOnly) {
+          const prior = await connection.query(
+            `SELECT actor_user_id,active,valid_until>clock_timestamp() AS current
+             FROM public.booking_workflow_grants
+             WHERE logical_booking_id=$1 AND action='confirm' FOR UPDATE`,
+            [booking.rows[0].logical_booking_id],
+          );
+          requireResult(
+            prior.rows.every(
+              (grant) =>
+                grant.actor_user_id === id &&
+                grant.active === true &&
+                grant.current === true,
+            ),
+          );
+          changed = !prior.rows.length;
+        }
+        if (!command.newOnly || changed)
+          await connection.query(
+            `INSERT INTO public.booking_workflow_grants(logical_booking_id,actor_user_id,action,active,valid_until,reference)
            VALUES($1,$2,'confirm',true,$3::timestamptz,$4)
-           ON CONFLICT(logical_booking_id,actor_user_id,action) DO UPDATE SET active=true,valid_until=excluded.valid_until`,
-          [
-            booking.rows[0].logical_booking_id,
-            id,
-            command.validUntil,
-            `synthetic:${randomUUID()}`,
-          ],
-        );
+           ${command.newOnly ? "" : "ON CONFLICT(logical_booking_id,actor_user_id,action) DO UPDATE SET active=true,valid_until=excluded.valid_until"}`,
+            [
+              booking.rows[0].logical_booking_id,
+              id,
+              command.validUntil,
+              `synthetic:${randomUUID()}`,
+            ],
+          );
       }
     }
     await requireWindow(
@@ -512,6 +581,36 @@ export async function runPrivateWorkflowOperation(
     );
     await requireHeads(connection, packet);
     await reviewer(connection, command.reviewerEmail, packet, true);
+    // Re-evaluate finite authority in a fresh statement after every row-lock
+    // wait. SELECT's earlier clock expression is not an expiry guarantee.
+    if (command.action === "assign-screening" && command.newOnly) {
+      const current = await connection.query(
+        `SELECT user_id FROM public.tutor_screening_staff
+         WHERE user_id=$1 AND provenance='synthetic_readiness'
+           AND status='authorized' AND valid_until>clock_timestamp()`,
+        [id],
+      );
+      requireResult(current.rows.length === 1);
+    }
+    if (command.action === "grant-confirmation" && command.newOnly) {
+      const current = await connection.query(
+        `SELECT g.actor_user_id,g.active,g.valid_until>clock_timestamp() AS current
+         FROM public.booking_workflow_grants g JOIN public.bookings b
+           ON b.logical_booking_id=g.logical_booking_id
+         WHERE b.id=$1 AND g.action='confirm' AND b.state='provisional'
+           AND b.expires_at>clock_timestamp()
+           AND public.has_current_booking_beneficiary(b.booked_by_user_id,b.learner_id,b.admission_policy_id)
+           AND public.has_current_tutor_screening(b.tutor_id,'synthetic_readiness')`,
+        [command.bookingId],
+      );
+      requireResult(
+        current.rows.length === 1 &&
+          current.rows[0].actor_user_id === id &&
+          current.rows[0].active === true &&
+          current.rows[0].current === true,
+      );
+    }
+    assertCurrentPacket();
     await connection.query("COMMIT");
     transaction = false;
     return {
@@ -519,8 +618,9 @@ export async function runPrivateWorkflowOperation(
       status: "applied" as const,
       policies: command.action === "prepare" ? 3 : 0,
       reviewers: command.action === "prepare" ? 1 : 0,
-      assignments: command.action.startsWith("assign-") ? 1 : 0,
-      confirmationGrants: command.action === "grant-confirmation" ? 1 : 0,
+      assignments: command.action.startsWith("assign-") && changed ? 1 : 0,
+      confirmationGrants:
+        command.action === "grant-confirmation" && changed ? 1 : 0,
       ...(command.action === "grant-account" ? { accountGrants: 1 } : {}),
     };
   } catch {

@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import {
   privateActorPredicate,
   privateTutorPredicate,
@@ -62,6 +63,7 @@ export function requireBookingPolicy(
   );
   if (
     p.authority === "disabled" ||
+    (p.authority === "local_operation" && !getLocalWorkflow(c.runtime)) ||
     (!isPrivateWorkflow(c.runtime) && !isLoopbackOrigin(c.runtime.origin))
   )
     throw new AccessError(503);
@@ -106,7 +108,7 @@ async function receipt(
   },
 ): Promise<WorkflowReceipt> {
   const r = await tx.execute<WorkflowReceipt>(
-    sql`SELECT b.id,b.logical_booking_id AS "logicalBookingId",b.revision,b.workflow_revision AS "workflowRevision",${eventId} AS "eventId",CASE WHEN b.state='provisional' AND b.expires_at<=clock_timestamp() THEN 'expired' ELSE b.state END AS state,p.version AS "policyVersion" FROM public.bookings b JOIN public.booking_workflow_policies p ON p.id=b.workflow_policy_id WHERE ${privateBookingPredicate(privatePacket, sql`b.id`)} AND ${privateActorPredicate(privatePacket, sql`${actor.userId}`)} AND b.id=${id}::uuid AND b.workflow_policy_id=${policyId}::uuid AND public.booking_workflow_policy_current(b.workflow_policy_id) AND public.has_current_booking_beneficiary(b.booked_by_user_id,b.learner_id,b.admission_policy_id) AND EXISTS(SELECT 1 FROM public.session acting JOIN public."user" au ON au.id=acting.user_id JOIN public.user_access aa ON aa.user_id=au.id AND aa.status='active' WHERE acting.id=${actor.sessionId} AND acting.user_id=${actor.userId} AND acting.expires_at>clock_timestamp() AND au.email_verified AND au.email LIKE '%.test') AND (public.has_current_learner_authority(${actor.userId},${actor.sessionId},b.learner_id,b.admission_policy_id) OR (${action}<>'create' AND EXISTS(SELECT 1 FROM public.tutor_profiles t JOIN public.user_roles tr ON tr.user_id=t.user_id AND tr.role='tutor' WHERE t.id=b.tutor_id AND t.user_id=${actor.userId} AND public.has_current_tutor_screening(t.id,'synthetic_readiness'))) OR public.has_booking_workflow_task(${actor.userId},${actor.sessionId},b.id,${action}))`,
+    sql`SELECT b.id,b.logical_booking_id AS "logicalBookingId",b.revision,b.workflow_revision AS "workflowRevision",${eventId} AS "eventId",CASE WHEN b.state='provisional' AND b.expires_at<=clock_timestamp() THEN 'expired' ELSE b.state END AS state,p.version AS "policyVersion" FROM public.bookings b JOIN public.booking_workflow_policies p ON p.id=b.workflow_policy_id WHERE ${privateBookingPredicate(privatePacket, sql`b.id`)} AND ${privateActorPredicate(privatePacket, sql`${actor.userId}`)} AND b.id=${id}::uuid AND b.workflow_policy_id=${policyId}::uuid AND public.booking_workflow_policy_current(b.workflow_policy_id) AND public.has_current_booking_beneficiary(b.booked_by_user_id,b.learner_id,b.admission_policy_id) AND EXISTS(SELECT 1 FROM public.session acting JOIN public."user" au ON au.id=acting.user_id JOIN public.user_access aa ON aa.user_id=au.id AND aa.status='active' WHERE acting.id=${actor.sessionId} AND acting.user_id=${actor.userId} AND acting.expires_at>clock_timestamp() AND au.email_verified AND public.workflow_identity(${actor.userId},${actor.sessionId},b.source)) AND (public.has_current_learner_authority(${actor.userId},${actor.sessionId},b.learner_id,b.admission_policy_id) OR (${action}<>'create' AND EXISTS(SELECT 1 FROM public.tutor_profiles t JOIN public.user_roles tr ON tr.user_id=t.user_id AND tr.role='tutor' WHERE t.id=b.tutor_id AND t.user_id=${actor.userId} AND public.has_current_tutor_screening(t.id,b.source))) OR public.has_booking_workflow_task(${actor.userId},${actor.sessionId},b.id,${action}))`,
   );
   if (!r.rows[0]) throw new AccessError(404);
   const stored = await tx
@@ -179,7 +181,7 @@ async function currentChoice(
     timezone: string;
     subjectId: string;
   }>(
-    sql`SELECT t.id,t.timezone,s.id AS "subjectId" FROM public.tutor_profiles t JOIN public.subjects s ON s.slug=${v.subjectSlug} AND s.is_active JOIN public.tutor_subjects ts ON ts.tutor_id=t.id AND ts.subject_id=s.id JOIN public.learner_profiles l ON l.id=${v.learnerId}::uuid AND l.level=ANY(ts.levels) WHERE ${privateTutorPredicate(privatePacket, sql`t.id`)} AND ${privateActorPredicate(privatePacket, sql`${id.userId}`)} AND t.slug=${v.tutorSlug} AND public.booking_workflow_policy_current(${p.policyId}::uuid) AND public.has_current_learner_authority(${id.userId},${id.sessionId},l.id,${p.admissionPolicyId}::uuid) AND public.has_current_tutor_screening(t.id,'synthetic_readiness') AND t.review_status='approved' AND EXISTS(SELECT 1 FROM public."user" u JOIN public.user_access a ON a.user_id=u.id AND a.status='active' JOIN public.user_roles r ON r.user_id=u.id AND r.role='tutor' WHERE u.id=t.user_id AND u.email_verified AND u.email LIKE '%.test')`,
+    sql`SELECT t.id,t.timezone,s.id AS "subjectId" FROM public.tutor_profiles t JOIN public.subjects s ON s.slug=${v.subjectSlug} AND s.is_active JOIN public.tutor_subjects ts ON ts.tutor_id=t.id AND ts.subject_id=s.id JOIN public.learner_profiles l ON l.id=${v.learnerId}::uuid AND l.level=ANY(ts.levels) WHERE ${privateTutorPredicate(privatePacket, sql`t.id`)} AND ${privateActorPredicate(privatePacket, sql`${id.userId}`)} AND t.slug=${v.tutorSlug} AND public.booking_workflow_policy_current(${p.policyId}::uuid) AND public.has_current_learner_authority(${id.userId},${id.sessionId},l.id,${p.admissionPolicyId}::uuid) AND public.has_current_tutor_screening(t.id,${p.source}) AND t.review_status='approved' AND EXISTS(SELECT 1 FROM public."user" u JOIN public.user_access a ON a.user_id=u.id AND a.status='active' JOIN public.user_roles r ON r.user_id=u.id AND r.role='tutor' WHERE u.id=t.user_id AND u.email_verified AND (${p.source}='local_operation' OR u.email LIKE '%.test'))`,
   );
   if (!r.rows[0]) throw new AccessError(404);
   return r.rows[0];
@@ -208,7 +210,7 @@ export async function loadWorkflowOptions(
     tutors: await listEligibleTutors(
       c.runtime.db,
       {},
-      "synthetic_readiness",
+      p.source,
       getPrivateWorkflow(c.runtime),
     ),
     timezone: currentSession.user.timezone,
@@ -392,7 +394,8 @@ export async function readWorkflowTask(
   bookingId: string,
 ) {
   const packet = getPrivateWorkflow(c.runtime);
-  if (packet) return readPrivateStaffBooking(c, headers, bookingId);
+  if (packet || getLocalWorkflow(c.runtime))
+    return readPrivateStaffBooking(c, headers, bookingId);
   const p = requireBookingPolicy(c),
     id = await requireAdminAssurance(c.runtime, headers);
   if (!z.uuid().safeParse(bookingId).success) throw new AccessError(404);
@@ -406,7 +409,7 @@ export async function readWorkflowTask(
     subject: string;
     actions: WorkflowAction[];
   }>(
-    sql`SELECT b.id,b.state,b.workflow_revision AS "workflowRevision",b.start_at_utc::text AS start,b.end_at_utc::text AS "end",u.timezone,s.name AS subject,ARRAY(SELECT g.action FROM public.booking_workflow_grants g WHERE g.logical_booking_id=b.logical_booking_id AND g.actor_user_id=${id.userId} AND public.has_booking_workflow_task(${id.userId},${id.sessionId},b.id,g.action)) AS actions FROM public.bookings b JOIN public.subjects s ON s.id=b.subject_id JOIN public."user" u ON u.id=${id.userId} WHERE ${privateBookingPredicate(getPrivateWorkflow(c.runtime), sql`b.id`)} AND ${privateActorPredicate(getPrivateWorkflow(c.runtime), sql`${id.userId}`)} AND b.id=${bookingId}::uuid AND b.source='synthetic_readiness' AND b.workflow_policy_id=${p.policyId}::uuid AND public.booking_workflow_policy_current(b.workflow_policy_id) AND public.has_current_booking_beneficiary(b.booked_by_user_id,b.learner_id,b.admission_policy_id) AND public.has_current_tutor_screening(b.tutor_id,'synthetic_readiness') AND EXISTS(SELECT 1 FROM public.booking_workflow_grants g WHERE g.logical_booking_id=b.logical_booking_id AND public.has_booking_workflow_task(${id.userId},${id.sessionId},b.id,g.action))`,
+    sql`SELECT b.id,b.state,b.workflow_revision AS "workflowRevision",b.start_at_utc::text AS start,b.end_at_utc::text AS "end",u.timezone,s.name AS subject,ARRAY(SELECT g.action FROM public.booking_workflow_grants g WHERE g.logical_booking_id=b.logical_booking_id AND g.actor_user_id=${id.userId} AND public.has_booking_workflow_task(${id.userId},${id.sessionId},b.id,g.action)) AS actions FROM public.bookings b JOIN public.subjects s ON s.id=b.subject_id JOIN public."user" u ON u.id=${id.userId} WHERE ${privateBookingPredicate(getPrivateWorkflow(c.runtime), sql`b.id`)} AND ${privateActorPredicate(getPrivateWorkflow(c.runtime), sql`${id.userId}`)} AND b.id=${bookingId}::uuid AND b.source=${p.source} AND b.workflow_policy_id=${p.policyId}::uuid AND public.booking_workflow_policy_current(b.workflow_policy_id) AND public.has_current_booking_beneficiary(b.booked_by_user_id,b.learner_id,b.admission_policy_id) AND public.has_current_tutor_screening(b.tutor_id,b.source) AND EXISTS(SELECT 1 FROM public.booking_workflow_grants g WHERE g.logical_booking_id=b.logical_booking_id AND public.has_booking_workflow_task(${id.userId},${id.sessionId},b.id,g.action))`,
   );
   if (!r.rows[0]) throw new AccessError(404);
   assertPrivateWorkflowUnchanged(c.runtime, packet);
@@ -438,7 +441,7 @@ export async function readTutorCompletion(
     SELECT b.id,b.workflow_revision AS "workflowRevision"
     FROM public.bookings b
     WHERE ${privateBookingPredicate(getPrivateWorkflow(c.runtime), sql`b.id`)} AND ${privateActorPredicate(getPrivateWorkflow(c.runtime), sql`${id.userId}`)} AND b.id=${bookingId}::uuid AND b.workflow_policy_id=${p.policyId}::uuid
-      AND b.source='synthetic_readiness' AND b.state='confirmed'
+      AND b.source=${p.source} AND b.state='confirmed'
       AND b.end_at_utc<=clock_timestamp()
       AND public.has_booking_workflow_task(${id.userId},${id.sessionId},b.id,'complete')
   `);
@@ -457,12 +460,12 @@ export async function readWorkflowMoveCandidates(
       sql`SELECT t.id FROM public.tutor_profiles t JOIN public.bookings b ON b.tutor_id=t.id WHERE b.id=${bookingId}::uuid FOR UPDATE OF t`,
     );
     const result = await tx.execute<{ id: string; timezone: string }>(
-      sql`SELECT t.id,t.timezone FROM public.bookings b JOIN public.tutor_profiles t ON t.id=b.tutor_id WHERE ${privateBookingPredicate(getPrivateWorkflow(c.runtime), sql`b.id`)} AND ${privateActorPredicate(getPrivateWorkflow(c.runtime), sql`${id.userId}`)} AND b.id=${bookingId}::uuid AND b.source='synthetic_readiness' AND b.state IN('provisional','confirmed') AND (b.state='confirmed' OR b.expires_at>clock_timestamp()) AND b.start_at_utc>clock_timestamp()+interval '60 minutes' AND b.workflow_policy_id=${p.policyId}::uuid AND public.booking_workflow_policy_current(b.workflow_policy_id) AND public.has_current_learner_authority(${id.userId},${id.sessionId},b.learner_id,b.admission_policy_id) AND public.has_current_tutor_screening(t.id,'synthetic_readiness')`,
+      sql`SELECT t.id,t.timezone FROM public.bookings b JOIN public.tutor_profiles t ON t.id=b.tutor_id WHERE ${privateBookingPredicate(getPrivateWorkflow(c.runtime), sql`b.id`)} AND ${privateActorPredicate(getPrivateWorkflow(c.runtime), sql`${id.userId}`)} AND b.id=${bookingId}::uuid AND b.source=${p.source} AND b.state IN('provisional','confirmed') AND (b.state='confirmed' OR b.expires_at>clock_timestamp()) AND b.start_at_utc>clock_timestamp()+interval '60 minutes' AND b.workflow_policy_id=${p.policyId}::uuid AND public.booking_workflow_policy_current(b.workflow_policy_id) AND public.has_current_learner_authority(${id.userId},${id.sessionId},b.learner_id,b.admission_policy_id) AND public.has_current_tutor_screening(t.id,${p.source})`,
     );
     if (!result.rows[0]) throw new AccessError(404);
     const slots = await candidateIntervals(tx, result.rows[0], p, bookingId);
     const fresh = await tx.execute<{ id: string; timezone: string }>(
-      sql`SELECT t.id,t.timezone FROM public.bookings b JOIN public.tutor_profiles t ON t.id=b.tutor_id WHERE ${privateBookingPredicate(getPrivateWorkflow(c.runtime), sql`b.id`)} AND ${privateActorPredicate(getPrivateWorkflow(c.runtime), sql`${id.userId}`)} AND b.id=${bookingId}::uuid AND b.source='synthetic_readiness' AND b.state IN('provisional','confirmed') AND (b.state='confirmed' OR b.expires_at>clock_timestamp()) AND b.start_at_utc>clock_timestamp()+interval '60 minutes' AND b.workflow_policy_id=${p.policyId}::uuid AND public.booking_workflow_policy_current(b.workflow_policy_id) AND public.has_current_learner_authority(${id.userId},${id.sessionId},b.learner_id,b.admission_policy_id) AND public.has_current_tutor_screening(t.id,'synthetic_readiness')`,
+      sql`SELECT t.id,t.timezone FROM public.bookings b JOIN public.tutor_profiles t ON t.id=b.tutor_id WHERE ${privateBookingPredicate(getPrivateWorkflow(c.runtime), sql`b.id`)} AND ${privateActorPredicate(getPrivateWorkflow(c.runtime), sql`${id.userId}`)} AND b.id=${bookingId}::uuid AND b.source=${p.source} AND b.state IN('provisional','confirmed') AND (b.state='confirmed' OR b.expires_at>clock_timestamp()) AND b.start_at_utc>clock_timestamp()+interval '60 minutes' AND b.workflow_policy_id=${p.policyId}::uuid AND public.booking_workflow_policy_current(b.workflow_policy_id) AND public.has_current_learner_authority(${id.userId},${id.sessionId},b.learner_id,b.admission_policy_id) AND public.has_current_tutor_screening(t.id,${p.source})`,
     );
     if (!fresh.rows[0]) throw new AccessError(404);
     return slots.map((t) => formatLessonTime(t.start, t.end, "UTC"));
@@ -476,8 +479,10 @@ async function workflowTransaction<T>(
   try {
     const packet = getPrivateWorkflow(runtime);
     return await reservationTransaction(runtime, async (tx) => {
+      getLocalWorkflow(runtime);
       assertPrivateWorkflowUnchanged(runtime, packet);
       const result = await run(tx);
+      getLocalWorkflow(runtime);
       assertPrivateWorkflowUnchanged(runtime, packet);
       return result;
     });

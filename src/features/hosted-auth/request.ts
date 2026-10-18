@@ -1,6 +1,9 @@
 import { getPrivateWorkflow } from "@/features/private-workflow/runtime";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { hostedHeadersAllowed, hostedProviderHeaders } from "./ingress";
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
+import { syntheticEmail } from "@/lib/local-mode";
+import { mailboxSchema } from "@/lib/email/mailbox";
 
 export function isHostedRuntime(runtime: AuthRuntime) {
   return "hosted" in runtime;
@@ -28,6 +31,8 @@ export function providerHeaders(
   return headers;
 }
 export function permitsAccountEmail(runtime: AuthRuntime, email: string) {
+  if (getLocalWorkflow(runtime)) return mailboxSchema.safeParse(email).success;
+  if (!syntheticEmail(email)) return false;
   const privateWorkflow = getPrivateWorkflow(runtime);
   if (privateWorkflow && !privateWorkflow.accountEmails.includes(email))
     return false;

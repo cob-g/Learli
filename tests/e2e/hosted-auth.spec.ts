@@ -113,7 +113,7 @@ async function register(page: Page, email: string) {
   await expect(
     page
       .getByRole("status")
-      .filter({ hasText: "verification request was accepted" }),
+      .filter({ hasText: "Registration request received." }),
   ).toBeVisible();
   await page.goto(proofLink(email, "Verify your Learli email"));
   await expect(page).toHaveURL(/\/sign-in\?verified=1/);
@@ -651,8 +651,17 @@ test("320/390/1440 keyboard and axe; no-JS mutation safety; SDK error and truthf
     await page.getByLabel("Password", { exact: true }).fill(password);
     await page.getByRole("button", { name: "Create account" }).click();
     await expect(
-      page.getByRole("alert").filter({ hasText: "could not be completed" }),
+      page.getByRole("alert").filter({
+        hasText: "We couldn't confirm that your registration request finished.",
+      }),
     ).toBeVisible();
+    await expect(page.getByLabel("Password", { exact: true })).toHaveValue("");
+    await expect(
+      page.getByRole("button", { name: "Create account", exact: true }),
+    ).toBeEnabled();
+    await expect(
+      page.getByRole("heading", { name: "Verify your email", exact: true }),
+    ).toHaveCount(0);
   } finally {
     writeFileSync(
       path.join(state().captures, "response.json"),

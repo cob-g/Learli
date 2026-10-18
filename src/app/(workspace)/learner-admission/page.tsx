@@ -5,7 +5,7 @@ import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { admissionContext } from "@/features/learner-admission/context";
 import { listMyAdmissions } from "@/features/learner-admission/service";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Your admission requests",
@@ -32,7 +32,7 @@ export default async function Page({
     cursor ? `/learner-admission?after=${cursor}` : "/learner-admission",
     async (runtime, headers) => ({
       ...(await listMyAdmissions(admissionContext(runtime), headers, cursor)),
-      privateWorkflow: isPrivateWorkflow(runtime),
+      privateWorkflow: hasPersistentWorkflow(runtime),
     }),
   );
   if (!result)

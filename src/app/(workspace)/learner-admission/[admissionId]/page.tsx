@@ -11,7 +11,7 @@ import { canonicalAdmissionSelection } from "@/features/learner-admission/input"
 import { LearnerLink } from "@/features/learners/learner-link";
 import { levelNames } from "@/features/subjects/catalog";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Admission request",
@@ -37,7 +37,7 @@ export default async function Page({
         headers,
         admissionId,
       ),
-      privateWorkflow: isPrivateWorkflow(runtime),
+      privateWorkflow: hasPersistentWorkflow(runtime),
     }),
   );
   if (!result)
@@ -74,6 +74,7 @@ export default async function Page({
         </h2>
         <p className="mt-2 text-body">
           {levelNames([row.learner.level]).join()}.{" "}
+          {row.learner.grade != null && <>Grade {row.learner.grade}. </>}
           {row.management === "self"
             ? "Independent learner"
             : "Guardian-managed learner"}

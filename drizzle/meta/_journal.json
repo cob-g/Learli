@@ -239,6 +239,34 @@
       "when": 1792132514157,
       "tag": "0033_assigned_tutor_completion",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1792202858375,
+      "tag": "0034_learner_school_grade",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1792253474716,
+      "tag": "0035_local_operational_workflow",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1792254153064,
+      "tag": "0036_local_staff_audit",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1792254478531,
+      "tag": "0037_local_claim_receipts",
+      "breakpoints": true
     }
   ]
 }

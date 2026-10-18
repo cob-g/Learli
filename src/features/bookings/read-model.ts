@@ -16,7 +16,7 @@ export function bookingDetailPath(id: string, scope: BookingReadScope) {
 }
 export type BookingSummary = {
   id: string;
-  source: "local_simulation" | "synthetic_readiness";
+  source: "local_simulation" | "synthetic_readiness" | "local_operation";
   workflowRevision?: number;
   policyVersion?: string;
   logicalBookingId?: string;

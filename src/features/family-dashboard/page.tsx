@@ -3,7 +3,7 @@ import { FamilyDashboard } from "./dashboard";
 import { DashboardUnavailable } from "./states";
 import { readFamilyDashboard } from "./read";
 import type { FamilyWorkspace } from "./model";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 
 export async function FamilyDashboardPage({
   workspace,
@@ -17,7 +17,7 @@ export async function FamilyDashboardPage({
     `/${workspace}`,
     async (runtime, headers) => ({
       data: await readFamilyDashboard(runtime, headers, workspace, query),
-      privateWorkflow: isPrivateWorkflow(runtime),
+      privateWorkflow: hasPersistentWorkflow(runtime),
     }),
   );
   return result ? (

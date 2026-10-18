@@ -10,6 +10,7 @@ import {
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { AdminShell } from "@/features/admin/admin-shell";
 import { safePage } from "@/features/support/input";
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { getPrivateWorkflow } from "@/features/private-workflow/runtime";
 import {
   accountListHref,
@@ -38,7 +39,7 @@ export default async function Page({
     listTargets(
       runtime,
       headers,
-      getPrivateWorkflow(runtime)
+      getLocalWorkflow(runtime) || getPrivateWorkflow(runtime)
         ? accountQueryFromSearch(search)
         : safePage(params.page),
     ),
@@ -53,13 +54,22 @@ export default async function Page({
   return (
     <AdminShell current="accounts">
       <h1 className="text-page-title">
-        {result.privateWorkflow
-          ? "Authorized fictional accounts"
-          : "Authorized local accounts"}
+        {result.localWorkflow
+          ? "Authorized accounts"
+          : result.privateWorkflow
+            ? "Authorized fictional accounts"
+            : "Authorized local accounts"}
       </h1>
-      <LocalRestrictionNotice privateWorkflow={result.privateWorkflow} />
+      <LocalRestrictionNotice
+        privateWorkflow={result.privateWorkflow}
+        localWorkflow={result.localWorkflow}
+      />
       {result.query && <AccountFilters query={result.query} />}
-      <TargetRows targets={result.targets} query={result.query} />
+      <TargetRows
+        targets={result.targets}
+        query={result.query}
+        localWorkflow={result.localWorkflow}
+      />
       <nav className="mt-8 flex flex-wrap gap-4" aria-label="Account pages">
         {result.page > 1 && (
           <AccountReadLink

@@ -9,7 +9,11 @@ export function DashboardUnavailable({
 }) {
   return (
     <div className="page-shell page-space">
-      <h1 className="text-page-title">Bookings unavailable</h1>
+      <h1 className="text-page-title">
+        {workspace === "parent"
+          ? "Parent Dashboard unavailable"
+          : "Bookings unavailable"}
+      </h1>
       <div
         role="alert"
         className="mt-6 flex max-w-prose gap-3 rounded-surface border border-error bg-error-soft p-6"

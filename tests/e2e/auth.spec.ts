@@ -38,7 +38,9 @@ test("Parent selection survives UI registration and verification, and explicit e
 }) => {
   const email = `parent-onboarding-${randomUUID()}@learli.test`;
   await page.goto("/sign-up");
-  await page.getByLabel("Account type", { exact: true }).selectOption("parent");
+  await page
+    .getByRole("radio", { name: "Parent or guardian", exact: true })
+    .check();
   await page
     .getByLabel("Display name", { exact: true })
     .fill("Parent onboarding tester");
@@ -47,7 +49,9 @@ test("Parent selection survives UI registration and verification, and explicit e
   await page
     .getByRole("button", { name: "Create account", exact: true })
     .click();
-  await expect(page.getByRole("status")).toContainText("verification message");
+  await expect(page.getByRole("status")).toContainText(
+    "Registration request received.",
+  );
   const id = (
     await owner.pool.query('SELECT id FROM "user" WHERE email=$1', [email])
   ).rows[0].id as string;
@@ -95,7 +99,7 @@ test("Parent selection survives UI registration and verification, and explicit e
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL("/parent");
   await expect(
-    page.getByRole("heading", { name: "Bookings", exact: true }),
+    page.getByRole("heading", { name: "Parent Dashboard", exact: true }),
   ).toBeVisible();
   expect(await roles()).toEqual(["parent"]);
   expect(
@@ -216,7 +220,9 @@ test("parent setup preserves the original safe tutor search after verification a
   const email = `parent-return-${randomUUID()}@learli.test`;
   const next = "/tutors?subject=math&level=middle_school";
   await page.goto(`/sign-up?${new URLSearchParams({ next })}`);
-  await page.getByLabel("Account type", { exact: true }).selectOption("parent");
+  await page
+    .getByRole("radio", { name: "Parent or guardian", exact: true })
+    .check();
   await page
     .getByLabel("Display name", { exact: true })
     .fill("Parent return tester");
@@ -225,7 +231,9 @@ test("parent setup preserves the original safe tutor search after verification a
   await page
     .getByRole("button", { name: "Create account", exact: true })
     .click();
-  await expect(page.getByRole("status")).toContainText("verification message");
+  await expect(page.getByRole("status")).toContainText(
+    "Registration request received.",
+  );
   await page.goto((await mail(email, "verification")).url);
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
@@ -254,7 +262,9 @@ test("local signup, verification, safe return, settings and logout work end to e
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page.getByRole("status")).toContainText("verification message");
+  await expect(page.getByRole("status")).toContainText(
+    "Registration request received.",
+  );
   await page.goto((await mail(email, "verification")).url);
   await expect(
     page.getByRole("heading", { name: "Sign in", exact: true }),
@@ -475,9 +485,13 @@ test("workspace pages enforce trusted role grants", async ({ page }) => {
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL("/account");
-  await page.getByRole("link", { name: "Parent workspace" }).click();
+  await page
+    .getByRole("main")
+    .getByRole("navigation", { name: "Your workspaces" })
+    .getByRole("link", { name: "Parent Dashboard", exact: true })
+    .click();
   await expect(
-    page.getByRole("heading", { name: "Bookings", exact: true }),
+    page.getByRole("heading", { name: "Parent Dashboard", exact: true }),
   ).toBeVisible();
   await page.goto("/tutor");
   await expect(

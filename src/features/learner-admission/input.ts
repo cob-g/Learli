@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { learnerInput } from "@/features/learners/input";
+import { learnerFields, validateLearnerGrade } from "@/features/learners/input";
 import {
   selectionFromReturnPath,
   bookingSelectionHref,
@@ -14,7 +14,7 @@ export function canonicalAdmissionSelection(input: unknown): string | null {
   const discovery = discoveryFromReturnPath(input);
   return discovery ? bookingDiscoveryHref(discovery) : null;
 }
-export const admissionInput = learnerInput
+export const admissionInput = learnerFields
   .extend({
     requestId: z.uuid(),
     management: z.enum(["guardian", "self"]),
@@ -23,6 +23,7 @@ export const admissionInput = learnerInput
     next: z.string().max(2048).optional(),
   })
   .superRefine((v, ctx) => {
+    validateLearnerGrade(v, ctx);
     if (v.management === "self" && v.level !== "college_support")
       ctx.addIssue({
         code: "custom",
@@ -45,19 +46,17 @@ export const evidenceInput = z.strictObject({
   ]),
   reference: z
     .string()
-    .regex(
-      /^[A-Za-z0-9:_-]{1,128}$/,
-      "Use a bounded opaque synthetic reference.",
-    ),
+    .regex(/^[A-Za-z0-9:_-]{1,128}$/, "Use a bounded opaque review reference."),
 });
 export const revokeEvidenceInput = z.strictObject({
   requestId: z.uuid(),
   revision: z.number().int().min(0),
   evidenceId: z.uuid(),
 });
-export const admittedLearnerInput = learnerInput.pick({
+export const admittedLearnerInput = learnerFields.pick({
   displayName: true,
   timezone: true,
+  grade: true,
 });
 
 /** Cursor contains only an opaque private request ID; authorization is checked again in SQL. */

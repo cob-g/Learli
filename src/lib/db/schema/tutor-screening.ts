@@ -15,7 +15,9 @@ import { user } from "./auth";
 import { tutorProfiles } from "./app";
 const instant = (n: string) => timestamp(n, { withTimezone: true });
 const source = () =>
-  text("provenance").$type<"synthetic_readiness">().notNull();
+  text("provenance")
+    .$type<"synthetic_readiness" | "local_operation">()
+    .notNull();
 const policyReceipt = () => ({
   provenance: source(),
   policyVersion: text("policy_version").notNull(),
@@ -31,17 +33,17 @@ export const tutorScreeningPolicies = pgTable(
     allowedActions: text("allowed_actions").array().notNull(),
     expiryRule: text("expiry_rule").notNull(),
     validFrom: instant("valid_from").notNull(),
-    validUntil: instant("valid_until").notNull(),
+    validUntil: instant("valid_until"),
   },
   (t) => [
     primaryKey({ columns: [t.provenance, t.version] }),
     check(
       "screening_policy_source",
-      sql`${t.provenance}='synthetic_readiness'`,
+      sql`${t.provenance} IN ('synthetic_readiness','local_operation')`,
     ),
     check(
       "screening_policy_window",
-      sql`isfinite(${t.validFrom}) AND isfinite(${t.validUntil}) AND ${t.validUntil}>${t.validFrom}`,
+      sql`isfinite(${t.validFrom}) AND ((${t.provenance}='local_operation' AND ${t.validUntil} IS NULL) OR (${t.validUntil} IS NOT NULL AND isfinite(${t.validUntil}) AND ${t.validUntil}>${t.validFrom}))`,
     ),
     check(
       "screening_policy_codes",
@@ -99,7 +101,10 @@ export const tutorScreeningCases = pgTable(
         tutorScreeningPolicies.version,
       ],
     }).onDelete("restrict"),
-    check("screening_case_source", sql`${t.provenance}='synthetic_readiness'`),
+    check(
+      "screening_case_source",
+      sql`${t.provenance} IN ('synthetic_readiness','local_operation')`,
+    ),
     check("screening_case_revision", sql`${t.round}>=1 AND ${t.revision}>=0`),
     check(
       "screening_case_state",
@@ -114,21 +119,21 @@ export const tutorScreeningStaff = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "restrict" }),
     provenance: text("provenance")
-      .$type<"local_fixture" | "synthetic_readiness">()
+      .$type<"local_fixture" | "synthetic_readiness" | "local_operation">()
       .notNull(),
     status: text("status").$type<"authorized" | "revoked">().notNull(),
     capability: text("capability").default("screening_reviewer").notNull(),
-    validUntil: instant("valid_until").notNull(),
+    validUntil: instant("valid_until"),
   },
   (t) => [
     primaryKey({ columns: [t.userId, t.provenance] }),
     check(
       "screening_staff_source",
-      sql`${t.provenance} IN ('local_fixture','synthetic_readiness')`,
+      sql`${t.provenance} IN ('local_fixture','synthetic_readiness','local_operation')`,
     ),
     check(
       "screening_staff_status",
-      sql`${t.status} IN ('authorized','revoked') AND ${t.capability}='screening_reviewer' AND isfinite(${t.validUntil})`,
+      sql`${t.status} IN ('authorized','revoked') AND ${t.capability}='screening_reviewer' AND ((${t.provenance}='local_operation' AND ${t.validUntil} IS NULL) OR (${t.validUntil} IS NOT NULL AND isfinite(${t.validUntil})))`,
     ),
   ],
 );
@@ -140,7 +145,7 @@ export const tutorScreeningAssignments = pgTable(
       .references(() => tutorProfiles.id, { onDelete: "restrict" }),
     reviewerUserId: text("reviewer_user_id").notNull(),
     provenance: text("provenance")
-      .$type<"local_fixture" | "synthetic_readiness">()
+      .$type<"local_fixture" | "synthetic_readiness" | "local_operation">()
       .notNull(),
     status: text("status").$type<"authorized" | "revoked">().notNull(),
     assignmentRevision: integer("assignment_revision").default(0).notNull(),

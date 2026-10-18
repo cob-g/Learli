@@ -6,6 +6,7 @@ import { listTimeZoneOptions } from "@/lib/time/zones";
 import { isValidTimeZone } from "@/lib/time/time-zone";
 import { readOwnAvailability } from "@/features/availability/service";
 import { AvailabilityForm } from "@/features/availability/availability-form";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Availability",
@@ -16,6 +17,7 @@ export default async function AvailabilityPage() {
     "/tutor/availability",
     async (runtime, headers) => ({
       schedule: await readOwnAvailability(runtime, headers),
+      privateWorkflow: hasPersistentWorkflow(runtime),
     }),
   );
   if (!data)
@@ -46,6 +48,7 @@ export default async function AvailabilityPage() {
         ) : (
           <AvailabilityForm
             initial={schedule}
+            privateWorkflow={data.privateWorkflow}
             timeZones={listTimeZoneOptions(
               new Date(),
               isValidTimeZone(schedule.timezone) ? [schedule.timezone] : [],

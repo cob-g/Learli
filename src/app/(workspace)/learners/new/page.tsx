@@ -15,7 +15,7 @@ import {
 } from "@/features/bookings/selection";
 import { canonicalAdmissionSelection } from "@/features/learner-admission/input";
 import { getDomainAuthRuntime } from "@/lib/auth";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -29,7 +29,7 @@ export default async function CreateLearnerPage({
 }) {
   const rawNext = (await searchParams).next;
   const runtime = await getDomainAuthRuntime();
-  if (runtime && isPrivateWorkflow(runtime)) {
+  if (runtime && hasPersistentWorkflow(runtime)) {
     const next = canonicalAdmissionSelection(rawNext);
     redirect(
       next

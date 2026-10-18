@@ -2,6 +2,7 @@ import { afterEach, describe, it, expect, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 const fixture = vi.hoisted(() => ({
   mode: "disabled",
+  localWorkflow: "disabled",
   fingerprint: "first",
   local: { marker: "local-object" },
   hosted: { marker: "hosted-object", close: vi.fn(async () => {}) },
@@ -9,7 +10,10 @@ const fixture = vi.hoisted(() => ({
   hostedFactory: vi.fn(),
 }));
 vi.mock("@/lib/env/server", () => ({
-  getServerEnv: () => ({ AUTH_MODE: fixture.mode }),
+  getServerEnv: () => ({
+    AUTH_MODE: fixture.mode,
+    LOCAL_WORKFLOW_MODE: fixture.localWorkflow,
+  }),
 }));
 vi.mock("@/lib/auth-factory", () => ({
   createLocalAuth: fixture.localFactory,
@@ -26,16 +30,19 @@ vi.mock("@/features/hosted-auth/config-file", () => ({
 import { getAuthRuntime, getAccountAuthRuntime } from "@/lib/auth";
 const shared = globalThis as typeof globalThis & {
   learliAuth?: unknown;
+  learliLocalAuthFingerprint?: string;
   learliHostedAuth?: unknown;
   learliAccountMode?: string;
   learliCloseAccountAuth?: () => Promise<void>;
 };
 afterEach(() => {
   delete shared.learliAuth;
+  delete shared.learliLocalAuthFingerprint;
   delete shared.learliHostedAuth;
   delete shared.learliAccountMode;
   delete shared.learliCloseAccountAuth;
   fixture.mode = "disabled";
+  fixture.localWorkflow = "disabled";
   fixture.fingerprint = "first";
   vi.clearAllMocks();
 });
@@ -65,5 +72,13 @@ describe("consumed account selector, factory-stub unit boundary only", () => {
     fixture.mode = "local";
     await expect(getAccountAuthRuntime()).rejects.toThrow("configuration");
     expect(fixture.localFactory).not.toHaveBeenCalled();
+  });
+  it("refuses switching a cached local address policy inside the same process", () => {
+    fixture.mode = "local";
+    fixture.localFactory.mockReturnValue(fixture.local);
+    expect(getAuthRuntime()).toBe(fixture.local);
+    fixture.localWorkflow = "enabled";
+    expect(() => getAuthRuntime()).toThrow("configuration");
+    expect(fixture.localFactory).toHaveBeenCalledTimes(1);
   });
 });

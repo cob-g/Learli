@@ -19,7 +19,10 @@ import {
 } from "../../scripts/staging-migrations/protections";
 import { verifyRuntimeGrants } from "../../scripts/staging-migrations/privileges";
 import { runtimeGrantsSql } from "../../scripts/runtime-grants";
-import { runtimeGrantsBeforeParent } from "../support/migration-inventory";
+import {
+  runtimeGrantsBeforeParent,
+  expectLocalOperationRowPreservation,
+} from "../support/migration-inventory";
 
 // Keep this historical proof pinned to its exact 0000–0030 prefix.
 // Later migrations have their own fresh/upgrade preservation tests.
@@ -54,7 +57,7 @@ async function functions(client: PoolClient) {
       AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.classid='pg_proc'::regclass AND d.objid=p.oid AND d.deptype='e') ORDER BY p.proname`)
   ).rows;
 }
-async function rowHashes(client: PoolClient) {
+async function rowHashes(client: PoolClient, beforeGrade = false) {
   const tables = (
     await client.query<{ name: string }>(
       "SELECT tablename AS name FROM pg_tables WHERE schemaname='public' ORDER BY tablename",
@@ -64,7 +67,7 @@ async function rowHashes(client: PoolClient) {
   for (const { name } of tables) {
     if (!/^[a-z_]+$/.test(name)) throw new Error("Invalid fixture table.");
     const rows = await client.query(
-      `SELECT to_jsonb(t) AS row FROM public."${name}" t ORDER BY to_jsonb(t)::text`,
+      `SELECT to_jsonb(t)${beforeGrade && name === "learner_profiles" ? " - 'grade'" : ""} AS row FROM public."${name}" t ORDER BY to_jsonb(t)::text`,
     );
     hashes[name] = digest(JSON.stringify(rows.rows));
   }
@@ -302,10 +305,22 @@ describe("0030 readiness mutation isolation forward migration", () => {
           // Retain the pinned historical proof, then verify the exact current
           // privilege policy after an actual additive forward upgrade. Inspect
           // inherited ACLs before reapplying any current grant statements.
-          const historicalRows = await rowHashes(client);
+          const historicalRows = await rowHashes(client),
+            inheritedFunctions = await functions(client);
           await apply(client, currentCandidate.entries.length);
-          expect(await rowHashes(client)).toEqual(historicalRows);
-          await verifyRuntimeGrants(client);
+          // Compare every original column, then verify all inherited function
+          // identities/owners/ACLs before granting the additive0034 rights.
+          expectLocalOperationRowPreservation(
+            historicalRows,
+            await rowHashes(client, true),
+          );
+          const upgradedFunctions = await functions(client);
+          for (const inherited of inheritedFunctions) {
+            const upgraded = upgradedFunctions.find(
+              (fn) => fn.oid === inherited.oid,
+            );
+            expect({ ...upgraded, body: inherited.body }).toEqual(inherited);
+          }
           await client.query(runtimeGrantsSql);
           await verifyRuntimeGrants(client);
           await verifyProtections(

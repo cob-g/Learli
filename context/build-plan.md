@@ -1,5 +1,17 @@
 # Learli — Build Plan
 
+### Current local work package — 2026-10-18
+
+M8-03 ordinary local operational workflow supersedes the separate private manual
+preview for daily use, under the owner's explicit local-main instruction. The
+slice covers normal local account lifecycle plus existing reviewed role/booking
+coordination, additive provenance and in-app exact review claims. Preserve all
+prior data and source; no push/deploy/reset is authorized. Automated checks use a
+separate owned target; they never run fixture resets against the operating data.
+The earlier baseline paragraph is historical. Current implementation and executed
+verification are recorded in progress-tracker, not inferred from milestone boxes.
+
+
 > **Project:** Learli (`learli` is the visual wordmark)  
 > **Document:** `build-plan.md` — implementation sequencing and verification plan  
 > **Version:** 1.0  
@@ -1121,3 +1133,27 @@ tracing warnings. No product/schema/dependency/policy change. See
 history. Real Neon idle wake-up, delivered email/video, hosted activation and
 historical deferred security findings remain open; payments disabled. This does
 not mark M8.8/M8.9 or launch complete.
+
+## 2026-10-17 — Authorized parent Step2 supplement
+
+M4.4/M5.4 now include the owner-requested Parent Profile → My Children → Add
+Child journey and optional persisted school-grade metadata. This bounded slice
+reuses account settings, local fictional creation and reviewed admission; it does
+not complete either milestone or authorize real-child intake. Existing grade is
+unspecified, broad education level remains separate, and pending requests grant
+no guardian/booking authority. The canonical blueprint is
+`prompts/features/m4-04-parent-profile-children.md`; execution evidence belongs in
+the progress tracker. Exact remote migration/deployment remains a separate
+operational action.
+
+### M8.3 local manual preview slice — 2026-10-17
+
+The delegated `m8-03-manual-persistent-booking-preview` blueprint adds an isolated
+normal-build, long-lived fictional manual target and bounded explicit review
+metadata preparation. It reuses existing M4/M5/M8 workflow services. Automated
+checks run against a separate owned database; manual same-record creation,
+confirmation, original-hold survival and restart are separately evidenced.
+Completion of a fresh lesson requires its actual end and cannot be substituted
+with the automated suite’s historical fixture. This slice is not completion of
+all M8 gates, hosted staging deployment, payment activation or launch clearance.
+Actual check/Review outcomes belong in the progress tracker.

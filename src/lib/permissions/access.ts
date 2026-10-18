@@ -36,11 +36,7 @@ async function readIdentity(runtime: AuthRuntime, headers: Headers) {
         "hosted" in runtime ? providerHeaders(runtime, headers) : headers,
     });
   } catch (error) {
-    if (
-      "hosted" in runtime &&
-      isAPIError(error) &&
-      [401, 403].includes(error.statusCode)
-    )
+    if (isAPIError(error) && [401, 403].includes(error.statusCode))
       throw new AccessError(error.statusCode === 401 ? 401 : 403);
     throw error;
   }

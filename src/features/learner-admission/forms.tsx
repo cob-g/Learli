@@ -4,6 +4,8 @@ import { useHydrated } from "@/hooks/use-hydrated";
 import { z } from "zod";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
 import { describeLearnerIssues } from "@/features/learners/input";
+import { GradeField, formGrade } from "@/features/learners/grade-field";
+import Link from "next/link";
 import { admissionInput } from "./input";
 import {
   clearRequestId,
@@ -31,6 +33,7 @@ function useSubmission() {
     const first = [
       "displayName",
       "level",
+      "grade",
       "timezone",
       "checkCode",
       "reference",
@@ -126,6 +129,7 @@ export function AdmissionForm({
   next,
   privateWorkflow = false,
   initialManagement = "guardian",
+  parentChildFlow = false,
 }: {
   requestId: string;
   policyVersion: string;
@@ -134,10 +138,17 @@ export function AdmissionForm({
   next?: string;
   privateWorkflow?: boolean;
   initialManagement?: "guardian" | "self";
+  parentChildFlow?: boolean;
 }) {
   const [management, setManagement] = useState<"guardian" | "self">(
-    initialManagement,
+    parentChildFlow ? "guardian" : initialManagement,
   );
+  const [level, setLevel] = useState("elementary");
+  const [createdId, setCreatedId] = useState<string | null>(null);
+  const savedNotice = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (createdId) savedNotice.current?.focus();
+  }, [createdId]);
   const state = useSubmission();
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -149,6 +160,10 @@ export function AdmissionForm({
       management,
       displayName: fd.get("displayName"),
       level: management === "self" ? "college_support" : fd.get("level"),
+      grade:
+        management === "guardian" && level !== "college_support"
+          ? formGrade(fd.get("grade"))
+          : null,
       timezone: fd.get("timezone"),
       ...(next ? { next } : {}),
     };
@@ -168,8 +183,39 @@ export function AdmissionForm({
       fingerprint,
       id,
     });
-    if (result) window.location.replace(`/learner-admission/${result.id}`);
+    if (result) {
+      if (parentChildFlow) setCreatedId(result.id);
+      else window.location.replace(`/learner-admission/${result.id}`);
+    }
   }
+  if (createdId)
+    return (
+      <section aria-labelledby="child-request-saved" className="space-y-4">
+        <h2 id="child-request-saved" className="text-section-title">
+          Child request saved
+        </h2>
+        <p ref={savedNotice} tabIndex={-1} role="status" className="text-body">
+          Pending review. An assigned reviewer must authorize access before this
+          child can be booked.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <Link
+            className="action action-primary"
+            href="/parent/children"
+            prefetch={false}
+          >
+            My Children
+          </Link>
+          <Link
+            className="action action-outline"
+            href={`/learner-admission/${createdId}`}
+            prefetch={false}
+          >
+            View saved request
+          </Link>
+        </div>
+      </section>
+    );
   return (
     <form
       method="post"
@@ -179,26 +225,31 @@ export function AdmissionForm({
     >
       <fieldset disabled={state.disabled} className="space-y-6">
         <legend className="text-section-title">
-          {privateWorkflow
-            ? "Learner admission request"
-            : "Synthetic admission request"}
+          {parentChildFlow
+            ? "Child admission request"
+            : privateWorkflow
+              ? "Learner admission request"
+              : "Synthetic admission request"}
         </legend>
-        <div>
-          <label htmlFor="management" className="text-label">
-            Request type
-          </label>
-          <select
-            id="management"
-            className="field mt-2"
-            value={management}
-            onChange={(e) =>
-              setManagement(e.target.value === "self" ? "self" : "guardian")
-            }
-          >
-            <option value="guardian">Guardian-managed learner</option>
-            <option value="self">Independent College Support</option>
-          </select>
-        </div>
+        {!parentChildFlow && (
+          <div>
+            <label htmlFor="management" className="text-label">
+              Request type
+            </label>
+            <select
+              id="management"
+              className="field mt-2"
+              value={management}
+              onChange={(e) => {
+                setManagement(e.target.value === "self" ? "self" : "guardian");
+                setLevel("elementary");
+              }}
+            >
+              <option value="guardian">Guardian-managed learner</option>
+              <option value="self">Independent College Support</option>
+            </select>
+          </div>
+        )}
         <div>
           <label className="text-label" htmlFor="displayName">
             {privateWorkflow
@@ -226,7 +277,12 @@ export function AdmissionForm({
             <label className="text-label" htmlFor="level">
               Learner level
             </label>
-            <select id="level" name="level" className="field mt-2">
+            <select
+              id="level"
+              name="level"
+              className="field mt-2"
+              onChange={(event) => setLevel(event.target.value)}
+            >
               {learnerLevelOptions.map((level) => (
                 <option key={level[0]} value={level[0]}>
                   {level[1]}
@@ -240,6 +296,9 @@ export function AdmissionForm({
               ? "College Support. An assigned reviewer must confirm independent eligibility before booking access is available."
               : "College Support. Independent eligibility needs separate reviewer evidence; no guardian is required."}
           </p>
+        )}
+        {management === "guardian" && level !== "college_support" && (
+          <GradeField error={state.fields.grade} />
         )}
         <div>
           <label htmlFor="timezone" className="text-label">
@@ -262,7 +321,7 @@ export function AdmissionForm({
           className="action action-primary w-full transition-none sm:w-auto"
           type="submit"
         >
-          Request admission review
+          {parentChildFlow ? "Save child request" : "Request admission review"}
         </button>
       </fieldset>
       {state.feedback}
@@ -277,6 +336,7 @@ export function AdmissionReviewForms({
   privateWorkflow?: boolean;
 }) {
   const state = useSubmission();
+  const localWorkflow = admission.policyVersion === "local-admission-v1";
   const [confirm, setConfirm] = useState(false);
   async function submit(
     event: FormEvent<HTMLFormElement>,
@@ -311,9 +371,11 @@ export function AdmissionReviewForms({
         >
           <fieldset disabled={state.disabled} className="space-y-4">
             <legend className="text-section-title">
-              {privateWorkflow
-                ? "Record test evidence"
-                : "Record synthetic evidence"}
+              {localWorkflow
+                ? "Record review evidence"
+                : privateWorkflow
+                  ? "Record test evidence"
+                  : "Record synthetic evidence"}
             </legend>
             <div>
               <label htmlFor="checkCode" className="text-label">
@@ -335,9 +397,11 @@ export function AdmissionReviewForms({
             </div>
             <div>
               <label htmlFor="reference" className="text-label">
-                {privateWorkflow
-                  ? "Opaque test reference"
-                  : "Opaque synthetic reference"}
+                {localWorkflow
+                  ? "Evidence reference"
+                  : privateWorkflow
+                    ? "Opaque test reference"
+                    : "Opaque synthetic reference"}
               </label>
               <input
                 id="reference"
@@ -349,8 +413,9 @@ export function AdmissionReviewForms({
                 aria-describedby="reference-help"
               />
               <p id="reference-help" className="mt-2 text-caption">
-                Use a fictional token. Enter no contact details, URLs or
-                document content.
+                {localWorkflow
+                  ? "Use an opaque reference to the review you performed. Enter no contact details, URLs or document content."
+                  : "Use a fictional token. Enter no contact details, URLs or document content."}
               </p>
             </div>
             <button
@@ -416,9 +481,11 @@ export function AdmissionReviewForms({
                 </label>
                 <select name="action" id="action" className="field mt-2">
                   <option value="authorize">
-                    {privateWorkflow
-                      ? "Authorize test learner access"
-                      : "Authorize synthetic admission"}
+                    {localWorkflow
+                      ? "Authorize learner access"
+                      : privateWorkflow
+                        ? "Authorize test learner access"
+                        : "Authorize synthetic admission"}
                   </option>
                   <option value="reject">Reject request</option>
                 </select>

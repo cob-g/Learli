@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { publicPageMetadata } from "@/lib/seo/metadata";
+import { getDomainAuthRuntime } from "@/lib/auth";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 
 export const metadata = publicPageMetadata({
   title: "How it works",
@@ -8,7 +10,9 @@ export const metadata = publicPageMetadata({
   path: "/how-it-works",
 });
 
-export default function HowItWorksPage() {
+export default async function HowItWorksPage() {
+  const runtime = await getDomainAuthRuntime();
+  const privateWorkflow = !!runtime && hasPersistentWorkflow(runtime);
   return (
     <div className="page-shell page-space">
       <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -20,8 +24,9 @@ export default function HowItWorksPage() {
             on Zoom or Google Meet.
           </p>
           <p className="mt-6 max-w-prose text-body text-muted-foreground">
-            This development preview uses simulated bookings. Live lesson terms
-            are not set.
+            {privateWorkflow
+              ? "Request a booking for an authorized learner. An assigned administrator reviews it before confirmation. Your tutor provides the private meeting details and records completion after the scheduled end."
+              : "This development preview uses simulated bookings. Live lesson terms are not set."}
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-6">
             <Link href="/tutors" className="action action-primary">

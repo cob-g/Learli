@@ -16,7 +16,7 @@ import { DemoBookingForm } from "@/features/bookings/demo-booking-form";
 import { listTimeZoneOptions } from "@/lib/time/zones";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { getDomainAuthRuntime } from "@/lib/auth";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export default async function DemoBookingPage({
 }) {
   const params = await searchParams;
   const runtime = await getDomainAuthRuntime();
-  if (runtime && isPrivateWorkflow(runtime)) {
+  if (runtime && hasPersistentWorkflow(runtime)) {
     const query = new URLSearchParams();
     for (const [key, value] of Object.entries(params)) {
       if (typeof value === "string") query.append(key, value);

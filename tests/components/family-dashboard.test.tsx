@@ -65,7 +65,7 @@ describe("family dashboard UI states", () => {
       screen.getByRole("button", { name: "Show bookings" }).closest("form"),
     ).toHaveAttribute("method", "get");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Bookings",
+      "Parent Dashboard",
     );
     expect(screen.getByText("For Synthetic Alex")).toBeInTheDocument();
     expect(
@@ -86,8 +86,9 @@ describe("family dashboard UI states", () => {
       />,
     );
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Bookings for Synthetic Alex",
+      "Parent Dashboard",
     );
+    expect(screen.getByText("Bookings for Synthetic Alex")).toBeVisible();
     expect(screen.queryByRole("radio")).not.toBeInTheDocument();
   });
   it("uses student detail scope without guardian controls", () => {
@@ -103,6 +104,15 @@ describe("family dashboard UI states", () => {
     expect(
       screen.getByRole("link", { name: /View booking for/ }),
     ).toHaveAttribute("href", `/bookings/${row.id}?scope=student`);
+    expect(
+      screen.getByRole("region", { name: "Active simulated reservations" }),
+    ).toContainElement(screen.getByRole("link", { name: /View booking for/ }));
+    expect(
+      screen.getByRole("heading", { name: "Reservation history" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("navigation", { name: "Parent Dashboard sections" }),
+    ).not.toBeInTheDocument();
   });
   it("does not call a confirmed next booking temporary or expiring", () => {
     const confirmed = { ...row, state: "confirmed" as const };
@@ -136,8 +146,12 @@ describe("family dashboard UI states", () => {
       screen.getByRole("heading", { name: "No authorized learner available" }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("heading", { name: "Reservation history" }),
+      screen.queryByRole("heading", { name: "Booking History" }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("navigation", { name: "Parent Dashboard sections" }),
+    ).not.toBeInTheDocument();
+    expect(document.querySelector("#active,#history")).toBeNull();
     empty.unmount();
     const reserved = render(<FamilyDashboard data={{ ...data, active: [] }} />);
     expect(
@@ -148,10 +162,79 @@ describe("family dashboard UI states", () => {
     ).toBeInTheDocument();
     reserved.unmount();
     render(<DashboardUnavailable workspace="parent" />);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Parent Dashboard unavailable",
+    );
     expect(screen.getByRole("alert")).toHaveTextContent(
       "couldn't load bookings",
     );
     expect(screen.queryByText(/No active simulated/)).not.toBeInTheDocument();
+  });
+  it("keeps selected learner and history query on native section links and refresh", () => {
+    render(
+      <FamilyDashboard
+        data={{
+          ...data,
+          selectedLearner: learners[1],
+          active: [],
+          query: { learner: learners[1].id, historyPage: 2 },
+        }}
+      />,
+    );
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Parent Dashboard",
+    );
+    expect(screen.getByText("Bookings for Synthetic Zoë")).toBeVisible();
+    expect(screen.getByRole("radio", { name: /Synthetic Zoë/ })).toBeChecked();
+    const sections = screen.getByRole("navigation", {
+      name: "Parent Dashboard sections",
+    });
+    for (const [name, anchor] of [
+      ["Upcoming Sessions", "active"],
+      ["Booking History", "history"],
+    ]) {
+      expect(within(sections).getByRole("link", { name })).toHaveAttribute(
+        "href",
+        `/parent?learner=${learners[1].id}&historyPage=2#${anchor}`,
+      );
+      expect(document.getElementById(anchor)).toBeInTheDocument();
+    }
+    expect(
+      screen.getByRole("link", { name: "Refresh bookings" }),
+    ).toHaveAttribute(
+      "href",
+      `/parent?learner=${learners[1].id}&historyPage=2`,
+    );
+  });
+  it("preserves the Student next-card composition and empty remainder", () => {
+    render(
+      <FamilyDashboard
+        data={{
+          ...data,
+          workspace: "student",
+          learners: [learners[0]],
+          checkedAt: formatLessonTime(
+            new Date("2026-10-16T07:00:00Z"),
+            new Date("2026-10-16T08:00:00Z"),
+            "Asia/Manila",
+          ),
+        }}
+      />,
+    );
+    const card = screen.getByRole("region", {
+      name: "Next simulated reservation",
+    });
+    expect(within(card).getByRole("heading", { level: 2 })).toHaveTextContent(
+      "Next simulated reservation",
+    );
+    const active = screen.getByRole("region", {
+      name: "Active simulated reservations",
+    });
+    expect(active).not.toContainElement(card);
+    expect(active).toHaveTextContent("No other active simulated reservations.");
+    expect(
+      within(card).getByRole("link", { name: /View booking for/ }),
+    ).toHaveAttribute("href", `/bookings/${row.id}?scope=student`);
   });
   it("renders inactive simulation history and keeps contextual pagination", () => {
     render(
@@ -166,7 +249,7 @@ describe("family dashboard UI states", () => {
         }}
       />,
     );
-    const history = screen.getByRole("region", { name: "Reservation history" });
+    const history = screen.getByRole("region", { name: "Booking History" });
     expect(within(history).getByText("Simulation expired")).toBeInTheDocument();
     expect(
       within(history).getByRole("link", { name: "Next page" }),
@@ -203,7 +286,7 @@ describe("family dashboard UI states", () => {
         data={{ ...data, active: [], history: [before, after] }}
       />,
     );
-    const history = screen.getByRole("region", { name: "Reservation history" });
+    const history = screen.getByRole("region", { name: "Booking History" });
     const dates = within(history).getAllByRole("heading", {
       level: 3,
       name: before.when.date,

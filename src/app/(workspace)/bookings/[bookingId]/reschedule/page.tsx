@@ -11,10 +11,10 @@ import { DemoRescheduleForm } from "@/features/bookings/lifecycle-controls";
 import { BookingUnavailable } from "@/features/bookings/read-presentation";
 import { LessonTime } from "@/features/bookings/lesson-time";
 import { formatLessonTime } from "@/features/bookings/format-time";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Reschedule simulation",
+  title: "Reschedule booking",
   robots: { index: false, follow: false },
 };
 export default async function Page({
@@ -43,7 +43,7 @@ export default async function Page({
         scope.data,
       );
       const times =
-        booking.source === "synthetic_readiness"
+        booking.source !== "local_simulation"
           ? await readWorkflowMoveCandidates(
               bookingWorkflowContext(runtime),
               headers,
@@ -52,7 +52,7 @@ export default async function Page({
           : await readDemoRescheduleCandidates(runtime, headers, bookingId);
       return {
         booking,
-        privateWorkflow: isPrivateWorkflow(runtime),
+        privateWorkflow: hasPersistentWorkflow(runtime),
         times: times.map((t) =>
           formatLessonTime(
             new Date(t.startAtUtc),
@@ -82,7 +82,7 @@ export default async function Page({
         <h2 className="text-item-title">Original scheduled time</h2>
         <LessonTime value={data.booking.time} />
       </section>
-      {data.booking.source === "synthetic_readiness" ? (
+      {data.booking.source !== "local_simulation" ? (
         <WorkflowActionForm
           bookingId={bookingId}
           revision={data.booking.workflowRevision ?? 0}
@@ -90,6 +90,7 @@ export default async function Page({
           scope={scope.data}
           times={data.times}
           privateWorkflow={data.privateWorkflow}
+          source={data.booking.source}
         />
       ) : (
         <DemoRescheduleForm

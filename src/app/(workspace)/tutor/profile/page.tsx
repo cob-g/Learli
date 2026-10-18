@@ -9,7 +9,7 @@ import { ProfileSummary } from "@/features/tutors/profile-summary";
 import { ReviewNotice } from "@/features/tutors/review-notice";
 import { TutorProfileForm } from "@/features/tutors/tutor-profile-form";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Tutor profile",
@@ -22,7 +22,7 @@ export default async function TutorProfilePage() {
       profile: await readOwnTutorProfile(runtime, headers),
       account: await readAccount(runtime, headers),
       subjects: await listSubjects(runtime.db, true),
-      privateWorkflow: isPrivateWorkflow(runtime),
+      privateWorkflow: hasPersistentWorkflow(runtime),
     }),
   );
   if (!data)

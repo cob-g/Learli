@@ -222,7 +222,7 @@ export const bookingMessageInput = z
       "completed",
       "no_show",
     ]),
-    source: z.literal("synthetic_readiness"),
+    source: z.enum(["synthetic_readiness", "local_operation"]),
     subject: z
       .string()
       .trim()
@@ -277,7 +277,9 @@ export function createBookingMessageConstructor(config: unknown) {
       }).format(new Date(instant));
     const detailUrl = `${appOrigin}${value.detailPath}`;
     const lines = [
-      "Synthetic readiness only. No lesson or email delivery is established.",
+      value.source === "local_operation"
+        ? "Local booking update. External email delivery is not configured."
+        : "Synthetic readiness only. No lesson or email delivery is established.",
       outcome,
       value.subject,
       `Starts: ${format(value.startAtUtc)}`,

@@ -13,9 +13,11 @@ import { timeOffInstantLabel } from "./display";
 export function TimeOffForm({
   initial,
   zoneLabel,
+  privateWorkflow = false,
 }: {
   initial: OwnTimeOff;
   zoneLabel: string;
+  privateWorkflow?: boolean;
 }) {
   const [exceptions, setExceptions] = useState(initial.exceptions);
   const [version, setVersion] = useState(initial.version);
@@ -118,8 +120,9 @@ export function TimeOffForm({
     <div className="max-w-xl space-y-8">
       <div className="space-y-2">
         <p className="text-body">
-          Mark when you cannot teach without changing your weekly hours. Time
-          off cannot overlap an unexpired simulated reservation.
+          {privateWorkflow
+            ? "Mark when you cannot teach without changing your weekly hours. Time off cannot overlap an active booking request or confirmed booking."
+            : "Mark when you cannot teach without changing your weekly hours. Time off cannot overlap an unexpired simulated reservation."}
         </p>
         <p className="text-small text-muted-foreground">
           Times use {zoneLabel}. Saved periods keep the same actual instants if

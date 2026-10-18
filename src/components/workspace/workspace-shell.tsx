@@ -50,6 +50,7 @@ export function WorkspaceShell({
   screeningEnabled = false,
   privateWorkflow = false,
   privateAccounts = false,
+  localWorkflow = false,
 }: {
   children: ReactNode;
   /** The server's guarded account read for this document, if it succeeded. */
@@ -58,6 +59,7 @@ export function WorkspaceShell({
   screeningEnabled?: boolean;
   privateWorkflow?: boolean;
   privateAccounts?: boolean;
+  localWorkflow?: boolean;
 }) {
   const pathname = usePathname();
   const scope = useSearchParams().get("scope");
@@ -93,6 +95,7 @@ export function WorkspaceShell({
           screeningEnabled={screeningEnabled}
           privateWorkflow={privateWorkflow}
           privateAccounts={privateAccounts}
+          localWorkflow={localWorkflow}
           // Better Auth also flags its first load as refetching; only a
           // refresh of a settled session discards the shown account.
           refreshing={session.isRefetching && !session.isPending}
@@ -112,6 +115,7 @@ export function WorkspaceShell({
           screeningEnabled={screeningEnabled}
           privateWorkflow={privateWorkflow}
           privateAccounts={privateAccounts}
+          localWorkflow={localWorkflow}
           message={
             session.error
               ? "Account status unavailable."
@@ -139,6 +143,7 @@ function AccountChrome({
   screeningEnabled,
   privateWorkflow,
   privateAccounts,
+  localWorkflow,
 }: {
   pathname: string;
   userId: string;
@@ -150,6 +155,7 @@ function AccountChrome({
   screeningEnabled: boolean;
   privateWorkflow: boolean;
   privateAccounts: boolean;
+  localWorkflow: boolean;
 }) {
   const [attempt, setAttempt] = useState(0);
   const pathKey = JSON.stringify([pathname, scope, refreshing]);
@@ -205,6 +211,7 @@ function AccountChrome({
       screeningEnabled={screeningEnabled}
       privateWorkflow={privateWorkflow}
       privateAccounts={privateAccounts}
+      localWorkflow={localWorkflow}
       account={result?.account ?? null}
       roles={result?.account?.roles ?? null}
       preserveContext={result === null}
@@ -235,6 +242,7 @@ function WorkspaceChrome({
   screeningEnabled = false,
   privateWorkflow = false,
   privateAccounts = false,
+  localWorkflow = false,
 }: {
   pathname: string;
   account: Account | null;
@@ -247,6 +255,7 @@ function WorkspaceChrome({
   screeningEnabled?: boolean;
   privateWorkflow?: boolean;
   privateAccounts?: boolean;
+  localWorkflow?: boolean;
 }) {
   const routeKey = JSON.stringify([pathname, scope]);
   const [openRoute, setOpenRoute] = useState<string | null>(null);
@@ -268,6 +277,7 @@ function WorkspaceChrome({
     screening: screeningEnabled,
     privateWorkflow,
     privateAccounts,
+    localWorkflow,
   });
   const common = [
     ...(role === null

@@ -13,6 +13,7 @@ import {
   verifyProtections,
 } from "../../scripts/staging-migrations/protections";
 import { runtimeGrantsSql } from "../../scripts/runtime-grants";
+import { runtimeGrantsBeforeGrade } from "../support/migration-inventory";
 import { verifyRuntimeGrants } from "../../scripts/staging-migrations/privileges";
 import {
   bookingPolicyDigest,
@@ -167,7 +168,7 @@ describe("W6 fresh and populated forward source/grant/preservation proof", () =>
     const p = connection("w6_tutor_upgrade");
     try {
       await apply(p, 33);
-      await p.query(runtimeGrantsSql);
+      await p.query(runtimeGrantsBeforeGrade);
       const terms = {
         authority: "synthetic_test",
         source: "synthetic_readiness",
@@ -229,7 +230,9 @@ describe("W6 fresh and populated forward source/grant/preservation proof", () =>
           )
         ).rows;
       const original = await definitions();
-      await apply(p, candidate.entries.length, 33);
+      // Pin the named0032→0033 proof: only the two completion-policy bodies
+      // change here. Later additive migrations are verified separately below.
+      await apply(p, 34, 33);
       expect(await rows(p, before.columns)).toEqual(before);
       expect(
         (
@@ -240,9 +243,12 @@ describe("W6 fresh and populated forward source/grant/preservation proof", () =>
       ).toEqual(ledger);
       const after = await definitions();
       expect(after).toHaveLength(original.length);
-      for (const [i, previous] of original.entries()) {
+      for (const previous of original) {
+        const upgraded = after.find((fn) => fn.oid === previous.oid);
+        if (!upgraded)
+          throw new Error("Historical function identity was lost.");
         const { prosrc: oldBody, ...oldMetadata } = previous;
-        const { prosrc: newBody, ...newMetadata } = after[i];
+        const { prosrc: newBody, ...newMetadata } = upgraded;
         expect(newMetadata).toEqual(oldMetadata);
         if (
           /^(booking_workflow_policy_current|has_booking_workflow_task)\(/.test(
@@ -260,6 +266,19 @@ describe("W6 fresh and populated forward source/grant/preservation proof", () =>
         await expect(
           p.query(statement, [policy.policyId]),
         ).rejects.toMatchObject({ code: "23514" });
+      // Preserve the exact0033 proof, then check the current additive chain's
+      // original columns and every inherited OID/owner/ACL before new grants.
+      const historical = await rows(p),
+        inherited = await definitions();
+      await apply(p, candidate.entries.length, 34);
+      expect(await rows(p, historical.columns)).toEqual(historical);
+      const upgraded = await definitions();
+      for (const previous of inherited) {
+        const current = upgraded.find((fn) => fn.oid === previous.oid);
+        expect({ ...current, prosrc: previous.prosrc }).toEqual(previous);
+      }
+      expect(await valid()).toBe(true);
+      await p.query(runtimeGrantsSql);
       const client = await p.connect();
       try {
         await verifyRuntimeGrants(client);

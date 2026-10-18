@@ -6,12 +6,22 @@ import { CaseTitle } from "./title";
 import { StatusForm } from "./status-form";
 import { SupportBookingSection } from "@/features/support-bookings/presentation";
 
-export function DemoNotice() {
+export function DemoNotice({
+  privateWorkflow = false,
+  localWorkflow = false,
+}: {
+  privateWorkflow?: boolean;
+  localWorkflow?: boolean;
+}) {
   return (
     <p className="mt-4 max-w-prose rounded-control border border-border bg-subtle p-4 text-small text-muted-foreground">
-      Local demo for fictional reports only. This is not monitored and is not an
-      emergency reporting channel. Do not enter real personal details, dates of
-      birth, school names or private meeting links.
+      {localWorkflow
+        ? "Reports are saved for an assigned reviewer. This is not an emergency channel. Keep contact details, dates of birth, school names and private meeting links out of the report."
+        : privateWorkflow
+          ? "Private test reports only."
+          : "Local demo for fictional reports only."}{" "}
+      {!localWorkflow &&
+        "This is not monitored and is not an emergency reporting channel. Do not enter real personal details, dates of birth, school names or private meeting links."}
     </p>
   );
 }
@@ -28,9 +38,11 @@ export function CaseStatusLabel({ status }: { status: CaseStatus }) {
 export function CaseRows({
   result,
   reviewer = false,
+  localWorkflow = false,
 }: {
   result: CaseList;
   reviewer?: boolean;
+  localWorkflow?: boolean;
 }) {
   const base = reviewer ? "/admin/support" : "/support";
   return (
@@ -74,9 +86,13 @@ export function CaseRows({
               : "No reports on this account"}
           </h2>
           <p className="mt-2 text-body">
-            {reviewer
-              ? "Only cases assigned through trusted local tooling appear here."
-              : "Your fictional reports will appear here after you save them."}
+            {localWorkflow
+              ? reviewer
+                ? "Claim an unassigned request to review it here."
+                : "Your reports appear here after you save them."
+              : reviewer
+                ? "Only cases assigned through trusted local tooling appear here."
+                : "Your fictional reports will appear here after you save them."}
           </p>
         </section>
       )}
@@ -119,14 +135,21 @@ function auditTime(date: Date) {
 export function CaseView({
   detail,
   reviewer = false,
+  privateWorkflow = false,
+  localWorkflow = false,
 }: {
   detail: CaseDetail;
   reviewer?: boolean;
+  privateWorkflow?: boolean;
+  localWorkflow?: boolean;
 }) {
   return (
     <>
       <CaseTitle subject={detail.subject} />
-      <DemoNotice />
+      <DemoNotice
+        privateWorkflow={privateWorkflow}
+        localWorkflow={localWorkflow}
+      />
       <div
         className={
           reviewer
@@ -146,7 +169,12 @@ export function CaseView({
           {detail.body}
         </p>
       </div>
-      {detail.booking && <SupportBookingSection booking={detail.booking} />}
+      {detail.booking && (
+        <SupportBookingSection
+          booking={detail.booking}
+          privateWorkflow={privateWorkflow}
+        />
+      )}
       {reviewer && (
         <StatusForm
           caseId={detail.id}
@@ -167,7 +195,9 @@ export function CaseView({
             <li className="py-4" key={event.revision}>
               <p className="text-body">
                 {event.action === "created"
-                  ? "Fictional report saved"
+                  ? localWorkflow
+                    ? "Report saved"
+                    : "Fictional report saved"
                   : event.action === "assigned"
                     ? event.dispatcher
                       ? "Reviewer assigned by local dispatcher"

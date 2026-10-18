@@ -9,8 +9,8 @@
   },
   "packageManager": "npm@11.19.0",
   "scripts": {
-    "dev": "next dev --hostname 127.0.0.1",
-    "build": "next build",
+    "dev": "next dev --webpack --hostname 127.0.0.1",
+    "build": "next build --webpack",
     "start": "next start --hostname 127.0.0.1",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
@@ -27,6 +27,7 @@
     "auth:generate": "auth generate --config scripts/auth-schema.ts --output src/lib/db/schema/auth.ts --yes",
     "db:migrate": "tsx scripts/migrate-local.ts",
     "db:migrate:test": "tsx scripts/migrate-local.ts --test",
+    "local:prepare": "node --import tsx scripts/local-workflow.ts",
     "db:seed": "tsx scripts/seed-local.ts",
     "mail:open": "node scripts/local-open.mjs mail",
     "fixtures:open": "node scripts/local-open.mjs fixtures",

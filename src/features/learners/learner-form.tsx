@@ -6,6 +6,7 @@ import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
 import type { TimeZoneOption } from "@/lib/time/zones";
 import type { PrivateLearner } from "./service";
+import { GradeField, formGrade } from "./grade-field";
 
 export function LearnerForm({
   profile,
@@ -22,6 +23,7 @@ export function LearnerForm({
   const [notice, setNotice] = useState("");
   const [failed, setFailed] = useState(false);
   const [fields, setFields] = useState<Record<string, string>>({});
+  const [level, setLevel] = useState(profile.level);
   const noticeRef = useRef<HTMLParagraphElement>(null);
 
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -39,6 +41,10 @@ export function LearnerForm({
         body: JSON.stringify({
           displayName: data.get("displayName"),
           ...(!reviewed ? { level: data.get("level") } : {}),
+          grade:
+            profile.management === "guardian" && level !== "college_support"
+              ? formGrade(data.get("grade"))
+              : null,
           timezone: data.get("timezone"),
         }),
       });
@@ -49,7 +55,7 @@ export function LearnerForm({
       } else {
         const result = await response.json();
         const errors: Record<string, string> = {};
-        for (const key of ["displayName", "level", "timezone"]) {
+        for (const key of ["displayName", "level", "grade", "timezone"]) {
           if (typeof result.fields?.[key] === "string")
             errors[key] = result.fields[key];
         }
@@ -90,7 +96,8 @@ export function LearnerForm({
         </p>
       </noscript>
       <p className="text-small text-muted-foreground">
-        All fields are required.
+        Display name, education level and time zone are required. Grade is
+        optional.
       </p>
       <div className="space-y-2">
         <label className="block text-label" htmlFor="displayName">
@@ -126,6 +133,9 @@ export function LearnerForm({
           name="level"
           disabled={!ready || reviewed}
           defaultValue={profile.level}
+          onChange={(event) =>
+            setLevel(event.target.value as PrivateLearner["level"])
+          }
           aria-invalid={!!fields.level}
           aria-describedby={fields.level ? "level-error" : undefined}
         >
@@ -146,6 +156,13 @@ export function LearnerForm({
           </p>
         )}
       </div>
+      {profile.management === "guardian" && level !== "college_support" && (
+        <GradeField
+          grade={profile.grade}
+          disabled={!ready || pending}
+          error={fields.grade}
+        />
+      )}
       <div className="space-y-2">
         <label className="block text-label" htmlFor="timezone">
           Time zone

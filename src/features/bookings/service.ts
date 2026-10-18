@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { blockingBookingPredicate } from "@/features/booking-workflows/model";
 // Node-only domain service, shared by routes and isolated real PostgreSQL tests.
 import { and, eq, gt, lt, lte, sql, inArray, ne } from "drizzle-orm";
@@ -45,6 +46,7 @@ export async function requireBookingActor(
   headers: Headers,
 ) {
   if (
+    getLocalWorkflow(runtime) ||
     !["development", "test"].includes(runtime.environment) ||
     !isLoopbackOrigin(runtime.origin)
   )

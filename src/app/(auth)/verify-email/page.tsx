@@ -1,4 +1,4 @@
-import { getServerEnv } from "@/lib/env/server";
+import { getAuthPresentation } from "@/lib/auth";
 import type { Metadata } from "next";
 import { AuthFrame } from "@/features/auth/auth-frame";
 import { AuthForm } from "@/features/auth/auth-form";
@@ -18,7 +18,7 @@ export default async function Page({
     <AuthFrame title="Verify your email">
       <PendingBookingChoice next={params.next} />
       <AuthForm
-        hosted={getServerEnv().AUTH_MODE === "hosted-synthetic"}
+        {...getAuthPresentation()}
         mode="verify"
         next={params.next}
         token={params.token}

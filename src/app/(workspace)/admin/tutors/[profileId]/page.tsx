@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
@@ -9,6 +10,7 @@ import { ScreeningForm } from "@/features/tutor-screening/forms";
 import { ReviewActions } from "@/features/tutors/review-actions";
 import { ReviewStatusBadge } from "@/features/tutors/review-status";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Tutor application",
@@ -20,12 +22,17 @@ export default async function TutorApplicationPage({
   params: Promise<{ profileId: string }>;
 }) {
   const { profileId } = await params;
-  const application = await loadPrivatePage(
+  const result = await loadPrivatePage(
     `/admin/tutors/${profileId}`,
-    (runtime, headers) => readTutorApplication(runtime, headers, profileId),
+    async (runtime, headers) => ({
+      application: await readTutorApplication(runtime, headers, profileId),
+      privateWorkflow: hasPersistentWorkflow(runtime),
+      localWorkflow: getLocalWorkflow(runtime) !== null,
+    }),
   );
+  const application = result?.application;
   // Identical for a missing application and a missing permission.
-  if (!application)
+  if (!result || !application)
     return (
       <UnavailablePage
         title="We can't find that application"
@@ -44,8 +51,11 @@ export default async function TutorApplicationPage({
         <ReviewStatusBadge status={application.reviewStatus} />
       </p>
       <p className="mt-4 max-w-prose text-small text-muted-foreground">
-        The tutor wrote everything below. Learli has not checked it, and the
-        screening process is not decided.
+        {result.localWorkflow
+          ? "The tutor supplied the profile below. Review the required evidence for your assigned application before approving it."
+          : result.privateWorkflow
+            ? "The tutor supplied the profile below. Review the required fictional evidence for this assigned application before approving it."
+            : "The tutor wrote everything below. Learli has not checked it, and the screening process is not decided."}
       </p>
       <div className="mt-8">
         <ProfileSummary
@@ -65,6 +75,8 @@ export default async function TutorApplicationPage({
             key={application.screening.revision}
             tutorId={profileId}
             detail={application.screening}
+            privateWorkflow={result.privateWorkflow}
+            localWorkflow={result.localWorkflow}
           />
         ) : application.ownedByReviewer ? (
           <p className="mt-4 max-w-prose text-body">

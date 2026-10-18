@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import {
   getPrivateWorkflow,
   isPrivateWorkflow,
@@ -31,7 +32,11 @@ export async function readPublicCatalog() {
       listEligibleTutors(
         runtime.db,
         {},
-        isPrivateWorkflow(runtime) ? "synthetic_readiness" : "local_demo",
+        getLocalWorkflow(runtime)
+          ? "local_operation"
+          : isPrivateWorkflow(runtime)
+            ? "synthetic_readiness"
+            : "local_demo",
         getPrivateWorkflow(runtime),
       ),
       listSubjects(runtime.db, true),
@@ -59,11 +64,13 @@ export async function readPublicTutor(slug: string) {
     const runtime = await getDomainAuthRuntime();
     if (!runtime) return null;
     const context = publicationContext(runtime);
-    const scope = isPrivateWorkflow(runtime)
-      ? "synthetic_readiness"
-      : context.publication.authority === "disabled"
-        ? "local_demo"
-        : (requirePublicationPolicy(context), "synthetic_readiness");
+    const scope = getLocalWorkflow(runtime)
+      ? "local_operation"
+      : isPrivateWorkflow(runtime)
+        ? "synthetic_readiness"
+        : context.publication.authority === "disabled"
+          ? "local_demo"
+          : (requirePublicationPolicy(context), "synthetic_readiness");
     return await findEligibleTutor(
       runtime.db,
       slug,

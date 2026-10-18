@@ -19,7 +19,7 @@ const instant = (name: string) =>
 const grantFields = () => ({
   caseId: uuid("case_id").notNull(),
   source: text("source")
-    .$type<"local_fixture" | "synthetic_readiness">()
+    .$type<"local_fixture" | "synthetic_readiness" | "local_operation">()
     .notNull(),
   status: text("status").$type<"authorized" | "revoked">().notNull(),
   validUntil: timestamp("valid_until", { withTimezone: true }),
@@ -49,11 +49,11 @@ export const supportDispatchGrants = pgTable(
     }).onDelete("restrict"),
     check(
       "support_dispatch_grants_source_check",
-      sql`${t.source} IN ('local_fixture','synthetic_readiness')`,
+      sql`${t.source} IN ('local_fixture','synthetic_readiness','local_operation')`,
     ),
     check(
       "support_dispatch_grants_expiry",
-      sql`(${t.source}='local_fixture' AND ${t.validUntil} IS NULL) OR (${t.source}='synthetic_readiness' AND ${t.validUntil} IS NOT NULL AND isfinite(${t.validUntil}))`,
+      sql`(${t.source} IN ('local_fixture','local_operation') AND ${t.validUntil} IS NULL) OR (${t.source}='synthetic_readiness' AND ${t.validUntil} IS NOT NULL AND isfinite(${t.validUntil}))`,
     ),
     check(
       "support_dispatch_grants_status_check",
@@ -85,11 +85,11 @@ export const supportReviewerChoices = pgTable(
     }).onDelete("restrict"),
     check(
       "support_reviewer_choices_source_check",
-      sql`${t.source} IN ('local_fixture','synthetic_readiness')`,
+      sql`${t.source} IN ('local_fixture','synthetic_readiness','local_operation')`,
     ),
     check(
       "support_reviewer_choices_expiry",
-      sql`(${t.source}='local_fixture' AND ${t.validUntil} IS NULL) OR (${t.source}='synthetic_readiness' AND ${t.validUntil} IS NOT NULL AND isfinite(${t.validUntil}))`,
+      sql`(${t.source} IN ('local_fixture','local_operation') AND ${t.validUntil} IS NULL) OR (${t.source}='synthetic_readiness' AND ${t.validUntil} IS NOT NULL AND isfinite(${t.validUntil}))`,
     ),
     check(
       "support_reviewer_choices_status_check",

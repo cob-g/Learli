@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { safeBookingReturnPath } from "@/features/bookings/selection";
-import { getServerEnv } from "@/lib/env/server";
+import { getAuthPresentation } from "@/lib/auth";
 import type { Metadata } from "next";
 import { AuthFrame } from "@/features/auth/auth-frame";
 import { AuthForm } from "@/features/auth/auth-form";
@@ -20,7 +20,7 @@ export default async function Page({
   const params = await searchParams;
   const next = safeBookingReturnPath(params.next);
   return (
-    <AuthFrame title="Sign in">
+    <AuthFrame title="Sign in" presentation="sign-in">
       <PendingBookingChoice next={params.next} />
       {params.error ? (
         <p
@@ -44,8 +44,9 @@ export default async function Page({
         )
       )}
       <AuthForm
-        hosted={getServerEnv().AUTH_MODE === "hosted-synthetic"}
+        {...getAuthPresentation()}
         mode="sign-in"
+        presentation="reference"
         next={params.next}
         token={params.token}
       />

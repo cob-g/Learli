@@ -19,6 +19,7 @@ const props: ComponentProps<typeof DemoBookingForm> = {
         id: "synthetic-learner",
         displayName: "Synthetic learner",
         management: "guardian",
+        grade: null,
         level: "high_school",
         timezone: "UTC",
       },

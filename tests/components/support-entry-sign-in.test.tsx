@@ -5,6 +5,9 @@ import { AccessError } from "@/lib/permissions/access";
 vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
 vi.mock("@/lib/auth", () => ({ getDomainAuthRuntime: async () => ({}) }));
+vi.mock("@/features/private-workflow/runtime", () => ({
+  isPrivateWorkflow: () => false,
+}));
 vi.mock("@/features/support/service", () => ({
   listCases: async () => {
     throw new AccessError(401);

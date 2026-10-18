@@ -1,6 +1,6 @@
 // Explicit owner metadata preparation only; domain fixtures below are separate setup.
 import { randomUUID } from "node:crypto";
-import type { Pool } from "pg";
+import type { Pool, PoolClient } from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   parsePrivateWorkflow,
@@ -29,7 +29,10 @@ import {
   readWorkflowTask,
 } from "@/features/booking-workflows/service";
 import { syntheticAdmissionPolicy } from "../support/learner-admission-fixtures";
-import { workflowFixture } from "../support/booking-workflows-fixtures";
+import {
+  historicalWorkflowBooking,
+  workflowFixture,
+} from "../support/booking-workflows-fixtures";
 import {
   closeWorld,
   createAccount,
@@ -38,6 +41,7 @@ import {
   type World,
 } from "./support";
 import { privateWorkflowMain } from "../../scripts/private-workflow";
+import { dispatchManualPreview } from "../../scripts/manual-preview-dispatch";
 
 let world: World,
   expected: PrivateWorkflowBinding,
@@ -670,6 +674,600 @@ describe("explicit private workflow operator on isolated PostgreSQL", () => {
     await expect(run(value, command)).rejects.toBeInstanceOf(
       PrivateWorkflowOperatorError,
     );
+  }, 60000);
+});
+
+async function whileOperatorWaits(
+  value: PrivateWorkflowPacket,
+  command: Record<string, unknown>,
+  lock: (client: PoolClient) => Promise<unknown>,
+  change: (client: PoolClient) => Promise<unknown>,
+) {
+  const blocker = await world.owner.pool.connect();
+  const waiting = await world.owner.pool.connect();
+  let outcome: Promise<{ result?: unknown; error?: unknown }> | undefined;
+  try {
+    const pid = (
+      await waiting.query<{ pid: number }>("SELECT pg_backend_pid() pid")
+    ).rows[0].pid;
+    await blocker.query("BEGIN");
+    await lock(blocker);
+    outcome = runPrivateWorkflowOperation(waiting, value, expected, {
+      apply: true,
+      reviewerEmail: reviewer.email,
+      newOnly: true,
+      ...command,
+    }).then(
+      (result) => ({ result }),
+      (error: unknown) => ({ error }),
+    );
+    await expect
+      .poll(
+        async () =>
+          (
+            await world.owner.pool.query<{ waiting: boolean }>(
+              "SELECT wait_event_type='Lock' AS waiting FROM pg_stat_activity WHERE pid=$1",
+              [pid],
+            )
+          ).rows[0]?.waiting,
+        { timeout: 3000 },
+      )
+      .toBe(true);
+    await change(blocker);
+    await blocker.query("COMMIT");
+    expect((await outcome).error).toBeInstanceOf(PrivateWorkflowOperatorError);
+  } finally {
+    await blocker.query("ROLLBACK").catch(() => undefined);
+    await outcome;
+    waiting.release();
+    blocker.release();
+  }
+}
+
+async function dispatchFixture() {
+  const actor = await createAccount(world);
+  const teacher = await createAccount(world, ["tutor"]);
+  const teacherProfile = await profile(teacher);
+  const value = await packet({
+    accountEmails: [reviewer.email, actor.email, teacher.email],
+  });
+  await prepare(value);
+  const admission = await pending(value, actor);
+  await requestScreening(
+    { runtime: world.runtime, screening: value.screening },
+    teacher.headers,
+    teacherProfile.id,
+    { requestKey: randomUUID() },
+  );
+  return { value, admission, teacherProfile };
+}
+
+async function confirmationFixture(remainingHoldMilliseconds?: number) {
+  const fixture = await workflowFixture(world, reviewer, "guardian", "tutor");
+  const value = await packet({
+    admission: fixture.admission,
+    screening: fixture.policy,
+    booking: fixture.booking,
+    accountEmails: [reviewer, unassured, fixture.requester, fixture.tutor].map(
+      (actor) => actor.email,
+    ),
+  });
+  await prepare(value);
+  const slots = await readWorkflowCandidates(
+    fixture.context,
+    fixture.requester.headers,
+    fixture.choice,
+  );
+  const slot = slots[8];
+  if (!slot) throw new Error("Required actual candidate unavailable.");
+  // Owner test fixtures may start near the end of their original approved
+  // ten-minute hold. Insert that history once; immutable booking timestamps
+  // must never be rewritten just to accelerate a lock/expiry regression.
+  const expires = new Date(Date.now() + (remainingHoldMilliseconds ?? 0));
+  const booking =
+    remainingHoldMilliseconds === undefined
+      ? await createPolicyReservation(
+          fixture.context,
+          fixture.requester.headers,
+          {
+            ...fixture.choice,
+            startAtUtc: slot.startAtUtc,
+            endAtUtc: slot.endAtUtc,
+            idempotencyKey: randomUUID(),
+          },
+        )
+      : await historicalWorkflowBooking(world, fixture, reviewer, {
+          state: "provisional",
+          start: new Date(slot.startAtUtc),
+          end: new Date(slot.endAtUtc),
+          expires,
+          created: new Date(
+            expires.getTime() - value.booking.provisionalMinutes * 60000,
+          ),
+        });
+  return { fixture, value, booking };
+}
+
+describe("bounded manual dispatch and locked new-only metadata", () => {
+  it("discovers finite actual pending admission/screening metadata once, prepares it and repeats without authority/outcome changes", async () => {
+    const { value, admission, teacherProfile } = await dispatchFixture();
+    const before = await domainCounts();
+    const client = await world.owner.pool.connect();
+    const record = vi.fn();
+    try {
+      expect(
+        await dispatchManualPreview(client, value, expected, reviewer.email, {
+          assertCurrent: () => {},
+          record,
+        }),
+      ).toMatchObject({
+        status: "applied",
+        discovered: 2,
+        applied: 2,
+        admissions: 1,
+        screenings: 1,
+        confirmations: 0,
+      });
+      expect(await domainCounts()).toEqual(before);
+      const metadata = await world.owner.pool.query(
+        `SELECT
+          (SELECT reviewer_user_id FROM learner_admission_assignments WHERE admission_id=$1) AS admission,
+          (SELECT reviewer_user_id FROM tutor_screening_assignments WHERE tutor_id=$2) AS screening`,
+        [admission.id, teacherProfile.id],
+      );
+      expect(metadata.rows[0]).toEqual({
+        admission: reviewer.id,
+        screening: reviewer.id,
+      });
+      expect(
+        await dispatchManualPreview(client, value, expected, reviewer.email, {
+          assertCurrent: () => {},
+          record,
+        }),
+      ).toMatchObject({ status: "applied", discovered: 0, applied: 0 });
+      expect(await domainCounts()).toEqual(before);
+      await world.owner.pool.query(
+        "UPDATE booking_workflow_policy_head SET enabled=false WHERE source='synthetic_readiness'",
+      );
+      expect(
+        await dispatchManualPreview(client, value, expected, reviewer.email, {
+          assertCurrent: () => {},
+          record,
+        }),
+      ).toMatchObject({ status: "refused", applied: 0 });
+    } finally {
+      client.release();
+    }
+  }, 60000);
+
+  it("refuses the complete snapshot when one pending task belongs to another reviewer", async () => {
+    const { value, admission, teacherProfile } = await dispatchFixture();
+    const expanded = parsePrivateWorkflow(
+      { ...value, accountEmails: [...value.accountEmails, unassured.email] },
+      expected,
+    );
+    await prepare(expanded, unassured);
+    await run(expanded, {
+      action: "assign-admission",
+      admissionId: admission.id,
+      reviewerEmail: unassured.email,
+    });
+    const before = await domainCounts();
+    const client = await world.owner.pool.connect();
+    try {
+      expect(
+        await dispatchManualPreview(
+          client,
+          expanded,
+          expected,
+          reviewer.email,
+          { assertCurrent: () => {}, record: vi.fn() },
+        ),
+      ).toMatchObject({ status: "refused", applied: 0 });
+      expect(
+        (
+          await client.query(
+            "SELECT tutor_id FROM tutor_screening_assignments WHERE tutor_id=$1",
+            [teacherProfile.id],
+          )
+        ).rows,
+      ).toEqual([]);
+      expect(
+        (
+          await client.query(
+            "SELECT reviewer_user_id FROM learner_admission_assignments WHERE admission_id=$1",
+            [admission.id],
+          )
+        ).rows[0].reviewer_user_id,
+      ).toBe(unassured.id);
+      expect(await domainCounts()).toEqual(before);
+    } finally {
+      client.release();
+    }
+  }, 60000);
+
+  it.each(["inactive", "missing"])(
+    "refuses pending admission work with %s reviewer capability without reviving it",
+    async (mode) => {
+      const actor = await createAccount(world);
+      const admin = await createAccount(world, ["admin"]);
+      const value = await packet({ accountEmails: [admin.email, actor.email] });
+      await prepare(value, admin);
+      const admission = await pending(value, actor);
+      if (mode === "inactive") {
+        await run(value, {
+          action: "assign-admission",
+          admissionId: admission.id,
+          reviewerEmail: admin.email,
+        });
+        await world.owner.pool.query(
+          "UPDATE learner_admission_reviewers SET active=false WHERE user_id=$1 AND source='synthetic_readiness' AND capability_code='learner_admission_review'",
+          [admin.id],
+        );
+      } else
+        await world.owner.pool.query(
+          "DELETE FROM learner_admission_reviewers WHERE user_id=$1 AND source='synthetic_readiness' AND capability_code='learner_admission_review'",
+          [admin.id],
+        );
+      await expect(
+        readAssignedAdmission(
+          { runtime: world.runtime, admission: value.admission },
+          admin.headers,
+          admission.id,
+        ),
+      ).rejects.toMatchObject({ status: 404 });
+      const before = await domainCounts();
+      const client = await world.owner.pool.connect();
+      const record = vi.fn();
+      try {
+        expect(
+          await dispatchManualPreview(client, value, expected, admin.email, {
+            assertCurrent: () => {},
+            record,
+          }),
+        ).toMatchObject({
+          status: "refused",
+          attempted: 0,
+          applied: 0,
+        });
+        expect(record).not.toHaveBeenCalled();
+        expect(await domainCounts()).toEqual(before);
+        expect(
+          (
+            await client.query(
+              "SELECT active FROM learner_admission_reviewers WHERE user_id=$1 AND source='synthetic_readiness' AND capability_code='learner_admission_review'",
+              [admin.id],
+            )
+          ).rows,
+        ).toEqual(mode === "inactive" ? [{ active: false }] : []);
+        expect(
+          (
+            await client.query(
+              "SELECT reviewer_user_id FROM learner_admission_assignments WHERE admission_id=$1",
+              [admission.id],
+            )
+          ).rows,
+        ).toEqual(mode === "inactive" ? [{ reviewer_user_id: admin.id }] : []);
+      } finally {
+        client.release();
+      }
+    },
+    60000,
+  );
+
+  it("rechecks a foreign admission assignment after a real lock wait, while retaining deliberate exact-ID reassignment", async () => {
+    const actor = await createAccount(world);
+    const value = await packet({
+      accountEmails: [reviewer.email, unassured.email, actor.email],
+    });
+    await prepare(value);
+    await prepare(value, unassured);
+    const admission = await pending(value, actor);
+    await run(value, { action: "assign-admission", admissionId: admission.id });
+    await whileOperatorWaits(
+      value,
+      { action: "assign-admission", admissionId: admission.id },
+      (client) =>
+        client.query("SELECT public.lock_learner_admission($1,NULL,$2::uuid)", [
+          reviewer.id,
+          admission.id,
+        ]),
+      (client) =>
+        client.query(
+          "UPDATE learner_admission_assignments SET reviewer_user_id=$2 WHERE admission_id=$1",
+          [admission.id, unassured.id],
+        ),
+    );
+    expect(
+      (
+        await world.owner.pool.query(
+          "SELECT reviewer_user_id FROM learner_admission_assignments WHERE admission_id=$1",
+          [admission.id],
+        )
+      ).rows[0].reviewer_user_id,
+    ).toBe(unassured.id);
+    await run(value, { action: "assign-admission", admissionId: admission.id });
+    expect(
+      (
+        await world.owner.pool.query(
+          "SELECT reviewer_user_id FROM learner_admission_assignments WHERE admission_id=$1",
+          [admission.id],
+        )
+      ).rows[0].reviewer_user_id,
+    ).toBe(reviewer.id);
+  }, 60000);
+
+  it.each(["revoked", "foreign", "expired-staff"])(
+    "does not revive %s screening authority after a real Tutor lock wait",
+    async (mode) => {
+      const { value, teacherProfile } = await dispatchFixture();
+      const expanded = parsePrivateWorkflow(
+        { ...value, accountEmails: [...value.accountEmails, unassured.email] },
+        expected,
+      );
+      await prepare(expanded, unassured);
+      const command = {
+        action: "assign-screening",
+        tutorId: teacherProfile.id,
+        validUntil: deadline(),
+      };
+      await run(expanded, command);
+      await whileOperatorWaits(
+        expanded,
+        command,
+        (client) =>
+          client.query("SELECT id FROM tutor_profiles WHERE id=$1 FOR UPDATE", [
+            teacherProfile.id,
+          ]),
+        (client) =>
+          mode === "revoked"
+            ? client.query(
+                "UPDATE tutor_screening_assignments SET status='revoked' WHERE tutor_id=$1",
+                [teacherProfile.id],
+              )
+            : mode === "foreign"
+              ? client.query(
+                  "UPDATE tutor_screening_assignments SET reviewer_user_id=$2 WHERE tutor_id=$1",
+                  [teacherProfile.id, unassured.id],
+                )
+              : client.query(
+                  "UPDATE tutor_screening_staff SET valid_until=clock_timestamp()-interval '1 second' WHERE user_id=$1 AND provenance='synthetic_readiness'",
+                  [reviewer.id],
+                ),
+      );
+      const saved = (
+        await world.owner.pool.query(
+          `SELECT a.status,a.reviewer_user_id,st.valid_until>clock_timestamp() AS current
+       FROM tutor_screening_assignments a JOIN tutor_screening_staff st
+         ON st.user_id=$2 AND st.provenance=a.provenance WHERE a.tutor_id=$1`,
+          [teacherProfile.id, reviewer.id],
+        )
+      ).rows[0];
+      if (mode === "revoked") expect(saved.status).toBe("revoked");
+      if (mode === "foreign") expect(saved.reviewer_user_id).toBe(unassured.id);
+      if (mode === "expired-staff") expect(saved.current).toBe(false);
+    },
+    60000,
+  );
+
+  it("discovers an actual provisional booking and grants metadata without confirming or creating outcomes", async () => {
+    const { value, booking } = await confirmationFixture();
+    const before = await domainCounts();
+    const client = await world.owner.pool.connect();
+    try {
+      expect(
+        await dispatchManualPreview(client, value, expected, reviewer.email, {
+          assertCurrent: () => {},
+          record: vi.fn(),
+        }),
+      ).toMatchObject({
+        status: "applied",
+        discovered: 1,
+        applied: 1,
+        confirmations: 1,
+      });
+      expect(
+        await dispatchManualPreview(client, value, expected, reviewer.email, {
+          assertCurrent: () => {},
+          record: vi.fn(),
+        }),
+      ).toMatchObject({
+        status: "applied",
+        discovered: 0,
+        applied: 0,
+      });
+      expect(await domainCounts()).toEqual(before);
+      expect(
+        (
+          await client.query("SELECT state FROM bookings WHERE id=$1", [
+            booking.id,
+          ])
+        ).rows[0].state,
+      ).toBe("provisional");
+    } finally {
+      client.release();
+    }
+  }, 60000);
+
+  it("grants only new exact confirmation work and does not extend an existing still-current grant", async () => {
+    const { value, booking } = await confirmationFixture();
+    const command = {
+      action: "grant-confirmation",
+      bookingId: booking.id,
+      validUntil: deadline(),
+      newOnly: true,
+    };
+    const before = await domainCounts();
+    expect(await run(value, command)).toMatchObject({ confirmationGrants: 1 });
+    expect(
+      await run(value, { ...command, validUntil: value.screening.validUntil }),
+    ).toMatchObject({ confirmationGrants: 0 });
+    expect(
+      (
+        await world.owner.pool.query(
+          "SELECT valid_until=$2::timestamptz AS same FROM booking_workflow_grants WHERE logical_booking_id=$1",
+          [booking.logicalBookingId, command.validUntil],
+        )
+      ).rows[0].same,
+    ).toBe(true);
+    expect(await domainCounts()).toEqual(before);
+  }, 60000);
+
+  it.each(["inactive", "expired", "foreign"])(
+    "does not revive an %s confirmation grant after a real Tutor lock wait",
+    async (mode) => {
+      const { value, booking, fixture } = await confirmationFixture();
+      const command = {
+        action: "grant-confirmation",
+        bookingId: booking.id,
+        validUntil: deadline(),
+      };
+      await run(value, command);
+      await whileOperatorWaits(
+        value,
+        command,
+        (client) =>
+          client.query("SELECT id FROM tutor_profiles WHERE id=$1 FOR UPDATE", [
+            fixture.profile.id,
+          ]),
+        (client) =>
+          mode === "inactive"
+            ? client.query(
+                "UPDATE booking_workflow_grants SET active=false WHERE logical_booking_id=$1",
+                [booking.logicalBookingId],
+              )
+            : mode === "expired"
+              ? client.query(
+                  "UPDATE booking_workflow_grants SET valid_until=clock_timestamp()-interval '1 second' WHERE logical_booking_id=$1",
+                  [booking.logicalBookingId],
+                )
+              : client.query(
+                  "UPDATE booking_workflow_grants SET actor_user_id=$2 WHERE logical_booking_id=$1",
+                  [booking.logicalBookingId, unassured.id],
+                ),
+      );
+      const saved = (
+        await world.owner.pool.query(
+          "SELECT actor_user_id,active,valid_until>clock_timestamp() AS current FROM booking_workflow_grants WHERE logical_booking_id=$1",
+          [booking.logicalBookingId],
+        )
+      ).rows[0];
+      if (mode === "inactive") expect(saved.active).toBe(false);
+      if (mode === "expired") expect(saved.current).toBe(false);
+      if (mode === "foreign") expect(saved.actor_user_id).toBe(unassured.id);
+      expect(
+        (
+          await world.owner.pool.query(
+            "SELECT state FROM bookings WHERE id=$1",
+            [booking.id],
+          )
+        ).rows[0].state,
+      ).toBe("provisional");
+    },
+    60000,
+  );
+
+  it("refuses a provisional deadline crossed during a later confirmation-grant row wait", async () => {
+    const { value, booking } = await confirmationFixture(3000);
+    const command = {
+      action: "grant-confirmation",
+      bookingId: booking.id,
+      validUntil: deadline(),
+    };
+    await run(value, command);
+    expect(
+      (
+        await world.owner.pool.query(
+          "SELECT expires_at-created_at=interval '10 minutes' AS approved_hold FROM bookings WHERE id=$1",
+          [booking.id],
+        )
+      ).rows[0].approved_hold,
+    ).toBe(true);
+    await whileOperatorWaits(
+      value,
+      command,
+      (client) =>
+        client.query(
+          "SELECT logical_booking_id FROM booking_workflow_grants WHERE logical_booking_id=$1 FOR UPDATE",
+          [booking.logicalBookingId],
+        ),
+      async () => {
+        await expect
+          .poll(
+            async () =>
+              (
+                await world.owner.pool.query<{ expired: boolean }>(
+                  "SELECT expires_at<=clock_timestamp() AS expired FROM bookings WHERE id=$1",
+                  [booking.id],
+                )
+              ).rows[0].expired,
+            { timeout: 4000 },
+          )
+          .toBe(true);
+      },
+    );
+    expect(
+      (
+        await world.owner.pool.query(
+          "SELECT valid_until=$2::timestamptz AS same FROM booking_workflow_grants WHERE logical_booking_id=$1",
+          [booking.logicalBookingId, command.validUntil],
+        )
+      ).rows[0].same,
+    ).toBe(true);
+    expect(
+      (
+        await world.owner.pool.query("SELECT state FROM bookings WHERE id=$1", [
+          booking.id,
+        ])
+      ).rows[0].state,
+    ).toBe("provisional");
+  }, 60000);
+
+  it("rolls back a prepared assignment if the admitted packet changes before commit", async () => {
+    const actor = await createAccount(world);
+    const value = await packet({
+      accountEmails: [reviewer.email, actor.email],
+    });
+    await prepare(value);
+    const admission = await pending(value, actor);
+    const client = await world.owner.pool.connect();
+    try {
+      await expect(
+        runPrivateWorkflowOperation(
+          client,
+          value,
+          expected,
+          {
+            apply: true,
+            reviewerEmail: reviewer.email,
+            action: "assign-admission",
+            admissionId: admission.id,
+            newOnly: true,
+          },
+          () => {
+            throw new Error("Packet replaced while waiting.");
+          },
+        ),
+      ).rejects.toBeInstanceOf(PrivateWorkflowOperatorError);
+      expect(
+        (
+          await client.query(
+            "SELECT admission_id FROM learner_admission_assignments WHERE admission_id=$1",
+            [admission.id],
+          )
+        ).rows,
+      ).toEqual([]);
+      expect(
+        (
+          await client.query(
+            "SELECT id FROM learner_admission_events WHERE admission_id=$1 AND event='assigned'",
+            [admission.id],
+          )
+        ).rows,
+      ).toEqual([]);
+    } finally {
+      client.release();
+    }
   }, 60000);
 });
 

@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import type { Metadata } from "next";
 import { admissionListCursor } from "@/features/learner-admission/input";
 import { LearnerLink } from "@/features/learners/learner-link";
@@ -5,6 +6,7 @@ import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { admissionContext } from "@/features/learner-admission/context";
 import { listAssignedAdmissions } from "@/features/learner-admission/service";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Assigned admission reviews",
@@ -31,8 +33,15 @@ export default async function Page({
     cursor
       ? `/admin/learner-admission?after=${cursor}`
       : "/admin/learner-admission",
-    (runtime, headers) =>
-      listAssignedAdmissions(admissionContext(runtime), headers, cursor),
+    async (runtime, headers) => ({
+      admissions: await listAssignedAdmissions(
+        admissionContext(runtime),
+        headers,
+        cursor,
+      ),
+      privateWorkflow: hasPersistentWorkflow(runtime),
+      localWorkflow: getLocalWorkflow(runtime) !== null,
+    }),
   );
   if (!result)
     return (
@@ -41,13 +50,16 @@ export default async function Page({
         message="We cannot open admission requests on this account."
       />
     );
-  const { items: rows, nextCursor } = result;
+  const { items: rows, nextCursor } = result.admissions;
   return (
     <div className="page-shell page-space">
       <h1 className="text-page-title">Assigned admission reviews</h1>
       <p className="mt-4 max-w-prose text-body">
-        Synthetic readiness only. No real guardian consent, age or eligibility
-        is established.
+        {result.localWorkflow
+          ? "Review only your assigned learner requests. Record the checks you performed before authorizing access."
+          : result.privateWorkflow
+            ? "Review only your assigned learner requests. These fictional records establish no real guardian consent, age or eligibility."
+            : "Synthetic readiness only. No real guardian consent, age or eligibility is established."}
       </p>
       {rows.length ? (
         <ul className="mt-8 divide-y divide-border">

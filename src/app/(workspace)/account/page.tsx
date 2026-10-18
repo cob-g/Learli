@@ -83,7 +83,9 @@ export default async function AccountPage() {
                     key={role}
                     href={`/${role}`}
                   >
-                    {role.charAt(0).toUpperCase() + role.slice(1)} workspace
+                    {role === "parent"
+                      ? "Parent Dashboard"
+                      : `${role.charAt(0).toUpperCase() + role.slice(1)} workspace`}
                   </Link>
                 ))}
               </nav>

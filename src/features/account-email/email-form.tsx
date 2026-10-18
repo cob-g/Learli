@@ -3,14 +3,16 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useHydrated } from "@/hooks/use-hydrated";
-import { emailChangeInput } from "./input";
+import { createEmailChangeInput } from "./input";
 
 export function EmailForm({
   currentEmail,
   hosted = false,
+  localWorkflow = false,
 }: {
   currentEmail: string;
   hosted?: boolean;
+  localWorkflow?: boolean;
 }) {
   const ready = useHydrated();
   const [stage, setStage] = useState<"start" | "current" | "new">("start");
@@ -44,7 +46,7 @@ export function EmailForm({
             newEmail: stage === "current" ? data.get("newEmail") : newEmail,
             code: data.get("code"),
           };
-    const parsed = emailChangeInput.safeParse(input);
+    const parsed = createEmailChangeInput(localWorkflow).safeParse(input);
     if (!parsed.success) {
       // Retain only fixed instructions, never issue payloads or proof values.
       const invalidEmail = parsed.error.issues.some(
@@ -55,7 +57,9 @@ export function EmailForm({
       );
       setErrors({
         newEmail: invalidEmail
-          ? "Enter a synthetic .test email address."
+          ? localWorkflow
+            ? "Enter a valid email address."
+            : "Enter a synthetic .test email address."
           : undefined,
         code: invalidCode
           ? stage === "current"
@@ -100,7 +104,9 @@ export function EmailForm({
           message: hosted
             ? "A confirmation request was accepted. Check the requested address for its code; delivery has not been established."
             : parsed.data.action === "start"
-              ? "A current-address confirmation code is available in your private local capture. No email was sent."
+              ? localWorkflow
+                ? "Your current-address code was captured locally. Run npm run mail:open in your Learli terminal to open it. No email was sent."
+                : "A current-address confirmation code is available in your private local capture. No email was sent."
               : "If the new address can be used, its code is available in your private local capture. Your current email is still unchanged.",
           failed: false,
         });
@@ -206,7 +212,7 @@ export function EmailForm({
           {stage === "current" && (
             <div className="space-y-2">
               <label htmlFor="email-new" className="block text-label">
-                New test email
+                {localWorkflow ? "New email" : "New test email"}
               </label>
               <input
                 id="email-new"

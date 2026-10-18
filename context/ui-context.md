@@ -1,5 +1,19 @@
 # Learli — UI Context
 
+### Ordinary local workflow presentation — 2026-10-18
+
+In explicitly admitted ordinary local operation, use normal account, request,
+booking, confirmation, completion and history language. Do not show private-preview
+or simulation notices for newly created operating records. Keep pending/review and
+provisional deadlines visible; never equate a saved request with authorization or
+confirmation. Local verification guidance says messages are captured on this
+computer and explains `npm run mail:open`; it must not claim email delivery.
+Admin Unassigned reviews exposes only request type/submission time before an exact
+claim. Actual review/evidence, MFA and server permission checks remain. Preserve
+existing navbar/auth motion, responsive layout and Parent Profile/My Children UI.
+Historical fixture/synthetic rows retain truthful labels in their original modes.
+
+
 Version2.19 — Brand kit, account language and guarded Tutor completion controls, 2026-10-16
 
 ## Authority and scope
@@ -83,6 +97,86 @@ not color alone. A teal dot may accompany selected navy/white controls.
 
 ## Typography
 
+### Create account reference exception — 2026-10-17
+
+The owner supplied the standalone Create Account HTML for `/sign-up` UI only.
+Use its centered 520px White card, 28px corners, soft offset shadow, quiet dot
+field and diagonal Mint ribbon with Navy edge. Abstract academic-category
+decoration floats beside the card; do not copy fictional tutor/session records.
+Retain existing fonts/palette, accepted navbar and sign-in UI. The owner's later
+footer-only requests replace the large footer on `/sign-up` and `/sign-in` with the reference's
+compact original-wordmark/copyright row, thin rule and Privacy draft, Terms
+draft and Help links. These keep real destinations and policy status, wrap on
+phones and reserve dock space. All other pages retain the shared footer.
+Signup-only 54px inputs/56px submit and 14px control corners follow the reference.
+Native radio cards retain all three existing account intentions and defaults:
+Choose later, Parent or guardian and College Student. Display name, validation,
+verification and downstream permission/eligibility rules stay unchanged.
+The reference's Get started label remains local content. No terms attestation,
+password meter, new account rule or simulated success is added. Enabled submit
+feedback and 7s/6s decorative bob motion retain visibility suspension and static
+reduced-motion/no-script fallbacks. Per the owner's later control-removal
+request, neither auth page shows Pause/Resume. Decoration freezes within 4.5s
+of its component mounting and does not restart on visibility changes. The owner's form-motion continuation
+adds enabled field/account-choice hover and focus transitions (150ms border/
+background, 200ms focus shadow), keeping strong borders and visible outlines.
+The real pending state replaces its decorative arrow with an 800ms spinner;
+reduced motion keeps a static ring and Please wait text. Disabled/hydration
+changes remain immediate. The existing refusal alert uses an opaque White
+surface so decorative artwork cannot cross error text on phones. No simulated
+success or registration rule changes.
+Narrow layouts hide floats and
+remove the card elevation while keeping the full scrolling form. This local
+exception does not authorize shadows, textures or loops on other task screens.
+See `docs/decisions/2026-10-17-sign-up-reference.md`.
+
+### Registration request feedback — 2026-10-17
+
+The authorized M2.9 signup continuation replaces the former inline completion
+notice with a stable **Verify your email** section inside the existing account
+card. A focused **Registration request received.** status describes the successful
+request, without asserting account creation, delivered email or verified status.
+New and duplicate successful responses use identical copy and actions. Local
+guidance names the verification link in the captured test mailbox; hosted
+guidance explicitly states that this screen does not confirm email delivery.
+Sign in, request another verification link, password reset and Use a different
+email lead to the existing safe continuations. No email or password enters URLs
+or browser storage. Editing again preserves account intent and the selected
+booking, with an empty masked password.
+
+Only an actual unresolved signup request shows **Creating account…**, the existing
+pending ring/static reduced-motion alternative, disabled controls and a polite
+request-in-progress announcement outside the busy form. A synchronous guard
+prevents repeated form events from dispatching another pending request. Current
+field constraints remain native attributes, with signup-scoped custom messages,
+field associations and a focused error summary. Only known non-enumerating
+provider codes identify an email/password correction; rate limits ask the
+visitor to wait, and unknown/network/server failures explain uncertainty and
+recovery. A dispatched password is immediately cleared/remasked. Existing
+sign-in, resend, reset, provider rules, artwork lifecycle and outer composition
+remain unchanged. See
+`prompts/features/m2-01-registration-verification-feedback.md` (**AUTHORIZED —
+build-feature delegation**); actual review/verification belongs in the tracker.
+
+### Sign-in reference exception — 2026-10-17
+
+The owner supplied the standalone Sign In v2 HTML for `/sign-in` only. Retain
+the approved navbar and the compact Create account footer (per the owner's
+later footer-only instruction); replace the old auth card with its
+unboxed form / rounded navy companion composition, 420px form, larger Sign in
+heading, locally rounded white inputs, and navy submit with teal arrow. The
+owner's motion continuation adds reference hover/press/arrow feedback, opposing
+mint ribbon motion and a gently bobbing orb. Per the owner's later request,
+the Pause/Resume control is removed; decoration freezes within 4.5s of component
+mounting and does not restart on visibility changes. Offscreen/tab suspension
+and static reduced-motion/no-script fallbacks remain. Use the existing palette, Lexend and Literata italic emphasis;
+no new font or generated imagery. The supplied Welcome back and tutoring label
+are reference content, not a new global heading convention. Existing validation,
+notices and help remain; input borders and 44px controls retain contrast/focus
+standards. Narrow or enlarged layouts hide the decorative panel and keep the
+form in normal flow. Other auth screens retain the existing frame. See
+`docs/decisions/2026-10-17-sign-in-reference.md`.
+
 Load Lexend400/500/600 and Literata400/500 through `next/font/google`, served by
 the app after build. No browser font-CDN stylesheet. Lexend is the interface face:
 headings, names, times, labels, controls and body. Literata is explicit
@@ -124,8 +218,11 @@ tags6px and dialogs18px. Pills are permitted
 for real selection chips only; ordinary forms/buttons stay10px. Avatars circle.
 No nesting panels merely for decoration. Use rows, headings and separators for
 dense content. Outside the public home page, motion is limited to short
-functional color/state transitions. Everywhere, content is visible immediately
-and reduced-motion preferences are respected.
+functional color/state transitions, except the owner's scoped sign-in reference
+continuation and Create account reference above: controlled decorative loops
+and button feedback.
+Everywhere, content is visible immediately and reduced-motion preferences are
+respected.
 
 ### Public home motion
 
@@ -206,10 +303,11 @@ backdrop, a lit rim, a contact shadow and a glint that follows the pointer.
 - Glass is for layers that float above content: the shared header, the
   finder, the lesson tiles, the "What Learli looks after" card, and the primary
   and outline actions. Reading sections stay solid.
-- The shared header is transparent and spans the full viewport width. It takes on
+- Below 64rem the shared header is transparent and spans the full viewport width. It takes on
   glass only once the page has scrolled beneath it (`data-raised`), because
   pinned labels over raw content cannot hold contrast. Without scripts it is
-  transparent and scrolls away with the page.
+  transparent and scrolls away with the page. At 64rem and above, the later
+  desktop-navbar reference exception below uses a pale blurred sheet from the top.
 - Every sheet has something of Learli's behind it to bend: the photographs, a
   stroke, or the page scrolling under the header. No gradient blobs, and no glass over an empty ground for its
   own sake.
@@ -362,6 +460,15 @@ Existing roleless accounts can use “Set up parent workspace” in account sett
 Explain that child access requires a separately authorized guardian relationship;
 preserve pending/error/retry states and safe tutor-selection continuation.
 
+The authorized parent Step2 journey uses “Parent Profile”, “My Children” and
+“Add Child”. Reuse the existing workspace shell and native labeled forms. Grade
+is an optional select (Grade1–12, with an unspecified option), separate from
+education level; College profiles have no school grade. Local saved profiles,
+saved pending requests and current reviewed access use truthful distinct states.
+A successful request does not imply guardian approval. Preserve values on errors,
+idempotent retry, pending/disabled status and refresh persistence. Shared Student
+and Account settings labels remain unchanged.
+
 ### Tutor directory and profiles
 
 Clearly label filters and viewer timezone. Use native GET/no-JS behavior where
@@ -410,6 +517,26 @@ role navigation, replacing duplicate family/tutor/admin page navigation. Public
 header stability and auth document boundaries remain intact. See the dated
 workspace-shell decision and M1.5 blueprint; execution evidence is separate.
 
+### Parent Dashboard discovery — 2026-10-17
+
+The parent overview at `/parent` uses **Parent Dashboard** for its sidebar entry,
+Account → Your workspaces entry, page title and stable h1. Selected child context
+sits beside the heading; multiple authorized learners retain the native GET
+selector and All learners option. **Bookings** remains a separate sidebar entry
+to `/bookings?scope=guardian`; only that entry is current on guardian-scoped
+booking lists/details. Student and Tutor navigation keep their existing behavior.
+
+Native **Upcoming Sessions** and **Booking History** links preserve the selected
+learner and history-page query and target the existing sections. They appear only
+when authorized learner sections exist. The parent Upcoming Sessions h2 contains
+the nearest booking once, with its existing next-session card titled at h3, then
+any remaining active rows. Show an empty state only when the entire active list
+is empty. Student next-card placement is unchanged. Preserve factual simulation,
+provisional, confirmed and history wording, current account-local time, existing
+private detail scope and all failure/recovery states. This introduces no design
+tokens or booking authority. Blueprint:
+`prompts/features/m5-04-parent-dashboard-discovery.md`.
+
 ### Booking and availability
 
 Who, what and when stay visible together: tutor, authorized learner, subject,
@@ -450,9 +577,9 @@ Use original SVGs under `public/brand/`, byte-identical to kit exports. Primary 
 white/paper, reverse on navy; no typed placeholder, distortion or recoloring.
 Use the kit icon for browser metadata, never beside the wordmark. Respect clear
 space and minimum size. Home links have a clear accessible name. Desktop and
-mobile navigation keep all current real destinations and visible focus. On
-public/auth pages, the shared header is transparent and full width, turning to glass
-on scroll. Use the existing Lucide library for functional icons only. No emoji
+mobile navigation keep all current real destinations and visible focus. On public/auth pages, the shared header is full width. Below 64rem it remains
+transparent at the top and turns to glass on scroll. The owner-authorized desktop
+reference treatment below supersedes only the older desktop material and sizing. Use the existing Lucide library for functional icons only. No emoji
 icons or decorative icon tiles.
 
 Page titles, descriptions, canonical addresses and share data come from
@@ -461,6 +588,29 @@ price, rating, count or credential. The share image is the reverse wordmark on
 navy (`src/app/opengraph-image.tsx`), never a photograph. Search indexing stays
 closed until launch; see
 `docs/decisions/2026-10-14-search-indexing-and-seo.md`.
+
+### Desktop navbar reference — 2026-10-17
+
+The owner supplied `learli Sign In v2 (standalone).html` and requested its desktop
+navbar UI while retaining all current functionality, navbar only. At 64rem and
+above, use its compact pale translucent header with a subtle bottom edge,
+72px minimum inner row, centered white pill containing the four existing links,
+and a rounded Sign in entry with a persistent White background and outlined
+edge on every route, plus a light Mint hover. The current Sign in page adds a
+small decorative teal dot; the dot conveys the current page, never authentication status.
+
+Keep the original SVG wordmark, sized locally to approximately 78px, existing
+palette/font tokens, routes, active-page semantics and visible keyboard focus.
+The capsule retains 44px link hit targets inside the reference's approximately
+46px shell. The owner additionally requested no navbar underlines; keep light
+green hover/current-page fills and the existing `aria-current` semantics. Names
+and enlarged text can wrap and increase header height; a constrained desktop
+header gives the account a full-width second row for readable names. Account
+checking/error/retry and disclosure behavior stay intact. Desktop styles are
+scoped to `.site-header`, preserving the shared private-workspace account chip,
+all other glass surfaces, and the mobile top bar/bottom dock. Solid fallbacks
+remain for reduced transparency, increased contrast and missing backdrop support.
+See `docs/decisions/2026-10-17-desktop-navbar-reference.md`.
 
 ### Small-screen dock
 
@@ -608,7 +758,9 @@ or changing its public fields; no route/picker streaming boundary is required.
 
 M5.3/M5.4 follows the workspace top-bar, named-learner and time-column patterns
 with explicit local simulation wording. Multiple currently authorized guardian
-learners default to All learners; one has a named heading without a selector.
+learners default to All learners; one has named learner context without a selector.
+The later Parent Dashboard discovery convention above owns the current parent
+page title and section hierarchy.
 The native radio GET form works without JavaScript. Agenda and history use date
 headings, explicit date-specific zone lines and aligned time ranges. Rows on a
 single local DST-transition date are grouped separately by their actual formatted
@@ -823,3 +975,15 @@ filters carry bounded paging through navigation. Roles are display-only. Minimal
 participant names/relationship do not expose emails, contacts or private meetings.
 Fictional account action wording remains clear; real safeguarding findings are not
 invented. Responsive/keyboard/Axe execution evidence belongs in the tracker.
+
+### Private persistent-preview wording — 2026-10-17
+
+In the selected separate private composition, retain the incumbent screens,
+nav, design tokens and ordinary booking states (Provisional booking, Confirmed,
+Completed, Cancelled, Rescheduled). A single private-fictional/payments-disabled
+notice scopes the experience. Active booking/support/screening/availability and
+public discovery/policy entry copy must describe this persisted workflow rather
+than legacy simulations. Default local and historical fixture provenance retain
+their honest original wording. Permission and unresolved-policy explanations
+remain; terminology does not establish payment, attendance or real screening.
+This copy correction adds no global visual system, assets or layout redesign.

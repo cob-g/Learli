@@ -1,4 +1,4 @@
-import { getServerEnv } from "@/lib/env/server";
+import { getAuthPresentation } from "@/lib/auth";
 import type { Metadata } from "next";
 import { AuthFrame } from "@/features/auth/auth-frame";
 import { AuthForm } from "@/features/auth/auth-form";
@@ -15,11 +15,12 @@ export default async function Page({
 }) {
   const params = await searchParams;
   return (
-    <AuthFrame title="Create an account">
+    <AuthFrame title="Create account" presentation="sign-up">
       <PendingBookingChoice next={params.next} />
       <AuthForm
-        hosted={getServerEnv().AUTH_MODE === "hosted-synthetic"}
+        {...getAuthPresentation()}
         mode="sign-up"
+        presentation="sign-up-reference"
         next={params.next}
         token={params.token}
         invalidToken={!!params.error}

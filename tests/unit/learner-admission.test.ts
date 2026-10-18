@@ -135,3 +135,38 @@ describe("strict opaque admission cursors", () => {
       expect(() => admissionListCursor(value)).toThrow();
   });
 });
+
+describe("private admission school-grade metadata", () => {
+  it("keeps the optional grade separate from the reviewed broad level", () => {
+    const request = admissionInput.parse({ ...intake, grade: 8 });
+    expect(request).toMatchObject({ grade: 8, level: "elementary" });
+    expect(admissionInput.parse(intake)).not.toHaveProperty("grade");
+    expect(admissionInput.parse({ ...intake, grade: null }).grade).toBeNull();
+  });
+  it.each([0, 13, 2.5, "8", false])("rejects invalid grade %j", (grade) => {
+    expect(admissionInput.safeParse({ ...intake, grade }).success).toBe(false);
+  });
+  it("does not assign school grades to independent College profiles", () => {
+    expect(
+      admissionInput.safeParse({
+        ...intake,
+        management: "self",
+        level: "college_support",
+        grade: 8,
+      }).success,
+    ).toBe(false);
+  });
+  it("permits grade edit/clear/omission without allowing a reviewed level change", async () => {
+    const { admittedLearnerInput } =
+      await import("@/features/learner-admission/input");
+    const edit = { displayName: "Fictional learner", timezone: "UTC" };
+    expect(admittedLearnerInput.parse(edit)).not.toHaveProperty("grade");
+    expect(admittedLearnerInput.parse({ ...edit, grade: 8 }).grade).toBe(8);
+    expect(
+      admittedLearnerInput.parse({ ...edit, grade: null }).grade,
+    ).toBeNull();
+    expect(
+      admittedLearnerInput.safeParse({ ...edit, level: "high_school" }).success,
+    ).toBe(false);
+  });
+});

@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { recheckAdminAssurance } from "@/features/admin-security/assurance";
 import { and, asc, eq, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
@@ -25,9 +26,8 @@ function assigned(
   tutorId: SQL | string = sql`${tutorProfiles.id}`,
   packet: PrivateWorkflowPacket | null = getPrivateWorkflow(runtime),
 ): SQL {
-  const readiness =
-    getScreeningContext(runtime).screening.mode === "synthetic_test";
-  return sql`${privateActorPredicate(packet, sql`${userId}`)} AND ${privateTutorPredicate(packet, sql`${tutorId}::uuid`)} AND public.has_tutor_screening_authority(${userId},${sessionId},${tutorId}, CASE WHEN EXISTS(SELECT 1 FROM tutor_screening_cases c WHERE c.tutor_id=${tutorId}) THEN 'synthetic_readiness' ELSE 'local_fixture' END) AND (${readiness} OR NOT EXISTS(SELECT 1 FROM tutor_screening_cases c WHERE c.tutor_id=${tutorId}))`;
+  const readiness = getScreeningContext(runtime).screening.mode !== "disabled";
+  return sql`(${!getLocalWorkflow(runtime)} OR EXISTS(SELECT 1 FROM tutor_screening_cases local_case JOIN tutor_screening_policy_heads local_head ON local_head.provenance=local_case.provenance AND local_head.version=local_case.policy_version AND local_head.status='enabled' JOIN tutor_screening_policies local_policy ON local_policy.provenance=local_head.provenance AND local_policy.version=local_head.version WHERE local_case.tutor_id=${tutorId} AND local_case.provenance='local_operation' AND local_policy.valid_from<=clock_timestamp() AND local_policy.valid_until IS NULL)) AND ${privateActorPredicate(packet, sql`${userId}`)} AND ${privateTutorPredicate(packet, sql`${tutorId}::uuid`)} AND public.has_tutor_screening_authority(${userId},${sessionId},${tutorId}, coalesce((SELECT c.provenance FROM tutor_screening_cases c WHERE c.tutor_id=${tutorId}), 'local_fixture')) AND (${readiness} OR NOT EXISTS(SELECT 1 FROM tutor_screening_cases c WHERE c.tutor_id=${tutorId}))`;
 }
 
 export const reviewInput = z.strictObject({
@@ -74,6 +74,12 @@ export async function listTutorApplications(
     .limit(reviewQueueLimit + 1)
     .offset((safe - 1) * reviewQueueLimit);
   await recheckAdminAssurance(runtime.db, identity);
+  if (getLocalWorkflow(runtime)) {
+    const current = await runtime.db.execute<{ allowed: boolean }>(
+      sql`SELECT public.has_local_workflow_staff(${identity.userId},${identity.sessionId},'screening') AND EXISTS(SELECT 1 FROM public.tutor_screening_policy_heads h JOIN public.tutor_screening_policies p ON p.provenance=h.provenance AND p.version=h.version WHERE h.provenance='local_operation' AND h.status='enabled' AND p.valid_from<=clock_timestamp() AND p.valid_until IS NULL) AS allowed`,
+    );
+    if (!current.rows[0]?.allowed) throw new AccessError(404);
+  }
   assertPrivateWorkflowUnchanged(runtime, packet);
   return {
     total,
@@ -139,7 +145,7 @@ export async function reviewTutorApplication(
   const packet = getPrivateWorkflow(runtime);
   const identity = await requireRole(runtime, headers, "admin");
   // Private reviews use current evidence-based screening, never retained local grants.
-  if (packet) throw new AccessError(404);
+  if (packet || getLocalWorkflow(runtime)) throw new AccessError(404);
   const { action } = reviewInput.parse(input);
   if (!z.uuid().safeParse(profileId).success)
     throw new RuleError(404, notFound);

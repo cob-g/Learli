@@ -17,12 +17,14 @@ export function BookingHistoryFilters({
   pageSize,
   learners,
   learnerId,
+  privateWorkflow = false,
 }: {
   scope: BookingReadScope;
   filter: BookingReadFilter;
   pageSize: number;
   learners: BookingLearnerSummary[];
   learnerId?: string;
+  privateWorkflow?: boolean;
 }) {
   const [pending, startTransition] = useTransition();
   const router = useRouter();
@@ -76,7 +78,9 @@ export function BookingHistoryFilters({
           defaultValue={filter}
         >
           <option value="all">All saved bookings</option>
-          <option value="active">Active simulations</option>
+          <option value="active">
+            {privateWorkflow ? "Active bookings" : "Active simulations"}
+          </option>
           <option value="history">Booking history</option>
         </select>
       </div>

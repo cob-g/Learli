@@ -35,7 +35,7 @@ export const bookings = pgTable(
     replacesBookingId: uuid("replaces_booking_id"),
     revision: integer("revision").default(0).notNull(),
     source: text("source")
-      .$type<"local_simulation" | "synthetic_readiness">()
+      .$type<"local_simulation" | "synthetic_readiness" | "local_operation">()
       .notNull(),
     tutorId: uuid("tutor_id")
       .notNull()
@@ -97,11 +97,11 @@ export const bookings = pgTable(
     index("bookings_tutor_time_idx").on(table.tutorId, table.startAtUtc),
     check(
       "bookings_local_source",
-      sql`${table.source} IN ('local_simulation','synthetic_readiness')`,
+      sql`${table.source} IN ('local_simulation','synthetic_readiness','local_operation')`,
     ),
     check(
       "bookings_demo_state",
-      sql`(${table.source}='local_simulation' AND ${table.state} IN ('demo_reserved','demo_expired','demo_cancelled','demo_replaced','demo_confirmed','demo_completed') AND ${table.workflowPolicyId} IS NULL AND ${table.admissionPolicyId} IS NULL AND ${table.workflowRevision}=0) OR (${table.source}='synthetic_readiness' AND ${table.state} IN ('provisional','confirmed','completed','no_show','expired','cancelled','replaced') AND ${table.workflowPolicyId} IS NOT NULL AND ${table.admissionPolicyId} IS NOT NULL AND ${table.workflowRevision}>=0)`,
+      sql`(${table.source}='local_simulation' AND ${table.state} IN ('demo_reserved','demo_expired','demo_cancelled','demo_replaced','demo_confirmed','demo_completed') AND ${table.workflowPolicyId} IS NULL AND ${table.admissionPolicyId} IS NULL AND ${table.workflowRevision}=0) OR (${table.source} IN ('synthetic_readiness','local_operation') AND ${table.state} IN ('provisional','confirmed','completed','no_show','expired','cancelled','replaced') AND ${table.workflowPolicyId} IS NOT NULL AND ${table.admissionPolicyId} IS NOT NULL AND ${table.workflowRevision}>=0)`,
     ),
     check(
       "bookings_interval_valid",
@@ -187,7 +187,7 @@ export const bookingLifecycleEvents = pgTable(
     }).onDelete("restrict"),
     check(
       "booking_lifecycle_events_event_check",
-      sql`(${table.workflowPolicyId} IS NULL AND ${table.event} IN ('demo_cancelled','demo_rescheduled','demo_confirmed','demo_completed') AND ${table.workflowRevision} IS NULL AND ${table.reasonCode} IS NULL) OR (${table.workflowPolicyId} IS NOT NULL AND ${table.event} IN ('workflow_provisional','workflow_confirmed','workflow_completed','workflow_no_show','workflow_expired','workflow_cancelled','workflow_rescheduled') AND ${table.workflowRevision}>=0 AND ${table.reasonCode} IN ('synthetic_request','synthetic_prerequisite_review','synthetic_completed','synthetic_no_show','synthetic_participant_change','synthetic_expiry'))`,
+      sql`(${table.workflowPolicyId} IS NULL AND ${table.event} IN ('demo_cancelled','demo_rescheduled','demo_confirmed','demo_completed') AND ${table.workflowRevision} IS NULL AND ${table.reasonCode} IS NULL) OR (${table.workflowPolicyId} IS NOT NULL AND ${table.event} IN ('workflow_provisional','workflow_confirmed','workflow_completed','workflow_no_show','workflow_expired','workflow_cancelled','workflow_rescheduled') AND ${table.workflowRevision}>=0 AND ${table.reasonCode} IN ('synthetic_request','synthetic_prerequisite_review','synthetic_completed','synthetic_no_show','synthetic_participant_change','synthetic_expiry','local_request','local_prerequisite_review','local_completed','local_no_show','local_participant_change','local_expiry'))`,
     ),
     check(
       "booking_lifecycle_events_request_fingerprint_check",

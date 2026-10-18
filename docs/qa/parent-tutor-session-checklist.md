@@ -5,7 +5,7 @@ Acceptance scope approved by the owner on 2026-10-16:
 **NOT RUN** for the complete journey below. Approval of expected behavior is separate from evidence
 that the application implements or passes it.
 
-Latest actual Playwright attempt, 2026-10-16: **BLOCKED at Add Child** in the
+Historical full-journey Playwright attempt, 2026-10-16: **BLOCKED at Add Child** in the
 default application. New Parent registration passed; normal admission is
 unavailable, no exact Grade 8 entry exists and ordinary booking remains
 simulation-only. The separate **63/63 feature passes** use isolated scenarios
@@ -54,8 +54,21 @@ Role: Parent A.
 
 Expected: Parent A sees accurate information for an authorized linked child.
 
-Current source gap: the family dashboard still exposes simulation-oriented
-reservations; these checks are the normal-workflow acceptance target.
+Current source (2026-10-17): `/parent` is named Parent Dashboard and retains a
+separate guardian-scoped Bookings destination. Upcoming Sessions contains the
+nearest booking once, and native section links preserve selected-child context;
+Booking History remains the existing authorized history. The ordinary development
+preview continues to show simulations and their expiry, not confirmed lessons.
+Separate isolated verification, 2026-10-17: the existing normal-build private
+guardian journey passed with added Step 5 checks against a persisted confirmed
+synthetic booking: exact child/tutor/Math/date/time/zone/status, guardian details,
+selected-child section navigation, separate Bookings destination, reload/refresh
+and unchanged booking/event/notice counts. Desktop1440px and phone390/320px,
+keyboard anchors and Axe checks passed. Full check2,097 tests, PostgreSQL37 tests
+and normal auth/family/workspace browser27 tests also passed; exact commands and
+limitations are in `context/progress-tracker.md`. This does not change the
+historical full-journey table or claim the owner's account-specific Step 5,
+a deployed staging environment, or real Zoom/Meet attendance passed.
 
 ## Step 6 — Verify Tutor Receives Booking
 

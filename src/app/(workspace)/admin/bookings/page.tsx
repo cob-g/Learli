@@ -42,7 +42,7 @@ export default async function Page({
     return (
       <UnavailablePage
         title="Assigned bookings unavailable"
-        message="Current administrator verification, private staging and an exact booking assignment are required."
+        message="Current administrator verification and an exact booking assignment are required."
       />
     );
   return (

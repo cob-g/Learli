@@ -1,4 +1,6 @@
 import "server-only";
+import { createHash } from "node:crypto";
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { getPrivateWorkflow } from "@/features/private-workflow/runtime";
 import {
   createLocalAuth,
@@ -25,6 +27,7 @@ import { HostedAuthError } from "@/features/hosted-auth/config";
 
 const shared = globalThis as typeof globalThis & {
   learliAuth?: LocalAuthRuntime;
+  learliLocalAuthFingerprint?: string;
   learliNeonDevelopmentAuth?: NeonDevelopmentAuthRuntime;
   learliDevelopmentFingerprint?: string;
   learliDatabaseMode?: string;
@@ -53,8 +56,37 @@ export function getAuthRuntime() {
     shared.learliCloseAccountAuth = shared.learliNeonDevelopmentAuth.close;
     return shared.learliNeonDevelopmentAuth;
   }
+  const fingerprint = createHash("sha256")
+    .update(
+      JSON.stringify([
+        env.APP_ENV,
+        env.APP_URL,
+        env.BETTER_AUTH_URL,
+        env.BETTER_AUTH_SECRET,
+        env.DATABASE_URL,
+        env.LOCAL_WORKFLOW_MODE,
+      ]),
+    )
+    .digest("hex");
+  if (
+    shared.learliLocalAuthFingerprint &&
+    shared.learliLocalAuthFingerprint !== fingerprint
+  )
+    throw new HostedAuthError("configuration");
+  shared.learliLocalAuthFingerprint = fingerprint;
   shared.learliAuth ??= createLocalAuth(process.env);
   return shared.learliAuth;
+}
+
+/** Only safe presentation flags leave the validated server/runtime boundary. */
+export function getAuthPresentation() {
+  const env = getServerEnv();
+  const runtime =
+    env.LOCAL_WORKFLOW_MODE === "enabled" ? getAuthRuntime() : null;
+  return {
+    hosted: env.AUTH_MODE === "hosted-synthetic",
+    localWorkflow: !!runtime && !!getLocalWorkflow(runtime),
+  };
 }
 export async function getAccountAuthRuntime(): Promise<AuthRuntime | null> {
   const mode = getServerEnv().AUTH_MODE;

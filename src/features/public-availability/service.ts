@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import {
   getPrivateWorkflow,
   assertPrivateWorkflowUnchanged,
@@ -39,7 +40,7 @@ export type PublicTutorCandidates = {
   times: PublicCandidateTime[];
 };
 export type PublicCandidates = {
-  source: "local_simulation" | "synthetic_readiness";
+  source: "local_simulation" | "synthetic_readiness" | "local_operation";
   generatedAtUtc: string;
   from: string;
   to: string;
@@ -68,14 +69,21 @@ export async function readPublicCandidates(
   scope: ScreeningScope = "local_demo",
 ): Promise<PublicCandidates> {
   assertLocal(runtime);
-  if (isPrivateWorkflow(runtime)) scope = "synthetic_readiness";
-  if (scope !== "local_demo" && scope !== "synthetic_readiness")
+  if (getLocalWorkflow(runtime)) scope = "local_operation";
+  else if (isPrivateWorkflow(runtime)) scope = "synthetic_readiness";
+  if (
+    scope !== "local_demo" &&
+    scope !== "synthetic_readiness" &&
+    scope !== "local_operation"
+  )
     throw overload();
   if (
     scope === "synthetic_readiness" &&
     runtime.environment !== "test" &&
     !isPrivateWorkflow(runtime)
   )
+    throw overload();
+  if (scope === "local_operation" && !getLocalWorkflow(runtime))
     throw overload();
   return readCandidates(runtime, publicCandidateQueryInput.parse(input), scope);
 }
@@ -87,14 +95,21 @@ export async function readPublicDirectoryCandidates(
   scope: ScreeningScope = "local_demo",
 ): Promise<PublicCandidates> {
   assertLocal(runtime);
-  if (isPrivateWorkflow(runtime)) scope = "synthetic_readiness";
-  if (scope !== "local_demo" && scope !== "synthetic_readiness")
+  if (getLocalWorkflow(runtime)) scope = "local_operation";
+  else if (isPrivateWorkflow(runtime)) scope = "synthetic_readiness";
+  if (
+    scope !== "local_demo" &&
+    scope !== "synthetic_readiness" &&
+    scope !== "local_operation"
+  )
     throw overload();
   if (
     scope === "synthetic_readiness" &&
     runtime.environment !== "test" &&
     !isPrivateWorkflow(runtime)
   )
+    throw overload();
+  if (scope === "local_operation" && !getLocalWorkflow(runtime))
     throw overload();
   return readCandidates(
     runtime,
@@ -143,9 +158,11 @@ async function readCandidates(
         packet,
       );
       const base = {
-        source: packet
-          ? ("synthetic_readiness" as const)
-          : ("local_simulation" as const),
+        source: getLocalWorkflow(runtime)
+          ? ("local_operation" as const)
+          : packet
+            ? ("synthetic_readiness" as const)
+            : ("local_simulation" as const),
         generatedAtUtc: now.toISOString(),
         from: range.from.toISOString(),
         to: range.to.toISOString(),

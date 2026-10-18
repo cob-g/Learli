@@ -20,6 +20,10 @@ export const workflowChange = z.strictObject({
     "synthetic_completed",
     "synthetic_no_show",
     "synthetic_participant_change",
+    "local_prerequisite_review",
+    "local_completed",
+    "local_no_show",
+    "local_participant_change",
   ]),
 });
 export const workflowMove = workflowChange.extend({

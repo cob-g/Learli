@@ -41,6 +41,7 @@ export type WorkspaceLinkOptions = {
   screening?: boolean;
   privateWorkflow?: boolean;
   privateAccounts?: boolean;
+  localWorkflow?: boolean;
 };
 export function workspaceLinks(
   role: Role | null,
@@ -48,10 +49,23 @@ export function workspaceLinks(
     screening = false,
     privateWorkflow = false,
     privateAccounts = false,
+    localWorkflow = false,
   }: WorkspaceLinkOptions = {},
 ): WorkspaceLink[] {
   switch (role) {
     case "parent":
+      return [
+        { href: "/parent", label: "Parent Dashboard", exact: true },
+        { href: "/bookings?scope=guardian", label: "Bookings", exact: true },
+        { href: "/parent/profile", label: "Parent Profile", exact: true },
+        { href: "/parent/children", label: "My Children" },
+        ...(privateWorkflow
+          ? [
+              { href: "/learner-admission", label: "Learner requests" },
+              { href: "/bookings/new", label: "Book a session", exact: true },
+            ]
+          : []),
+      ];
     case "student":
       return [
         { href: `/${role}`, label: "Bookings", exact: true },
@@ -76,6 +90,9 @@ export function workspaceLinks(
     case "admin":
       return [
         { href: "/admin", label: "Overview", exact: true },
+        ...(localWorkflow
+          ? [{ href: "/admin/requests", label: "Unassigned reviews" }]
+          : []),
         ...(privateWorkflow
           ? [{ href: "/admin/bookings", label: "Assigned bookings" }]
           : []),
@@ -92,7 +109,9 @@ export function workspaceLinks(
             exclude:
               href === "/admin/support" ? "/admin/support/dispatch" : undefined,
           })),
-        { href: "/admin/support/dispatch", label: "Support assignment" },
+        ...(!localWorkflow
+          ? [{ href: "/admin/support/dispatch", label: "Support assignment" }]
+          : []),
         {
           href: "/admin/learner-admission",
           label: "Learner admission reviews",
@@ -111,7 +130,7 @@ export function isCurrentLink(
   scope?: string | null,
 ) {
   const bookingScope =
-    link.href === "/parent"
+    link.href === "/bookings?scope=guardian"
       ? "guardian"
       : link.href === "/student"
         ? "student"
@@ -122,7 +141,10 @@ export function isCurrentLink(
     bookingScope &&
     (pathname === "/bookings" || pathname.startsWith("/bookings/"))
   )
-    return scope === bookingScope;
+    return (
+      scope === bookingScope &&
+      (bookingScope !== "guardian" || pathname !== "/bookings/new")
+    );
   if (
     link.exclude &&
     (pathname === link.exclude || pathname.startsWith(`${link.exclude}/`))

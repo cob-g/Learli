@@ -1,4 +1,4 @@
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { providerHeaders } from "@/features/hosted-auth/request";
 import "server-only";
 import { eq } from "drizzle-orm";
@@ -74,7 +74,7 @@ export async function loadProfilePreview(
     ? zone.data
     : (savedZone ?? visitZone ?? teachingZone);
   const result: ProfilePreview = {
-    privateWorkflow: !!runtime && isPrivateWorkflow(runtime),
+    privateWorkflow: !!runtime && hasPersistentWorkflow(runtime),
     subjectSlug: subject.success ? subject.data : "",
     level: level.success ? level.data : "",
     timezone,

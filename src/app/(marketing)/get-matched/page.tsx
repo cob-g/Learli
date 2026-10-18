@@ -2,6 +2,7 @@ import "../home.css";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getDomainAuthRuntime } from "@/lib/auth";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
 import { resolveMatch, matchLimit } from "@/features/matching/match";
 import { MatchQuestions } from "@/features/matching/questions";
@@ -116,6 +117,7 @@ async function Matching({ searchParams }: MatchingProps) {
   } catch {
     return <LoadFailure href={matchingHref(answers)} times />;
   }
+  const privateWorkflow = !!runtime && hasPersistentWorkflow(runtime);
   const level = learnerLevelOptions.find(
     ([value]) => value === match.level,
   )?.[1];
@@ -135,11 +137,14 @@ async function Matching({ searchParams }: MatchingProps) {
       <div className="max-w-6xl">
         <h1 className="text-page-title">Get matched</h1>
         <p className="mt-4 max-w-prose text-small text-muted-foreground">
-          Local demo search: {demoBookingPolicy.durationMinutes}-minute times in{" "}
+          {privateWorkflow ? "Available times: " : "Local demo search: "}
+          {demoBookingPolicy.durationMinutes}-minute times in{" "}
           {demoBookingPolicy.stepMinutes}-minute steps, at least{" "}
           {demoBookingPolicy.noticeMinutes} minutes ahead, within{" "}
-          {demoBookingPolicy.horizonDays} days. These are simulated options;
-          live lesson terms are not set. Times can change before a reservation.
+          {demoBookingPolicy.horizonDays} days.{" "}
+          {privateWorkflow
+            ? "Times are checked again when you request a booking. Confirmation requires assigned review."
+            : "These are simulated options; live lesson terms are not set. Times can change before a reservation."}
         </p>
         <div className="mt-8 border-t border-border pt-8">
           {total === 0 ? (
@@ -154,7 +159,9 @@ async function Matching({ searchParams }: MatchingProps) {
             >
               <p>{summary}</p>
               <p>
-                No eligible tutor has an open demo time that fits these answers.
+                {privateWorkflow
+                  ? "No eligible tutor has an open time that fits these answers."
+                  : "No eligible tutor has an open demo time that fits these answers."}
               </p>
             </EmptyState>
           ) : (
@@ -171,6 +178,7 @@ async function Matching({ searchParams }: MatchingProps) {
                 <MatchResultList
                   matches={matches}
                   preferences={match.preferences}
+                  privateWorkflow={privateWorkflow}
                   profileHref={({ tutor, nextTime }) =>
                     publicProfileHref({
                       tutorSlug: tutor.slug,

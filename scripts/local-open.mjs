@@ -1,4 +1,4 @@
-import { readdirSync, existsSync } from "node:fs";
+import { readdirSync, existsSync, lstatSync } from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 const kind = process.argv[2];
@@ -6,13 +6,37 @@ let file;
 if (kind === "fixtures") file = path.resolve(".local/fixtures.html");
 else {
   const directory = path.resolve(".local/mail/development");
+  let current = process.cwd();
+  for (const segment of [".local", "mail", "development"]) {
+    current = path.join(current, segment);
+    if (!existsSync(current)) break;
+    const stat = lstatSync(current);
+    if (
+      !stat.isDirectory() ||
+      stat.isSymbolicLink() ||
+      stat.uid !== process.getuid?.() ||
+      (stat.mode & 0o7777) !== 0o700
+    )
+      throw new Error("Private local mailbox is unavailable. Details omitted.");
+  }
   const latest = existsSync(directory)
     ? readdirSync(directory)
-        .filter((f) => f.endsWith(".html"))
+        .filter((f) => /^\d+-[a-f0-9-]{36}\.html$/.test(f))
         .sort()
         .at(-1)
     : undefined;
-  if (latest) file = path.join(directory, latest);
+  if (latest) {
+    file = path.join(directory, latest);
+    const stat = lstatSync(file);
+    if (
+      !stat.isFile() ||
+      stat.isSymbolicLink() ||
+      stat.uid !== process.getuid?.() ||
+      (stat.mode & 0o7777) !== 0o600 ||
+      stat.nlink !== 1
+    )
+      throw new Error("Private local message is unavailable. Details omitted.");
+  }
 }
 if (!file || !existsSync(file)) {
   console.error("No local capture is available yet.");

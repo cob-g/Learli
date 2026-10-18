@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { recheckAdminAssurance } from "@/features/admin-security/assurance";
 // Node-only reusable service; every protected projection rechecks current identity.
 import { sql } from "drizzle-orm";
@@ -10,6 +11,7 @@ import { moderationInput, submissionInput } from "./input";
 import { queryAuthorReview, queryModeratorReviews } from "./query";
 async function actor(runtime: AuthRuntime, headers: Headers) {
   if (
+    getLocalWorkflow(runtime) ||
     !["development", "test"].includes(runtime.environment) ||
     !isLoopbackOrigin(runtime.origin)
   )

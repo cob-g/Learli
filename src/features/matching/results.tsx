@@ -23,10 +23,12 @@ export function MatchResultList({
   matches,
   preferences,
   profileHref,
+  privateWorkflow = false,
 }: {
   matches: AvailableMatch[];
   preferences: MatchPreferences;
   profileHref: (match: AvailableMatch) => string;
+  privateWorkflow?: boolean;
 }) {
   return (
     <ul className="@container divide-y divide-border border-y border-border">
@@ -55,7 +57,9 @@ export function MatchResultList({
               </p>
               <p className="mt-2 max-w-prose text-small text-muted-foreground">
                 {preferences.when === "any"
-                  ? "Has an open time in the demo search window."
+                  ? privateWorkflow
+                    ? "Has an open time in the next 14 days."
+                    : "Has an open time in the demo search window."
                   : "Has an open time within your chosen weekdays and time range."}
               </p>
             </div>

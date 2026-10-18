@@ -448,7 +448,9 @@ test("sign-up and resend verification retain selection without granting roles or
     .getByRole("button", { name: "Create account", exact: true })
     .click();
   await expect(
-    page.getByRole("status").filter({ hasText: "verification message" }),
+    page
+      .getByRole("status")
+      .filter({ hasText: "Registration request received." }),
   ).toBeVisible();
   const created = await owner.pool.query(
     'SELECT id FROM "user" WHERE email=$1',

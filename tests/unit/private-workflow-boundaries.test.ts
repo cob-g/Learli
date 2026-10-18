@@ -60,6 +60,7 @@ const localTarget = {
 const shared = globalThis as typeof globalThis & Record<string, unknown>;
 const globals = [
   "learliAuth",
+  "learliLocalAuthFingerprint",
   "learliHostedAuth",
   "learliAccountMode",
   "learliDatabaseMode",

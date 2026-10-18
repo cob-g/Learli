@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { legacyAdmittedFixture } from "./legacy-admission-fixture";
 import type { World, TestAccount } from "../integration/support";
 import { createAccount } from "../integration/support";
 import {
@@ -20,14 +21,14 @@ import { saveOwnAvailability } from "@/features/availability/service";
 import {
   bookingPolicyDigest,
   validateBookingCapability,
-  type EnabledBookingPolicy,
+  type SyntheticBookingPolicy,
 } from "@/features/booking-workflows/policy";
 import type { BookingWorkflowContext } from "@/features/booking-workflows/service";
 export async function provisionBookingPolicy(
   w: World,
   admissionPolicyId: string,
   completion: "admin" | "tutor" = "admin",
-): Promise<EnabledBookingPolicy> {
+): Promise<SyntheticBookingPolicy> {
   const fields = {
     authority: "synthetic_test",
     source: "synthetic_readiness",
@@ -81,7 +82,10 @@ export async function admittedFixture(
   w: World,
   reviewer: TestAccount,
   management: "guardian" | "self" = "guardian",
+  historicalBeforeGrade = false,
 ) {
+  if (historicalBeforeGrade)
+    return legacyAdmittedFixture(w, reviewer, management);
   const admission = await provisionAdmissionPolicy(w.owner.pool),
     context: AdmissionContext = { runtime: w.runtime, admission },
     requester = await createAccount(w);
@@ -134,8 +138,14 @@ export async function workflowFixture(
   reviewer: TestAccount,
   management: "guardian" | "self" = "guardian",
   completion: "admin" | "tutor" = "admin",
+  historicalBeforeGrade = false,
 ) {
-  const family = await admittedFixture(w, reviewer, management),
+  const family = await admittedFixture(
+      w,
+      reviewer,
+      management,
+      historicalBeforeGrade,
+    ),
     screen = await screeningFixture(w, reviewer),
     now = Date.now();
   for (const [revision, code] of [
@@ -209,7 +219,7 @@ export async function historicalWorkflowBooking(
     profile: { id: string };
     learner: { id: string };
     requester: { id: string };
-    booking: Pick<EnabledBookingPolicy, "policyId" | "version">;
+    booking: Pick<SyntheticBookingPolicy, "policyId" | "version">;
     admission: { policyId: string };
   },
   reviewer: Pick<TestAccount, "id">,

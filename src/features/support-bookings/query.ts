@@ -14,7 +14,7 @@ import type { SupportBookingContext } from "./model";
 
 type Executor = Pick<Database, "execute">;
 type Stored = {
-  source?: "local_simulation" | "synthetic_readiness";
+  source?: "local_simulation" | "synthetic_readiness" | "local_operation";
   tutorName: string;
   subjectName: string;
   state: BookingState;
@@ -24,14 +24,14 @@ type Stored = {
 };
 function activeAccount(id: SQL) {
   return sql`EXISTS (SELECT 1 FROM "user" p JOIN user_access pa ON pa.user_id=p.id AND pa.status='active'
-    WHERE p.id=${id} AND p.email_verified=true AND p.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$')`;
+    WHERE p.id=${id} AND p.email_verified=true AND (b.source='local_operation' OR p.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$'))`;
 }
-function sessionAccess(identity: Identity) {
-  return sql`${activeAccount(sql`${identity.userId}`)} AND EXISTS (SELECT 1 FROM session s WHERE s.id=${identity.sessionId} AND s.user_id=${identity.userId} AND s.expires_at>statement_timestamp())`;
+function sessionAccess(identity: Identity, source: string) {
+  return sql`public.workflow_identity(${identity.userId},${identity.sessionId},${source === "local_operation" ? "local_operation" : "synthetic_readiness"})`;
 }
 /** Aliases b/l/tp are deliberately local to this module's queries. */
 function participant(id: SQL) {
-  return sql`((b.source='synthetic_readiness' AND l.source=b.source AND l.status='active' AND ${activeAccount(id)} AND public.booking_workflow_policy_current(b.workflow_policy_id) AND ((public.has_current_booking_beneficiary(${id},l.id,b.admission_policy_id)) OR (tp.user_id=${id} AND public.has_current_tutor_screening(tp.id,'synthetic_readiness') AND public.has_current_booking_beneficiary(b.booked_by_user_id,l.id,b.admission_policy_id) AND EXISTS(SELECT 1 FROM user_roles r WHERE r.user_id=${id} AND r.role='tutor')))) OR (b.source='local_simulation' AND l.source='local_fixture' AND l.status='active' AND ${activeAccount(id)} AND (
+  return sql`((b.source IN('synthetic_readiness','local_operation') AND l.source=b.source AND l.status='active' AND ${activeAccount(id)} AND public.booking_workflow_policy_current(b.workflow_policy_id) AND ((public.has_current_booking_beneficiary(${id},l.id,b.admission_policy_id)) OR (tp.user_id=${id} AND public.has_current_tutor_screening(tp.id,b.source) AND public.has_current_booking_beneficiary(b.booked_by_user_id,l.id,b.admission_policy_id) AND EXISTS(SELECT 1 FROM user_roles r WHERE r.user_id=${id} AND r.role='tutor')))) OR (b.source='local_simulation' AND l.source='local_fixture' AND l.status='active' AND ${activeAccount(id)} AND (
     (tp.user_id=${id} AND tp.review_status<>'suspended' AND EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id=${id} AND r.role='tutor')) OR
     (l.management='self' AND l.user_id=${id} AND l.level='college_support' AND EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id=${id} AND r.role='student')) OR
     (l.management='guardian' AND l.user_id IS NULL AND EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id=${id} AND r.role='parent') AND EXISTS (SELECT 1 FROM guardian_learner_links g WHERE g.learner_id=l.id AND g.guardian_user_id=${id} AND g.source='local_fixture' AND g.status='authorized'))
@@ -40,12 +40,15 @@ function participant(id: SQL) {
 const joins = sql`JOIN learner_profiles l ON l.id=b.learner_id JOIN tutor_profiles tp ON tp.id=b.tutor_id JOIN "user" tu ON tu.id=tp.user_id JOIN subjects sub ON sub.id=b.subject_id`;
 const projection = sql`jsonb_build_object('source',b.source,'tutorName',tu.name,'subjectName',sub.name,'start',b.start_at_utc,'end',b.end_at_utc,
   'state',CASE WHEN b.state IN('demo_reserved','demo_confirmed') AND b.expires_at<=statement_timestamp() THEN 'demo_expired' WHEN b.state='provisional' AND b.expires_at<=statement_timestamp() THEN 'expired' ELSE b.state END,
-  'events',COALESCE((SELECT jsonb_agg(jsonb_build_object('event',e.event,'at',e.created_at) ORDER BY e.created_at,e.id) FROM (SELECT event,created_at,id FROM booking_events WHERE booking_id=b.id UNION ALL SELECT event,created_at,id FROM booking_lifecycle_events WHERE logical_booking_id=b.logical_booking_id AND b.source='synthetic_readiness') e),'[]'::jsonb))`;
+  'events',COALESCE((SELECT jsonb_agg(jsonb_build_object('event',e.event,'at',e.created_at) ORDER BY e.created_at,e.id) FROM (SELECT event,created_at,id FROM booking_events WHERE booking_id=b.id UNION ALL SELECT event,created_at,id FROM booking_lifecycle_events WHERE logical_booking_id=b.logical_booking_id AND b.source IN('synthetic_readiness','local_operation')) e),'[]'::jsonb))`;
 function project(item: Stored, timezone: string): SupportBookingContext {
   if (!isValidTimeZone(timezone)) throw new AccessError(503);
   return {
     available: true,
-    ...(item.source === "synthetic_readiness" ? { source: item.source } : {}),
+    ...(item.source === "synthetic_readiness" ||
+    item.source === "local_operation"
+      ? { source: item.source }
+      : {}),
     tutorName: item.tutorName,
     subjectName: item.subjectName,
     state: item.state,
@@ -61,11 +64,12 @@ export async function queryBookingForReport(
   db: Executor,
   identity: Identity,
   bookingId: string,
+  source: "local_synthetic" | "local_operation" = "local_synthetic",
 ) {
   const result = await db.execute<{ item: Stored; timezone: string }>(sql`
     SELECT ${projection} AS item, viewer.timezone FROM bookings b ${joins}
     JOIN "user" viewer ON viewer.id=${identity.userId}
-    WHERE b.id=${bookingId}::uuid AND ${sessionAccess(identity)} AND ${participant(sql`${identity.userId}`)}`);
+    WHERE b.id=${bookingId}::uuid AND (b.source='local_operation')=${source === "local_operation"} AND ${sessionAccess(identity, source)} AND ${participant(sql`${identity.userId}`)}`);
   const row = result.rows[0];
   if (!row) throw new AccessError(404);
   return project(row.item, row.timezone);
@@ -76,6 +80,7 @@ export async function queryCaseBooking(
   identity: Identity,
   caseId: string,
   scope: "requester" | "reviewer",
+  source: "local_synthetic" | "local_operation" = "local_synthetic",
 ) {
   const casePermission =
     scope === "requester"
@@ -83,7 +88,7 @@ export async function queryCaseBooking(
       : sql`${adminAssurancePredicate(identity.userId, identity.sessionId)} AND c.requester_user_id<>${identity.userId} AND EXISTS (
     SELECT 1 FROM support_case_assignments a JOIN support_reviewers r ON r.user_id=a.reviewer_user_id
     JOIN user_roles g ON g.user_id=r.user_id AND g.role='admin'
-    WHERE a.case_id=c.id AND a.reviewer_user_id=${identity.userId} AND r.source='local_fixture' AND r.status='authorized')`;
+    WHERE a.case_id=c.id AND a.reviewer_user_id=${identity.userId} AND r.source=${source === "local_operation" ? "local_operation" : "local_fixture"} AND r.status='authorized') AND (${source}<>'local_operation' OR public.has_local_workflow_staff(${identity.userId},${identity.sessionId},'support'))`;
   const result = await db.execute<{
     linked: boolean;
     item: Stored | null;
@@ -92,7 +97,7 @@ export async function queryCaseBooking(
   }>(sql`
     WITH permitted_case AS MATERIALIZED (
       SELECT c.id,c.requester_user_id,c.source,v.timezone FROM support_cases c JOIN "user" v ON v.id=${identity.userId}
-      WHERE c.id=${caseId}::uuid AND ${sessionAccess(identity)} AND ((c.source='local_synthetic' AND ${casePermission}) OR (c.source='synthetic_readiness' AND public.has_safeguarding_case_authority(${identity.userId},${identity.sessionId},c.id,${scope})))
+      WHERE c.id=${caseId}::uuid AND ${sessionAccess(identity, source)} AND ((c.source=${source} AND ${casePermission}) OR (c.source='synthetic_readiness' AND public.has_safeguarding_case_authority(${identity.userId},${identity.sessionId},c.id,${scope})))
     ), context AS MATERIALIZED (
       SELECT c.id AS case_id,b.id AS booking_id,${projection} AS item
       FROM permitted_case c JOIN support_case_bookings link ON link.case_id=c.id JOIN bookings b ON b.id=link.booking_id ${joins}
@@ -104,9 +109,16 @@ export async function queryCaseBooking(
       (SELECT item FROM context) AS item FROM permitted_case c`);
   const row = result.rows[0];
   if (!row) throw new AccessError(404);
-  if (row.source === "synthetic_readiness") {
+  if (
+    row.source === "synthetic_readiness" ||
+    row.source === "local_operation"
+  ) {
+    const currentCase =
+      row.source === "local_operation"
+        ? sql`c.source='local_operation' AND ${sessionAccess(identity, "local_operation")} AND ${casePermission}`
+        : sql`public.has_safeguarding_case_authority(${identity.userId},${identity.sessionId},c.id,${scope})`;
     const fresh = await db.execute<{ allowed: boolean; participant: boolean }>(
-      sql`SELECT public.has_safeguarding_case_authority(${identity.userId},${identity.sessionId},c.id,${scope}) AS allowed,EXISTS(SELECT 1 FROM public.support_case_bookings link JOIN public.bookings b ON b.id=link.booking_id ${joins} WHERE link.case_id=c.id AND ${participant(sql`c.requester_user_id`)}) AS participant FROM public.support_cases c WHERE c.id=${caseId}::uuid`,
+      sql`SELECT ${currentCase} AS allowed,EXISTS(SELECT 1 FROM public.support_case_bookings link JOIN public.bookings b ON b.id=link.booking_id ${joins} WHERE link.case_id=c.id AND b.source=c.source AND ${participant(sql`c.requester_user_id`)}) AS participant FROM public.support_cases c WHERE c.id=${caseId}::uuid`,
     );
     if (!fresh.rows[0]?.allowed) throw new AccessError(404);
     if (row.linked && !fresh.rows[0].participant)

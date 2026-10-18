@@ -75,6 +75,12 @@ describe("College Student signup intent and independent form default", () => {
         "https://staging.example.test",
       ).searchParams.get("next"),
     ).toBe(studentOnboardingHref(next));
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Registration request received.",
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Use a different email" }),
+    );
     expect(screen.getByRole("option", { name: "College Student" })).toHaveValue(
       "student",
     );

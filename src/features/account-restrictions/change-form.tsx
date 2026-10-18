@@ -15,12 +15,14 @@ export function ChangeAccessForm({
   status,
   revision,
   privateWorkflow = false,
+  localWorkflow = false,
 }: {
   targetId: string;
   name: string;
   status: "active" | "suspended";
   revision: number;
   privateWorkflow?: boolean;
+  localWorkflow?: boolean;
 }) {
   const [reading, startReading] = useTransition();
   // A save's follow-up refresh keeps the controls busy without the manual
@@ -91,13 +93,17 @@ export function ChangeAccessForm({
       setFailed(!response.ok);
       setMessage(
         response.ok
-          ? privateWorkflow
-            ? "Fictional action recorded. Reloaded access and history appear on this page."
-            : "Local action recorded. Reloaded access and history appear on this page."
+          ? localWorkflow
+            ? "Account access updated. Current access and history appear on this page."
+            : privateWorkflow
+              ? "Fictional action recorded. Reloaded access and history appear on this page."
+              : "Local action recorded. Reloaded access and history appear on this page."
           : (safeMessage ??
-              (privateWorkflow
-                ? "The fictional action could not be recorded. Reload the account and try again."
-                : "The local action could not be recorded. Reload the account and try again.")),
+              (localWorkflow
+                ? "Account access could not be updated. Reload the account and try again."
+                : privateWorkflow
+                  ? "The fictional action could not be recorded. Reload the account and try again."
+                  : "The local action could not be recorded. Reload the account and try again.")),
       );
       if (response.ok) {
         retry.current = null;
@@ -106,9 +112,11 @@ export function ChangeAccessForm({
     } catch {
       setFailed(true);
       setMessage(
-        privateWorkflow
-          ? "We could not confirm the fictional action. Retry with the same fields or reload to check its history."
-          : "We could not confirm the local action. Retry with the same fields or reload to check its history.",
+        localWorkflow
+          ? "We could not confirm the account change. Retry with the same fields or reload to check its history."
+          : privateWorkflow
+            ? "We could not confirm the fictional action. Retry with the same fields or reload to check its history."
+            : "We could not confirm the local action. Retry with the same fields or reload to check its history.",
       );
     } finally {
       busy.current = false;
@@ -120,9 +128,11 @@ export function ChangeAccessForm({
   return (
     <section className="mt-12 max-w-xl">
       <h2 className="text-section-title">
-        {privateWorkflow
-          ? "Change fictional account access"
-          : "Change local account access"}
+        {localWorkflow
+          ? "Change account access"
+          : privateWorkflow
+            ? "Change fictional account access"
+            : "Change local account access"}
       </h2>
       <p className="mt-4 max-w-prose text-body">
         Suspension denies restricted Learli actions while retaining session and
@@ -137,7 +147,11 @@ export function ChangeAccessForm({
       >
         <div className="space-y-2">
           <label className="block text-label" htmlFor="restriction-reason">
-            {privateWorkflow ? "Fictional test reason" : "Local test reason"}
+            {localWorkflow
+              ? "Reason"
+              : privateWorkflow
+                ? "Fictional test reason"
+                : "Local test reason"}
           </label>
           <select
             key={status}
@@ -150,13 +164,19 @@ export function ChangeAccessForm({
             defaultValue=""
           >
             <option value="">
-              {privateWorkflow
-                ? "Choose a fictional test reason"
-                : "Choose a local test reason"}
+              {localWorkflow
+                ? "Choose a reason"
+                : privateWorkflow
+                  ? "Choose a fictional test reason"
+                  : "Choose a local test reason"}
             </option>
-            {(next === "suspended"
-              ? (["local_access_test", "local_review_test"] as const)
-              : (["local_restore_test"] as const)
+            {(localWorkflow
+              ? next === "suspended"
+                ? (["local_restrict"] as const)
+                : (["local_restore"] as const)
+              : next === "suspended"
+                ? (["local_access_test", "local_review_test"] as const)
+                : (["local_restore_test"] as const)
             ).map((r) => (
               <option key={r} value={r}>
                 {restrictionReasonLabel(r, privateWorkflow)}
@@ -170,9 +190,11 @@ export function ChangeAccessForm({
               role="alert"
             >
               <CircleAlert aria-hidden="true" className="size-4" />
-              {privateWorkflow
-                ? "Choose a fictional test reason."
-                : "Choose a local test reason."}
+              {localWorkflow
+                ? "Choose a reason."
+                : privateWorkflow
+                  ? "Choose a fictional test reason."
+                  : "Choose a local test reason."}
             </p>
           )}
         </div>
@@ -185,10 +207,14 @@ export function ChangeAccessForm({
               />
             )}
             {pending
-              ? privateWorkflow
-                ? "Recording fictional action…"
-                : "Recording local action…"
-              : `${verb} ${privateWorkflow ? "fictional" : "local"} account`}
+              ? localWorkflow
+                ? "Updating account access…"
+                : privateWorkflow
+                  ? "Recording fictional action…"
+                  : "Recording local action…"
+              : localWorkflow
+                ? `${verb} account`
+                : `${verb} ${privateWorkflow ? "fictional" : "local"} account`}
           </button>
           <button
             type="button"
@@ -227,9 +253,11 @@ export function ChangeAccessForm({
         title={`${verb} ${name}?`}
         confirmLabel={
           pending
-            ? privateWorkflow
-              ? "Recording fictional action…"
-              : "Recording local action…"
+            ? localWorkflow
+              ? "Updating account access…"
+              : privateWorkflow
+                ? "Recording fictional action…"
+                : "Recording local action…"
             : `${verb} account access`
         }
         dismissLabel={pending ? "Close confirmation" : "Keep current access"}

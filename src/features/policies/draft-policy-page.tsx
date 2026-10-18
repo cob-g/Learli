@@ -8,7 +8,7 @@ export const draftPolicies = {
   privacy: {
     title: "Privacy draft",
     description:
-      "Privacy preparation for Learli's synthetic local demo. Real data-handling decisions remain open.",
+      "Privacy preparation for Learli. Real data-handling decisions remain open.",
     introduction:
       "This is preparation information, not a final Privacy Notice. Real-user privacy and safeguarding decisions still require review before launch.",
     localBehavior:
@@ -25,7 +25,7 @@ export const draftPolicies = {
   terms: {
     title: "Terms draft",
     description:
-      "Terms preparation for Learli's synthetic local demo. Operating and commercial decisions remain open.",
+      "Terms preparation for Learli. Operating and commercial decisions remain open.",
     introduction:
       "This is preparation information, not final Terms of Service. It records unresolved operating and business decisions and does not ask you to accept terms.",
     localBehavior:
@@ -44,7 +44,7 @@ export const draftPolicies = {
   cancellations: {
     title: "Cancellations draft",
     description:
-      "Cancellation preparation for Learli's synthetic local demo. Real change, refund and no-show rules remain open.",
+      "Cancellation preparation for Learli. Real change, refund and no-show rules remain open.",
     introduction:
       "This is preparation information, not a final cancellation or refund policy. No customer cancellation window, refund entitlement or credit promise has been approved here.",
     localBehavior:
@@ -62,6 +62,15 @@ export const draftPolicies = {
 
 export type DraftPolicy = keyof typeof draftPolicies;
 
+const privatePolicyBehavior: Record<DraftPolicy, string> = {
+  privacy:
+    "The private preview uses fictional accounts and learners. Private learner, booking and meeting information is limited to authorized accounts. Email capture does not establish delivery to customers.",
+  terms:
+    "The private preview uses fictional accounts to exercise saved booking requests, assigned administrative confirmation and Tutor completion after the scheduled end. Payments are disabled. Booking status does not establish payment or attendance. Meeting links use Zoom or Google Meet; Learli does not host calls or verify attendance. Email capture is not delivery.",
+  cancellations:
+    "The private preview saves booking requests and authorized cancellation or rescheduling changes for fictional accounts. Its timing and change controls are test rules, not customer terms. Payments are disabled; the preview does not charge money or issue refunds.",
+};
+
 /** Each key is also the policy's route, and a draft is never indexed. */
 export function draftPolicyMetadata(policy: DraftPolicy): Metadata {
   const content = draftPolicies[policy];
@@ -73,7 +82,15 @@ export function draftPolicyMetadata(policy: DraftPolicy): Metadata {
   });
 }
 
-export function DraftPolicyPage({ policy }: { policy: DraftPolicy }) {
+export function DraftPolicyPage({
+  policy,
+  privateWorkflow = false,
+  localWorkflow = false,
+}: {
+  policy: DraftPolicy;
+  privateWorkflow?: boolean;
+  localWorkflow?: boolean;
+}) {
   const content = draftPolicies[policy];
   return (
     <div className="page-shell page-space">
@@ -81,14 +98,29 @@ export function DraftPolicyPage({ policy }: { policy: DraftPolicy }) {
         <h1 className="text-page-title">{content.title}</h1>
         <p className="mt-4 max-w-prose text-prose">{content.introduction}</p>
         <p className="mt-4 max-w-prose text-prose text-muted-foreground">
-          Draft for local preparation only. This page is not legal advice or
-          approval to launch with real learners.
+          {localWorkflow
+            ? "Draft for local preparation only."
+            : privateWorkflow
+              ? "Draft for private testing only."
+              : "Draft for local preparation only."}{" "}
+          This page is not legal advice or approval to launch with real
+          learners.
         </p>
         <section className="mt-8" aria-labelledby="local-behavior">
           <h2 id="local-behavior" className="text-section-title">
-            Current local behavior
+            {localWorkflow
+              ? "Current local behavior"
+              : privateWorkflow
+                ? "Current private preview behavior"
+                : "Current local behavior"}
           </h2>
-          <p className="mt-4 max-w-prose text-prose">{content.localBehavior}</p>
+          <p className="mt-4 max-w-prose text-prose">
+            {localWorkflow
+              ? "The local app saves accounts, reviewed learner and tutor access, and booking records. Authorized participants can open their saved meeting details. Local timing rules apply to booking changes; commercial terms and payments remain unavailable. Verification messages are captured on this computer; they are not sent to an email provider."
+              : privateWorkflow
+                ? privatePolicyBehavior[policy]
+                : content.localBehavior}
+          </p>
         </section>
         <section className="mt-8" aria-labelledby="open-decisions">
           <h2 id="open-decisions" className="text-section-title">
@@ -122,9 +154,11 @@ export function DraftPolicyPage({ policy }: { policy: DraftPolicy }) {
             <Link className="text-link" href="/report-a-concern">
               Report a concern
             </Link>
-            {
-              " lead to synthetic local demonstrations. They are not monitored and are not emergency channels."
-            }
+            {localWorkflow
+              ? " save a report for the assigned local reviewer. This is not an emergency channel; staffing and response arrangements must be established before public use."
+              : privateWorkflow
+                ? " lead to fictional test reporting. They are not monitored and are not emergency channels."
+                : " lead to synthetic local demonstrations. They are not monitored and are not emergency channels."}
           </p>
         </section>
       </article>

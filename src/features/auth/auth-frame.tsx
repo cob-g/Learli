@@ -4,13 +4,17 @@ import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { getAccountAuthRuntime } from "@/lib/auth";
 import { headers } from "next/headers";
 import { accountHeadersAllowed } from "@/features/hosted-auth/request";
+import { SignInLayout } from "./sign-in-layout";
+import { SignUpLayout } from "./sign-up-layout";
 
 export async function AuthFrame({
   title,
   children,
+  presentation = "standard",
 }: {
   title: string;
   children: ReactNode;
+  presentation?: "standard" | "sign-in" | "sign-up";
 }) {
   const mode = getServerEnv().AUTH_MODE;
   let available = mode === "local";
@@ -29,6 +33,10 @@ export async function AuthFrame({
         message="Account access is unavailable. Try again later."
       />
     );
+  if (presentation === "sign-in")
+    return <SignInLayout title={title}>{children}</SignInLayout>;
+  if (presentation === "sign-up")
+    return <SignUpLayout title={title}>{children}</SignUpLayout>;
   return (
     <div className="page-shell page-space">
       <div className="mx-auto max-w-xl">

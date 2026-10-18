@@ -403,7 +403,9 @@ test("real browser signup, captured verification, sign-in, settings and sign-out
   await page
     .getByRole("button", { name: "Create account", exact: true })
     .click();
-  await expect(page.getByRole("status")).toContainText("verification message");
+  await expect(page.getByRole("status")).toContainText(
+    "Registration request received.",
+  );
   const user = await wave.owner.pool.query<{ id: string }>(
     'SELECT id FROM "user" WHERE email=$1',
     [email],

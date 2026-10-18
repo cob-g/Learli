@@ -7,7 +7,7 @@ import type { LessonTimeValue } from "@/features/bookings/lesson-time";
 export type SupportBookingContext =
   | {
       available: true;
-      source?: "synthetic_readiness";
+      source?: "synthetic_readiness" | "local_operation";
       tutorName: string;
       subjectName: string;
       state: BookingState;

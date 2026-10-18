@@ -105,8 +105,8 @@ export function parsePrivateWorkflow(
     const screening = validateScreeningCapability(value.screening, "test");
     const booking = validateBookingCapability(value.booking, "test");
     if (
-      admission.authority === "disabled" ||
-      screening.mode === "disabled" ||
+      admission.authority !== "synthetic_test" ||
+      screening.mode !== "synthetic_test" ||
       booking.authority === "disabled" ||
       booking.version !== "synthetic-booking-v2" ||
       booking.completionActor !== "assigned_tutor" ||

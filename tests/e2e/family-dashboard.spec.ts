@@ -141,8 +141,13 @@ test("parent filters currently linked learners without JavaScript and sees priva
   await parent.page.keyboard.press("Space");
   await parent.page.getByRole("button", { name: "Show bookings" }).click();
   await expect(parent.page.getByRole("heading", { level: 1 })).toHaveText(
-    "Bookings for Synthetic dashboard Alex",
+    "Parent Dashboard",
   );
+  await expect(
+    parent.page.getByText("Bookings for Synthetic dashboard Alex", {
+      exact: true,
+    }),
+  ).toBeVisible();
   await expect(
     parent.page.getByText("For Synthetic dashboard Zoë"),
   ).toHaveCount(0);
@@ -279,8 +284,13 @@ test("multi-role student sees only own self-managed learner and parent only guar
   });
   await self.page.goto("/parent");
   await expect(self.page.getByRole("heading", { level: 1 })).toHaveText(
-    "Bookings for Synthetic guardian dashboard",
+    "Parent Dashboard",
   );
+  await expect(
+    self.page.getByText("Bookings for Synthetic guardian dashboard", {
+      exact: true,
+    }),
+  ).toBeVisible();
   expect(await self.page.locator("main").innerText()).not.toContain(
     "Synthetic independent dashboard",
   );
@@ -300,14 +310,14 @@ test("foreign, revoked, archived and unavailable states never leak unrelated lea
   );
   await parent.page.goto(`/parent?learner=${hidden}`);
   await expect(
-    parent.page.getByRole("heading", { name: "Bookings unavailable" }),
+    parent.page.getByRole("heading", { name: "Parent Dashboard unavailable" }),
   ).toBeVisible();
   expect(await parent.page.locator("main").innerText()).not.toContain(
     "Synthetic hidden dashboard learner",
   );
   await parent.page.goto("/parent?learner=invalid");
   await expect(
-    parent.page.getByRole("heading", { name: "Bookings unavailable" }),
+    parent.page.getByRole("heading", { name: "Parent Dashboard unavailable" }),
   ).toBeVisible();
   await parent.page.setViewportSize({ width: 390, height: 844 });
   await accessible(parent.page);
@@ -372,7 +382,7 @@ test("foreign, revoked, archived and unavailable states never leak unrelated lea
   );
   await parent.page.reload();
   await expect(
-    parent.page.getByRole("heading", { name: "Bookings unavailable" }),
+    parent.page.getByRole("heading", { name: "Parent Dashboard unavailable" }),
   ).toBeVisible();
   const visitor = await browser.newContext({ baseURL });
   const page = await visitor.newPage();
@@ -464,8 +474,8 @@ test("TTL refresh projects expiry without mutations and GET controls show honest
     blocker.release();
   }
   await expect(
-    parent.page.getByRole("heading", {
-      name: "Bookings for Synthetic expiring dashboard learner",
+    parent.page.getByText("Bookings for Synthetic expiring dashboard learner", {
+      exact: true,
     }),
   ).toBeVisible();
   await parent.page.goBack();
@@ -501,7 +511,7 @@ test("TTL refresh projects expiry without mutations and GET controls show honest
     revoke.release();
   }
   await expect(
-    parent.page.getByRole("heading", { name: "Bookings unavailable" }),
+    parent.page.getByRole("heading", { name: "Parent Dashboard unavailable" }),
   ).toBeVisible();
   expect(await parent.page.locator("main").innerText()).not.toContain(
     "Synthetic expiring dashboard learner",

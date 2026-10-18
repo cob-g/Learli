@@ -43,6 +43,7 @@ const privateProfile = {
   id: learnerProfiles.id,
   displayName: learnerProfiles.displayName,
   level: learnerProfiles.level,
+  grade: learnerProfiles.grade,
   timezone: learnerProfiles.timezone,
   management: learnerProfiles.management,
 };
@@ -92,6 +93,11 @@ export async function updateMyLearner(
   // Establish ownership before giving field feedback; foreign and missing IDs match.
   const profile = await readMyLearner(runtime, headers, learnerId);
   const values = learnerInput.parse(input);
+  // Older clients omit grade; validate the resulting profile without discarding it.
+  learnerInput.parse({
+    ...values,
+    grade: values.grade === undefined ? profile.grade : values.grade,
+  });
   if (profile.management === "self" && values.level !== "college_support")
     throw new RuleError(
       400,
@@ -161,8 +167,8 @@ export async function createMyLearner(
         outcome: string;
         learner_id: string | null;
       }>(sql`
-      SELECT * FROM public.create_local_learner(${identity.userId}, ${identity.sessionId},
-        ${values.requestId}::uuid, ${values.management}, ${values.displayName}, ${values.level}, ${values.timezone})
+      SELECT * FROM public.create_local_learner_with_grade(${identity.userId}, ${identity.sessionId},
+        ${values.requestId}::uuid, ${values.management}, ${values.displayName}, ${values.level}, ${values.timezone}, ${values.grade ?? null}::integer)
     `);
       const row = result.rows[0];
       if (row?.outcome === "forbidden") throw new AccessError(403);

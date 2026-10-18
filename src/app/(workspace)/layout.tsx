@@ -5,6 +5,7 @@ import { PrivateDocumentBoundary } from "@/features/auth/document-boundary";
 import { getDomainAuthRuntime } from "@/lib/auth";
 import { getScreeningContext } from "@/features/tutor-screening/composition";
 import { readWorkspaceDocument } from "@/lib/permissions/workspace";
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { getPrivateWorkflow } from "@/features/private-workflow/runtime";
 import { noIndex } from "@/lib/seo/metadata";
 
@@ -21,6 +22,7 @@ export default async function WorkspaceLayout({
   // Same deployment-level decision the screening page makes; it is not per user.
   const runtime = await getDomainAuthRuntime();
   const privatePacket = runtime ? getPrivateWorkflow(runtime) : null;
+  const localWorkflow = !!runtime && getLocalWorkflow(runtime) !== null;
   const screeningEnabled =
     !!runtime && getScreeningContext(runtime).screening.mode !== "disabled";
   return (
@@ -28,8 +30,11 @@ export default async function WorkspaceLayout({
       <WorkspaceShell
         initialAccount={document.account}
         screeningEnabled={screeningEnabled}
-        privateWorkflow={privatePacket !== null}
-        privateAccounts={privatePacket?.database.mode === "local-test"}
+        privateWorkflow={privatePacket !== null || localWorkflow}
+        privateAccounts={
+          privatePacket?.database.mode === "local-test" || localWorkflow
+        }
+        localWorkflow={localWorkflow}
       >
         {children}
       </WorkspaceShell>

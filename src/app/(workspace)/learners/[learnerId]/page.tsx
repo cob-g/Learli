@@ -5,7 +5,7 @@ import { readComposedLearner } from "@/features/learners/composition";
 import { LearnerForm } from "@/features/learners/learner-form";
 import { listTimeZoneOptions } from "@/lib/time/zones";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Edit learner profile",
@@ -21,7 +21,7 @@ export default async function LearnerPage({
     `/learners/${encodeURIComponent(learnerId)}`,
     async (runtime, headers) => ({
       ...(await readComposedLearner(runtime, headers, learnerId)),
-      privateWorkflow: isPrivateWorkflow(runtime),
+      privateWorkflow: hasPersistentWorkflow(runtime),
     }),
   );
   if (!context)

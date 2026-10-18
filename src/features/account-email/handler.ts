@@ -7,8 +7,9 @@ import {
 } from "@/lib/auth-handler";
 import { AccessError } from "@/lib/permissions/access";
 import { RuleError } from "@/lib/rule-error";
-import { emailChangeInput, type EmailChangeInput } from "./input";
+import { createEmailChangeInput, type EmailChangeInput } from "./input";
 import { changeOwnEmail, EmailFreshnessError } from "./service";
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 
 export const uncertainEmailChange = () =>
   privateJson(
@@ -87,7 +88,9 @@ export async function handleAccountEmail(
         400,
       );
     }
-    const input = emailChangeInput.parse(body);
+    const input = createEmailChangeInput(!!getLocalWorkflow(runtime)).parse(
+      body,
+    );
     const { provider, revocationFailed } = await changeOwnEmail(
       runtime,
       request.headers,
@@ -105,8 +108,9 @@ export async function handleAccountEmail(
     if (error instanceof ZodError || error instanceof SyntaxError)
       return privateJson(
         {
-          message:
-            "Enter a synthetic .test address and a six-digit confirmation code.",
+          message: getLocalWorkflow(runtime)
+            ? "Enter a valid email address and a six-digit confirmation code."
+            : "Enter a synthetic .test address and a six-digit confirmation code.",
         },
         400,
       );

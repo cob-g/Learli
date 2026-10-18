@@ -270,6 +270,67 @@ function Pagination({
   );
 }
 
+function NextReservation({
+  next,
+  workspace,
+  privateWorkflow,
+}: {
+  next: ReservationView;
+  workspace: FamilyWorkspace;
+  privateWorkflow: boolean;
+}) {
+  const Heading = workspace === "parent" ? "h3" : "h2";
+  return (
+    <section
+      className="mt-8 rounded-surface border border-border bg-surface p-6 md:p-8"
+      aria-labelledby="next-reservation"
+    >
+      <Heading id="next-reservation" className="text-section-title">
+        {privateWorkflow ? "Next session" : "Next simulated reservation"}
+      </Heading>
+      <div className="mt-6 grid min-w-0 gap-6 md:grid-cols-2">
+        <div className="min-w-0">
+          <LessonTime value={next.when} variant="prominent" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-item-title wrap-anywhere text-primary">
+            {next.subjectName} with {next.tutorName}
+          </p>
+          {workspace === "parent" && (
+            <p className="mt-2 text-body wrap-anywhere">
+              For {next.learner.displayName}
+            </p>
+          )}
+          <p className="mt-2 text-small">{next.durationMinutes} minutes</p>
+          <div className="mt-4">
+            <StatusBadge state={next.state} privateWorkflow={privateWorkflow} />
+          </div>
+        </div>
+      </div>
+      <p className="mt-6 max-w-prose border-t border-border pt-6 text-small text-muted-foreground">
+        {next.state === "confirmed"
+          ? "This booking is confirmed and does not expire. Refresh bookings to check its current status."
+          : privateWorkflow && next.state === "provisional"
+            ? "This provisional hold awaits an assigned review. It expires if it is not confirmed before the deadline."
+            : "This is a temporary local reservation. Refresh bookings to check its current status."}
+      </p>
+      {(!privateWorkflow ||
+        next.state === "provisional" ||
+        next.state.startsWith("demo_")) && (
+        <>
+          <p className="mt-4 text-label">
+            {expiryLabel(next, privateWorkflow)}
+          </p>
+          <LessonTime value={next.expiry} />
+        </>
+      )}
+      <div className="mt-4">
+        <ViewBooking row={next} workspace={workspace} />
+      </div>
+    </section>
+  );
+}
+
 export function FamilyDashboard({
   data,
   privateWorkflow = false,
@@ -280,12 +341,9 @@ export function FamilyDashboard({
   const { workspace, learners, selectedLearner, active, history } = data;
   const next = active.find((row) => row.startAtUtc > data.checkedAt.startAtUtc);
   const agenda = active.filter((row) => row.id !== next?.id);
-  const title =
-    workspace === "student"
-      ? "Your bookings"
-      : selectedLearner
-        ? `Bookings for ${selectedLearner.displayName}`
-        : "Bookings";
+  const title = workspace === "student" ? "Your bookings" : "Parent Dashboard";
+  const learnerContext =
+    selectedLearner ?? (learners.length === 1 ? learners[0] : undefined);
   const timedActive = active.filter((row) => row.state !== "confirmed");
   const earliestExpiry =
     data.earliestExpiry !== undefined
@@ -301,6 +359,13 @@ export function FamilyDashboard({
     <div className="page-shell page-space">
       <div className="max-w-5xl">
         <h1 className="text-page-title wrap-anywhere">{title}</h1>
+        {workspace === "parent" && !!learners.length && (
+          <p className="mt-3 text-body wrap-anywhere">
+            {learnerContext
+              ? `Bookings for ${learnerContext.displayName}`
+              : "Bookings for all authorized learners"}
+          </p>
+        )}
         <p className="mt-3 max-w-prose text-small text-muted-foreground">
           {privateWorkflow
             ? "Manage upcoming sessions and booking history. Provisional requests await an assigned review before confirmation."
@@ -317,10 +382,14 @@ export function FamilyDashboard({
             {!!learners.length && (
               <DashboardLink href="/bookings/new">New booking</DashboardLink>
             )}
-            <DashboardLink href="/learner-admission/new">
-              {workspace === "parent"
-                ? "Add a learner"
-                : "Request learner review"}
+            <DashboardLink
+              href={
+                workspace === "parent"
+                  ? "/parent/children/new"
+                  : "/learner-admission/new"
+              }
+            >
+              {workspace === "parent" ? "Add Child" : "Request learner review"}
             </DashboardLink>
             <DashboardLink href="/learner-admission">
               Admission requests
@@ -330,15 +399,36 @@ export function FamilyDashboard({
         {workspace === "parent" && learners.length > 1 && (
           <LearnerSelector learners={learners} selected={selectedLearner?.id} />
         )}
+        {workspace === "parent" && !!learners.length && (
+          <nav
+            aria-label="Parent Dashboard sections"
+            className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2"
+          >
+            <a
+              href={dashboardHref(workspace, data.query, "#active")}
+              className="inline-flex min-h-11 items-center text-action"
+            >
+              Upcoming Sessions
+            </a>
+            <a
+              href={dashboardHref(workspace, data.query, "#history")}
+              className="inline-flex min-h-11 items-center text-action"
+            >
+              Booking History
+            </a>
+          </nav>
+        )}
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-1 border-y border-border py-3">
           <p className="text-small text-muted-foreground">
             Times shown in {data.checkedAt.zone}.
           </p>
           <Link
-            href="/account"
+            href={workspace === "parent" ? "/parent/profile" : "/account"}
             className="inline-flex min-h-11 items-center text-small"
           >
-            Change time zone in account settings
+            {workspace === "parent"
+              ? "Change time zone in Parent Profile"
+              : "Change time zone in account settings"}
           </Link>
           <div className="flex flex-wrap items-center gap-x-6 text-small text-muted-foreground">
             <details>
@@ -362,71 +452,30 @@ export function FamilyDashboard({
             </p>
             <div className="mt-4">
               <DashboardLink
-                href={privateWorkflow ? "/learner-admission" : "/learners/new"}
+                href={
+                  workspace === "parent"
+                    ? "/parent/children/new"
+                    : privateWorkflow
+                      ? "/learner-admission"
+                      : "/learners/new"
+                }
               >
-                {privateWorkflow
-                  ? "View admission requests"
-                  : "Create a local learner"}
+                {workspace === "parent"
+                  ? "Add Child"
+                  : privateWorkflow
+                    ? "View admission requests"
+                    : "Create a local learner"}
               </DashboardLink>
             </div>
           </section>
         ) : (
           <>
-            {next && (
-              <section
-                className="mt-8 rounded-surface border border-border bg-surface p-6 md:p-8"
-                aria-labelledby="next-reservation"
-              >
-                <h2 id="next-reservation" className="text-section-title">
-                  {privateWorkflow
-                    ? "Next session"
-                    : "Next simulated reservation"}
-                </h2>
-                <div className="mt-6 grid min-w-0 gap-6 md:grid-cols-2">
-                  <div className="min-w-0">
-                    <LessonTime value={next.when} variant="prominent" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-item-title wrap-anywhere text-primary">
-                      {next.subjectName} with {next.tutorName}
-                    </p>
-                    {workspace === "parent" && (
-                      <p className="mt-2 text-body wrap-anywhere">
-                        For {next.learner.displayName}
-                      </p>
-                    )}
-                    <p className="mt-2 text-small">
-                      {next.durationMinutes} minutes
-                    </p>
-                    <div className="mt-4">
-                      <StatusBadge
-                        state={next.state}
-                        privateWorkflow={privateWorkflow}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <p className="mt-6 max-w-prose border-t border-border pt-6 text-small text-muted-foreground">
-                  {next.state === "confirmed"
-                    ? "This booking is confirmed and does not expire. Refresh bookings to check its current status."
-                    : privateWorkflow && next.state === "provisional"
-                      ? "This provisional hold awaits an assigned review. It expires if it is not confirmed before the deadline."
-                      : "This is a temporary local reservation. Refresh bookings to check its current status."}
-                </p>
-                {(!privateWorkflow ||
-                  next.state === "provisional" ||
-                  next.state.startsWith("demo_")) && (
-                  <>
-                    <p className="mt-4 text-label">
-                      {expiryLabel(next, privateWorkflow)}
-                    </p>
-                    <LessonTime value={next.expiry} />
-                  </>
-                )}
-                <div className="mt-4">
-                  <ViewBooking row={next} workspace={workspace} />
-                </div>
-              </section>
+            {next && workspace === "student" && (
+              <NextReservation
+                next={next}
+                workspace={workspace}
+                privateWorkflow={privateWorkflow}
+              />
             )}
             <section
               id="active"
@@ -434,10 +483,19 @@ export function FamilyDashboard({
               aria-labelledby="active-title"
             >
               <h2 id="active-title" className="text-section-title">
-                {privateWorkflow
-                  ? "Upcoming sessions"
-                  : "Active simulated reservations"}
+                {workspace === "parent"
+                  ? "Upcoming Sessions"
+                  : privateWorkflow
+                    ? "Upcoming sessions"
+                    : "Active simulated reservations"}
               </h2>
+              {next && workspace === "parent" && (
+                <NextReservation
+                  next={next}
+                  workspace={workspace}
+                  privateWorkflow={privateWorkflow}
+                />
+              )}
               {!active.length && (
                 <p className="mt-4 max-w-prose text-body">
                   {privateWorkflow
@@ -445,7 +503,7 @@ export function FamilyDashboard({
                     : "No active simulated reservations. Any expired reservation remains in history."}
                 </p>
               )}
-              {next && !agenda.length && (
+              {workspace === "student" && next && !agenda.length && (
                 <p className="mt-4 text-body">
                   {privateWorkflow
                     ? "No other upcoming sessions."
@@ -474,7 +532,11 @@ export function FamilyDashboard({
               aria-labelledby="history-title"
             >
               <h2 id="history-title" className="text-section-title">
-                {privateWorkflow ? "History" : "Reservation history"}
+                {workspace === "parent"
+                  ? "Booking History"
+                  : privateWorkflow
+                    ? "History"
+                    : "Reservation history"}
               </h2>
               {!history.length && (
                 <p className="mt-4 max-w-prose text-body">
@@ -495,10 +557,10 @@ export function FamilyDashboard({
           </>
         )}
         <Link
-          href="/learners"
+          href={workspace === "parent" ? "/parent/children" : "/learners"}
           className="mt-8 inline-flex min-h-11 items-center"
         >
-          Your learners
+          {workspace === "parent" ? "My Children" : "Your learners"}
         </Link>
         <ExpiryRefresh
           expiresAt={earliestExpiry}

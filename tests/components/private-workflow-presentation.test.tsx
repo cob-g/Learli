@@ -92,12 +92,12 @@ describe("explicit private workflow presentation", () => {
         privateWorkflow
       />,
     );
-    expect(screen.getByRole("link", { name: "Add a learner" })).toHaveAttribute(
-      "href",
-      "/learner-admission/new",
-    );
+    const addChildLinks = screen.getAllByRole("link", { name: "Add Child" });
+    expect(addChildLinks).toHaveLength(2);
+    for (const link of addChildLinks)
+      expect(link).toHaveAttribute("href", "/parent/children/new");
     expect(
-      screen.getByRole("link", { name: "View admission requests" }),
+      screen.getByRole("link", { name: "Admission requests" }),
     ).toHaveAttribute("href", "/learner-admission");
     expect(
       screen.queryByRole("link", { name: "New booking" }),
@@ -110,10 +110,37 @@ describe("explicit private workflow presentation", () => {
 
   it("shows confirmed session coordination without an expiry or direct meeting access", () => {
     render(<FamilyDashboard data={dashboard} privateWorkflow />);
-    const next = screen
-      .getByRole("heading", { name: "Next session" })
-      .closest("section")!;
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Parent Dashboard",
+    );
+    expect(
+      screen.getByText(`Bookings for ${learner.displayName}`),
+    ).toBeVisible();
+    const active = screen.getByRole("region", { name: "Upcoming Sessions" });
+    const next = within(active).getByRole("region", { name: "Next session" });
+    expect(within(next).getByRole("heading", { level: 3 })).toHaveTextContent(
+      "Next session",
+    );
     expect(within(next).getByText("Confirmed")).toBeVisible();
+    expect(within(next).getByText(`For ${learner.displayName}`)).toBeVisible();
+    expect(
+      within(next).getByText(`${row.subjectName} with ${row.tutorName}`),
+    ).toBeVisible();
+    expect(within(next).getByText("60 minutes")).toBeVisible();
+    expect(within(next).getByText(row.when.date)).toHaveAttribute(
+      "datetime",
+      row.startAtUtc,
+    );
+    expect(within(next).getByText(row.when.time)).toHaveAttribute(
+      "datetime",
+      row.endAtUtc,
+    );
+    expect(within(next).getByText(row.when.zone)).toBeVisible();
+    expect(
+      screen.getAllByRole("link", { name: /View booking for/ }),
+    ).toHaveLength(1);
+    expect(active).not.toHaveTextContent(/No (other )?upcoming sessions/);
+    expect(within(active).queryByRole("listitem")).not.toBeInTheDocument();
     expect(next).not.toHaveTextContent(/deadline|expires at/i);
     expect(
       within(next).getByRole("link", { name: /View booking for/ }),
@@ -125,6 +152,62 @@ describe("explicit private workflow presentation", () => {
       "href",
       "/bookings/new",
     );
+  });
+
+  it("keeps provisional holds and development simulations factual inside parent upcoming", () => {
+    const view = render(
+      <FamilyDashboard
+        data={{ ...dashboard, active: [{ ...row, state: "provisional" }] }}
+        privateWorkflow
+      />,
+    );
+    const upcoming = screen.getByRole("region", { name: "Upcoming Sessions" });
+    expect(upcoming).toHaveTextContent("Provisional");
+    expect(upcoming).toHaveTextContent("awaits an assigned review");
+    expect(upcoming).toHaveTextContent("Provisional hold expires at");
+    expect(
+      within(upcoming).queryByText("Confirmed", { exact: true }),
+    ).not.toBeInTheDocument();
+    expect(upcoming).not.toHaveTextContent("No other upcoming sessions");
+    view.unmount();
+    render(
+      <FamilyDashboard
+        data={{ ...dashboard, active: [{ ...row, state: "demo_reserved" }] }}
+      />,
+    );
+    expect(screen.getByText(/Local simulation only/)).toBeVisible();
+    const simulated = screen.getByRole("region", { name: "Upcoming Sessions" });
+    expect(
+      within(simulated).getByRole("heading", {
+        level: 3,
+        name: "Next simulated reservation",
+      }),
+    ).toBeVisible();
+    expect(simulated).toHaveTextContent("Simulation expires at");
+    expect(simulated).toHaveTextContent("temporary local reservation");
+    expect(simulated).not.toHaveTextContent(
+      "No other active simulated reservations",
+    );
+    expect(
+      screen.getAllByRole("link", { name: /View booking for/ }),
+    ).toHaveLength(1);
+  });
+
+  it("shows a truthful empty upcoming section only without active bookings", () => {
+    render(
+      <FamilyDashboard data={{ ...dashboard, active: [] }} privateWorkflow />,
+    );
+    const upcoming = screen.getByRole("region", { name: "Upcoming Sessions" });
+    expect(upcoming).toHaveTextContent("No upcoming sessions.");
+    expect(
+      within(upcoming).queryByRole("link", { name: /View booking/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Next session" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "Booking History" }),
+    ).toHaveTextContent("No booking history yet.");
   });
 
   it("keeps Tutor status and history visible without adding an acceptance action", () => {

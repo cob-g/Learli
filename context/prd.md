@@ -1,5 +1,22 @@
 # Learli — Product Requirements Document (PRD)
 
+### Local operating override — 2026-10-18
+
+The owner requested normal local-main registration and saved role workflows,
+replacing the private manual-preview entry. AUTH-01–05 now include ordinary local
+valid-email signup, actual provider verification through owner-private capture,
+recovery and account settings. FAM/TUT/BKG/MEET/ADM coordination runs on new
+`local_operation` records through current reviewed access and exact assigned Admin
+authority. An unassigned request is pending, not implicitly authorized. Current
+local timing/actor settings continue; no payment, attendance or customer-term
+claim follows. Existing synthetic records retain their original meaning and are
+not normal public inventory. No data cleanup is authorized by this request.
+
+This narrowly changes the local development product entry. Public launch,
+real-minor/guardian legal requirements, commercial rules, external delivery and
+staffed safety operations retain their gates. See the Oct18 decision and blueprint.
+
+
 > **Product:** Learli (visual wordmark: `learli`)  
 > **Document:** Product Requirements Document / MVP Product Specification  
 > **Version:** 1.0  
@@ -572,6 +589,18 @@ not select open policies or constitute an executed normal journey. See
 - Unrelated users cannot search, view, or alter the private learner profile.
 - Parent can choose among only their authorized linked learners when booking.
 - Do **not** enable public child onboarding if the country-specific consent rules remain unresolved.
+
+**Owner-authorized parent Step 2 slice (2026-10-17):** Parent Profile uses the
+existing own-account name/time-zone settings and registered email. My Children
+and Add Child provide a guardian-only journey. An optional school grade (integer
+1–12, including Grade 8) is private, self-declared metadata for guardian-managed,
+non-College profiles; it is separate from the broad education level and does not
+infer a curriculum, age, attainment or authorization. Existing profiles retain
+an unspecified grade. A private-staging request stays pending until the existing
+assigned review authorizes access; ordinary development can save fictional local
+profiles under the existing synthetic guard. No child login or new consent policy
+is introduced. See [decision](../docs/decisions/2026-10-17-parent-profile-children.md)
+and `prompts/features/m4-04-parent-profile-children.md` for the bounded scope.
 
 #### FAM-02 — Eligible self-managed learner `P0 [AGREED]`
 
@@ -1567,3 +1596,15 @@ history continues using current display names with stable references. See
 `docs/decisions/2026-10-16-scoped-admin-workflow.md` and the corrected Admin checklist.
 Actual implementation/verification belongs in progress-tracker; no launch gate is
 completed by this authorization.
+
+### Private manual QA scope — 2026-10-17
+
+The owner selected a separate finite fictional preview for the existing
+BKG/FAM/TUT/ADM coordination workflow with payments disabled. This is an operating
+scope decision, not commercial policy or real-minor intake approval. New saved
+requests require assigned Admin confirmation within the existing provisional
+hold; confirmation persists beyond that hold, and Tutor completion waits for
+the scheduled end. Preserve role/record ownership, current MFA and fictional
+admission/screening review. Parent-managed children are not automatically
+independent login accounts. No real attendance or delivered email is inferred.
+See `docs/decisions/2026-10-17-manual-persistent-preview.md`.

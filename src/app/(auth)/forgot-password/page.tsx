@@ -1,4 +1,4 @@
-import { getServerEnv } from "@/lib/env/server";
+import { getAuthPresentation } from "@/lib/auth";
 import type { Metadata } from "next";
 import { AuthFrame } from "@/features/auth/auth-frame";
 import { AuthForm } from "@/features/auth/auth-form";
@@ -16,7 +16,7 @@ export default async function Page({
   return (
     <AuthFrame title="Reset your password">
       <AuthForm
-        hosted={getServerEnv().AUTH_MODE === "hosted-synthetic"}
+        {...getAuthPresentation()}
         mode="forgot"
         next={params.next}
         token={params.token}

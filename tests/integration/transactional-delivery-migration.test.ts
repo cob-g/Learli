@@ -218,7 +218,7 @@ describe("W4 fresh and populated0026→0027 forward preservation", () => {
       // Apply the exact inherited policy without only the two newly introduced
       // table grant statements. All inherited function/table/column rights remain.
       await pool.query(
-        runtimeGrantsSql
+        runtimeGrantsBeforeParent
           .split("\n")
           .filter(
             (line) =>
@@ -245,7 +245,7 @@ describe("W4 fresh and populated0026→0027 forward preservation", () => {
           ["admin"],
           "Fictional forward reviewer",
         ),
-        fixture = await workflowFixture(w, reviewer);
+        fixture = await workflowFixture(w, reviewer, "guardian", "admin", true);
       const created = new Date(Date.now() - 26 * 3600000),
         start = new Date(
           Math.ceil((Date.now() + 3 * 86400000) / 1800000) * 1800000,

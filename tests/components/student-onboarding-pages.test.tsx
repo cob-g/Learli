@@ -392,7 +392,9 @@ describe("Account College Student access links", () => {
       ).not.toBeInTheDocument();
       for (const role of ["Parent", "Tutor", "Admin"])
         expect(
-          screen.getByRole("link", { name: `${role} workspace` }),
+          screen.getByRole("link", {
+            name: role === "Parent" ? "Parent Dashboard" : `${role} workspace`,
+          }),
         ).toHaveAttribute("href", `/${role.toLowerCase()}`);
       expect(
         screen.getByRole("link", { name: "Administrator security" }),

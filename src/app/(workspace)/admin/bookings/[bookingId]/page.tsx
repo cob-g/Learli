@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { workflowLabels } from "@/features/booking-workflows/model";
 import type { Metadata } from "next";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
@@ -5,7 +6,7 @@ import { bookingWorkflowContext } from "@/features/booking-workflows/composition
 import { readWorkflowTask } from "@/features/booking-workflows/service";
 import { WorkflowActionForm } from "@/features/booking-workflows/forms";
 import { LessonTime } from "@/features/bookings/lesson-time";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { bookingStatusLabel } from "@/features/private-workflow/notice";
 import Link from "next/link";
 import { levelNames } from "@/features/subjects/catalog";
@@ -15,7 +16,7 @@ import {
 } from "@/features/booking-workflows/staff-input";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Assigned synthetic booking task",
+  title: "Assigned booking task",
   robots: { index: false, follow: false },
 };
 export default async function Page({
@@ -37,7 +38,8 @@ export default async function Page({
           headers,
           bookingId,
         ),
-        privateWorkflow: isPrivateWorkflow(runtime),
+        privateWorkflow: hasPersistentWorkflow(runtime),
+        localWorkflow: getLocalWorkflow(runtime) !== null,
       }),
     );
   const task = result?.task;
@@ -127,6 +129,11 @@ export default async function Page({
               action={action}
               admin
               privateWorkflow={privateWorkflow}
+              source={
+                result?.localWorkflow
+                  ? "local_operation"
+                  : "synthetic_readiness"
+              }
             />
           ))}
         </>

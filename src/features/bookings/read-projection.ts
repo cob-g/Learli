@@ -10,7 +10,7 @@ import type { BookingDetail } from "./read-model";
 // Internal SQL projection; this is not the consumer read contract.
 export type StoredBookingRead = {
   id: string;
-  source?: "local_simulation" | "synthetic_readiness";
+  source?: "local_simulation" | "synthetic_readiness" | "local_operation";
   workflowRevision?: number;
   policyVersion?: string;
   logicalBookingId?: string;

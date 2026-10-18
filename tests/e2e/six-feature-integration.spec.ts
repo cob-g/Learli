@@ -123,7 +123,9 @@ test("one matching choice survives verification into private family/tutor views 
     .getByRole("button", { name: "Create account", exact: true })
     .click();
   await expect(
-    page.getByRole("status").filter({ hasText: "verification message" }),
+    page
+      .getByRole("status")
+      .filter({ hasText: "Registration request received." }),
   ).toBeVisible();
   const parentId = (
     await owner.pool.query('SELECT id FROM "user" WHERE email=$1', [email])
@@ -198,8 +200,11 @@ test("one matching choice survives verification into private family/tutor views 
   ).toBe(409);
   await page.goto("/parent");
   await expect(
-    page.getByRole("heading", {
-      name: "Bookings for Private synthetic combined learner",
+    page.getByRole("heading", { name: "Parent Dashboard", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Bookings for Private synthetic combined learner", {
+      exact: true,
     }),
   ).toBeVisible();
   await expect(

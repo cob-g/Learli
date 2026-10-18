@@ -105,6 +105,20 @@ for (const role of ["parent", "student", "tutor", "admin"]) {
       name: `${role[0].toUpperCase() + role.slice(1)} work areas`,
     });
     await expect(nav.locator('[aria-current="page"]')).toHaveCount(1);
+    if (role === "parent") {
+      await expect(
+        nav.getByRole("link", { name: "Parent Dashboard", exact: true }),
+      ).toHaveAttribute("href", "/parent");
+      await expect(
+        nav.getByRole("link", { name: "Parent Dashboard", exact: true }),
+      ).toHaveAttribute("aria-current", "page");
+      await expect(
+        nav.getByRole("link", { name: "Bookings", exact: true }),
+      ).toHaveAttribute("href", "/bookings?scope=guardian");
+      await expect(
+        nav.getByRole("link", { name: "Bookings", exact: true }),
+      ).not.toHaveAttribute("aria-current", "page");
+    }
     await expect(
       page.getByText("Switch workspace", { exact: true }),
     ).toHaveCount(0);
@@ -114,7 +128,9 @@ for (const role of ["parent", "student", "tutor", "admin"]) {
         ? ["Profile", "/tutor/profile"]
         : role === "admin"
           ? ["Subjects", "/admin/subjects"]
-          : ["Learners", "/learners"];
+          : role === "parent"
+            ? ["My Children", "/parent/children"]
+            : ["Learners", "/learners"];
     await nav.getByRole("link", { name: destination[0], exact: true }).click();
     await expect(page).toHaveURL(destination[1]);
     await privateShell(page);
@@ -278,9 +294,9 @@ test("delayed or failed identity reads keep content geometry stable and discard 
     await menu(page);
     await page
       .locator(".workspace-sidebar")
-      .getByRole("link", { name: "Learners" })
+      .getByRole("link", { name: "My Children" })
       .click();
-    await expect(page).toHaveURL("/learners");
+    await expect(page).toHaveURL("/parent/children");
     // The validated name stays visible while the destination's read is held.
     await expect(
       page.getByRole("button", { name: "Account Workspace test account" }),
@@ -307,7 +323,7 @@ test("delayed or failed identity reads keep content geometry stable and discard 
   await menu(page);
   await page
     .locator(".workspace-sidebar")
-    .getByRole("link", { name: "Learners" })
+    .getByRole("link", { name: "My Children" })
     .click();
   await expect(
     page.getByText("Workspace access unavailable.", { exact: true }),
@@ -538,7 +554,11 @@ test("multi-role switching preserves chosen shared context and successful provid
     await chooser.getByRole("link", { name: title, exact: true }).click();
     await expect(chooser).not.toHaveAttribute("open");
     for (const [label, target] of [
-      ...(role === "tutor" ? [] : [["Learners", "/learners"]]),
+      ...(role === "tutor"
+        ? []
+        : role === "parent"
+          ? [["My Children", "/parent/children"]]
+          : [["Learners", "/learners"]]),
       ["Account settings", "/account"],
       ["Support requests", "/support"],
     ]) {
@@ -674,6 +694,10 @@ for (const [role, scope] of [
     await expect(
       nav.getByRole("link", { name: "Bookings", exact: true }),
     ).toHaveAttribute("aria-current", "page");
+    if (role === "parent")
+      await expect(
+        nav.getByRole("link", { name: "Parent Dashboard", exact: true }),
+      ).not.toHaveAttribute("aria-current", "page");
     await page
       .getByRole("main")
       .getByRole("link", { name: "Go to your bookings", exact: true })
@@ -683,6 +707,10 @@ for (const [role, scope] of [
     await expect(
       nav.getByRole("link", { name: "Bookings", exact: true }),
     ).toHaveAttribute("aria-current", "page");
+    if (role === "parent")
+      await expect(
+        nav.getByRole("link", { name: "Parent Dashboard", exact: true }),
+      ).not.toHaveAttribute("aria-current", "page");
     await expect(page.locator(".workspace-current")).toHaveText(
       `${role[0].toUpperCase() + role.slice(1)} workspace`,
     );

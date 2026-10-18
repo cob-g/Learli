@@ -138,6 +138,12 @@ export async function verifyRuntimeGrants(client: PoolClient) {
     WHERE n.nspname='public' AND NOT EXISTS (SELECT 1 FROM pg_depend d
       WHERE d.classid='pg_proc'::regclass AND d.objid=p.oid AND d.deptype='e')`);
   const permitted = new Set([
+    "workflow_identity(text,text,text)",
+    "has_local_workflow_staff(text,text,text)",
+    "claim_local_workflow_task(text,text,text,text,uuid)",
+    "local_workflow_claim_current(text,text,text,text)",
+    "admission_reviewer_allowed(text,text,uuid)",
+    "admission_policy_current(uuid)",
     "publication_policy_current(uuid)",
     "publication_completion_current(text,uuid,uuid,integer)",
     "publication_author_allowed(text,text,uuid,uuid,integer,uuid)",
@@ -166,6 +172,9 @@ export async function verifyRuntimeGrants(client: PoolClient) {
     "change_safeguarding_response(text,text,uuid,integer,uuid,text,text)",
     "change_safeguarding_access(text,text,text,integer,text,text,uuid)",
 
+    "create_local_learner_with_grade(text,text,uuid,text,text,text,text,integer)",
+    "create_learner_admission_with_grade(text,text,uuid,uuid,text,text,text,text,text,integer)",
+    "update_admitted_learner_with_grade(text,text,uuid,uuid,text,text,integer)",
     "create_learner_admission(text,text,uuid,uuid,text,text,text,text,text)",
     "record_learner_admission_evidence(text,text,uuid,integer,uuid,text,text)",
     "decide_learner_admission(text,text,uuid,integer,uuid,text)",
@@ -182,7 +191,7 @@ export async function verifyRuntimeGrants(client: PoolClient) {
     "change_local_support_assignment(text,text,uuid,integer,text,text,uuid)",
   ]);
   if (
-    functions.rows.length !== 87 ||
+    functions.rows.length !== 95 ||
     functions.rows.some(
       (row) =>
         !row.safe ||

@@ -44,6 +44,7 @@ const selected = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/auth", () => ({
   getAuthRuntime: () => selected.runtime ?? null,
+  getDomainAuthRuntime: async () => selected.runtime ?? null,
 }));
 const injected = vi.hoisted(() => ({
   settings: undefined as

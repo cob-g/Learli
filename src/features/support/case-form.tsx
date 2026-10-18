@@ -8,9 +8,11 @@ import { categoryLabels } from "./input";
 export function CaseForm({
   concern = false,
   bookingId,
+  localWorkflow = false,
 }: {
   concern?: boolean;
   bookingId?: string;
+  localWorkflow?: boolean;
 }) {
   const router = useRouter();
   const hydrated = useHydrated();
@@ -85,12 +87,15 @@ export function CaseForm({
       aria-busy={pending}
     >
       <p className="text-small text-muted-foreground">
-        All fields are required. Use fictional details only.
+        {localWorkflow
+          ? "All fields are required. Keep sensitive personal details out of this report."
+          : "All fields are required. Use fictional details only."}
       </p>
       {!hydrated && (
         <p className="text-small text-muted-foreground">
-          Saving fictional reports requires JavaScript. If this message remains,
-          enable JavaScript and reload to use this local test form.
+          {localWorkflow
+            ? "Enable JavaScript and reload to save a report."
+            : "Saving fictional reports requires JavaScript. If this message remains, enable JavaScript and reload to use this local test form."}
         </p>
       )}
       <div className="space-y-2">
@@ -139,7 +144,7 @@ export function CaseForm({
       </div>
       <div className="space-y-2">
         <label className="block text-label" htmlFor="body">
-          Fictional description
+          {localWorkflow ? "Description" : "Fictional description"}
         </label>
         <textarea
           className={`field min-h-40 ${fields.body ? "border-error" : ""}`}
@@ -154,7 +159,9 @@ export function CaseForm({
           id="body-help"
           className="max-w-prose text-small text-muted-foreground"
         >
-          Describe a made-up issue in 2000 characters or fewer.
+          {localWorkflow
+            ? "Describe the issue in 2000 characters or fewer."
+            : "Describe a made-up issue in 2000 characters or fewer."}
         </p>
         {fields.body && (
           <p id="body-error" className="text-small text-error">
@@ -185,7 +192,13 @@ export function CaseForm({
             aria-hidden="true"
           />
         )}
-        {pending ? "Saving fictional report…" : "Save fictional report"}
+        {localWorkflow
+          ? pending
+            ? "Saving report…"
+            : "Save report"
+          : pending
+            ? "Saving fictional report…"
+            : "Save fictional report"}
       </button>
     </form>
   );

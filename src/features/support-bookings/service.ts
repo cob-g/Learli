@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { z } from "zod";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { isLoopbackOrigin } from "@/lib/local-mode";
@@ -16,5 +17,10 @@ export async function readBookingForReport(
     throw new AccessError(503);
   const identity = await requireIdentity(runtime, headers);
   if (!z.uuid().safeParse(bookingId).success) throw new AccessError(404);
-  return queryBookingForReport(runtime.db, identity, bookingId);
+  return queryBookingForReport(
+    runtime.db,
+    identity,
+    bookingId,
+    getLocalWorkflow(runtime) ? "local_operation" : "local_synthetic",
+  );
 }

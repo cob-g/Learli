@@ -1,5 +1,726 @@
 # Learli — Progress Tracker
 
+## 2026-10-18 — Authorized local commit and completed-worktree cleanup IN PROGRESS
+
+- Owner explicitly requested committing the completed work to local `main`, then
+  removing finished worktrees and branches. The primary checkout is already on
+  `main`; no separate feature-head merge is necessary for its uncommitted slice.
+- The521-entry final application manifest still matches the reviewed/built source.
+  Reuse the exact passing checks recorded below; this operation changes no runtime
+  logic. Private credentials, captures, databases and local memory stay ignored.
+- Before any child worktree removal, inspect unique source/commits and preserve
+  private local state outside the removed checkout. Keep the operating3000 app
+  and55432 development data. Data cleanup, pushes and deployment remain excluded.
+
+## 2026-10-18 — Ordinary local-main software VERIFIED; initial Admin pending
+
+- AUTHORIZED — build-feature delegation from the owner's request for one ordinary
+  local-main app with normal registration and persisted role/booking flow.
+  Blueprint: `prompts/features/m8-03-local-operational-workflow.md`; decision and
+  instructions: `docs/decisions/2026-10-18-ordinary-local-workflow.md` and
+  `docs/operations/local-workflow.md`. This is local operation, not public launch.
+- Primary checkout is on local `main`, HEAD616e8c7, with the prior navbar/auth/
+  Parent work and this slice preserved as uncommitted changes. No commit, push,
+  deployment, worktree removal or data cleanup was performed. All1,399 captured
+  baseline entries remain present; private source/configuration backups remain.
+- Owned55432/learli_dev was backed up before forward migration. All38 current
+  migrations and restricted grants applied;80 public tables and three exact local
+  policy heads enabled. All44 original table values were preserved (including all
+  original user columns across the additive auth column). Original5 users and
+  booking history were neither deleted nor converted. Existing Neon development
+  and private55433 records remain untouched.
+- Ordinary mode admits normal valid-email Better Auth registration, actual private
+  captured verification/reset/email-change proofs and normal account onboarding.
+  New records use additive `local_operation` through the existing domain engine.
+  Ordinary discovery, all role views, links and workflows exclude old simulation
+  inventory. No finite private audience or24-hour packet gate remains on this path.
+- Exact in-app review claims replace per-record owner dispatch. Current verified
+  active identity, role/ownership, local policy heads, staff capability, assignment
+  and Admin MFA remain required. Claiming creates no evidence or approval. Parent
+  Dashboard, Parent Profile, My Children and separate Bookings navigation remain.
+  Booking conflict/idempotency, holds, review, meeting privacy, reschedule/cancel,
+  post-end Tutor completion and durable notification intents retain their guards.
+- Independent read-only source Review: plan alignment, system integrity and
+  unintended-change audit PASS; no open findings. Prior revoked-admission and
+  post-audit support privacy gaps and stale claim receipt issues were fixed and
+  covered with actual PostgreSQL denials. Provider401/403 now retains the correct
+  local denied response rather than misleading503; unexpected errors remain503.
+  Supported Admin preparation versus account restriction is serialized by one
+  owner-CLI row-lock change. Both actual unsafe orderings failed before the patch
+  and passed afterward; no additional SQL migration was necessary.
+- Final `npm run check` PASS: format, lint, typecheck,146 files/2,218 unit/component
+  tests (23.79s). Prepared standard integration PASS82 files/1,124 tests (593.21s),
+  using an assigned owned loopback TLS test port. The newly added owner concurrency
+  file separately passed2/2 on the final script (1.95s); it was added after the
+  broad run collected its82 files. Combined current integration coverage1126/1126.
+  All checks use separate owned/disposable targets, never the operating dataset.
+- Opt-in ordinary-mode acceptance also passed: actual provider4/4, SQL authority/
+  concurrent claim/replay10/10, fresh/populated migration preservation2/2, complete
+  guarded domain-service journey1/1. The latter covers both Parent Grade8 and
+  independent College paths, reviewed Tutor eligibility, concurrent booking/retry,
+  exact Admin confirmation, all participant reads, private links, reschedule/
+  cancellation, current revocation, support/account controls and post-end completion.
+  Synthetic post-end fixtures do not establish a real external lesson occurred.
+- Actual final normal production-build browser acceptance passed62 checks and13
+  desktop/phone audits at1440/390 on the isolated ordinary fixture. Real provider
+  sessions and current MFA exercised Parent/Tutor/College/Admin, same saved records,
+  denied cross-role/private-link reads and UI Grade8 request→pending detail→exact
+  Admin claim→assigned evidence form. No Axe violations, overflow or browser errors.
+  Initial navigation-wait harness failure was corrected without application edits.
+- Fresh independent visual Finish first found a phone signup helper contrast issue.
+  One responsive Paper background correction preserves the incumbent composition.
+  The final actual3000 signup was recaptured with empty unmasked fields; helper
+  contrast6.53:1 desktop/6.10:1 phone, visible focus, no overflow/Axe/browser errors.
+  Independent scoring disposition **ship**, no remaining material fix. Inline
+  Documenter updated only the ordinary surface note; no global design expansion.
+- Final supported webpack production build PASS with an explicit local8GB Node
+  heap. Earlier Turbopack private-backup scan and default4GB heap failures are
+  preserved in the recovery note. No backup was deleted or test weakened.
+  All146 deployment traces exclude private local artifacts/environment files;
+  authored-text scan found no selected local credential literals. Final521-entry
+  application manifest is saved privately alongside exact check evidence.
+- Actual final local-main app is running at `http://127.0.0.1:3000`, health200,
+  normal signup/sign-in/directory reads and unauthenticated workspace redirects
+  confirmed. Old3200 preview and3300 browser app are stopped; their data remains.
+  Runtime has restricted local credentials only, no owner URL/private packet/
+  hosted/Neon/provider selection. `npm run mail:open` opens real local captures;
+  no email is delivered externally and no payment is enabled.
+- Evidence: ignored `.local/local-operation-20261018/` and
+  `.impeccable/review/local-operation-20261018/`; recovery
+  `prompts/recovery/2026-10-18-local-operation-validation.md` records failed
+  attempts, diagnoses and repairs. Chromium emulation is not physical-device or
+  cross-browser proof. Actual Zoom/Meet participation, provider delivery, public
+  legal/safeguarding readiness and production deployment remain unverified/gated.
+- Operating prerequisite pending: owner must select the exact registered, verified,
+  active account for initial Admin access. Trusted preparation intentionally
+  installed zero staff; no identity was guessed or elevated. Normal accounts can
+  register; review-dependent requests remain pending until this setup and actual
+  assigned reviews. Data cleanup is a later separately requested operation.
+
+## 2026-10-17 — Separate manual persistent preview VERIFIED locally
+
+- AUTHORIZED — build-feature delegation from the owner’s selection of a separate
+  private preview with fresh fictional accounts, the same booking workflow and
+  payments disabled. Blueprint: `prompts/features/m8-03-manual-persistent-booking-preview.md`;
+  decision and exact operations are recorded under `docs/decisions/2026-10-17-manual-persistent-preview.md`
+  and `docs/operations/manual-persistent-preview.md`.
+- Active manual checkout `/Users/cob/orca/workspaces/learli/private-manual-20261017`,
+  branch `cob-g/private-manual-20261017`, origin `http://localhost:3200`, independently
+  owned PostgreSQL `127.0.0.1:55433/learli_test`, all35 current migrations. Fresh
+  local secrets and actual provider signup/verification/MFA prepared five finite
+  fictional accounts. Actual assigned review authorized one Grade8 guardian
+  learner, one independent College learner and the Math/College Science Tutor;
+  seven09:00–18:00 Asia/Manila recurring windows are saved. Bootstrap created no
+  bookings, meeting links or preconstructed historical outcomes.
+- Manual and automated targets are separate. Runtime `.env.manual.local` contains
+  no owner connection; owner preparation has its own private file. The disabled
+  `.env.test.local` sentinel actually refuses the ordinary automated runner.
+  Original root environment/state hashes match all three captured hashes. Original
+  Neon development accounts/history were neither migrated nor deleted. Existing
+  Parent rollout backup and all earlier dirty/untracked work remain preserved.
+- Bounded explicit dispatcher prepares at most20 new exact assignments/grants,
+  with private0600 receipts and counts-only output. It never creates accounts,
+  roles, evidence, decisions or booking outcomes. Strict post-lock checks refuse
+  foreign assignments, revoked/expired grants, missing/revoked capability, stale
+  policies and a hold deadline crossed during a later lock wait. Existing exact-ID
+  operator behavior is preserved. Active private copy covers discovery,
+  availability/time-off, screening/admission, booking/support and draft policies;
+  legacy/default/historical provenance and unresolved policy gates remain truthful.
+- Independent read-only source Review: READY FOR VERIFICATION, zero open findings
+  after capability/support/policy repairs. Coordinator’s narrow read-only re-review
+  of the last private Active bookings filter passed: only presentation changes,
+  value/query/ownership unchanged, meaningful default/private regression assertions.
+  Fresh independent visual finish: SHIP, eight actual initial1440/390 captures
+  inspected, no material fixes. Fresh documenter wrote only
+  `.impeccable/surfaces/private-persistent-preview.md`; global design unchanged.
+- Final integrated `npm run check` PASS: format, lint, typecheck,141 files/2,173
+  unit/component tests (14.35s). Operator PostgreSQL26/26 PASS (10.40s); nine related
+  policy/scope/booking/dashboard PostgreSQL files141/141 PASS (69.26s), all on the
+  separate55432 target. Four existing normal private browser journeys PASS
+  (Parent, College Student, assigned Admin and auth/security;55.8s); the final
+  filter-label-only correction additionally passed32 focused tests and the final
+  actual-runtime surface checks below. No test/security protection was weakened.
+- Final root `npm run build` and manual checkout’s normal `next build --webpack`
+  both PASS. Root Turbopack’s existing dynamic-filesystem warnings remain; manual
+  Turbopack’s generated-font failure used the supported webpack alternative.
+  Inherited env-file worker rejection and relative packet-path refusal were
+  corrected only in private local startup configuration. Final142 deployment
+  traces include no `.local` or environment file. No dependency/schema/runtime
+  privilege expansion, provider operation or hosted deployment occurred.
+- Exact authored-source synchronization checked1,384 files with zero mismatches
+  before factual closeout documentation. All1,375 original baseline files remain.
+  Private source/config/account artifacts are ignored, owner-restricted and not
+  copied into Git. The accidental early root locked reinstall restored the exact
+  lockfile versions; source/config/data and lockfile hashes were preserved.
+- Actual manual-target Playwright acceptance PASS: two new UI requests (guardian
+  Math and independent College Science), exact retries retain one record each,
+  fresh-key overlaps rejected409, explicit dispatcher followed by actual
+  current-MFA assigned Admin confirmation. Each same record agrees across the
+  requester, assigned Tutor and assigned Admin; unrelated/cross-scope access404.
+  Child profiles remain parent-managed, not invented independent login accounts.
+  Two harness receipt interruptions recovered from saved exact idempotency inputs;
+  no duplicate/domain/timestamp repair was used.
+- The same two confirmed records survived their original ten-minute hold deadlines
+  naturally and a real owned app restart. Final read-only snapshots match every
+  stored field and booking/event/notice/delivery count. Post-restart browser reads
+  and reloads agree;16 bounded1440/390 captures exist across the two passes.
+  Coordinator visually inspected representative post-restart Parent/Tutor captures.
+  No saved timestamp was modified to fake elapsed time or completion.
+- Independent actual-runtime surface verification PASS on final source:24/24 routes,
+  one private notice per route, no simulation wording on checked active paths;
+  eight desktop/phone dashboard Axe WCAG2A/AA/2.1AA, keyboard-focus and overflow
+  checks; two booking→support ordinary-label checks. Parent’s own registered email
+  remains visible in Parent Profile by design; passwords/MFA/private meeting data
+  were not exposed. The initial Active simulations filter hit was fixed and the
+  same bounded check rerun successfully.
+- Evidence: root `.local/manual-persistent-preview-20261017/` and manual checkout’s
+  `.local/manual-preview/` (no sensitive values recorded here). Initial failed
+  setup/test/harness attempts retained; recovery note
+  `prompts/recovery/2026-10-17-manual-preview-verification.md` records their scope.
+  The ordinary55432 test cluster is stopped with data preserved. Old owned3000
+  server stopped; only the new owned3200 preview is left for this task.
+- Next: owner manually uses the private account sheet and explicit dispatch→Admin
+  review instructions. Actual fresh-session completion awaits its saved end;
+  actual Zoom/Meet connection, delivered email, commercial policy, real-family
+  intake, live payment and hosted/production release remain unverified or gated.
+  Existing historical automated completion fixtures are separate evidence.
+  The unchanged finite packet/evidence window expires **2026-10-18T07:57:27.459Z**
+  (October18,3:57PM Asia/Manila); startup does not renew it. Bookings persist, while
+  expired access authority requires deliberate maintenance. No commit/merge/push
+  or production operation was performed for this slice.
+
+## 2026-10-17 — Parent Dashboard verified; separate Bookings retained
+
+- AUTHORIZED — build-feature delegation under
+  `prompts/features/m5-04-parent-dashboard-discovery.md`, M5.4 with shared M5.3,
+  FAM-03/OPS-03/BKG-04. The owner's latest steering explicitly retains Bookings.
+  `/parent` now has stable Parent Dashboard metadata, heading, sidebar and Account
+  entry, with adjacent selected/sole/all-authorized-child context. The separate
+  Bookings entry opens `/bookings?scope=guardian`; only that entry is current on
+  guardian-scoped lists/details. Unknown/foreign scopes do not highlight it;
+  Student/Tutor current-page behavior remains unchanged.
+- Native Upcoming Sessions and Booking History links preserve selected-child and
+  history queries and exist only with valid section targets. The existing nearest
+  booking renders once inside parent Upcoming Sessions at h3, without a false
+  sole-booking empty message. Student composition, actual fields, UTC/local zone,
+  status/expiry, guardian detail links, services and authorization stay unchanged.
+  Safe parent load recovery says Parent Dashboard unavailable.
+- Independent read-only Review: READY FOR VERIFICATION, zero open findings after
+  bounded test-consumer repairs. The initial blueprint-only format failure, two
+  unsupported Testing Library options, and two stale AccountPage label assertions
+  were diagnosed and corrected without changing application behavior or weakening
+  security assertions. Original failed logs are retained privately.
+- Separate coordinator Verification actually executed on the final app/test state:
+  `npm run check` PASS (format, lint, typecheck,138 files/2,097 unit/component
+  tests,14.54s test duration); focused component implementation check PASS
+  (3 files/48 tests,1.17s); `npm run test:integration -- tests/integration/family-dashboard.test.ts tests/integration/booking-read.test.ts`
+  PASS (2 files/37 PostgreSQL tests,2.91s). Three existing jsdom navigation notices
+  did not fail the unit suite.
+- `npm run build` PASS. Four existing dynamic-filesystem tracing warnings remain;
+  a separate inspection of144 build traces found no `.local` or environment-file
+  inclusion. Normal preview rebuilt and restarted at `http://127.0.0.1:3000`;
+  health endpoint returned200. No source-copy fixture or factory replacement used.
+- Scoped normal-build Playwright auth/family/workspace checks PASS,27 tests,28.4s,
+  using the owned loopback test database. Existing single private guardian journey
+  extended with actual confirmed Step5 assertions PASS,1 test,21.8s: Account entry,
+  separate Bookings/current state, first card containment, saved child/tutor/Math,
+  UTC/local date/time/zone/status and exact guardian detail, native selected-child
+  anchors, reload/Refresh bookings and unchanged booking/event/notice counts.
+  Existing cross-role meeting/change/history checks in that journey also passed.
+- Actual private captures cover empty desktop, confirmed1440/390/320px,200% text,
+  reduced motion/forced colors. Keyboard anchor activation, no horizontal overflow
+  and Axe WCAG2A/AA/2.1AA checks passed at1440/390/320px. Detector command exited0
+  with empty output; no finding count is inferred. Evidence is private under
+  `.local/parent-dashboard-20261017/`. Fresh independent visual finish review: SHIP,
+  no material fixes, all six captures valid against the incumbent design. Fresh
+  documenter saved `.impeccable/surfaces/parent-dashboard.md`; global design files
+  unchanged. Final scoped documentation format check passed.
+- No schema/dependency/environment/remote data, state-policy, provider, Git or
+  deployment change. Ordinary preview remains development/local-auth/Neon-dev
+  without private-workflow activation and honestly shows development simulations.
+  Isolated synthetic confirmed acceptance is not staging deployment, the owner's
+  account-specific Step5 pass, full M5 verification or launch readiness. Next:
+  owner checks their authorized booking in the updated Parent Dashboard. Test
+  fixture webservers3100/3121 closed and the task-owned loopback PostgreSQL stopped
+  with its data retained; updated3000 preview remains running. Environment and
+  database-marker hashes match the pre-task receipt.
+
+## 2026-10-17 — Registration feedback verified; updated original preview running
+
+- AUTHORIZED — build-feature delegation under
+  `prompts/features/m2-01-registration-verification-feedback.md`, M2.9/M2.3,
+  AUTH-01/02/03/05. Signup now has current-constraint field correction, real
+  Creating account… pending feedback with a synchronous singleflight guard, and
+  a stable focused Verify your email / Registration request received. panel
+  replacing the fields after provider success. Fresh/duplicate success remains
+  indistinguishable; request receipt does not assert account creation/delivery.
+- Existing safe Sign in, verification resend and password-reset actions remain;
+  Use a different email restores editing with retained intent/continuation and
+  empty masked password. Dispatch clears/remasks the credential immediately.
+  Known non-enumerating provider codes give field correction; 429 asks the user
+  to wait; unknown/network/server refusals retain nonsecret input and explain
+  uncertainty. No application server/provider/database/permission change.
+- New component coverage checks pending/singleflight, focused local/hosted and
+  standard/reference completion, masked duplicate equality, field associations,
+  existing native limits, safe errors/retry and full Parent/College booking
+  continuation. Existing component and browser receipt observations updated;
+  their payload, ownership, credential and workflow assertions are preserved.
+- Implementation check actually run:
+  `npm test -- tests/components/registration-feedback.test.tsx tests/components/sign-up-presentation.test.tsx tests/components/parent-onboarding.test.tsx tests/components/student-registration.test.tsx tests/components/hosted-auth-form.test.tsx tests/components/sign-in-presentation.test.tsx`
+  PASS,6 files/59 tests,1.62s. Scoped edited files formatted with Prettier.
+  These are implementation checks, not independent Review or complete Verify.
+- Independent source Review and subsequent test-repair re-reviews: READY FOR
+  VERIFICATION, zero findings. Fresh Impeccable finish verdict: SHIP, no material
+  fixes, after16 valid corrected captures. Original capture batch retained;
+  Chromium sticky-header full-page artifacts corrected only in the optional test
+  capture helper after the real focus assertions. No application visual repair.
+- Separate Verify: final `npm run check` PASS (format/lint/types,138files/
+  2,093tests,13.08s test phase); final new component file PASS29/29 with no unused
+  import warning. `npm run test:integration -- tests/integration/auth.test.ts`
+  PASS15/15 against owned loopback `learli_test`,3.34s. Normal build PASS with4
+  existing filesystem-tracing warnings;144 traces contain0 private evidence/env
+  paths. Application source unchanged after that successful build.
+- Browser checks:8 existing real local signup/verification/sign-in/Parent/settings/
+  recovery/security checks PASS; final presentation5/5 PASS (5.7s), plus isolated
+  TLS hosted auth8/8 PASS (29.8s). These are21 distinct checks.16 valid synthetic,
+  credential-cleared captures cover1440/390/320 correction/pending/error/received,
+  forced colors/reduced motion and200% text. Axe, overflow, focus, one in-flight
+  request, safe failure/retry, continuation and no-script checks pass.
+- Initial browser attempts retained: temporary config needed explicit root cwd;
+  hosted mirror exposed a pre-existing generated-fixture mail union assumption,
+  corrected only in `tests/support/hosted-auth-app.ts` to rewrite transport for
+  `resend-single-attempt`; disabled/private-capture remain unchanged. New tests
+  needed form/region-scoped locators; one hosted signup error assertion needed
+  updated copy plus stronger credential/retry/no-success checks. No assertions,
+  TypeScript checks or security gates removed. Recovery note:
+  `prompts/recovery/2026-10-17-registration-feedback-verification.md`.
+- Detector ran once:0 anti-patterns,1 unchanged existing pending-ring radius
+  advisory. Fresh documenter updated only the local signup surface record;
+  global DESIGN/sidecar stay unchanged. Final capture-helper lint/typecheck PASS.
+  Current source scope/baseline and logs are private under
+  `.local/registration-feedback-20261017/`. Downstream booking/admission/private
+  journeys with receipt-observation-only edits were not rerun; their business
+  paths and producer/consumer contracts were not changed. No delivery or public
+  launch/production-readiness claim; actual conferencing/payments not involved.
+- Updated normal-build primary preview on http://127.0.0.1:3000 (PID74208;
+  health/signup200). Test previews/TLS fixture closed, owned55432 test DB stopped
+  with data preserved. Existing development accounts, Neon data, environment,
+  earlier dirty work and Git history preserved; no commit/merge/push/deployment.
+  Next: refresh Create account and resume owner manual testing. Verification
+  remains an email link; this local preview captures messages instead of sending
+  inbox email (`npm run mail:open`).
+
+## 2026-10-17 — Updated original development preview verified; alternate servers closed
+
+- Owner answered the concrete development-rollout request with “okay close servers
+  now I just want updated server”. This authorizes the reviewed backup, six exact
+  Neon development migrations, source integration and one updated original preview;
+  it does not authorize production, deployment, commit/merge/push or data deletion.
+- Closed the old3000 and isolated3300 previews. PostgreSQL18.6 custom backup used
+  the exact development migration identity and an exported READ ONLY snapshot.
+  Actual transactional restore into an owned loopback17.11 cluster passed79-table
+  data/columns/sequences,86 original functions and named owners/effective relation
+  ACL comparisons. Provider ACL principals were fresh local NOLOGIN names only;
+  redundant owner-only ACLs normalized with PostgreSQL acldefault. Initial restore/
+  comparison attempts retained; no source reset, credential copy or grant widening.
+- Revalidated backup/source/target/plan, then reviewed runner applied0029–0034 and
+  canonical grants: committed/PASS, runtime/PASS, cleanup/PASS. Postcheck confirms
+ 35 exact ledger entries/zero pending,90 protected functions and original records
+  across78 application tables preserved using original columns. Prior29 migration
+  receipts retained; old learner grades NULL. Production remains untouched.
+- Integrated60 scoped files into original checkout only after the full1,349-file
+  baseline matched. Prior dirty navbar/auth UI preserved; .env.local unchanged.
+  No Git commit/merge. Original branch remains desktop-navbar-reference feature.
+- Original-checkout `npm run check` PASS (format/lint/types,137files/2,064tests,
+  12.71s test phase); production build PASS with4 existing tracing warnings.
+  Final app source matches the verified candidate. No business rules changed.
+- Exact development restricted-runtime rollback smoke PASS: parent grant/retry,
+  Grade8 creation/replay/conflict, guardian link, College-grade rejection and full
+  rollback,0 persisted QA accounts. First smoke tried reading an intentionally
+  private receipt table and was denied42501; corrected only the test read, with
+  no rights change. Browser server smoke PASS: health/sign-in, three protected
+  parent routes require login, API401 for logged-out caller,0 page errors.
+- Independent final receipt review: no blocking issue, scoped development only.
+  Authenticated postrestart browser journey not repeated; earlier full browser
+  suites remain separate evidence. No production-readiness/provider acceptance.
+- Exactly one Learli app listener remains: updated original-root normal build on
+  http://127.0.0.1:3000 (observed PID82842). Alternate3300/3301/3121 and owned
+  testing/restoration databases55442/55445 stopped; all data/files preserved.
+- Restricted evidence: original `.local/parent-step2-rollout-20261017/` for root
+  checks/integration/server; candidate `.local/parent-step2-20261017/rollout/` for
+  backup, restore, apply, preservation and rollback-smoke receipts. Current
+  deployment record: `docs/operations/parent-step2-rollout.md`. Next: owner refreshes
+  the existing3000 preview and resumes manual Parent Profile/My Children testing.
+
+
+## 2026-10-17 — Parent Profile and My Children verified locally; remote rollout pending
+
+- Owner authorized Parent Profile → My Children → Add Child and optional persisted
+  Grade 8 metadata. Blueprint `prompts/features/m4-04-parent-profile-children.md`
+  records AUTHORIZED — build-feature delegation (not separate blueprint approval),
+  M4.4/M5.4, FAM-01/03 and AUTH-05. Dedicated Parent-only routes reuse existing
+  services/forms; child edit also requires current authorized guardian ownership.
+- Nullable grade1–12 is private self-declared metadata, separate from broad level,
+  prohibited on College/self profiles. Existing rows retain NULL; omitted PATCH
+  preserves, null clears. Additive0034 preserves legacy SQL/functions/null-grade
+  hashes and adds3 uniquely named protected functions. No consent/booking rule,
+  identity collection, dependency, public child DTO or auth UI change.
+- Local creation saves a fictional profile atomically. Private staging saves a
+  pending request with no guardian/booking authority until assigned MFA review;
+  reviewed level stays locked. My Children separates current accessible profiles
+  from bounded own request-status cards. Shared Student/account routes preserved.
+- Isolated Orca worktree `parent-step2-20261017`, branch
+  `cob-g/parent-step2-20261017`, base616e8c7 plus preserved dirty auth/navbar work.
+  All1,349 original baseline files still match in the original checkout. Owned
+  PostgreSQL55442 has separate dev/test DBs. Original preview3000/Neon/data remain
+  untouched; isolated normal production-build preview3300 is running for manual QA.
+- Independent source Review and final test-repair re-review: READY FOR
+  VERIFICATION, zero findings. Fresh UI finish review SHIP after12 valid full-page
+  captures; no material fixes. Fresh documenter recorded only the parent surface;
+  existing DESIGN.md/sidecar unchanged. Detector ran once, empty findings.
+- Final `npm run check` PASS: format/lint/types and137 files/2,064 tests (15.78s).
+  Production build PASS, one existing dynamic-filesystem tracing warning. No
+  application source changed after that build; subsequent repairs were tests/docs.
+- Full PostgreSQL suite initial run:82 files,1,094 passed/7 failed/8 skipped in
+  448.61s. Corrected historical prefix grant/data/function fixtures, a missing
+  synthetic session timestamp and a pre-existing TLS domain-runtime test mock;
+  supplied assigned TLS port55444. All6 affected files then PASS28/28 in15.71s,
+  with no skips. Unaffected76 files retain their passing evidence; a second full
+  run was not executed after fixture-only repairs. Actual fresh/populated0033
+  upgrade, original data/function/ACL preservation, concurrent grade retries,
+  legacy null receipts, clear/omit/invalid, foreign/revoked/pending/raw-write
+  denials all passed. No assertions or guards were weakened.
+- Normal-build Playwright PASS23/23 (22.0s): actual UI signup/local verification/
+  explicit Parent enrollment/profile save/Grade8 child refresh, uncertain-response
+  retry without duplication, cross-family/wrong-role/logout/privacy and all-role
+  workspace compatibility. Separate private-staging main journey PASS1/1 (20.2s):
+  Grade8 pending→authorized→reviewed edit plus cross-role booking synchronization.
+- Separate actual normal development3300 journey PASS (6.1s);12 responsive captures
+  at1440/390/320 have zero Axe violations/overflow. Initial test-navigation race
+  and a premature hydration/transition audit were corrected in test synchronization;
+  prior evidence retained. No cosmetic product change was needed.
+- Recovery note `prompts/recovery/2026-10-17-parent-step2-validation.md`; restricted
+  `.local/parent-step2-20261017/report.json`, source manifests/logs/captures retain
+  exact commands/results. Setup also required owned .local0700; refusal guards
+  remained intact. Chromium emulation only; no real mail/payment/conference or
+  production/hosted acceptance claim. No commit/merge/push/deployment.
+- Read-only exact Neon development plan PASS: current ledger29, pending0029–0034
+  (six migrations, including five pre-existing changes). No remote apply. Concrete
+  target/hash/backup/revalidation/preview plan is
+  `docs/operations/parent-step2-rollout.md`. Next: owner manual QA at3300, then
+  separate exact-target development migration/preview-update approval before
+  integrating into3000. Do not copy schema-dependent code to the old preview first.
+
+## 2026-10-17 — Auth form motion and control removal verified locally
+
+- Owner requests the reference's missing Create account form animations, then
+  removal of Pause animation controls on both auth pages. Signup-only CSS adds
+  enabled field/account-choice border/background150ms and focus-shadow200ms
+  feedback plus a real aria-busy800ms pending ring; reduced motion retains static
+  feedback and disabled changes stay immediate. No demo success/timer or new
+  validation, consent or account rules. Existing AuthForm/payloads untouched.
+- Both decorative controls and unused styles removed. Existing mount observers
+  now own a 4500ms settling timer and one-way finished latch; offscreen/document
+  gates, hydration/static fallbacks and complete cleanup retained. Original
+  decorative periods remain while briefly running, then freeze without restart.
+  Existing navbar, compact footers, forms/pages/server/provider logic preserved.
+- Independent final source Review READY FOR VERIFICATION/no findings across six
+  intended source/test files; all other797 source/test fingerprints unchanged.
+  Fresh full finish Review found one pre-existing mobile alert contrast defect;
+  R6 adds only signup-scoped opaque White alert background. After final rebuild
+  and all nine recaptures, verdict pass scored that fix **resolved / ship** at
+  fix scope. No further polishing required; design records reconciled.
+- Separate verification: final combined `npm run check` PASS, format/lint/types
+  and135 files /2,030 tests (12.13s test phase); worker lifecycle tests16/16 PASS.
+  The last three-line CSS contrast fill does not affect those unchanged TSX/tests;
+  final CSS formatting, production build and full browser probe reran PASS.
+  Build has four existing tracing warnings. Source manifest803 retains final
+  checked inputs; final diff/format checks PASS.
+- Final normal-build Chromium probe PASS: both pages' artwork initially advances
+  then freezes with no controls; actual native field/choice transitions and
+  selection; three intercepted synthetic signup requests exercise pending,
+  refusal and retry with unchanged body/cleared-remasked password. Animated vs
+  reduced/static pending ring, no-script form gate, forced colors and390/320
+  reflow pass; six Axe audits zero violations/overflow, nine valid captures,
+  zero page errors. Mobile refusal surface assertions pass after R6. No provider
+  or database mutation; no hosted/provider acceptance claim.
+- Restricted evidence `.local/signup-form-motion-20261017/` and
+  `.impeccable/review/signup-form-motion-20261017/`; earlier form-only and
+  before-contrast snapshots retained. Detector ran once before control CSS
+  deletion: zero primary/one existing radius-parser advisory; no repeat scan.
+- Owned test server3162 closed; owner preview3000 both auth routes HTTP200 with
+  compact footer/no pause control retained. No database start, commit/merge/
+  push/deployment. Chromium emulation only; full hosted/physical-device/release
+  acceptance remains separate. Next: owner visual QA or next explicit task.
+
+## 2026-10-17 — Sign in compact footer verified locally
+
+- Owner requests the same compact Create account footer on Sign in only. Exact
+  `/sign-in` and `/sign-up` now share existing markup/styles; all other routes
+  retain SiteFooter. Footer CSS moved byte-equivalently into component-owned
+  `sign-up-footer.css`, so direct/no-script Sign in has the correct appearance.
+  Forms, cards, companion/artwork motion, navbar and default SiteFooter unchanged.
+- Independent source Review READY FOR VERIFICATION/no findings; fresh finish
+  Review **ship**, no material fixes across five valid captures. Scoped UI,
+  blueprint, decision and design records reconciled; prior work preserved.
+- Separate `npm run check` PASS: formatting/lint/types and 135 files / 2,026 tests
+  (12.13s test phase). Production build PASS with four existing tracing warnings.
+  Browser probe PASS: cold direct Sign in, identical footer markup/computed styles
+  with Create account, client/history/default-route isolation, no-script styling
+  and disabled form gate, real links/44px targets, desktop/390/320/200% reflow,
+  native Help focus above dock and four Axe audits with zero violations/overflow.
+- Source baseline confirms only four expected existing source/test files changed
+  plus one extracted stylesheet; reinsertion restores the exact old signup CSS.
+  Final formatting/diff checks PASS. Detector ran once: zero primary findings,
+  one existing radius-parser advisory. Private evidence:
+  `.local/signin-footer-20261017/` and
+  `.impeccable/review/signin-footer-20261017/`.
+- Packaging scope: 140 production traces exclude local evidence/environment files.
+  A stricter diagnostic also flagged the existing sanitized memory.md reference
+  in 133 traces; next.config.ts is unchanged and this unrelated packaging concern
+  is deferred. No deployment/public exposure claim. Diagnostic assertion retained
+  and classified separately in the recovery note; no application repair.
+- Owned test server3162 closed; owner preview3000 returns Sign in HTTP200 with new
+  footer. No database start/mutation, provider action, commit/merge/push/deploy.
+  Chromium emulation only; hosted/provider/full-site acceptance separate.
+  Next: owner visual QA or next explicit task; no outstanding footer fix.
+
+## 2026-10-17 — Create account compact footer verified locally
+
+- Owner requests the reference footer only on Create account. Added a compact
+  original-wordmark/copyright row with working draft policy/Help links; other
+  routes retain the large footer. Optional public-shell footer slot and exact
+  auth path selection preserve server markup and native navigation. Signup
+  form, safeguards, card/motion, navbar and original shared footer are unchanged.
+- Independent source Review and final reReview READY FOR VERIFICATION/no findings;
+  fresh finish Review **ship**, no material fixes across five valid captures.
+  Fresh documenter updated scoped DESIGN/sidecar/brief records, preserving all
+  previous design entries. UI context/decision/blueprint record the continuation.
+- Separate check PASS: format/lint/types and 135 files / 2,024 tests (11.96s test
+  phase); targeted footer/policy cases 13/13 PASS, including five new exact-route
+  and native link safeguards. Final build PASS with four existing tracing
+  warnings; 140 traces exclude local/env artifacts. Final 942 source/test/config
+  fingerprints retained; auth/form/card/motion/navbar/SiteFooter remain unchanged.
+- Normal-build Chromium footer probe PASS: exact direct/client/history route
+  isolation, one footer, real links/44px targets, desktop/390/320/200% reflow and
+  four full-document Axe audits with zero violations/overflow. Native Help focus
+  clears the dock at both phone widths. No-script markup has the compact footer
+  and preserves the disabled auth form. Five final captures validated. Detector
+  ran once: zero primary findings, one pre-existing radius parser advisory.
+- Initial focus probe reused an already-focused Help node after its capture
+  helper scrolled to top. R5 records the setup correction (blur before the next
+  width), retained assertion, passing rerun and original evidence. No application
+  repair. Final docs/source formatting and diff checks PASS.
+- Restricted ignored evidence: `.local/signup-footer-20261017/` and
+  `.impeccable/review/signup-footer-20261017/`. Owned test server 3162 closed;
+  owner preview3000 HTTP200/new footer retained. No database start/mutation,
+  provider action, commit/merge/push/deployment. Existing uncommitted work is
+  preserved. Next: owner visual QA; hosted/provider/full-site acceptance separate.
+
+## 2026-10-17 — Create account reference UI verified locally
+
+- Owner requests supplied standalone Create account UI with functionality and
+  implementation preserved. Authorized blueprint:
+  `prompts/features/m1-05-signup-reference.md`. Signup-only centered card,
+  dot/ribbon/category decoration, native three-intent choices and accessible
+  reference motion are implemented. Shared registration submit/continuation,
+  server gate and accepted sign-in/navbar/footer are retained. No provider,
+  policy, database or dependency change. Existing uncommitted UI work is
+  preserved on `feature/desktop-navbar-reference-20261017`, HEAD `616e8c7`.
+- Independent source Review: plan alignment, system integrity and unintended
+  change audit PASS; READY FOR VERIFICATION, no findings. Fresh finish Review
+  **ship** across all 12 captures, no material fixes. Fresh documenter persisted
+  DESIGN.md, structured sidecar and signup brief, preserving prior records.
+- Separate final `npm run check` PASS: formatting, lint, TypeScript and 134 files /
+  2,019 tests (12.96s test phase), including 15 new presentation/lifecycle cases.
+  Production build PASS with four existing tracing warnings; all 140 traces
+  exclude private local/env artifacts. Normal-build local-PG Chromium passed
+  19/19 cases in 17.3s, one worker/no retries: actual signup/verification/safe
+  return/settings/logout, explicit Parent enrollment, sign-in/header/Axe cases.
+- Separate browser matrix PASS at 1440/1280/1180/1024/900/768/390/320px, with
+  12 valid full-page captures, no horizontal overflow, four full-document Axe
+  audits with zero violations, native radio keyboard/44px targets/validation,
+  200% text, forced colors, reduced motion and no JavaScript. Controlled signup
+  refusal verifies pending disablement, clear/remask, focused safe error, retry
+  controls and exact four-key payload/full College booking continuation. These
+  intercepted presentation fixtures are separate from actual-provider tests.
+- Actual hover lift/arrow/press and 7s side/6s orb motion, Pause/Resume,
+  offscreen suspension and persistent manual pause PASS. Document visibility
+  uses a controlled getter/event simulation, not an actual headed-tab test.
+  Separate mobile focus checks show typing hides the existing dock and the
+  keyboard-focused submit clears it at 390/320px. Chromium emulation does not
+  establish physical-device or hosted-provider acceptance.
+- Initial verification exposed test-only radio matcher/query API assumptions,
+  component rAF scheduling and an ambiguous browser alert locator. Targeted
+  harness repairs retained assertions and expected contracts; no auth/source
+  repair was needed. Original evidence and outcomes remain in
+  `prompts/recovery/2026-10-17-sign-up-reference-validation.md` and private logs.
+- Detector ran once: zero primary findings, one full-radius parser advisory,
+  assessed by finish Review. Final 939 source/test/config hashes retained;
+  shared submit/continuation bodies are identical to the pre-task source.
+  Accepted sign-in/navbar/footer/provider/other sources remain unchanged.
+  Final documentation formatting and diff checks PASS.
+- Evidence: restricted ignored `.local/signup-reference-20261017/` and
+  `.impeccable/review/signup-reference-20261017/`. Owned test server 3162 closed;
+  local PostgreSQL stopped after zero other client backends, data retained.
+  Owner preview 3000 remains HTTP200 with the new card/intent/motion markup.
+  Uncommitted/unmerged; no push, deployment or production operation. Next:
+  owner visual QA. Whole-site/hosted/MFA/physical-device acceptance is separate.
+
+## 2026-10-17 — Sign-in reference motion verified locally
+
+- Owner requests the missing reference button hover and right-card animation.
+  Scoped blueprint/UI decision now supersede the initial static decoration choice.
+  Added enabled-only button lift/press/arrow/shadow, opposing seamless ribbon
+  groups and orb bob, plus a small client companion for Pause/Resume, offscreen/
+  hidden-tab suspension and static reduced-motion/no-script fallbacks.
+- Independent source Review and final documentation reReview READY FOR
+  VERIFICATION/no findings. Six new lifecycle/pause/readiness/fallback tests;
+  separate `npm run check` PASS132 files/2,004 tests (12.56s test phase), formatting,
+  lint and TypeScript. Production build PASS with4 existing tracing warnings;
+  140 traces exclude private local/env artifacts. Actual normal-build local-PG
+  Chromium19/19 PASS17.3s, one worker/no retries, covering auth, safe parent
+  continuation, accessibility and existing header/session cases.
+- Actual browser motion probe PASS: hover lift1px/arrow4px/press.985, 38s/46s
+  opposing tracks with equal contiguous copies covering the full band, 6s/8px
+  alternate orb; Pause/Resume retains phase and manual pause survives offscreen
+  round trips. Document visibility getter/event simulation pauses/resumes; an
+  actual headed-tab lifecycle was not exercised. Reduced-motion, hidden-mobile
+  and no-JavaScript states remain static. Three full-document Axe audits found
+  zero violations; all7 desktop/mobile captures have no horizontal overflow.
+  No auth mutations or console/page errors occurred in the motion probe.
+- Initial private probe stopped at equivalent keyframe serialization
+  (`translate(-50%)` versus `translateX(-50%)`); targeted diagnostic recovery
+  retained exact endpoint/geometry requirements and original output, with no
+  application repair. Recovery R2 records this in
+  `prompts/recovery/2026-10-17-sign-in-reference-validation.md`.
+- Fresh independent finish Review **ship** across all7 captures, no material
+  fixes. Detector ran once:0 primary/2 previously documented size/radius
+  advisories. Fresh documenter persisted scoped DESIGN.md/sidecar/brief motion
+  exceptions; UI context and dated decision agree. Final934 source/test/config
+  hashes recorded; protected auth/form/frame/route/navbar/footer and existing
+  sign-in tests retain the pre-motion versions. No dependency/schema/provider
+  or permission changes. Source edits are only layout/CSS plus the local
+  companion and its tests; prior uncommitted UI work remains preserved.
+- Evidence: restricted ignored `.local/signin-motion-20261017/` and
+  `.impeccable/review/signin-motion-20261017/`. Owned3162 closed and local PG
+  stopped after zero other client backends; synthetic data retained. Owner
+  preview3000 remains HTTP200 with updated markup. Uncommitted/unmerged; no
+  push/deployment/production operation. Next: owner visual QA. Hosted-provider/
+  whole-site release acceptance remains outside this motion continuation.
+
+## 2026-10-17 — Sign-in reference UI verified locally
+
+- Owner requested the supplied standalone Sign In v2 UI for `/sign-in`, with
+  functionality/standards and the approved navbar retained; no Higgsfield.
+  Blueprint `prompts/features/m1-05-signin-reference.md` is **AUTHORIZED —
+  build-feature delegation**, M1.5 / related M2.9, AUTH-02/AUTH-05 and NFR scope.
+  Earlier uncommitted navbar work remains preserved on
+  `feature/desktop-navbar-reference-20261017`, HEAD `616e8c7`.
+- Implemented sign-in-only frame/form variants: unboxed420px form, navy companion
+  with static approved-category ribbon/orb, existing Lexend/Literata/palette,
+  local draft-policy links and accessible Show/Hide. Credential input remains
+  uncontrolled and is cleared/remasked before the provider call. Server gate,
+  verification messages, safe continuation/MFA and error handling remain. Other
+  auth modes, approved navbar, shared footer and shell remain byte-identical or
+  retain default markup. No provider, permission, schema or dependency change.
+- Independent source Review PASS/READY FOR VERIFICATION; new visibility tests8/8
+  PASS. First full check1,998/build passed; browser1 passed18/19, with the unchanged
+  Axe case exposing a formatting-sensitive selected-chip class and transient
+  submit contrast on enablement. Scoped Recover R1 fixed literal classes and
+  removed only submit background interpolation; source reReview READY/no findings.
+  Original failure/evidence retained in the recovery note/private logs.
+- Separate final `npm run check` PASS: format/lint/TypeScript and131 files /
+  1,998 tests (11.67s phase). Production buildPASS with4 existing tracing warnings;
+  all140 traces exclude local/env artifacts. Actual normal-build Chromium19/19
+  PASS (17.4s), one worker/no retries: parent onboarding/safe continuation,
+  signup/verification/settings/logout, local password reset, phone account,
+  desktop/mobile/narrow Axe/tab order and existing header/session/name cases.
+- Separate visual matrix PASS at1440/1024/390/320, zero page Axe violations and
+  overflow; 200% text, verification precedence, Show/Hide, controlled pending/
+  failure/remask/focus, forced colors and no-JavaScript states. Twelve final
+  captures validated; pending header capture settled before final review.
+ 320px initial dock can overlap the lower form, while normal focus scroll clears
+  submit above it (bottom623.8 vs dock644). Fresh finish Review **ship**, no
+  material fixes, accepts this preserved scroll behavior and the scoped reference
+  adaptations. Presentation fixtures are distinct from actual-provider tests.
+- Fresh documenter updated DESIGN.md, structured sidecar and sign-in brief;
+  UI context/dated decision record only this exception. Detector ran once:
+  zero primary findings, two advisories (local policy12px size/full-radius parser)
+  assessed within finish Review. Final932 source/test/config hashes retained;
+  prior navbar/footer/auth-layout fingerprints match the captured baseline.
+- Evidence: ignored restricted `.local/signin-reference-20261017/` and
+  `.impeccable/review/signin-reference-20261017/`; recovery
+  `prompts/recovery/2026-10-17-sign-in-reference-validation.md`. Owned3162 closed;
+  local PostgreSQL stopped after zero other clients, synthetic data retained.
+  Owner preview3000 preserved, sign-in HTTP200/new layout confirmed. No commit,
+  merge, push, deployment or production operation. Hosted MFA/provider/whole-site
+  acceptance not rerun for this presentation scope; next is owner visual QA.
+
+## 2026-10-17 — Persistent desktop Sign in background verified
+
+- Owner continuation requests a background at rest, not only on hover. The
+  desktop anonymous Sign in link now always uses a White capsule with Navy18%
+  outline, light Mint hover and no underline; the current-page teal dot remains.
+  Only the direct desktop entry changes; native Account fallback, mobile/private
+  styles, destinations and account handlers stay intact. Existing uncommitted
+  navbar work is preserved on the same feature branch.
+- Blueprint, dated decision and UI/design documentation record this refinement.
+  Independent source Review READY FOR VERIFICATION/no findings; fresh finish
+  Review ship on both replacement desktop header captures.
+- Separate scoped Playwright on owner preview3000 PASS at1440/1024px: non-current
+  rest background/border, hover, no underline, focus, navigation and current dot;
+ 390px mobile/dock unchanged with no overflow. Latest production build PASS with
+  the same4 existing tracing warnings. Targeted formatting and diff checks PASS.
+  Earlier1,990 tests and15 broad browser cases belong to the preceding navbar
+  state and were not rerun for this CSS-only continuation. No database or remote
+  operation, commit/merge/push/deploy; preview remains available for owner review.
+
+## 2026-10-17 — Desktop navbar reference verified locally
+
+- Owner requested the supplied standalone Sign In v2 desktop navbar, navbar
+  only, with current functionality preserved; latest steering removes underlines
+  while retaining light green hover. Blueprint
+  `prompts/features/m1-05-desktop-navbar-reference.md` is **AUTHORIZED —
+  build-feature delegation**, M1.5 / PUB-01, PUB-02/03, NFR-01/02.
+- Clean baseline main `616e8c7`; implementation remains uncommitted on
+  `feature/desktop-navbar-reference-20261017`. Desktop public/auth header now has
+  the pale reference surface, 72px minimum row, original 78px SVG, centered 46px
+  capsule with 44px link targets, mint hover/current fills and no underline.
+  Account names remain complete, with a wide second row for enlarged text.
+  Account handlers, destinations, mobile/dock and private workspace styles remain
+  unchanged. No business, security, dependency, schema or infrastructure changes.
+- Independent source Review caught R1 empty no-JavaScript pending surface;
+  browser1 passed13/15 and exposed R2 ordinary-name footprint growth. Both received
+  scoped corrections without weakening tests. Fresh finish Review found R3 narrow
+  enlarged-name wrapping and stale desktop design documentation; targeted reflow
+  and separate documenter updates resolved both. Recovery history retained in
+  `prompts/recovery/2026-10-17-desktop-navbar-validation.md`.
+- Final independent source Review **READY FOR VERIFICATION**, no blockers;
+  final fresh finish Review **ship**, both scored fixes resolved and nine valid
+  replacement captures, no fix-batch regression observed within header scope.
+- Separate final `npm run check` PASS: format, lint, TypeScript and130 files /
+  1,990 unit/component tests (12.18s test phase). Test-environment production build
+  PASS with4 existing filesystem-tracing warnings; all140 build traces exclude
+  local/env artifacts. Existing selected normal-build Chromium15/15 PASS (14.2s),
+  one worker/no retries: real signup/verification/settings/logout, phone account,
+  desktop/mobile navigation, pending/error/retry stability and enlarged names.
+- Separate visual probe PASS at1440/1024/1280/1600/768/390/320px, ordinary desktop
+  reference geometry, no overflow, no-JavaScript fallback, sticky/contrast/forced
+  colors, focus/Escape and enlarged account menu visibility; zero header Axe
+  violations. Signed-in screenshots use a controlled presentation fixture,
+  separate from the actual-provider browser cases. No external video/email or
+  hosted acceptance is claimed. Detector ran once: zero primary findings; four
+  full-radius parser advisories accepted by fresh finish Review.
+- UI context, dated decision, DESIGN.md/sidecar and scoped navbar brief record
+  only this desktop exception. Private evidence under
+  `.local/desktop-navbar-20261017/` and `.impeccable/review/desktop-navbar-20261017/`;
+  929 final source/test/config fingerprints retained. Owned3162 listener closed;
+  owned PostgreSQL stopped after zero other clients, data retained. Owner
+  preview3000 preserved and `/sign-in` HTTP200 confirmed. No commit, merge, push,
+  deployment, account purge or production action. Next: owner desktop visual
+  acceptance or a separately requested next component.
+
 ## 2026-10-17 — Security acceptance committed and merged locally
 
 - Owner explicitly requested “commit and merge in local main”. All 12 reviewed

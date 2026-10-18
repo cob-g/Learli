@@ -141,7 +141,7 @@ describe("local learner creation form", () => {
   });
   it("blocks duplicate activation while keeping submit focus and pending words", async () => {
     let complete: (value: Response) => void = () => {};
-    const fetch = vi.fn(
+    const fetch = vi.fn<typeof globalThis.fetch>(
       () =>
         new Promise<Response>((resolve) => {
           complete = resolve;
@@ -178,6 +178,7 @@ it("SSR create/edit forms cannot fall back to private GET submission", () => {
     displayName: "Synthetic SSR learner",
     management: "guardian" as const,
     level: "elementary" as const,
+    grade: null,
     timezone: "UTC",
   };
   for (const markup of [
@@ -190,4 +191,98 @@ it("SSR create/edit forms cannot fall back to private GET submission", () => {
       expect(control.hasAttribute("disabled")).toBe(true);
     expect(markup).toContain("JavaScript is required");
   }
+});
+
+describe("optional guardian grade metadata", () => {
+  it("saves Grade 8 with parent labels and links, retaining duplicate protection", async () => {
+    let complete!: (value: Response) => void;
+    const fetch = vi.fn<typeof globalThis.fetch>();
+    fetch.mockImplementation(
+      () =>
+        new Promise<Response>((resolve) => {
+          complete = resolve;
+        }),
+    );
+    vi.stubGlobal("fetch", fetch);
+    render(<CreateLearnerForm {...props} parentChildFlow />);
+    const user = await fill();
+    await user.selectOptions(screen.getByLabelText("Grade (optional)"), "8");
+    await user.dblClick(
+      screen.getByRole("button", { name: "Save child profile" }),
+    );
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toMatchObject({
+      management: "guardian",
+      level: "elementary",
+      grade: 8,
+    });
+    complete(Response.json({ id }));
+    await screen.findByText("Child profile saved for local testing.");
+    expect(
+      screen.getByRole("link", { name: "Edit child profile" }),
+    ).toHaveAttribute("href", `/parent/children/${id}`);
+    expect(screen.getByRole("link", { name: "My Children" })).toHaveAttribute(
+      "href",
+      "/parent/children",
+    );
+  });
+  it("does not expose or submit a school grade for College Support", async () => {
+    const fetch = vi.fn().mockResolvedValue(Response.json({ id }));
+    vi.stubGlobal("fetch", fetch);
+    render(<CreateLearnerForm {...props} />);
+    const user = await fill();
+    await user.selectOptions(screen.getByLabelText("Grade (optional)"), "8");
+    await user.selectOptions(screen.getByLabelText("Level"), "college_support");
+    expect(screen.queryByLabelText("Grade (optional)")).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Create local learner" }),
+    );
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(1));
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toMatchObject({
+      level: "college_support",
+      grade: null,
+    });
+  });
+  it("clears a saved grade explicitly and announces grade validation without losing fields", async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        Response.json(
+          { fields: { grade: "Choose a school grade from 1 to 12." } },
+          { status: 400 },
+        ),
+      )
+      .mockResolvedValueOnce(Response.json({ id }));
+    vi.stubGlobal("fetch", fetch);
+    render(
+      <LearnerForm
+        profile={{
+          id,
+          displayName: "Fictional child",
+          management: "guardian",
+          level: "middle_school",
+          grade: 8,
+          timezone: "UTC",
+        }}
+        zones={props.zones}
+      />,
+    );
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Save profile" }));
+    await waitFor(() =>
+      expect(screen.getByLabelText("Grade (optional)")).toHaveFocus(),
+    );
+    expect(
+      screen.getByLabelText("Grade (optional)"),
+    ).toHaveAccessibleDescription(/Choose a school grade from 1 to 12/);
+    expect(screen.getByLabelText("Display name")).toHaveValue(
+      "Fictional child",
+    );
+    await user.selectOptions(screen.getByLabelText("Grade (optional)"), "");
+    await user.click(screen.getByRole("button", { name: "Save profile" }));
+    await screen.findByText("Profile saved");
+    expect(JSON.parse(fetch.mock.calls[1][1].body)).toMatchObject({
+      grade: null,
+    });
+  });
 });

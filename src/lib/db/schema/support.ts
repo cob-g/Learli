@@ -25,7 +25,7 @@ export const supportReviewers = pgTable(
       .primaryKey()
       .references(() => user.id, { onDelete: "restrict" }),
     source: text("source")
-      .$type<"local_fixture" | "synthetic_readiness">()
+      .$type<"local_fixture" | "synthetic_readiness" | "local_operation">()
       .notNull(),
     status: text("status").$type<"authorized" | "revoked">().notNull(),
     validUntil: timestamp("valid_until", { withTimezone: true }),
@@ -34,11 +34,11 @@ export const supportReviewers = pgTable(
   (t) => [
     check(
       "support_reviewers_source",
-      sql`${t.source} IN ('local_fixture','synthetic_readiness')`,
+      sql`${t.source} IN ('local_fixture','synthetic_readiness','local_operation')`,
     ),
     check(
       "support_reviewers_expiry",
-      sql`(${t.source}='local_fixture' AND ${t.validUntil} IS NULL) OR (${t.source}='synthetic_readiness' AND ${t.validUntil} IS NOT NULL AND isfinite(${t.validUntil}))`,
+      sql`(${t.source} IN ('local_fixture','local_operation') AND ${t.validUntil} IS NULL) OR (${t.source}='synthetic_readiness' AND ${t.validUntil} IS NOT NULL AND isfinite(${t.validUntil}))`,
     ),
     check(
       "support_reviewers_status",
@@ -78,7 +78,7 @@ export const supportCases = pgTable(
       .references(() => user.id, { onDelete: "restrict" }),
     requestKey: uuid("request_key").notNull(),
     source: text("source")
-      .$type<"local_synthetic" | "synthetic_readiness">()
+      .$type<"local_synthetic" | "synthetic_readiness" | "local_operation">()
       .default("local_synthetic")
       .notNull(),
     category: text("category").$type<SupportCategory>().notNull(),
@@ -98,7 +98,7 @@ export const supportCases = pgTable(
     ),
     check(
       "support_cases_source",
-      sql`${t.source} IN ('local_synthetic','synthetic_readiness')`,
+      sql`${t.source} IN ('local_synthetic','synthetic_readiness','local_operation')`,
     ),
     check(
       "support_cases_category",

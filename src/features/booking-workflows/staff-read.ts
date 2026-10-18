@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 import type { AuthRuntime } from "@/lib/auth-factory";
@@ -49,18 +50,22 @@ async function queryStaffBookings(
   bookingId?: string,
 ) {
   const packet = getPrivateWorkflow(c.runtime);
-  if (!packet) throw new AccessError(503);
-  const policy = validateBookingCapability(c.booking, "test");
+  const local = getLocalWorkflow(c.runtime);
+  if (!packet && !local) throw new AccessError(503);
+  const policy = validateBookingCapability(
+    c.booking,
+    local ? "development" : "test",
+  );
   if (
     policy.authority === "disabled" ||
-    JSON.stringify(policy) !== JSON.stringify(packet.booking)
+    (packet && JSON.stringify(policy) !== JSON.stringify(packet.booking))
   )
     throw new AccessError(503);
   const actor = await requireAdminAssurance(c.runtime, headers);
   const effectiveState = sql`CASE WHEN b.state='provisional' AND b.expires_at<=statement_timestamp() THEN 'expired' ELSE b.state END`;
   const currentTutor = sql`t.review_status='approved' AND EXISTS(SELECT 1 FROM public."user" acting_tutor
     JOIN public.user_access tutor_access ON tutor_access.user_id=acting_tutor.id AND tutor_access.status='active'
-    WHERE acting_tutor.id=t.user_id AND acting_tutor.email_verified AND acting_tutor.email LIKE '%.test'
+    WHERE acting_tutor.id=t.user_id AND acting_tutor.email_verified AND (${policy.source}='local_operation' OR acting_tutor.email LIKE '%.test')
       AND EXISTS(SELECT 1 FROM public.user_roles tutor_role WHERE tutor_role.user_id=acting_tutor.id AND tutor_role.role='tutor'))`;
   const result = await c.runtime.db.execute<StoredStaffBooking>(sql`
     SELECT b.id,b.logical_booking_id AS "logicalBookingId",b.revision,b.workflow_revision AS "workflowRevision",
@@ -84,10 +89,10 @@ async function queryStaffBookings(
     WHERE ${privateActorPredicate(packet, sql`${actor.userId}`)} AND ${privateBookingPredicate(packet, sql`b.id`)}
       AND public.has_admin_assurance(${actor.userId},${actor.sessionId},28800)
       AND b.booked_by_user_id<>${actor.userId} AND t.user_id<>${actor.userId}
-      AND b.source='synthetic_readiness' AND b.workflow_policy_id=${policy.policyId}::uuid
+      AND b.source=${policy.source} AND b.workflow_policy_id=${policy.policyId}::uuid
       AND public.booking_workflow_policy_current(b.workflow_policy_id)
       AND public.has_current_booking_beneficiary(b.booked_by_user_id,l.id,b.admission_policy_id)
-      AND public.has_current_tutor_screening(t.id,'synthetic_readiness')
+      AND public.has_current_tutor_screening(t.id,b.source)
       AND EXISTS(SELECT 1 FROM public.booking_workflow_grants g
         WHERE g.logical_booking_id=b.logical_booking_id AND g.actor_user_id=${actor.userId}
           AND public.has_booking_workflow_task(${actor.userId},${actor.sessionId},b.id,g.action))

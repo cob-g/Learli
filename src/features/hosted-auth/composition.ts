@@ -89,8 +89,8 @@ export function composeAccountAuth(
       },
     },
     plugins: [
-      // Fixed tuple preserves native plugin schema inference. Local matcher is inert.
-      hostedMembershipPlugin(configuration.permitsEmail, configuration.hosted),
+      // The same runtime address policy protects existing proofs and sessions too.
+      hostedMembershipPlugin(configuration.permitsEmail),
       adminTwoFactorPlugin(),
       adminSecurity.plugin,
       emailOTP({
@@ -118,16 +118,12 @@ export function composeAccountAuth(
     ],
     emailVerification: {
       ...authOptions.emailVerification,
-      ...(configuration.hosted
-        ? {
-            beforeEmailVerification: async (user: { email: string }) => {
-              if (!configuration.permitsEmail(user.email))
-                throw new APIError("FORBIDDEN", {
-                  message: "Account access is unavailable.",
-                });
-            },
-          }
-        : {}),
+      beforeEmailVerification: async (user: { email: string }) => {
+        if (!configuration.permitsEmail(user.email))
+          throw new APIError("FORBIDDEN", {
+            message: "Account access is unavailable.",
+          });
+      },
       sendVerificationEmail: async ({ user, url }) =>
         mailAttempt.send({
           kind: "verification",
@@ -151,7 +147,7 @@ export function composeAccountAuth(
             ) {
               throw new APIError("BAD_REQUEST", {
                 message:
-                  "Use a synthetic .test account with a short display name.",
+                  "Use an allowed email address and a short display name.",
               });
             }
           },
@@ -164,18 +160,14 @@ export function composeAccountAuth(
               .select()
               .from(schema.userAccess)
               .where(eq(schema.userAccess.userId, session.userId));
-            const account = configuration.hosted
-              ? (
-                  await db
-                    .select({ email: schema.user.email })
-                    .from(schema.user)
-                    .where(eq(schema.user.id, session.userId))
-                )[0]
-              : undefined;
+            const [account] = await db
+              .select({ email: schema.user.email })
+              .from(schema.user)
+              .where(eq(schema.user.id, session.userId));
             if (
               access?.status !== "active" ||
-              (configuration.hosted &&
-                (!account || !configuration.permitsEmail(account.email)))
+              !account ||
+              !configuration.permitsEmail(account.email)
             )
               throw new APIError("FORBIDDEN", {
                 message: "Sign-in could not be completed.",

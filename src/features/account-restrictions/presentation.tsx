@@ -10,14 +10,18 @@ import type { TargetDetail, TargetSummary } from "./service";
 import { ChangeAccessForm } from "./change-form";
 export function LocalRestrictionNotice({
   privateWorkflow = false,
+  localWorkflow = false,
 }: {
   privateWorkflow?: boolean;
+  localWorkflow?: boolean;
 }) {
   return (
     <p className="mt-4 max-w-prose text-body text-muted-foreground">
-      {privateWorkflow
-        ? "Private fictional accounts only. Each account requires an explicit staff assignment within the current fictional audience. These test actions do not establish findings about real people."
-        : "Local synthetic account testing only. Each target requires an exact owner-provisioned staff grant. Reasons describe fictional tests, not findings about real people."}
+      {localWorkflow
+        ? "Only accounts assigned to you are available. Changes affect account access; existing bookings, history and separate eligibility decisions are retained."
+        : privateWorkflow
+          ? "Private fictional accounts only. Each account requires an explicit staff assignment within the current fictional audience. These test actions do not establish findings about real people."
+          : "Local synthetic account testing only. Each target requires an exact owner-provisioned staff grant. Reasons describe fictional tests, not findings about real people."}
     </p>
   );
 }
@@ -118,9 +122,11 @@ export function AccountFilters({ query }: { query: AccountQuery }) {
 export function TargetRows({
   targets,
   query,
+  localWorkflow = false,
 }: {
   targets: TargetSummary[];
   query?: AccountQuery;
+  localWorkflow?: boolean;
 }) {
   return targets.length ? (
     <ul className="mt-8 divide-y divide-border">
@@ -157,25 +163,31 @@ export function TargetRows({
           : "No accounts authorized for you"}
       </h2>
       <p className="mt-2 text-body">
-        {query
-          ? "No fictional accounts match these filters within your assigned access."
-          : "Only synthetic targets assigned through trusted local fixture tooling appear here."}
+        {localWorkflow
+          ? "No accounts match these filters within your assigned access."
+          : query
+            ? "No fictional accounts match these filters within your assigned access."
+            : "Only synthetic targets assigned through trusted local fixture tooling appear here."}
       </p>
     </section>
   );
 }
 export function TargetView({ detail }: { detail: TargetDetail }) {
   const privateWorkflow = !!detail.privateWorkflow;
+  const localWorkflow = !!detail.localWorkflow;
   const query = detail.query;
   return (
     <>
       <h1 className="text-page-title wrap-anywhere">
         Account access for {detail.name}
       </h1>
-      <LocalRestrictionNotice privateWorkflow={privateWorkflow} />
+      <LocalRestrictionNotice
+        privateWorkflow={privateWorkflow}
+        localWorkflow={localWorkflow}
+      />
       <div className="mt-8">
         <AccessStatus status={detail.status} />
-        {privateWorkflow && (
+        {(privateWorkflow || localWorkflow) && (
           <section className="mt-4" aria-labelledby="account-assigned-roles">
             <h2 className="text-item-title" id="account-assigned-roles">
               Assigned roles
@@ -199,10 +211,13 @@ export function TargetView({ detail }: { detail: TargetDetail }) {
         status={detail.status}
         revision={detail.revision}
         privateWorkflow={privateWorkflow}
+        localWorkflow={localWorkflow}
       />
       <p className="mt-4 max-w-prose text-small text-muted-foreground">
         Viewing accounts and history works without JavaScript. Enable JavaScript
-        to confirm {privateWorkflow ? "a fictional" : "a local"} account action.
+        to confirm{" "}
+        {localWorkflow ? "an" : privateWorkflow ? "a fictional" : "a local"}{" "}
+        account action.
       </p>
       <section className="mt-12 max-w-prose">
         <h2 className="text-section-title">

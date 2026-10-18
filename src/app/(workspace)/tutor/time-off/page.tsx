@@ -5,6 +5,7 @@ import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { timeZoneLabel } from "@/lib/time/zones";
 import { readOwnTimeOff } from "@/features/time-off/service";
 import { TimeOffForm } from "@/features/time-off/time-off-form";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Time off",
@@ -15,6 +16,7 @@ export default async function TimeOffPage() {
     "/tutor/time-off",
     async (runtime, headers) => ({
       schedule: await readOwnTimeOff(runtime, headers),
+      privateWorkflow: hasPersistentWorkflow(runtime),
     }),
   );
   if (!data)
@@ -42,6 +44,7 @@ export default async function TimeOffPage() {
         ) : (
           <TimeOffForm
             initial={schedule}
+            privateWorkflow={data.privateWorkflow}
             zoneLabel={timeZoneLabel(schedule.timezone)}
           />
         )}

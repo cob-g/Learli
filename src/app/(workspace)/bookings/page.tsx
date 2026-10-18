@@ -1,4 +1,4 @@
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import type { Metadata } from "next";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { listParticipantBookings } from "@/features/bookings/read-service";
@@ -37,7 +37,7 @@ export default async function Page({
       scope: "student",
       ...input,
     }),
-    privateWorkflow: isPrivateWorkflow(runtime),
+    privateWorkflow: hasPersistentWorkflow(runtime),
   }));
   const result = loaded?.result;
   if (!result)

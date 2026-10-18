@@ -3,6 +3,7 @@ import {
   check,
   foreignKey,
   index,
+  integer,
   pgTable,
   primaryKey,
   text,
@@ -20,7 +21,7 @@ export const learnerProfiles = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     fixtureKey: text("fixture_key").notNull().unique(),
     source: text("source")
-      .$type<"local_fixture" | "synthetic_readiness">()
+      .$type<"local_fixture" | "synthetic_readiness" | "local_operation">()
       .notNull(),
     management: text("management").$type<"guardian" | "self">().notNull(),
     userId: text("user_id")
@@ -28,6 +29,7 @@ export const learnerProfiles = pgTable(
       .references(() => user.id, { onDelete: "restrict" }),
     displayName: text("display_name").notNull(),
     level: text("level").$type<LearnerLevel>().notNull(),
+    grade: integer("grade"),
     timezone: text("timezone").notNull(),
     status: text("status")
       .$type<"active" | "inactive">()
@@ -52,7 +54,7 @@ export const learnerProfiles = pgTable(
     ),
     check(
       "learner_profiles_source",
-      sql`${table.source} IN ('local_fixture', 'synthetic_readiness')`,
+      sql`${table.source} IN ('local_fixture', 'synthetic_readiness', 'local_operation')`,
     ),
     check(
       "learner_profiles_management",
@@ -69,6 +71,10 @@ export const learnerProfiles = pgTable(
     check(
       "learner_profiles_level",
       sql`${table.level} IN ('elementary', 'middle_school', 'high_school', 'college_support')`,
+    ),
+    check(
+      "learner_profiles_grade",
+      sql`${table.grade} IS NULL OR (${table.grade} BETWEEN 1 AND 12 AND ${table.management} = 'guardian' AND ${table.level} <> 'college_support')`,
     ),
     check(
       "learner_profiles_timezone",
@@ -89,7 +95,7 @@ export const guardianLearnerLinks = pgTable(
       .default("guardian")
       .notNull(),
     source: text("source")
-      .$type<"local_fixture" | "synthetic_readiness">()
+      .$type<"local_fixture" | "synthetic_readiness" | "local_operation">()
       .notNull(),
     status: text("status").$type<"authorized" | "revoked">().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -121,7 +127,7 @@ export const guardianLearnerLinks = pgTable(
     ),
     check(
       "guardian_learner_links_source",
-      sql`${table.source} IN ('local_fixture', 'synthetic_readiness')`,
+      sql`${table.source} IN ('local_fixture', 'synthetic_readiness', 'local_operation')`,
     ),
     check(
       "guardian_learner_links_status",

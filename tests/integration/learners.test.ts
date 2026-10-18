@@ -106,6 +106,7 @@ describe("local learner ownership against PostgreSQL", () => {
     expect(result).toMatchObject(input);
     expect(Object.keys(result).sort()).toEqual([
       "displayName",
+      "grade",
       "id",
       "level",
       "management",

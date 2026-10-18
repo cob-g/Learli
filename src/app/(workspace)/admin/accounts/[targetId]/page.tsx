@@ -5,6 +5,7 @@ import { TargetView } from "@/features/account-restrictions/presentation";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { safePage } from "@/features/support/input";
 import { AdminShell } from "@/features/admin/admin-shell";
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { getPrivateWorkflow } from "@/features/private-workflow/runtime";
 import {
   accountQueryFromSearch,
@@ -42,7 +43,7 @@ export default async function Page({
       runtime,
       headers,
       targetId,
-      getPrivateWorkflow(runtime)
+      getLocalWorkflow(runtime) || getPrivateWorkflow(runtime)
         ? accountQueryFromSearch(search, true)
         : safePage(query.page),
     ),

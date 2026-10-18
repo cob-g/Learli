@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import type { Metadata } from "next";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { listDispatchCases } from "@/features/support/dispatch-service";
@@ -6,6 +7,7 @@ import { categoryLabels } from "@/features/support/input";
 import { AdminShell } from "@/features/admin/admin-shell";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { safePage } from "@/features/support/input";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Local support assignments",
@@ -17,21 +19,29 @@ export default async function Page({
   searchParams: Promise<{ page?: string }>;
 }) {
   const page = safePage((await searchParams).page);
-  const result = await loadPrivatePage(
+  const loaded = await loadPrivatePage(
     "/admin/support/dispatch",
-    (runtime, headers) => listDispatchCases(runtime, headers, page),
+    async (runtime, headers) => ({
+      result: await listDispatchCases(runtime, headers, page),
+      privateWorkflow: hasPersistentWorkflow(runtime),
+      localWorkflow: getLocalWorkflow(runtime) !== null,
+    }),
   );
-  if (!result)
+  if (!loaded)
     return (
       <UnavailablePage
         title="Assignments unavailable"
         message="We cannot open local assignments on this account."
       />
     );
+  const { result, privateWorkflow, localWorkflow } = loaded;
   return (
     <AdminShell current="support">
       <h1 className="text-page-title">Local support assignments</h1>
-      <DemoNotice />
+      <DemoNotice
+        privateWorkflow={privateWorkflow}
+        localWorkflow={localWorkflow}
+      />
       <p className="mt-4 max-w-prose text-body">
         Only cases explicitly provisioned to you for local dispatch appear here.
         Assignment authority does not grant access to report descriptions or

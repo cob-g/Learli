@@ -28,9 +28,11 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 export function AvailabilityForm({
   initial,
   timeZones,
+  privateWorkflow = false,
 }: {
   initial: OwnAvailability;
   timeZones: TimeZoneOption[];
+  privateWorkflow?: boolean;
 }) {
   const [rows, setRows] = useState<Row[]>(() =>
     initial.windows.map((window, key) => ({ ...window, key })),
@@ -131,7 +133,9 @@ export function AvailabilityForm({
     >
       <div className="space-y-4">
         <p className="text-body text-muted-foreground">
-          Set the hours you can teach each week. Booking is not available yet.
+          {privateWorkflow
+            ? "Set the hours you can teach each week. Eligible learners can request available times after your application is approved."
+            : "Set the hours you can teach each week. Booking is not available yet."}
         </p>
         <div className="space-y-2">
           <label htmlFor="availability-zone" className="block text-label">

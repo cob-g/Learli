@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
 import type { TimeZoneOption } from "@/lib/time/zones";
+import { GradeField, formGrade } from "./grade-field";
 import {
   clearRequestId,
   isUncertainRequestStatus,
@@ -21,15 +22,20 @@ export function CreateLearnerForm({
   timezone,
   zones,
   returnToBooking,
+  parentChildFlow = false,
 }: {
   requestId: string;
   modes: ("guardian" | "self")[];
   timezone: string;
   zones: TimeZoneOption[];
   returnToBooking?: string;
+  parentChildFlow?: boolean;
 }) {
   const ready = useHydrated();
   const [management, setManagement] = useState(modes[0]);
+  const [level, setLevel] = useState(
+    management === "self" ? "college_support" : "",
+  );
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState("");
   const [fields, setFields] = useState<Record<string, string>>({});
@@ -53,6 +59,10 @@ export function CreateLearnerForm({
       management,
       displayName: data.get("displayName"),
       level: data.get("level"),
+      grade:
+        management === "guardian" && level !== "college_support"
+          ? formGrade(data.get("grade"))
+          : null,
       timezone: data.get("timezone"),
     };
     const fingerprint = requestFingerprint(payload);
@@ -76,13 +86,17 @@ export function CreateLearnerForm({
       ) {
         clearRequestId(pendingScope);
         setCreated(result.id);
-        setNotice("Local learner created");
+        setNotice(
+          parentChildFlow
+            ? "Child profile saved for local testing."
+            : "Local learner created",
+        );
       } else {
         const uncertain =
           isUncertainRequestStatus(response.status) || response.ok;
         if (!uncertain) clearRequestId(pendingScope);
         const errors: Record<string, string> = {};
-        for (const key of ["displayName", "level", "timezone"])
+        for (const key of ["displayName", "level", "grade", "timezone"])
           if (typeof result.fields?.[key] === "string")
             errors[key] = result.fields[key];
         setFields(errors);
@@ -123,7 +137,8 @@ export function CreateLearnerForm({
       {!created && (
         <>
           <p className="text-small text-muted-foreground">
-            All fields are required. No real learner details.
+            Display name, education level and time zone are required. Grade is
+            optional. No real learner details.
           </p>
           {modes.length > 1 && (
             <div className="space-y-2">
@@ -135,11 +150,12 @@ export function CreateLearnerForm({
                 className="field"
                 value={management}
                 disabled={!ready || pending}
-                onChange={(event) =>
-                  setManagement(
-                    event.target.value === "self" ? "self" : "guardian",
-                  )
-                }
+                onChange={(event) => {
+                  const next =
+                    event.target.value === "self" ? "self" : "guardian";
+                  setManagement(next);
+                  setLevel(next === "self" ? "college_support" : "");
+                }}
               >
                 <option value="guardian">Parent-managed demonstration</option>
                 <option value="self">Your College Support demonstration</option>
@@ -184,6 +200,7 @@ export function CreateLearnerForm({
               name="level"
               className="field"
               defaultValue={management === "self" ? "college_support" : ""}
+              onChange={(event) => setLevel(event.target.value)}
               disabled={!ready || pending}
               aria-invalid={!!fields.level}
               aria-describedby={fields.level ? "level-error" : undefined}
@@ -208,6 +225,9 @@ export function CreateLearnerForm({
               </p>
             )}
           </div>
+          {management === "guardian" && level !== "college_support" && (
+            <GradeField disabled={!ready || pending} error={fields.grade} />
+          )}
           <div className="space-y-2">
             <label className="block text-label" htmlFor="timezone">
               Time zone
@@ -271,25 +291,29 @@ export function CreateLearnerForm({
                 ? "action action-outline"
                 : "action action-primary"
             }
-            href={`/learners/${created}`}
+            href={
+              parentChildFlow
+                ? `/parent/children/${created}`
+                : `/learners/${created}`
+            }
             prefetch={false}
             onClick={(event) => {
               event.preventDefault();
               window.location.assign(event.currentTarget.href);
             }}
           >
-            Edit local profile
+            {parentChildFlow ? "Edit child profile" : "Edit local profile"}
           </Link>
           <Link
             className="action action-outline"
-            href="/learners"
+            href={parentChildFlow ? "/parent/children" : "/learners"}
             prefetch={false}
             onClick={(event) => {
               event.preventDefault();
               window.location.assign(event.currentTarget.href);
             }}
           >
-            Your learners
+            {parentChildFlow ? "My Children" : "Your learners"}
           </Link>
         </div>
       ) : (
@@ -309,10 +333,14 @@ export function CreateLearnerForm({
             />
           )}
           {pending
-            ? "Creating local learner…"
+            ? parentChildFlow
+              ? "Saving child profile…"
+              : "Creating local learner…"
             : notice
               ? "Retry this request"
-              : "Create local learner"}
+              : parentChildFlow
+                ? "Save child profile"
+                : "Create local learner"}
         </button>
       )}
     </form>

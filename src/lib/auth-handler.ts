@@ -1,7 +1,7 @@
 import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
 import { isAPIError } from "better-auth/api";
 import type { AuthRuntime } from "./auth-factory";
-import { syntheticEmail } from "./local-mode";
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import {
   accountHeadersAllowed,
   providerHeaders,
@@ -109,8 +109,7 @@ export async function handleAuthRequest(
         throw new Error();
       if (
         typeof parsed.body.email === "string" &&
-        (!syntheticEmail(parsed.body.email) ||
-          !permitsAccountEmail(runtime, parsed.body.email))
+        !permitsAccountEmail(runtime, parsed.body.email)
       )
         throw new Error();
       if ("hosted" in runtime) {
@@ -162,8 +161,9 @@ export async function handleAuthRequest(
     } catch {
       return privateJson(
         {
-          message:
-            "Check your request. Local accounts use synthetic .test email addresses.",
+          message: getLocalWorkflow(runtime)
+            ? "Check your request and enter a valid email address."
+            : "Check your request. Local accounts use synthetic .test email addresses.",
         },
         400,
       );
@@ -208,7 +208,7 @@ export async function handleAuthRequest(
           ),
         );
       const attempt =
-        "hosted" in runtime
+        "hosted" in runtime || getLocalWorkflow(runtime)
           ? await runtime.mailAttempt.run(call)
           : { value: await call(), failed: false };
       const response = attempt.failed

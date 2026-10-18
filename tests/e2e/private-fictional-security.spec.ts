@@ -220,11 +220,7 @@ test("private authentication rejects duplicates and invalid input, resets once, 
     .getByRole("button", { name: "Create account", exact: true })
     .click();
   expect((await duplicate).status()).toBe(200);
-  await visibleNotice(
-    recovery,
-    "status",
-    "If this address can be registered, a verification message is available in your local mailbox. Verify it before signing in.",
-  );
+  await visibleNotice(recovery, "status", "Registration request received.");
   expect(
     (
       await h.owner.pool.query<{ n: number; credentials: number }>(

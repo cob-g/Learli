@@ -181,6 +181,9 @@ export async function WorkflowBookingPage({
             times={times}
             requestedTime={selected ?? undefined}
             privateWorkflow={privateWorkflow}
+            source={
+              c.booking.authority === "disabled" ? undefined : c.booking.source
+            }
             scope={
               options.learners.find((l) => l.id === values.data.learnerId)
                 ?.management === "guardian"

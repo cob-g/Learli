@@ -15,7 +15,7 @@ export function LifecycleHeading({
     booking.state === "demo_completed" ||
     (booking.revision ?? 0) > 0;
   const label =
-    booking.source === "synthetic_readiness"
+    booking.source !== "local_simulation"
       ? bookingStatusLabel(booking.state, privateWorkflow)
       : booking.state === "demo_reserved" && (booking.revision ?? 0) > 0
         ? "Simulation rescheduled"

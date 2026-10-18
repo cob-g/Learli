@@ -64,7 +64,9 @@ export async function savePrivateMeetingLink(
   if (!link.ok)
     throw new RuleError(
       400,
-      "Enter a supported HTTPS Zoom or Google Meet test link.",
+      "localWorkflow" in actor && actor.localWorkflow
+        ? "Enter a supported HTTPS Zoom or Google Meet link."
+        : "Enter a supported HTTPS Zoom or Google Meet test link.",
     );
   return runtime.db.transaction(
     async (tx) => {
@@ -134,7 +136,7 @@ export async function savePrivateMeetingLink(
         actorUserId: actor.userId,
         createdAt: updatedAt,
       });
-      if (row.source === "synthetic_readiness") {
+      if (row.source !== "local_simulation") {
         const fresh = await queryPrivateMeeting(tx, actor, bookingId, true);
         if (!fresh?.live || !fresh.canEdit) throw new AccessError(404);
       }

@@ -43,7 +43,7 @@ const onScroll = (notify: () => void) => {
 
 export function SiteHeader() {
   const pathname = usePathname();
-  // The shared bar is transparent at the top and takes on glass over content.
+  // Mobile glass responds to scroll; desktop keeps its pale reference surface.
   const live = useHydrated();
   const raised = useSyncExternalStore(
     onScroll,
@@ -67,7 +67,7 @@ export function SiteHeader() {
       >
         <div className="site-header-bar glass glass-liquid" data-glint="">
           <Link href="/" className="brand-home" aria-label="Learli home">
-            <BrandLogo />
+            <BrandLogo className="lg:w-[4.875rem]" />
           </Link>
           <nav aria-label="Main navigation" className="site-header-navigation">
             {links.map(([href, label]) => (

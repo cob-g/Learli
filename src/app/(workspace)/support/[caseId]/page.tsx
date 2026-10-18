@@ -1,8 +1,10 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import type { Metadata } from "next";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { readCase } from "@/features/support/service";
 import { CaseView } from "@/features/support/presentation";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Support case",
@@ -14,11 +16,15 @@ export default async function Page({
   params: Promise<{ caseId: string }>;
 }) {
   const { caseId } = await params;
-  const detail = await loadPrivatePage(
+  const result = await loadPrivatePage(
     `/support/${caseId}`,
-    (runtime, headers) => readCase(runtime, headers, caseId, "requester"),
+    async (runtime, headers) => ({
+      detail: await readCase(runtime, headers, caseId, "requester"),
+      privateWorkflow: hasPersistentWorkflow(runtime),
+      localWorkflow: getLocalWorkflow(runtime) !== null,
+    }),
   );
-  if (!detail)
+  if (!result?.detail)
     return (
       <UnavailablePage
         title="Case unavailable"
@@ -28,7 +34,12 @@ export default async function Page({
   return (
     <div className="page-shell page-space">
       <div className="max-w-5xl">
-        <CaseView detail={detail} reviewer={false} />
+        <CaseView
+          detail={result.detail}
+          reviewer={false}
+          privateWorkflow={result.privateWorkflow}
+          localWorkflow={result.localWorkflow}
+        />
       </div>
     </div>
   );

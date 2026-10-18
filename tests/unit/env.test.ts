@@ -7,6 +7,7 @@ describe("server environment safety", () => {
       APP_ENV: "development",
       AUTH_MODE: "disabled",
       DATABASE_MODE: "local",
+      LOCAL_WORKFLOW_MODE: "disabled",
       APP_URL: "http://localhost:3000",
     });
     expect(

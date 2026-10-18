@@ -32,6 +32,7 @@ const serverEnvSchema = z
       .enum(["disabled", "local", "hosted-synthetic"])
       .default("disabled"),
     DATABASE_MODE: z.enum(["local", "neon-development"]).default("local"),
+    LOCAL_WORKFLOW_MODE: z.enum(["disabled", "enabled"]).default("disabled"),
     NEON_DEVELOPMENT_CONFIG_FILE: optionalValue(z.string().min(1)),
     HOSTED_AUTH_CONFIG_FILE: optionalValue(z.string().min(1)),
     PRIVATE_WORKFLOW_CONFIG_FILE: optionalValue(z.string().min(1).max(4096)),
@@ -45,6 +46,37 @@ const serverEnvSchema = z
     EMAIL_FROM: optionalValue(z.email()),
   })
   .superRefine((env, ctx) => {
+    if (env.LOCAL_WORKFLOW_MODE === "enabled") {
+      let ownedDatabase = false;
+      try {
+        const database = localDatabaseConfig(env.DATABASE_URL);
+        ownedDatabase =
+          database.database === "learli_dev" && database.user === "learli_app";
+      } catch {
+        // Configuration failures are reported without their input values.
+      }
+      if (
+        env.APP_ENV !== "development" ||
+        env.AUTH_MODE !== "local" ||
+        env.DATABASE_MODE !== "local" ||
+        !ownedDatabase ||
+        !isLoopbackOrigin(env.APP_URL) ||
+        new URL(env.APP_URL).origin !== env.APP_URL ||
+        env.DATABASE_URL_DIRECT ||
+        env.PRIVATE_WORKFLOW_CONFIG_FILE ||
+        env.NEON_DEVELOPMENT_CONFIG_FILE ||
+        env.HOSTED_AUTH_CONFIG_FILE ||
+        env.HOSTED_INGRESS_SECRET ||
+        env.RESEND_API_KEY ||
+        env.EMAIL_FROM
+      )
+        ctx.addIssue({
+          code: "custom",
+          path: ["LOCAL_WORKFLOW_MODE"],
+          message:
+            "Dedicated ordinary local development configuration required",
+        });
+    }
     if (
       env.PRIVATE_WORKFLOW_CONFIG_FILE &&
       !(

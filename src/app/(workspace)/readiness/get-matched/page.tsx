@@ -1,7 +1,7 @@
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { readinessMatches } from "@/features/tutor-screening/discovery";
 import { getDomainAuthRuntime } from "@/lib/auth";
-import { isPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -10,7 +10,7 @@ export const metadata = {
 };
 export default async function Page() {
   const runtime = await getDomainAuthRuntime();
-  if (runtime && isPrivateWorkflow(runtime)) redirect("/get-matched");
+  if (runtime && hasPersistentWorkflow(runtime)) redirect("/get-matched");
   const matches = await loadPrivatePage("/readiness/get-matched", (runtime) =>
     readinessMatches(runtime, "math", "college_support"),
   );
