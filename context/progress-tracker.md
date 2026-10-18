@@ -1,16 +1,40 @@
 # Learli — Progress Tracker
 
-## 2026-10-18 — Authorized local commit and completed-worktree cleanup IN PROGRESS
+## 2026-10-18 — Local main committed; completed worktrees and branches removed
 
-- Owner explicitly requested committing the completed work to local `main`, then
-  removing finished worktrees and branches. The primary checkout is already on
-  `main`; no separate feature-head merge is necessary for its uncommitted slice.
-- The521-entry final application manifest still matches the reviewed/built source.
-  Reuse the exact passing checks recorded below; this operation changes no runtime
-  logic. Private credentials, captures, databases and local memory stay ignored.
-- Before any child worktree removal, inspect unique source/commits and preserve
-  private local state outside the removed checkout. Keep the operating3000 app
-  and55432 development data. Data cleanup, pushes and deployment remain excluded.
+- Owner explicitly authorized commit, local-main integration and cleanup. The
+  primary checkout was already on `main`; the completed ordinary workflow and
+  earlier approved navbar/auth/Parent work were committed directly as `07007af`
+  (`feat: enable ordinary local workflows and refresh account UI`). No redundant
+  merge, history rewrite, push or deployment was performed.
+- The exact521-entry reviewed/built application manifest matched the staged source.
+  Prior format/lint/type/unit, PostgreSQL, browser and build results below apply;
+  this integration operation changed no application code. No private credentials,
+  mailbox/account captures, database files or local memory were staged.
+- Independent read-only preservation audit found no unique child commits and no
+  unpreserved authored version. Every changed child path matched current main or
+  an exact existing baseline. Both worktrees had no terminals, live services or
+  runtime dependencies; all15 contained PostgreSQL clusters were stopped.
+- Before removal, complete authored/private state from both children was archived
+  under ignored `.local/worktree-cleanup-20261018-084029/`. Archives are0600 in a
+  0700 directory; every archive member and source content hash was verified before
+  deletion. This preserves60,978 regular files, including `.local` databases,
+  `.env*`, mailbox/snapshot/evidence and ignored design captures. Only reproducible
+  Git metadata, dependency and build caches were excluded.
+- Removed Orca/Git worktrees `parent-step2-20261017` and `private-manual-20261017`.
+  Removed their two `cob-g/` branches and the completed
+  `feature/desktop-navbar-reference-20261017` and
+  `feature/security-edge-case-acceptance-20261016` branches. All were ancestors of
+  main; no unmerged branch was force-deleted. Only the main worktree/branch remains.
+- At the start of this operation, the previously used app and owned database were
+  stopped. The same owned55432 database and final built main app were restarted
+  without a reset, seed or environment overwrite. `http://127.0.0.1:3000/api/health`
+  returned200. Operating records and original Neon data remain preserved; this is
+  worktree/branch cleanup, not application-data cleanup.
+- Initial exact verified Admin selection remains pending as recorded below. No
+  account was elevated and no provider delivery, payment or public launch enabled.
+  The older verification/runtime entries below are historical, superseded by this
+  local integration and archive location where they name removed worktrees.
 
 ## 2026-10-18 — Ordinary local-main software VERIFIED; initial Admin pending
 
