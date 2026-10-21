@@ -1,13 +1,67 @@
 # Learli — UI Context
 
+### Tutor screening review controls — 2026-10-18
+
+The assigned Admin reviewer records Identity and Eligibility checks with native
+`datetime-local` controls. Name the browser's resolved IANA time zone and show
+the UTC instant before submission; reject invalid, nonexistent or ambiguous
+local times with a focused explanation. Reject a future check time with “Choose
+a check time that is not in the future.” Keep expiry as an explicit second
+picker until an approved validity duration exists. Do not imply an automatic
+policy.
+
+Learli creates the reviewer-facing `screening:<database check-row UUID>` receipt
+after persistence; its value is globally tied one-to-one to that immutable row.
+There is no editable evidence-reference field. The legacy
+`evidence_reference` remains internal and immutable and is reused only to keep an
+old idempotent replay exact. Show the row receipt only in the assigned reviewer
+view alongside readable checked/expiry times. Server-rendered receipt times use
+explicit UTC until hydration resolves the browser's IANA zone; never use an
+implicit server time zone. Use text as well as color for `Not recorded`, `Passed
+and current`, `Expired`, `Failed`, and `Revoked`. Say `Identity check` and
+`Eligibility check`, and do not use `Verified` until real verification criteria
+or a provider policy is approved. This scoped control update uses existing
+fields, status tags, focus/error/loading behavior and responsive panels. It does
+not authorize document uploads, a new screening provider, real-person
+verification, or public launch.
+
+### Independent College Student setup — 2026-10-18
+
+Ordinary local College Student onboarding uses “Set up your Student profile,”
+not routine admission language. The independent-eligibility checkbox starts
+unchecked and plainly says it is the user's declaration, not verified proof of
+age, identity or legal eligibility. Explain that College Support is the current
+supported independent level and does not establish adulthood. A committed V2
+profile opens the Student workspace immediately; a safely retried uncertain
+response keeps the same opaque request key. Historical v1 requests continue to
+show their actual pending/review states. A V2 no-money booking may say
+“Confirmed” but never “Paid.” Provisional legacy bookings say they are awaiting
+confirmation and expose no meeting link until the real state permits it. Always
+retain the authenticated viewer's validated IANA timezone context.
+
+### Immediate Parent Add Child — 2026-10-18
+
+Ordinary local Add Child collects minimal details, education level/optional grade
+and two explicit unchecked guardian declaration/consent controls. Successful Save
+means the private child is ready in My Children, Parent Dashboard and booking
+selectors; do not show Pending Approval for this new path. New valid Parent
+bookings confirm without routine Admin tasks. Keep truthful historical pending
+requests and original booking statuses distinct. Use existing Operate fields,
+tokens, focus/error/loading feedback, phone/desktop layout and Parent Bookings
+navigation. A declaration is not identity verification or proof of guardianship.
+No visual redesign or public-launch claim is authorized.
+
 ### Ordinary local workflow presentation — 2026-10-18
 
 In explicitly admitted ordinary local operation, use normal account, request,
 booking, confirmation, completion and history language. Do not show private-preview
-or simulation notices for newly created operating records. Keep pending/review and
-provisional deadlines visible; never equate a saved request with authorization or
-confirmation. Local verification guidance says messages are captured on this
-computer and explains `npm run mail:open`; it must not claim email delivery.
+or simulation notices for newly created operating records. Keep historical
+pending/review states and actual legacy provisional deadlines visible. New eligible
+Parent-v2 and Independent-v2 bookings show confirmed no-money status without a
+provisional deadline or routine Admin confirmation; never label them paid or
+equate a saved legacy request with authorization. Local verification guidance says
+messages are captured on this computer and explains `npm run mail:open`; it must
+not claim email delivery.
 Admin Unassigned reviews exposes only request type/submission time before an exact
 claim. Actual review/evidence, MFA and server permission checks remain. Preserve
 existing navbar/auth motion, responsive layout and Parent Profile/My Children UI.
@@ -44,6 +98,8 @@ No gradients, glass, card shadows or invented imagery. Illustration, authored
 motion, illustrative hero photographs and liquid glass exist on the public home
 page only, under the rules below and
 [this decision](../docs/decisions/2026-10-13-home-motion-illustration.md).
+The redesigned Admin and Tutor workspaces have a scoped, owner-approved
+exception; see "Admin and Tutor workspace style" below.
 Native dialogs retain a dimmed backdrop and a clear border; no resting elevation.
 
 Persuade pages explain and lead into real discovery. Operate pages lead with the
@@ -517,6 +573,52 @@ role navigation, replacing duplicate family/tutor/admin page navigation. Public
 header stability and auth document boundaries remain intact. See the dated
 workspace-shell decision and M1.5 blueprint; execution evidence is separate.
 
+### Admin workspace redesign — 2026-10-21
+
+Owner-supplied Admin workspace reference applied to the Admin role only. The
+sidebar groups the existing Admin links under Reviews, Operations and Support,
+with line icons, an Admin pill and a navy current link marked by a teal dot. The
+topbar shows a `learli / Admin workspace` crumb and a pill account chip. `/admin`
+leads with a navy hero (mint band, Literata italic accent), then work-area cards
+that repeat the sidebar destinations, then an access-scope note. Existing tokens
+only. Mobile keeps the in-flow Workspace menu, and Sign out stays on the page.
+Admin pages (Unassigned reviews, Tutor review queue, learner review records,
+Assigned bookings, Subjects, Accounts, Assigned support cases) share a page
+header with an eyebrow and large navy title, white rounded cards, status pills,
+and illustrated empty states. Admin and Tutor accounts get a card-based `/account`
+layout; Parent-only and Student-only accounts keep the original account page.
+The Tutor workspace shares the Admin sidebar and topbar style (grouped, iconed
+links, role pill and breadcrumb). `/tutor` uses a navy setup panel with numbered
+readiness steps and a mint review strip above session cards.
+
+### Admin and Tutor workspace style — 2026-10-21 (owner-approved)
+
+The owner approved the supplied redesign references and asked that the rules
+record them rather than flatten them. Within the Admin and Tutor workspaces
+only (the `data-styled` shell and the `/account` card layout for those roles):
+
+- **Gradients and glow:** a faint radial teal glow on navy panels (Admin hero,
+  Tutor setup panel), diagonal stripes for part-day/overnight/off-day and
+  draft states, and a faint navy dot grid behind illustrated empty states and
+  the next-session card. Decorative only; hidden in forced colours.
+- **Glass:** a translucent white with backdrop blur on the sticky workspace
+  topbar and the sticky save bars only. Not on cards.
+- **Shapes:** pill-shaped status tags (`workspace-pill`), count badges, chips
+  and the account chip. Controls in redesigned cards use 12px corners, cards
+  20px, navy hero panels 24px, mint or navy icon tiles 10–14px. Shared values
+  live in `src/components/workspace/workspace-page.css`.
+- **Shared pieces:** page header with eyebrow, `workspace-pill` with
+  `data-tone` waiting/success/neutral (text always states the status),
+  `workspace-action` navy button with a teal arrow chip, `workspace-savebar`,
+  `workspace-blank` empty state and `workspace-count`.
+- **Unchanged rules:** colours come from existing tokens only; no card
+  shadows; content links stay underlined; text states never use opacity;
+  motion stays limited to short colour transitions on hover (no hover lifts),
+  and controls whose state changes on click or navigation (current sidebar
+  link, chips) switch instantly, so no intermediate low-contrast frame exists;
+  reduced-motion and forced-colour behaviour are respected; Parent and
+  Student workspaces and public pages keep the base rules until redesigned.
+
 ### Parent Dashboard discovery — 2026-10-17
 
 The parent overview at `/parent` uses **Parent Dashboard** for its sidebar entry,
@@ -947,12 +1049,18 @@ interpolating through low contrast. Disabled pre-hydration behavior is unchanged
 
 ### Private fictional workflow composition — 2026-10-16
 
-College Student onboarding uses the existing Account/auth/admission form styles.
-Its signup choice expresses intent and leads to independent College Support
-review; it never implies a role or eligibility grant. Pending status, current
-reviewed access and disabled intake remain explicit. Account settings provides the
-same setup entry. Parent and Student role views keep corresponding records even
-when one account holds both grants; no new design tokens or shell are introduced.
+The earlier private fictional College Student path uses the existing
+Account/auth/admission form styles and preserves actual v1 pending/review states.
+In ordinary local V2 operation, signup choice expresses intent and leads to
+“Set up your Student profile” with an explicit unchecked eligibility declaration,
+not routine Admin admission. College Support is the initial independent level,
+not proof of adulthood, and self-attestation is unverified. Only a committed
+self-profile operation grants Student access; new ordinary requests do not enter
+the legacy queue. Account settings provides the same setup entry. Parent and
+Student role views keep corresponding records even when one account holds both
+grants; no new design tokens or shell are introduced. Historical admissions,
+policy receipts, history and audits remain unchanged and readable; existing-account
+linking, independent minor access and public eligibility remain separately gated.
 
 An explicit validated private workflow reuses the existing design system. Show one
 site-wide private-staging notice naming fictional test data and disabled payments.
@@ -987,3 +1095,26 @@ than legacy simulations. Default local and historical fixture provenance retain
 their honest original wording. Permission and unresolved-policy explanations
 remain; terminology does not establish payment, attendance or real screening.
 This copy correction adds no global visual system, assets or layout redesign.
+
+### Cross-role workflow UX alignment — 2026-10-18
+
+Booking setup uses a dependent Learner → Subject → Tutor sequence. Choices shown
+in the browser reflect the selected learner level and the Tutor's actual subject
+offering, while the server remains the authority for ownership, eligibility and
+slot validation. Booking time zones use the shared labeled IANA selector, and
+guardian/self history links retain their explicit role scope.
+
+Tutor weekly availability uses native labeled time inputs. The form converts the
+visible local wall-clock value to the existing minute-based payload and keeps the
+separate “Ends next day” control for overnight ranges. Native locale presentation
+may use a 12- or 24-hour clock; persisted meaning does not change. Empty or invalid
+visible values must receive focused errors and must never submit an older value.
+
+Ordinary self-service onboarding calls retained admission data “learner review
+records”; school-style admission wording remains only in legacy/private-test
+contexts where it describes the actual workflow. Tutor setup presents the current
+Profile → Screening → Availability → Public listing sequence. Screening progress
+uses “Passed and current” and check counts, never an unapproved identity-
+verification claim. Availability guidance remains separate from the authoritative
+public-listing predicate. Existing tokens, native controls and responsive shell
+remain unchanged.

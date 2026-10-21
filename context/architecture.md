@@ -1,5 +1,45 @@
 # Learli — System Architecture
 
+### Independent adult learner V2 — 2026-10-18
+
+The ordinary local independent path uses immutable
+`local-independent-admission-v2` policy/notice receipts plus a dedicated
+`learner_independent_attestations` record. One read-committed transaction,
+serialized per user, creates exactly one active self-managed College Support
+profile, its authorized admission, revision-zero origin event, affirmative
+unverified attestation, trusted Student role and conditional role audit. Exact
+policy, current verified session, active account, Student role and profile
+ownership are required for continuing authority; caller-submitted roles, states
+and record IDs are never trusted. This self-attestation is deliberately not age
+or legal-eligibility verification.
+
+The matching `local-independent-booking-v2` policy authorizes that same learner
+to create one atomic, overlap-protected, idempotent, confirmed no-money booking.
+It creates the shared booking and confirmation event directly, without an Admin
+confirmation task and without any paid claim. The existing v1 review path,
+Parent-v2 receipts, histories and policy heads remain unchanged. Migration 0039
+is additive and retains historical rows. Provisional meeting presentation,
+deterministic lifecycle ordering and authenticated IANA timezone receipts remain
+booking-wide invariants; Tutor cancellation/rescheduling authority is unchanged.
+
+### Automatic guardian profiles and Parent bookings — 2026-10-18
+
+The owner's new-child policy uses a distinct immutable local guardian admission
+receipt/head and explicit immutable parent declaration/consent, not fictional
+staff evidence. The guarded transaction allocates a NEW private learner and
+current authorized guardian link atomically; caller IDs/email cannot claim an
+existing account. Current verified identity, Parent role, policy, ownership and
+post-lock authority remain mandatory. New Parent bookings use exact parent-v2
+terms and atomically confirmed state/event/notice intents after existing tutor,
+availability and database conflict checks. V1 heads/receipt bytes remain intact;
+old pending/reviewed profiles, independent College and stored booking policies
+retain their original meaning. No generic policy bypass is introduced. Scoped
+exceptional restriction/revocation remains available. This supersedes routine
+new-child/Parent-booking Admin review in the local section below only. Public
+launch, market-specific consent, tutor screening and commerce gates remain.
+See the Oct18 automatic-parent-child decision and M4.4 blueprint; the tracker
+records actual implementation and verification separately.
+
 ### Ordinary local operation — 2026-10-18
 
 The owner superseded the separate private manual preview with one ordinary local

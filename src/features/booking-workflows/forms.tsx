@@ -80,6 +80,7 @@ export function WorkflowRequestForm({
   scope,
   requestedTime,
   privateWorkflow = false,
+  immediateConfirmation = false,
   source = "synthetic_readiness",
 }: {
   choice: {
@@ -92,6 +93,7 @@ export function WorkflowRequestForm({
   requestedTime?: Pick<LessonTimeValue, "startAtUtc" | "endAtUtc">;
   scope: "guardian" | "student";
   privateWorkflow?: boolean;
+  immediateConfirmation?: boolean;
   source?: "synthetic_readiness" | "local_operation";
 }) {
   const endpoint =
@@ -163,9 +165,11 @@ export function WorkflowRequestForm({
         </details>
       </fieldset>
       <p className="max-w-prose text-body">
-        {privateWorkflow
-          ? "Your request creates a ten-minute provisional hold. An assigned reviewer must confirm it before the hold expires."
-          : "Synthetic test terms: a ten-minute provisional hold requires an assigned prerequisite review. Confirmation is software evidence only. No commercial entitlement or attendance is established."}
+        {immediateConfirmation
+          ? `Confirm this time. The no-money booking is saved as confirmed after current eligibility and availability checks.`
+          : privateWorkflow
+            ? "Your request creates a ten-minute provisional hold. An assigned reviewer must confirm it before the hold expires."
+            : "Synthetic test terms: a ten-minute provisional hold requires an assigned prerequisite review. Confirmation is software evidence only. No commercial entitlement or attendance is established."}
       </p>
       <button
         type="submit"
@@ -173,12 +177,16 @@ export function WorkflowRequestForm({
         disabled={!m.ready || m.pending || m.uncertain}
       >
         {m.pending
-          ? privateWorkflow
-            ? "Requesting booking…"
-            : "Requesting synthetic booking…"
-          : privateWorkflow
-            ? "Request booking"
-            : "Request synthetic booking"}
+          ? immediateConfirmation
+            ? "Confirming booking…"
+            : privateWorkflow
+              ? "Requesting booking…"
+              : "Requesting synthetic booking…"
+          : immediateConfirmation
+            ? "Confirm booking"
+            : privateWorkflow
+              ? "Request booking"
+              : "Request synthetic booking"}
       </button>
       {m.notice}
     </form>
@@ -212,6 +220,7 @@ export function WorkflowActionForm({
   scope = "student",
   admin = false,
   times = [],
+  displayTimezone,
   privateWorkflow = false,
   source = "synthetic_readiness",
 }: {
@@ -221,6 +230,7 @@ export function WorkflowActionForm({
   scope?: string;
   admin?: boolean;
   times?: LessonTimeValue[];
+  displayTimezone?: string;
   privateWorkflow?: boolean;
   source?: "local_simulation" | "synthetic_readiness" | "local_operation";
 }) {
@@ -241,11 +251,11 @@ export function WorkflowActionForm({
         source === "local_operation"
           ? workflowReason(action, source)
           : reason[action],
-      ...(action === "reschedule" && time
+      ...(action === "reschedule" && time && displayTimezone
         ? {
             startAtUtc: time.startAtUtc,
             endAtUtc: time.endAtUtc,
-            displayTimezone: "UTC",
+            displayTimezone,
           }
         : {}),
     });

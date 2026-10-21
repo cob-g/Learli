@@ -105,6 +105,15 @@ describe("real PostgreSQL tutor dashboard composition", () => {
       world.runtime,
       tutor.headers,
     );
+    expect(result.readiness.items.map((item) => item.key)).toEqual([
+      "profile",
+      "screening",
+      "availability",
+      "public-listing",
+    ]);
+    expect(JSON.stringify(result.readiness)).not.toMatch(
+      /receipt|evidenceReference|checkedAt|expiresAt/i,
+    );
     const overview = result.overview;
     if (!overview) throw new Error("Expected an assigned tutor overview.");
     expect(
@@ -311,6 +320,28 @@ describe("real PostgreSQL tutor dashboard composition", () => {
     );
     expect(result.profile).toBeNull();
     expect(result.overview).toBeNull();
+    expect(result.readiness.nextAction).toEqual({
+      href: "/tutor/profile",
+      label: "Complete profile",
+    });
+  });
+  it("reads public eligibility through the shared predicate without making availability a gate", async () => {
+    const actor = await createAccount(world, ["tutor"]);
+    const profileId = await profile(actor);
+    await world.owner.pool.query(
+      "INSERT INTO tutor_subjects(tutor_id,subject_id,levels) VALUES($1,$2,ARRAY['college_support'])",
+      [profileId, subjectId],
+    );
+    const result = await readTutorBookingWorkspace(
+      world.runtime,
+      actor.headers,
+    );
+    expect(
+      result.readiness.items.find((item) => item.key === "availability"),
+    ).toMatchObject({ complete: false });
+    expect(
+      result.readiness.items.find((item) => item.key === "public-listing"),
+    ).toMatchObject({ complete: true });
   });
   it("keeps earliest active preview separate from bounded reverse-order history", async () => {
     const result = await listParticipantBookingOverview(

@@ -14,7 +14,13 @@ import {
   getPrivateWorkflow,
   assertPrivateWorkflowUnchanged,
 } from "@/features/private-workflow/runtime";
-import { validateBookingCapability, type BookingCapability } from "./policy";
+import {
+  validateBookingCapability,
+  localBookingPolicy,
+  localParentBookingPolicy,
+  localIndependentBookingPolicy,
+  type BookingCapability,
+} from "./policy";
 import type { WorkflowAction } from "./input";
 import type { WorkflowState } from "./model";
 import { staffBookingInput, type StaffBookingFilters } from "./staff-input";
@@ -62,6 +68,9 @@ async function queryStaffBookings(
   )
     throw new AccessError(503);
   const actor = await requireAdminAssurance(c.runtime, headers);
+  const acceptedPolicy = local
+    ? sql`b.workflow_policy_id IN (${localBookingPolicy.policyId}::uuid,${localParentBookingPolicy.policyId}::uuid,${localIndependentBookingPolicy.policyId}::uuid)`
+    : sql`b.workflow_policy_id=${policy.policyId}::uuid`;
   const effectiveState = sql`CASE WHEN b.state='provisional' AND b.expires_at<=statement_timestamp() THEN 'expired' ELSE b.state END`;
   const currentTutor = sql`t.review_status='approved' AND EXISTS(SELECT 1 FROM public."user" acting_tutor
     JOIN public.user_access tutor_access ON tutor_access.user_id=acting_tutor.id AND tutor_access.status='active'
@@ -89,7 +98,7 @@ async function queryStaffBookings(
     WHERE ${privateActorPredicate(packet, sql`${actor.userId}`)} AND ${privateBookingPredicate(packet, sql`b.id`)}
       AND public.has_admin_assurance(${actor.userId},${actor.sessionId},28800)
       AND b.booked_by_user_id<>${actor.userId} AND t.user_id<>${actor.userId}
-      AND b.source=${policy.source} AND b.workflow_policy_id=${policy.policyId}::uuid
+      AND b.source=${policy.source} AND ${acceptedPolicy}
       AND public.booking_workflow_policy_current(b.workflow_policy_id)
       AND public.has_current_booking_beneficiary(b.booked_by_user_id,l.id,b.admission_policy_id)
       AND public.has_current_tutor_screening(t.id,b.source)

@@ -158,6 +158,173 @@
       grid-column: 2;
     }
   }
+  /* Admin and Tutor workspace chrome: grouped icon navigation and a calmer topbar.
+     Scoped by data-styled so other workspaces keep their styling. */
+  .workspace-topbar[data-styled] {
+    min-height: 4.25rem;
+    padding-block: 0.75rem;
+    background: color-mix(in srgb, var(--bg-base) 88%, transparent);
+    backdrop-filter: blur(12px);
+  }
+  .workspace-topbar[data-styled] .workspace-current {
+    font-weight: 500;
+  }
+  .workspace-crumb {
+    display: inline-flex;
+    gap: 0.5rem;
+    color: var(--text-muted);
+  }
+  .workspace-crumb span {
+    color: var(--border-default);
+  }
+  @media (max-width: 63.98rem) {
+    .workspace-crumb-root {
+      display: none;
+    }
+  }
+  .workspace-crumb b {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  .workspace-topbar[data-styled]:has(.workspace-crumb b) .workspace-current {
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+  .workspace-topbar[data-styled] .header-account {
+    min-height: 3rem;
+  }
+  .workspace-topbar[data-styled] .header-account-trigger {
+    padding: 0.25rem 0.75rem 0.25rem 0.375rem;
+    border-color: var(--border-default);
+    border-radius: calc(infinity * 1px);
+    background: var(--bg-surface);
+  }
+  .workspace-topbar[data-styled] .header-account-trigger:hover,
+  .workspace-topbar[data-styled] .header-account-trigger[aria-expanded="true"] {
+    border-color: var(--border-control);
+    background: var(--bg-surface);
+  }
+  .workspace-sidebar[data-styled] {
+    padding: 1.25rem 0.875rem 1rem;
+  }
+  .workspace-sidebar[data-styled] .workspace-brand {
+    margin-bottom: 0;
+    padding-inline: 0.625rem;
+  }
+  .workspace-role {
+    display: flex;
+    width: fit-content;
+    align-items: center;
+    gap: 0.375rem;
+    margin: 0.5rem 0.625rem 0.75rem;
+    padding: 0.25rem 0.5625rem;
+    border-radius: calc(infinity * 1px);
+    background: color-mix(in srgb, var(--brand-mint) 30%, var(--bg-surface));
+    color: var(--accent-strong);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+  .workspace-role::before {
+    content: "";
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: var(--accent-primary);
+  }
+  .workspace-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding-block: 0.625rem;
+  }
+  .workspace-group > ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+  .workspace-group + .workspace-group {
+    border-top: 1px solid var(--border-default);
+  }
+  .workspace-group-title {
+    padding: 0.25rem 0.625rem 0.375rem;
+    color: var(--text-muted);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+  .workspace-sidebar[data-styled] .workspace-secondary {
+    margin-top: 0;
+    padding-block: 0.625rem;
+  }
+  .workspace-sidebar[data-styled] .workspace-secondary ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+  .workspace-sidebar[data-styled] .workspace-link {
+    position: relative;
+    gap: 0.6875rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.625rem;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.3;
+  }
+  .workspace-link-icon {
+    color: var(--text-muted);
+  }
+  .workspace-sidebar[data-styled] .workspace-link:hover {
+    background: var(--bg-base);
+    color: var(--brand-navy);
+  }
+  .workspace-sidebar[data-styled] .workspace-link:hover .workspace-link-icon {
+    color: var(--brand-navy);
+  }
+  .workspace-sidebar[data-styled] .workspace-link[aria-current] {
+    padding-inline-end: 1.75rem;
+    background: var(--brand-navy);
+    color: var(--text-inverse);
+    font-weight: 500;
+  }
+  .workspace-sidebar[data-styled]
+    .workspace-link[aria-current]
+    .workspace-link-icon {
+    color: var(--brand-mint);
+  }
+  .workspace-sidebar[data-styled] .workspace-link[aria-current]::after {
+    content: "";
+    position: absolute;
+    inset-inline-end: 0.75rem;
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: var(--accent-primary);
+  }
+  .workspace-sidebar[data-styled] a[href="/"] > svg:last-child {
+    margin-inline-start: auto;
+  }
+  /* Kept on screen only with height to spare, so enlarged text never loses
+     the page to a fixed bar or an unreachable sidebar. */
+  @media (min-width: 64rem) and (min-height: 40rem) {
+    .workspace-topbar[data-styled] {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .workspace-sidebar[data-styled] {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: 100dvh;
+      overflow-y: auto;
+    }
+  }
   @media print {
     .workspace-topbar,
     .workspace-sidebar {
@@ -168,6 +335,9 @@
     }
   }
   @media (forced-colors: active) {
+    .workspace-sidebar[data-styled] .workspace-link[aria-current]::after {
+      background: Highlight;
+    }
     .workspace-link[aria-current] {
       border-color: Highlight;
       color: LinkText;

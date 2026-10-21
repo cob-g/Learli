@@ -1,3 +1,5 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
+import { requireIdentity } from "@/lib/permissions/access";
 import { AdmissionDetour } from "@/features/learner-admission/detour";
 import {
   parsePublicBookingSelection,
@@ -9,6 +11,10 @@ import { loadWorkflowOptions, readWorkflowCandidates } from "./service";
 import { WorkflowRequestForm } from "./forms";
 import { workflowChoice } from "./input";
 import { AccessError } from "@/lib/permissions/access";
+import { listTimeZoneOptions } from "@/lib/time/zones";
+import { isValidTimeZone } from "@/lib/time/time-zone";
+import { BookingChoiceForm } from "./choice-form";
+import { bookingHistoryScope } from "./choice-options";
 export async function WorkflowBookingPage({
   runtime,
   headers,
@@ -22,12 +28,32 @@ export async function WorkflowBookingPage({
 }) {
   const c = bookingWorkflowContext(runtime),
     options = await loadWorkflowOptions(c, headers);
+  const ordinaryParent =
+    getLocalWorkflow(runtime) !== null &&
+    (await requireIdentity(runtime, headers)).roles.includes("parent");
+  const selectedLearner = options.learners.find(
+    (learner) => learner.id === query.learnerId,
+  );
+  const scopeHint =
+    query.scope === "guardian" || query.scope === "student"
+      ? query.scope
+      : undefined;
+  const immediateConfirmation =
+    !!selectedLearner &&
+    options.immediateConfirmationLearnerIds.includes(selectedLearner.id);
   // Only the selected learner is private; retain the strict public selection contract.
   const publicQuery = Object.fromEntries(
-    Object.entries(query).filter(([key]) => key !== "learnerId"),
+    Object.entries(query).filter(
+      ([key]) => key !== "learnerId" && key !== "scope",
+    ),
   );
   const selected = parsePublicBookingSelection(publicQuery);
   const discovery = parsePublicBookingDiscovery(publicQuery);
+  const queryZone =
+    typeof query.displayTimezone === "string" &&
+    isValidTimeZone(query.displayTimezone)
+      ? query.displayTimezone
+      : options.timezone;
   const values = workflowChoice.safeParse({
     learnerId: query.learnerId,
     tutorSlug: query.tutorSlug,
@@ -48,114 +74,52 @@ export async function WorkflowBookingPage({
           "Open times could not be loaded. Try again or contact support.";
     }
   }
-  const fields = [
-    {
-      name: "learnerId",
-      label: "Learner",
-      values: options.learners.map((l) => ({
-        value: l.id,
-        label: l.displayName,
-      })),
-    },
-    {
-      name: "tutorSlug",
-      label: "Tutor",
-      values: options.tutors.map((t) => ({
-        value: t.slug,
-        label: t.displayName,
-      })),
-    },
-    {
-      name: "subjectSlug",
-      label: "Subject",
-      values: [
-        ...new Map(
-          options.tutors.flatMap((t) =>
-            t.offerings.map(
-              (s) =>
-                [
-                  s.subjectSlug,
-                  { value: s.subjectSlug, label: s.subjectName },
-                ] as const,
-            ),
-          ),
-        ).values(),
-      ],
-    },
-  ];
+  const historyScope = bookingHistoryScope(
+    options.learners,
+    typeof query.learnerId === "string" ? query.learnerId : undefined,
+    scopeHint ?? (ordinaryParent ? "guardian" : "student"),
+  );
   return (
     <div className="page-shell page-space">
       <h1 className="text-page-title">
-        {privateWorkflow ? "Request a booking" : "Synthetic booking request"}
+        {immediateConfirmation
+          ? "Book a session"
+          : privateWorkflow
+            ? "Request a booking"
+            : "Synthetic booking request"}
       </h1>
       <p className="mt-4 max-w-prose text-body">
-        {privateWorkflow
-          ? "Choose an authorized learner, tutor and available time. Your request remains provisional until an assigned reviewer confirms it."
-          : "Fictional readiness only. Choose an admitted learner and screened tutor; an assigned synthetic prerequisite review is required for confirmation. Real booking policies remain unavailable."}
+        {immediateConfirmation
+          ? `Choose ${selectedLearner?.management === "self" ? "an eligible tutor" : "your child, an eligible tutor"} and an available time. A valid no-money booking is confirmed when you save it.`
+          : privateWorkflow
+            ? "Choose an authorized learner, tutor and available time. Your request remains provisional until an assigned reviewer confirms it."
+            : "Fictional readiness only. Choose an admitted learner and screened tutor; an assigned synthetic prerequisite review is required for confirmation. Real booking policies remain unavailable."}
       </p>
       {!options.learners.length ? (
         <AdmissionDetour
           choice={selected}
           discovery={discovery}
           privateWorkflow={privateWorkflow}
+          ordinaryParent={ordinaryParent}
         />
       ) : (
-        <form
-          method="get"
-          action={privateWorkflow ? "/bookings/new" : undefined}
-          className="mt-6 max-w-xl space-y-4"
-        >
-          {selected && (
-            <>
-              <input type="hidden" name="level" value={selected.level} />
-              <input
-                type="hidden"
-                name="startAtUtc"
-                value={selected.startAtUtc}
-              />
-              <input type="hidden" name="endAtUtc" value={selected.endAtUtc} />
-            </>
-          )}
-          {fields.map((f) => (
-            <div key={f.name}>
-              <label htmlFor={f.name} className="text-label">
-                {f.label}
-              </label>
-              <select
-                required
-                id={f.name}
-                name={f.name}
-                className="field mt-2"
-                defaultValue={
-                  typeof query[f.name] === "string" ? query[f.name] : ""
-                }
-              >
-                <option value="">Choose {f.label.toLowerCase()}</option>
-                {f.values.map((v) => (
-                  <option key={v.value} value={v.value}>
-                    {v.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ))}
-          <label htmlFor="displayTimezone" className="text-label">
-            Time zone
-          </label>
-          <input
-            id="displayTimezone"
-            name="displayTimezone"
-            className="field"
-            defaultValue={
-              typeof query.displayTimezone === "string"
-                ? query.displayTimezone
-                : options.timezone
-            }
-          />
-          <button className="action action-outline" type="submit">
-            {privateWorkflow ? "Show available times" : "Load synthetic times"}
-          </button>
-        </form>
+        <BookingChoiceForm
+          learners={options.learners}
+          tutors={options.tutors}
+          zones={listTimeZoneOptions(new Date(), [options.timezone, queryZone])}
+          initial={{
+            learnerId:
+              typeof query.learnerId === "string" ? query.learnerId : "",
+            subjectSlug:
+              typeof query.subjectSlug === "string" ? query.subjectSlug : "",
+            tutorSlug:
+              typeof query.tutorSlug === "string" ? query.tutorSlug : "",
+            displayTimezone: queryZone,
+          }}
+          requestedTime={selected ?? undefined}
+          scopeHint={scopeHint}
+          privateWorkflow={privateWorkflow}
+        />
       )}
       {values.success &&
         selected &&
@@ -181,6 +145,7 @@ export async function WorkflowBookingPage({
             times={times}
             requestedTime={selected ?? undefined}
             privateWorkflow={privateWorkflow}
+            immediateConfirmation={immediateConfirmation}
             source={
               c.booking.authority === "disabled" ? undefined : c.booking.source
             }
@@ -198,8 +163,10 @@ export async function WorkflowBookingPage({
               : "No current synthetic times match these choices."}
           </p>
         ))}
-      {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Native navigation replaces the prior private document. */}
-      <a className="mt-8 inline-flex min-h-11 items-center" href="/bookings">
+      <a
+        className="mt-8 inline-flex min-h-11 items-center"
+        href={`/bookings?scope=${historyScope}`}
+      >
         Your booking history
       </a>
     </div>

@@ -25,7 +25,26 @@ const local = policy.extend({
   guardianProofMethod: z.literal("local_guardian_review"),
   independentEligibilityRule: z.literal("local_independent_review"),
 });
-const enabled = z.discriminatedUnion("authority", [policy, local]);
+const localGuardian = local.extend({
+  version: z.literal("local-guardian-admission-v2"),
+  reference: z.literal("local:guardian-admission:v2"),
+  marketCode: z.literal("local_guardian_creation"),
+  noticeVersion: z.literal("local-guardian-notice-v2"),
+  guardianProofMethod: z.literal("parent_guardian_attestation"),
+});
+const localIndependent = local.extend({
+  version: z.literal("local-independent-admission-v2"),
+  reference: z.literal("local:independent-admission:v2"),
+  marketCode: z.literal("local_independent_creation"),
+  noticeVersion: z.literal("local-independent-notice-v2"),
+  independentEligibilityRule: z.literal("adult_independent_self_attestation"),
+});
+const enabled = z.discriminatedUnion("version", [
+  policy,
+  local,
+  localGuardian,
+  localIndependent,
+]);
 export type EnabledAdmissionCapability = z.infer<typeof enabled>;
 export type AdmissionCapability =
   { authority: "disabled" } | EnabledAdmissionCapability;
@@ -80,4 +99,32 @@ export const localAdmissionPolicy = Object.freeze({
   ...localTerms,
   policyId: "8a3658c1-773a-4533-81c6-49ff79870211",
   contentDigest: admissionPolicyDigest(localTerms),
+});
+
+const localGuardianTerms = {
+  ...localTerms,
+  version: "local-guardian-admission-v2",
+  reference: "local:guardian-admission:v2",
+  marketCode: "local_guardian_creation",
+  noticeVersion: "local-guardian-notice-v2",
+  guardianProofMethod: "parent_guardian_attestation",
+} as const;
+export const localGuardianAdmissionPolicy = Object.freeze({
+  ...localGuardianTerms,
+  policyId: "8a3658c1-773a-4533-81c6-49ff79870214",
+  contentDigest: admissionPolicyDigest(localGuardianTerms),
+});
+
+const localIndependentTerms = {
+  ...localTerms,
+  version: "local-independent-admission-v2",
+  reference: "local:independent-admission:v2",
+  marketCode: "local_independent_creation",
+  noticeVersion: "local-independent-notice-v2",
+  independentEligibilityRule: "adult_independent_self_attestation",
+} as const;
+export const localIndependentAdmissionPolicy = Object.freeze({
+  ...localIndependentTerms,
+  policyId: "8a3658c1-773a-4533-81c6-49ff79870216",
+  contentDigest: admissionPolicyDigest(localIndependentTerms),
 });

@@ -5,6 +5,54 @@ import { useRouter } from "next/navigation";
 import type { ScreeningDetail } from "./service";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { screeningActions } from "./policy";
+import { formatReceiptTime, wallClockToUtc } from "./time";
+import {
+  screeningCheckLabel,
+  screeningProgress,
+} from "@/features/tutors/readiness-summary";
+
+type DisplayCheck = ScreeningDetail["checks"][number];
+
+function checkState(check: DisplayCheck | undefined) {
+  if (!check)
+    return {
+      label: "Not recorded",
+      tone: "border-control bg-subtle text-muted-foreground",
+    };
+  if (check.outcome === "failed")
+    return {
+      label: "Failed",
+      tone: "border-error bg-error-soft text-error",
+    };
+  if (check.outcome === "revoked")
+    return {
+      label: "Revoked",
+      tone: "border-control bg-subtle text-muted-foreground",
+    };
+  if (check.outcome === "passed" && check.current)
+    return {
+      label: "Passed and current",
+      tone: "border-success bg-success-soft text-success",
+    };
+  if (check.outcome === "passed")
+    return {
+      label: "Expired",
+      tone: "border-warning bg-warning-soft text-warning",
+    };
+  return {
+    label: "Not recorded",
+    tone: "border-control bg-subtle text-muted-foreground",
+  };
+}
+
+function browserTimeZone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone.trim() || "UTC";
+  } catch {
+    return "UTC";
+  }
+}
+
 export function ScreeningForm({
   tutorId,
   detail,
@@ -21,11 +69,21 @@ export function ScreeningForm({
     [refreshing, startRefresh] = useTransition(),
     [saving, setBusy] = useState(false),
     [message, setMessage] = useState(""),
+    [checkedLocal, setCheckedLocal] = useState(""),
+    [expiresLocal, setExpiresLocal] = useState(""),
     alert = useRef<HTMLParagraphElement>(null),
     key = useRef<string | null>(null);
   const busy = saving || refreshing;
   const dialog = useRef<HTMLDialogElement>(null),
     [action, setAction] = useState<(typeof screeningActions)[number]>();
+  const progress = screeningProgress(detail);
+  const deviceTimeZone = ready ? browserTimeZone() : "UTC";
+  const checkedPreview = checkedLocal
+    ? wallClockToUtc(checkedLocal, deviceTimeZone)
+    : null;
+  const expiresPreview = expiresLocal
+    ? wallClockToUtc(expiresLocal, deviceTimeZone)
+    : null;
   async function save(
     input: Record<string, unknown>,
     kind: "checks" | "decision",
@@ -90,15 +148,57 @@ export function ScreeningForm({
       <p className="mt-4 text-body">
         State: {detail.state}. Round {detail.round}. Revision {detail.revision}.
       </p>
-      <ul className="mt-4 divide-y divide-border">
+      <div
+        className="mt-4 max-w-prose rounded-surface border border-border bg-subtle p-4"
+        role="status"
+      >
+        <p className="text-label">
+          {progress.currentCount} of {progress.requiredCount} required checks
+          current
+        </p>
+        <p className="mt-1 text-small text-muted-foreground">
+          {progress.current
+            ? "Screening is approved and every required check is current."
+            : progress.readyForDecision
+              ? "Every required check is current. This case is ready for a decision."
+              : progress.nextRequiredCode
+                ? `Next: record the ${screeningCheckLabel(progress.nextRequiredCode).toLowerCase()}.`
+                : "Open the case state and available actions before continuing."}
+        </p>
+      </div>
+      <ul className="mt-4 grid gap-3 sm:grid-cols-2">
         {detail.requiredCodes.map((code) => {
-          const ck = detail.checks.find((c) => c.code === code);
+          const ck = detail.checks.find((c) => c.code === code) as
+            DisplayCheck | undefined;
+          const status = checkState(ck);
           return (
-            <li key={code} className="py-3 text-body">
-              {code}:{" "}
-              {ck?.current
-                ? "Current passed evidence"
-                : (ck?.outcome ?? "Missing evidence")}
+            <li
+              key={code}
+              className="rounded-surface border border-border bg-background p-4"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-label">{screeningCheckLabel(code)}</span>
+                <span
+                  className={`inline-flex min-h-7 items-center rounded-tag border px-2 text-label ${status.tone}`}
+                >
+                  {status.label}
+                </span>
+              </div>
+              {ck?.checkedAt && (
+                <p className="mt-3 text-small text-muted-foreground">
+                  Checked: {formatReceiptTime(ck.checkedAt, deviceTimeZone)}
+                </p>
+              )}
+              {ck?.expiresAt && (
+                <p className="mt-1 text-small text-muted-foreground">
+                  Expires: {formatReceiptTime(ck.expiresAt, deviceTimeZone)}
+                </p>
+              )}
+              {ck?.receiptReference && (
+                <p className="mt-1 text-small wrap-anywhere text-muted-foreground">
+                  Screening receipt: <code>{ck.receiptReference}</code>
+                </p>
+              )}
             </li>
           );
         })}
@@ -121,13 +221,41 @@ export function ScreeningForm({
         onSubmit={(e) => {
           e.preventDefault();
           const f = new FormData(e.currentTarget);
+          const checkedAt = wallClockToUtc(
+            f.get("checkedAtLocal"),
+            deviceTimeZone,
+          );
+          const expiresAt = wallClockToUtc(
+            f.get("expiresAtLocal"),
+            deviceTimeZone,
+          );
+          if (!checkedAt.ok || !expiresAt.ok) {
+            setMessage(
+              !checkedAt.ok
+                ? checkedAt.message
+                : !expiresAt.ok
+                  ? expiresAt.message
+                  : "Choose valid dates and times.",
+            );
+            requestAnimationFrame(() => alert.current?.focus());
+            return;
+          }
+          if (Date.parse(checkedAt.iso) > Date.now()) {
+            setMessage("Choose a check time that is not in the future.");
+            requestAnimationFrame(() => alert.current?.focus());
+            return;
+          }
+          if (Date.parse(expiresAt.iso) <= Date.parse(checkedAt.iso)) {
+            setMessage("Choose an expiry after the check time.");
+            requestAnimationFrame(() => alert.current?.focus());
+            return;
+          }
           void save(
             {
               code: f.get("code"),
               outcome: f.get("outcome"),
-              reference: f.get("reference"),
-              checkedAt: f.get("checkedAt"),
-              expiresAt: f.get("expiresAt"),
+              checkedAt: checkedAt.iso,
+              expiresAt: expiresAt.iso,
             },
             "checks",
           );
@@ -135,16 +263,26 @@ export function ScreeningForm({
       >
         <p className="text-small">
           {localWorkflow
-            ? "All fields are required. Use opaque references to your review evidence and UTC dates. Keep personal documents and private contact details out of these fields."
+            ? "All fields are required. Learli creates the internal screening receipt automatically. Keep personal documents and private contact details out of this form."
             : privateWorkflow
-              ? "All fields are required. Use only fictional evidence references and UTC dates."
-              : "All fields are required. Use only synthetic opaque references and UTC dates."}
+              ? "All fields are required. Learli creates the fictional internal screening receipt automatically."
+              : "All fields are required. Learli creates the synthetic internal screening receipt automatically."}
+        </p>
+        <p
+          id="screening-time-help"
+          className="text-small text-muted-foreground"
+        >
+          Times entered here use {deviceTimeZone ?? "your device's local time"}.
+          Learli converts them to UTC before saving. Expiry remains an explicit
+          choice until a validity duration is approved.
         </p>
         <label className="block text-label">
           Required check
           <select name="code" className="field mt-2">
             {detail.requiredCodes.map((code) => (
-              <option key={code}>{code}</option>
+              <option key={code} value={code}>
+                {screeningCheckLabel(code)}
+              </option>
             ))}
           </select>
         </label>
@@ -157,33 +295,53 @@ export function ScreeningForm({
           </select>
         </label>
         <label className="block text-label">
-          Evidence reference
+          Checked at
           <input
-            name="reference"
+            type="datetime-local"
+            name="checkedAtLocal"
             className="field mt-2"
             required
-            maxLength={46}
-            placeholder="screening:opaque UUID"
+            step={60}
+            value={checkedLocal}
+            aria-describedby="screening-time-help checked-at-preview"
+            aria-invalid={checkedPreview?.ok === false}
+            onChange={(event) => setCheckedLocal(event.target.value)}
           />
         </label>
+        <p
+          id="checked-at-preview"
+          className={`text-small ${checkedPreview?.ok === false ? "text-error" : "text-muted-foreground"}`}
+        >
+          {checkedPreview
+            ? checkedPreview.ok
+              ? `Stored as ${checkedPreview.iso} UTC.`
+              : checkedPreview.message
+            : "Choose when this check was completed."}
+        </p>
         <label className="block text-label">
-          Checked at (UTC ISO date)
+          Expires at
           <input
-            name="checkedAt"
+            type="datetime-local"
+            name="expiresAtLocal"
             className="field mt-2"
             required
-            placeholder="2026-10-12T12:00:00Z"
+            step={60}
+            value={expiresLocal}
+            aria-describedby="screening-time-help expires-at-preview"
+            aria-invalid={expiresPreview?.ok === false}
+            onChange={(event) => setExpiresLocal(event.target.value)}
           />
         </label>
-        <label className="block text-label">
-          Expires at (UTC ISO date)
-          <input
-            name="expiresAt"
-            className="field mt-2"
-            required
-            placeholder="2026-10-13T12:00:00Z"
-          />
-        </label>
+        <p
+          id="expires-at-preview"
+          className={`text-small ${expiresPreview?.ok === false ? "text-error" : "text-muted-foreground"}`}
+        >
+          {expiresPreview
+            ? expiresPreview.ok
+              ? `Stored as ${expiresPreview.iso} UTC.`
+              : expiresPreview.message
+            : "Choose when this check should expire."}
+        </p>
         <button
           className="action action-primary"
           disabled={!ready || busy}

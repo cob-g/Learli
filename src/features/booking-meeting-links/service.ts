@@ -34,6 +34,7 @@ export async function readPrivateMeetingLink(
     "privatePacket" in actor ? actor.privatePacket : null,
   );
   if (!row) throw new AccessError(404);
+  if (row.awaitingConfirmation) return { state: "awaiting_confirmation" };
   if (!row.live) return { state: "expired" };
   if (!row.url || !row.provider || !row.revision)
     return { state: "missing", canEdit: row.canEdit, revision: 0 };

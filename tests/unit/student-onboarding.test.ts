@@ -102,6 +102,24 @@ describe("College Student intent continuation", () => {
     expect(isStudentOnboardingPath("/student/onboarding-other")).toBe(false);
     expect(isStudentOnboardingPath("/student")).toBe(false);
   });
+  it("retains validated private booking scope when rebuilding a booking continuation", () => {
+    const next = `${bookingSelectionHref(selection, true)}&scope=student`;
+    const href = studentOnboardingHref(next);
+    expect(studentContinuation(href)).toBe(next);
+    expect(studentOnboardingHref(href)).toBe(href);
+    expect(
+      safeHostedCallback(
+        `/sign-in?verified=1&${new URLSearchParams({ next: href })}`,
+        "https://staging.example.test",
+      ),
+    ).toBe(true);
+    expect(studentContinuation("/bookings/new?scope=student")).toBe(
+      "/bookings/new?scope=student",
+    );
+    expect(studentOnboardingHref("/bookings/new?scope=student")).toBe(
+      "/student/onboarding?next=%2Fbookings%2Fnew%3Fscope%3Dstudent",
+    );
+  });
   it("treats only a single exact self query value as the independent form default", () => {
     expect(initialAdmissionManagement("self")).toBe("self");
     for (const value of [

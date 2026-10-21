@@ -41,6 +41,21 @@ const contexts: BrowserContext[] = [];
 const owner = createDatabase(process.env.DATABASE_URL_DIRECT ?? "", true);
 let packet: PrivateWorkflowPacket;
 let binding: PrivateWorkflowBinding;
+
+function localPickerValue(instant: string | Date) {
+  const date = new Date(instant);
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function screeningCheckLabel(code: string) {
+  if (code === "identity") return "Identity check";
+  if (code === "eligibility") return "Eligibility check";
+  return code
+    .replaceAll("_", " ")
+    .replace(/^./, (letter) => letter.toUpperCase());
+}
+
 const emailFor = (role: string) =>
   packet.accountEmails.find(
     (email) =>
@@ -948,22 +963,23 @@ test("normal private build connects guardian booking interruption, cross-role ch
   await expect(
     admin.page.locator("#main-content").getByRole("alert"),
   ).toContainText("required");
+  await expect(admin.page.getByLabel("Evidence reference")).toHaveCount(0);
   for (const code of packet.screening.requiredCheckCodes) {
     await admin.page.getByLabel("Required check").selectOption(code);
     await admin.page
-      .getByLabel("Evidence reference")
-      .fill(`screening:${randomUUID()}`);
+      .getByLabel("Checked at")
+      .fill(localPickerValue(new Date(Date.now() - 60_000)));
     await admin.page
-      .getByLabel("Checked at (UTC ISO date)")
-      .fill(new Date(Date.now() - 60_000).toISOString());
-    await admin.page
-      .getByLabel("Expires at (UTC ISO date)")
-      .fill(packet.screening.validUntil);
+      .getByLabel("Expires at")
+      .fill(localPickerValue(packet.screening.validUntil));
     await admin.page
       .getByRole("button", { name: "Record check", exact: true })
       .click();
+    const checkCard = admin.page
+      .getByRole("listitem")
+      .filter({ hasText: screeningCheckLabel(code) });
     await expect(
-      admin.page.getByText(`${code}: Current passed evidence`, { exact: true }),
+      checkCard.getByText("Passed and current", { exact: true }),
     ).toBeVisible();
   }
   await admin.page

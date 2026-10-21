@@ -138,6 +138,9 @@ export async function verifyRuntimeGrants(client: PoolClient) {
     WHERE n.nspname='public' AND NOT EXISTS (SELECT 1 FROM pg_depend d
       WHERE d.classid='pg_proc'::regclass AND d.objid=p.oid AND d.deptype='e')`);
   const permitted = new Set([
+    "create_parent_child(text,text,uuid,uuid,text,text,text,integer,text,text,boolean,boolean)",
+    "claim_guardian_admission_exception(text,text,uuid,uuid,uuid)",
+    "create_independent_learner(text,text,uuid,uuid,text,text,text,text,boolean)",
     "workflow_identity(text,text,text)",
     "has_local_workflow_staff(text,text,text)",
     "claim_local_workflow_task(text,text,text,text,uuid)",
@@ -191,7 +194,7 @@ export async function verifyRuntimeGrants(client: PoolClient) {
     "change_local_support_assignment(text,text,uuid,integer,text,text,uuid)",
   ]);
   if (
-    functions.rows.length !== 95 ||
+    functions.rows.length !== 100 ||
     functions.rows.some(
       (row) =>
         !row.safe ||

@@ -8,11 +8,37 @@ import {
 import { expectedProtections } from "../../scripts/staging-migrations/protections";
 import { runtimeGrantsSql } from "../../scripts/runtime-grants";
 
+/** Original current chain before additive guardian creation. */
+export const runtimeGrantsBeforeAutomaticChildren = runtimeGrantsSql
+  .split("\n")
+  .filter(
+    (line) =>
+      !line.includes("learner_guardian_attestations") &&
+      !line.includes("public.create_parent_child(") &&
+      !line.includes("learner_independent_attestations") &&
+      !line.includes("public.create_independent_learner("),
+  )
+  .join("\n");
+
+/** Exact runtime policy after Parent-v2 and before independent-adult-v2. */
+export const runtimeGrantsBeforeIndependent = runtimeGrantsSql
+  .split("\n")
+  .filter(
+    (line) =>
+      !line.includes("learner_independent_attestations") &&
+      !line.includes("public.create_independent_learner("),
+  )
+  .join("\n");
+
 /** Historical migrations cannot grant objects introduced by ordinary local operation. */
 export const runtimeGrantsBeforeOperation = runtimeGrantsSql
   .split("\n")
   .filter(
     (line) =>
+      !line.includes("learner_guardian_attestations") &&
+      !line.includes("public.create_parent_child(") &&
+      !line.includes("learner_independent_attestations") &&
+      !line.includes("public.create_independent_learner(") &&
       !line.includes("local_workflow_") &&
       !line.includes("public.workflow_identity("),
   )
@@ -50,13 +76,17 @@ export const currentMigrationPublicTableCount = Object.keys(
   snapshot.tables,
 ).length;
 
-/** Every old table hash remains exact; only the two explicitly added empty
- * local-operation authority tables may appear during this forward upgrade. */
+/** Every old table hash remains exact; additive authority tables start empty. */
 export function expectLocalOperationRowPreservation(
   before: Record<string, string>,
   after: Record<string, string>,
 ) {
-  const added = ["local_workflow_claims", "local_workflow_staff"];
+  const added = [
+    "learner_guardian_attestations",
+    "learner_independent_attestations",
+    "local_workflow_claims",
+    "local_workflow_staff",
+  ];
   expect(Object.keys(after).sort()).toEqual(
     [...Object.keys(before), ...added].sort(),
   );

@@ -100,7 +100,7 @@ describe("current assigned evidence-based screening in actual PostgreSQL", () =>
       await listEligibleTutors(w.runtime.db, {}, "synthetic_readiness")
     ).find((t) => t.slug === f.profile.slug)!;
     expect(JSON.stringify(dto)).not.toMatch(
-      /screening:|policy:|tutorId|evidenceReference|checkCode/,
+      /screening:|policy:|tutorId|evidenceReference|receiptReference|checkCode/,
     );
   });
   it.each(["failed", "revoked"])(
@@ -133,7 +133,22 @@ describe("current assigned evidence-based screening in actual PostgreSQL", () =>
           checkedAt: new Date(Date.now() + 10000).toISOString(),
         }),
       ),
-    ).rejects.toMatchObject({ status: 400 });
+    ).rejects.toMatchObject({
+      status: 400,
+      message: "Choose a check time that is not in the future.",
+    });
+    const unchanged = await w.owner.pool.query(
+      `SELECT c.revision,
+        (SELECT count(*)::int FROM tutor_screening_checks ck WHERE ck.tutor_id=c.tutor_id) checks,
+        (SELECT count(*)::int FROM tutor_screening_events e WHERE e.tutor_id=c.tutor_id AND e.kind='check') events
+       FROM tutor_screening_cases c WHERE c.tutor_id=$1`,
+      [f.profile.id],
+    );
+    expect(unchanged.rows[0]).toMatchObject({
+      revision: 0,
+      checks: 0,
+      events: 0,
+    });
     await recordScreeningCheck(
       f.context,
       reviewer.headers,
@@ -269,6 +284,112 @@ describe("current assigned evidence-based screening in actual PostgreSQL", () =>
         decision(1, "reject", input.requestKey),
       ),
     ).rejects.toMatchObject({ status: 409 });
+  });
+  it("stores a server fallback and displays the immutable row receipt", async () => {
+    const requestKey = randomUUID();
+    const suppliedReference = `screening:${randomUUID()}`;
+    const input = check(0, "synthetic_check_a", {
+      requestKey,
+      reference: suppliedReference,
+    });
+    await recordScreeningCheck(
+      f.context,
+      reviewer.headers,
+      f.profile.id,
+      input,
+    );
+    const receipt = await w.owner.pool.query(
+      "SELECT id,evidence_reference FROM tutor_screening_checks WHERE tutor_id=$1 AND request_key=$2",
+      [f.profile.id, requestKey],
+    );
+    expect(receipt.rows[0].evidence_reference).toBe(`screening:${requestKey}`);
+    expect(receipt.rows[0].evidence_reference).not.toBe(suppliedReference);
+    const reviewerDetail = await readScreening(
+      f.context,
+      reviewer.headers,
+      f.profile.id,
+    );
+    expect(reviewerDetail?.checks[0]).toMatchObject({
+      receiptReference: `screening:${receipt.rows[0].id}`,
+    });
+    expect(reviewerDetail?.checks[0]).not.toHaveProperty("reference");
+    expect(Date.parse(reviewerDetail!.checks[0]!.checkedAt!)).toBe(
+      Date.parse(input.checkedAt),
+    );
+    expect(Date.parse(reviewerDetail!.checks[0]!.expiresAt!)).toBe(
+      Date.parse(input.expiresAt),
+    );
+    const ownerDetail = await readScreening(
+      f.context,
+      f.tutor.headers,
+      f.profile.id,
+      "owner",
+    );
+    expect(Date.parse(ownerDetail!.checks[0]!.checkedAt!)).toBe(
+      Date.parse(input.checkedAt),
+    );
+    expect(Date.parse(ownerDetail!.checks[0]!.expiresAt!)).toBe(
+      Date.parse(input.expiresAt),
+    );
+    expect(ownerDetail?.checks[0]).not.toHaveProperty("receiptReference");
+  });
+  it("replays a legacy stored reference without another row or event", async () => {
+    const requestKey = randomUUID(),
+      legacyReference = `screening:${randomUUID()}`,
+      checkedAt = new Date(Date.now() - 60000).toISOString(),
+      expiresAt = new Date(Date.now() + 3600000).toISOString(),
+      session = await w.runtime.auth.api.getSession({
+        headers: reviewer.headers,
+      });
+    if (!session) throw new Error("Expected reviewer session.");
+    const first = await w.owner.pool.query(
+      "SELECT * FROM public.record_tutor_screening_check($1,$2,$3::uuid,$4,$5::uuid,$6,$7,$8,$9::timestamptz,$10::timestamptz)",
+      [
+        reviewer.id,
+        session.session.id,
+        f.profile.id,
+        0,
+        requestKey,
+        "synthetic_check_a",
+        "passed",
+        legacyReference,
+        checkedAt,
+        expiresAt,
+      ],
+    );
+    expect(first.rows[0]).toMatchObject({ outcome: "saved", revision: 1 });
+    const input = {
+      revision: 0,
+      requestKey,
+      code: "synthetic_check_a",
+      outcome: "passed",
+      checkedAt,
+      expiresAt,
+    };
+    await expect(
+      recordScreeningCheck(f.context, reviewer.headers, f.profile.id, input),
+    ).resolves.toEqual({ revision: 1, replayed: true });
+    await expect(
+      recordScreeningCheck(f.context, reviewer.headers, f.profile.id, {
+        ...input,
+        outcome: "failed",
+      }),
+    ).rejects.toMatchObject({ status: 409 });
+    const preserved = await w.owner.pool.query(
+      `SELECT c.revision,ck.evidence_reference,
+        (SELECT count(*)::int FROM tutor_screening_checks x WHERE x.tutor_id=c.tutor_id) checks,
+        (SELECT count(*)::int FROM tutor_screening_events e WHERE e.tutor_id=c.tutor_id AND e.kind='check') events
+       FROM tutor_screening_cases c
+       JOIN tutor_screening_checks ck ON ck.tutor_id=c.tutor_id
+       WHERE c.tutor_id=$1`,
+      [f.profile.id],
+    );
+    expect(preserved.rows[0]).toMatchObject({
+      revision: 1,
+      evidence_reference: legacyReference,
+      checks: 1,
+      events: 1,
+    });
   });
   it("two independent concurrent positive decisions save one immutable head", async () => {
     await passed();

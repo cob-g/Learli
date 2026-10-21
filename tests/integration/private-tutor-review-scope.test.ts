@@ -59,6 +59,11 @@ describe("private Tutor reviews cannot inherit retained local fixture assignment
     expect(page.applications.map((item) => item.id)).toEqual([
       f.fixture.profile.id,
     ]);
+    expect(page.applications[0].screening).toEqual({
+      state: "approved",
+      currentCount: 2,
+      requiredCount: 2,
+    });
     expect(page.total).toBe(1);
   });
   it("does not disclose that legacy application through direct detail lookup", async () => {

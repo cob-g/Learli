@@ -93,8 +93,11 @@ export function AddSubjectForm() {
 
 export function SubjectStateButton({
   subject,
+  tile = false,
 }: {
   subject: { id: string; name: string; isActive: boolean };
+  /** Admin subject tile presentation; the request is unchanged. */
+  tile?: boolean;
 }) {
   const router = useRouter();
   const [refreshing, startRefresh] = useTransition();
@@ -118,10 +121,14 @@ export function SubjectStateButton({
   }
 
   return (
-    <div className="flex flex-col items-end gap-2">
+    <div className={tile ? "subject-toggle" : "flex flex-col items-end gap-2"}>
       <button
         type="button"
-        className="action action-outline"
+        className={
+          tile && !subject.isActive
+            ? "action action-primary"
+            : "action action-outline"
+        }
         aria-label={`${verb} ${subject.name}`}
         aria-disabled={pending}
         onClick={toggle}

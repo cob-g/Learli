@@ -36,10 +36,32 @@ const local = common.extend({
   confirmationPrerequisite: z.literal("local_prerequisite_review"),
   completionActor: z.literal("assigned_tutor"),
 });
+const localParent = local.extend({
+  version: z.literal("local-parent-booking-v2"),
+  reference: z.literal("local:parent-booking:v2"),
+  admissionPolicyId: z.literal("8a3658c1-773a-4533-81c6-49ff79870214"),
+  acceptedGuardianPolicyIds: z
+    .tuple([
+      z.literal("8a3658c1-773a-4533-81c6-49ff79870211"),
+      z.literal("8a3658c1-773a-4533-81c6-49ff79870214"),
+    ])
+    .readonly(),
+  confirmationPrerequisite: z.literal("local_parent_booking"),
+  confirmationActor: z.literal("authorized_parent"),
+});
+const localIndependent = local.extend({
+  version: z.literal("local-independent-booking-v2"),
+  reference: z.literal("local:independent-booking:v2"),
+  admissionPolicyId: z.literal("8a3658c1-773a-4533-81c6-49ff79870216"),
+  confirmationPrerequisite: z.literal("local_independent_booking"),
+  confirmationActor: z.literal("authorized_student"),
+});
 const enabled = z.discriminatedUnion("version", [
   legacy,
   tutorCompletion,
   local,
+  localParent,
+  localIndependent,
 ]);
 export type EnabledBookingPolicy = z.infer<typeof enabled>;
 export type SyntheticBookingPolicy = Exclude<
@@ -49,7 +71,9 @@ export type SyntheticBookingPolicy = Exclude<
 type PolicyTerms =
   | Omit<z.infer<typeof legacy>, "policyId" | "contentDigest">
   | Omit<z.infer<typeof tutorCompletion>, "policyId" | "contentDigest">
-  | Omit<z.infer<typeof local>, "policyId" | "contentDigest">;
+  | Omit<z.infer<typeof local>, "policyId" | "contentDigest">
+  | Omit<z.infer<typeof localParent>, "policyId" | "contentDigest">
+  | Omit<z.infer<typeof localIndependent>, "policyId" | "contentDigest">;
 export function supportsTutorCompletion(policy: EnabledBookingPolicy) {
   return policy.version !== "synthetic-booking-v1";
 }
@@ -81,6 +105,9 @@ export function bookingPolicyDigest(v: PolicyTerms) {
         v.meetingAccess,
         // Legacy v1 receipt digests remain byte-identical; newer receipts bind completion.
         ...(v.version !== "synthetic-booking-v1" ? [v.completionActor] : []),
+        ...(v.version === "local-parent-booking-v2"
+          ? [v.acceptedGuardianPolicyIds]
+          : []),
       ]),
     )
     .digest("hex");
@@ -92,7 +119,11 @@ export function validateBookingCapability(
 export function validateBookingCapability(
   input: unknown,
   environment: "development",
-): { authority: "disabled" } | z.infer<typeof local>;
+):
+  | { authority: "disabled" }
+  | z.infer<typeof local>
+  | z.infer<typeof localParent>
+  | z.infer<typeof localIndependent>;
 export function validateBookingCapability(
   input: unknown,
   environment: string,
@@ -142,4 +173,36 @@ export const localBookingPolicy = Object.freeze({
   ...localTerms,
   policyId: "8a3658c1-773a-4533-81c6-49ff79870212",
   contentDigest: bookingPolicyDigest(localTerms),
+});
+
+const localParentTerms = {
+  ...localTerms,
+  version: "local-parent-booking-v2",
+  reference: "local:parent-booking:v2",
+  admissionPolicyId: "8a3658c1-773a-4533-81c6-49ff79870214",
+  acceptedGuardianPolicyIds: [
+    "8a3658c1-773a-4533-81c6-49ff79870211",
+    "8a3658c1-773a-4533-81c6-49ff79870214",
+  ],
+  confirmationPrerequisite: "local_parent_booking",
+  confirmationActor: "authorized_parent",
+} as const;
+export const localParentBookingPolicy = Object.freeze({
+  ...localParentTerms,
+  policyId: "8a3658c1-773a-4533-81c6-49ff79870215",
+  contentDigest: bookingPolicyDigest(localParentTerms),
+});
+
+const localIndependentTerms = {
+  ...localTerms,
+  version: "local-independent-booking-v2",
+  reference: "local:independent-booking:v2",
+  admissionPolicyId: "8a3658c1-773a-4533-81c6-49ff79870216",
+  confirmationPrerequisite: "local_independent_booking",
+  confirmationActor: "authorized_student",
+} as const;
+export const localIndependentBookingPolicy = Object.freeze({
+  ...localIndependentTerms,
+  policyId: "8a3658c1-773a-4533-81c6-49ff79870217",
+  contentDigest: bookingPolicyDigest(localIndependentTerms),
 });

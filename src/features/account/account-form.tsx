@@ -6,9 +6,12 @@ import type { TimeZoneOption } from "@/lib/time/zones";
 export function AccountForm({
   account,
   timeZones,
+  panel = false,
 }: {
   account: { id: string; name: string; timezone: string };
   timeZones: TimeZoneOption[];
+  /** Card layout used by the Admin account settings; behaviour is unchanged. */
+  panel?: boolean;
 }) {
   const ready = useHydrated();
   const router = useRouter();
@@ -51,17 +54,29 @@ export function AccountForm({
       requestAnimationFrame(() => notice.current?.focus());
     }
   }
+  const saveButton = (
+    <button
+      className="action action-primary w-full transition-none sm:w-auto"
+      type="submit"
+      disabled={pending}
+    >
+      {pending ? "Saving…" : "Save settings"}
+    </button>
+  );
   return (
     <form
-      className="mt-6 max-w-prose space-y-6"
+      className={panel ? "account-panel-form" : "mt-6 max-w-prose space-y-6"}
       onSubmit={submit}
       aria-busy={pending}
       method="post"
       action={`/api/account/${encodeURIComponent(account.id)}`}
     >
       <noscript>Enable JavaScript to use account forms here.</noscript>
-      <fieldset disabled={!ready || pending} className="space-y-6">
-        <div className="space-y-2">
+      <fieldset
+        disabled={!ready || pending}
+        className={panel ? "account-panel-fields" : "space-y-6"}
+      >
+        <div className={panel ? "account-panel-field" : "space-y-2"}>
           <label htmlFor="name" className="block text-label">
             Display name
           </label>
@@ -75,7 +90,7 @@ export function AccountForm({
             maxLength={100}
           />
         </div>
-        <div className="space-y-2">
+        <div className={panel ? "account-panel-field" : "space-y-2"}>
           <label htmlFor="timezone" className="block text-label">
             Time zone
           </label>
@@ -99,20 +114,18 @@ export function AccountForm({
             role={failed ? "alert" : "status"}
             className={
               failed
-                ? "rounded-control border border-error p-4 text-body text-error"
-                : "rounded-control border border-border bg-subtle p-4 text-body"
+                ? "account-panel-wide rounded-control border border-error p-4 text-body text-error"
+                : "account-panel-wide rounded-control border border-border bg-subtle p-4 text-body"
             }
           >
             {message}
           </p>
         )}
-        <button
-          className="action action-primary w-full transition-none sm:w-auto"
-          type="submit"
-          disabled={pending}
-        >
-          {pending ? "Saving…" : "Save settings"}
-        </button>
+        {panel ? (
+          <div className="account-panel-foot">{saveButton}</div>
+        ) : (
+          saveButton
+        )}
       </fieldset>
     </form>
   );

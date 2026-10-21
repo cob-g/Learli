@@ -6,6 +6,7 @@ import { admissionContext } from "@/features/learner-admission/context";
 import {
   listAdmittedLearners,
   readAdmittedLearner,
+  readAdmittedLearnerReceipt,
   updateAdmittedLearner,
 } from "@/features/learner-admission/service";
 import { listMyLearners, readMyLearner, updateMyLearner } from "./service";
@@ -35,7 +36,19 @@ export async function readComposedLearner(
   id: string,
 ) {
   // Private staging uses reviewed admissions only; legacy fixture guards stay local.
-  if (getLocalWorkflow(runtime) || isPrivateWorkflow(runtime))
+  if (getLocalWorkflow(runtime)) {
+    const resolved = await readAdmittedLearnerReceipt(
+      admissionContext(runtime),
+      headers,
+      id,
+    );
+    return {
+      profile: resolved.profile,
+      reviewed: true,
+      parentDeclared: resolved.parentDeclared,
+    };
+  }
+  if (isPrivateWorkflow(runtime))
     return {
       profile: await readAdmittedLearner(
         admissionContext(runtime),

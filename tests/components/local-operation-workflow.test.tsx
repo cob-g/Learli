@@ -106,6 +106,42 @@ describe("ordinary local workflow controls", () => {
     );
   });
 
+  it("submits the same validated IANA timezone used to display a replacement", async () => {
+    const fetcher = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(
+        Response.json(
+          { message: "That time is no longer available." },
+          { status: 409 },
+        ),
+      );
+    render(
+      <WorkflowActionForm
+        bookingId={id}
+        revision={2}
+        action="reschedule"
+        scope="student"
+        times={[time]}
+        displayTimezone="Asia/Manila"
+        privateWorkflow
+        source="local_operation"
+      />,
+    );
+    await userEvent.click(screen.getByRole("radio"));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Reschedule booking" }),
+    );
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(String(fetcher.mock.calls[0][1]?.body))).toEqual({
+      expectedRevision: 2,
+      reasonCode: "local_participant_change",
+      requestId: expect.any(String),
+      startAtUtc: time.startAtUtc,
+      endAtUtc: time.endAtUtc,
+      displayTimezone: "Asia/Manila",
+    });
+  });
+
   it("claims only the selected exact request and reuses its key after an uncertain result", async () => {
     const fetcher = vi
       .spyOn(globalThis, "fetch")
@@ -196,7 +232,17 @@ describe("ordinary local workflow controls", () => {
     expect(
       screen.getByRole("button", { name: "Approve screening" }),
     ).toBeVisible();
-    expect(screen.getByLabelText("Evidence reference")).toHaveValue("");
+    expect(
+      screen.queryByLabelText("Evidence reference"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Checked at")).toHaveAttribute(
+      "type",
+      "datetime-local",
+    );
+    expect(screen.getByLabelText("Expires at")).toHaveAttribute(
+      "type",
+      "datetime-local",
+    );
     expect(document.body).toHaveTextContent(
       "current evidence for every required check",
     );
@@ -260,8 +306,29 @@ describe("ordinary local workflow controls", () => {
       label: "Bookings",
       exact: true,
     });
+    expect(workspaceLinks("parent", normal)).not.toContainEqual(
+      expect.objectContaining({ href: "/learner-admission" }),
+    );
+    expect(workspaceLinks("student", normal)).not.toContainEqual(
+      expect.objectContaining({ href: "/learner-admission" }),
+    );
+    expect(workspaceLinks("admin", normal)).toContainEqual({
+      href: "/admin/learner-admission",
+      label: "Assigned learner review records",
+    });
+    expect(workspaceLinks("student", { privateWorkflow: true })).toContainEqual(
+      {
+        href: "/learner-admission",
+        label: "Learner requests",
+      },
+    );
     expect(workspaceLinks("parent", normal)).toContainEqual({
-      href: "/bookings/new",
+      href: "/bookings/new?scope=guardian",
+      label: "Book a session",
+      exact: true,
+    });
+    expect(workspaceLinks("student", normal)).toContainEqual({
+      href: "/bookings/new?scope=student",
       label: "Book a session",
       exact: true,
     });

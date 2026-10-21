@@ -1,0 +1,208 @@
+@layer components {
+  .support-guard {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1.125rem;
+    padding: 1.375rem 1.5rem;
+    border-radius: 1.25rem;
+    background: var(--brand-navy);
+    color: var(--text-inverse);
+  }
+  .support-guard::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    right: -3.75rem;
+    bottom: -2.5rem;
+    width: 20rem;
+    height: 3.5rem;
+    background: var(--brand-mint);
+    opacity: 0.9;
+    transform: rotate(-10deg);
+  }
+  .support-guard-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.8125rem;
+    background: color-mix(in srgb, var(--brand-mint) 16%, transparent);
+    color: var(--brand-mint);
+  }
+  .support-guard p {
+    max-width: 62ch;
+    color: color-mix(in srgb, var(--text-inverse) 88%, var(--brand-navy));
+    font-size: 0.875rem;
+    text-wrap: pretty;
+  }
+  .support-keep {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.875rem;
+    padding-bottom: 1.75rem;
+  }
+  .support-keep small {
+    margin-inline-end: 0.25rem;
+    color: var(--brand-mint);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .support-keep span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 1.75rem;
+    padding-inline: 0.5rem 0.6875rem;
+    border: 1px solid color-mix(in srgb, var(--text-inverse) 16%, transparent);
+    border-radius: calc(infinity * 1px);
+    background: color-mix(in srgb, var(--text-inverse) 8%, transparent);
+    color: var(--text-inverse);
+    font-size: 0.75rem;
+  }
+  .support-keep svg {
+    color: var(--brand-mint);
+  }
+  .support-other {
+    text-decoration: none;
+  }
+  .support-list-heading {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .support-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .support-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.125rem 1.375rem;
+    border: 1px solid var(--border-default);
+    border-radius: 1.25rem;
+    background: var(--bg-surface);
+    transition: border-color 150ms;
+  }
+  .support-card:hover {
+    border-color: var(--border-control);
+  }
+  .support-card-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.875rem;
+    background: color-mix(in srgb, var(--brand-mint) 30%, var(--bg-surface));
+    color: var(--accent-strong);
+  }
+  .support-card h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .support-card h2 a {
+    color: var(--brand-navy);
+    text-decoration-color: color-mix(
+      in srgb,
+      var(--brand-navy) 35%,
+      transparent
+    );
+    text-underline-offset: 3px;
+  }
+  .support-card h2 a:hover {
+    text-decoration-color: currentColor;
+  }
+  .support-card h2 + p {
+    margin-top: 0.125rem;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+  }
+  .support-blank-art {
+    position: relative;
+    width: 6rem;
+    height: 5rem;
+    margin-bottom: 0.625rem;
+  }
+  .support-blank-art > span {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 0 0 0.3125rem var(--bg-surface);
+  }
+  .support-blank-art > span:first-child {
+    top: 0.375rem;
+    left: 0;
+    width: 3.875rem;
+    height: 3rem;
+    border-radius: 1.25rem 1.25rem 1.25rem 0.375rem;
+    background: var(--brand-mint);
+    color: var(--brand-navy);
+  }
+  .support-blank-art > span:nth-child(2) {
+    right: 0;
+    bottom: 0;
+    width: 3.625rem;
+    height: 2.75rem;
+    border-radius: 1.25rem 1.25rem 0.375rem 1.25rem;
+    background: var(--brand-navy);
+    color: var(--brand-mint);
+  }
+  /* Three typing dots per bubble. */
+  .support-blank-art i {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow:
+      -0.6875rem 0 0 currentColor,
+      0.6875rem 0 0 currentColor;
+  }
+  .support-blank-art em {
+    position: absolute;
+    top: 0;
+    right: -0.25rem;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    box-shadow: 0 0 0 0.25rem var(--bg-surface);
+  }
+  .workspace-blank .support-other {
+    margin-top: 0.75rem;
+  }
+  .support-pages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  @media (max-width: 53.75rem) {
+    .support-guard {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 1.25rem;
+    }
+    .support-card {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+    .support-list-heading .support-other {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+  @media (forced-colors: active) {
+    .support-guard::after,
+    .support-blank-art em {
+      display: none;
+    }
+  }
+}

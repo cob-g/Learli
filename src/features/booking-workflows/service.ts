@@ -37,6 +37,9 @@ import { formatLessonTime } from "@/features/bookings/format-time";
 import {
   validateBookingCapability,
   supportsTutorCompletion,
+  localBookingPolicy,
+  localParentBookingPolicy,
+  localIndependentBookingPolicy,
   type BookingCapability,
   type EnabledBookingPolicy,
 } from "./policy";
@@ -54,6 +57,88 @@ export type BookingWorkflowContext = {
   booking: BookingCapability;
 };
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
+
+function localStoredPolicy(c: BookingWorkflowContext, policyId: string) {
+  const base = requireBookingPolicy(c);
+  if (!getLocalWorkflow(c.runtime)) return base;
+  if (policyId === localBookingPolicy.policyId)
+    return validateBookingCapability(
+      localBookingPolicy,
+      "development",
+    ) as EnabledBookingPolicy;
+  if (policyId === localParentBookingPolicy.policyId)
+    return validateBookingCapability(
+      localParentBookingPolicy,
+      "development",
+    ) as EnabledBookingPolicy;
+  if (policyId === localIndependentBookingPolicy.policyId)
+    return validateBookingCapability(
+      localIndependentBookingPolicy,
+      "development",
+    ) as EnabledBookingPolicy;
+  throw new AccessError(404);
+}
+
+/** Selection comes from the current owned learner receipt, never submitted policy/state. */
+async function creationPolicy(
+  tx: Transaction,
+  c: BookingWorkflowContext,
+  identity: { userId: string; sessionId: string },
+  learnerId: string,
+  key?: string,
+) {
+  const base = requireBookingPolicy(c);
+  if (!getLocalWorkflow(c.runtime)) return base;
+  if (key) {
+    const prior = await tx.execute<{ policyId: string }>(sql`
+      SELECT b.workflow_policy_id AS "policyId" FROM public.bookings b
+      WHERE b.booked_by_user_id=${identity.userId} AND b.idempotency_key=${key}::uuid
+        AND b.source='local_operation' AND public.booking_workflow_policy_current(b.workflow_policy_id)
+        AND public.has_current_learner_authority(${identity.userId},${identity.sessionId},b.learner_id,b.admission_policy_id)`);
+    if (prior.rows[0]) return localStoredPolicy(c, prior.rows[0].policyId);
+  }
+  const owned = await tx.execute<{
+    management: "guardian" | "self";
+    policyId: string;
+  }>(sql`
+    SELECT l.management,a.policy_id AS "policyId" FROM public.learner_profiles l JOIN public.learner_admissions a ON a.learner_id=l.id
+    WHERE l.id=${learnerId}::uuid AND a.source='local_operation'
+      AND a.policy_id IN (${localBookingPolicy.admissionPolicyId}::uuid,${localParentBookingPolicy.admissionPolicyId}::uuid,${localIndependentBookingPolicy.admissionPolicyId}::uuid)
+      AND public.has_current_learner_authority(${identity.userId},${identity.sessionId},l.id,a.policy_id)`);
+  if (!owned.rows[0]) throw new AccessError(404);
+  if (owned.rows[0].management === "guardian")
+    return localStoredPolicy(c, localParentBookingPolicy.policyId);
+  return owned.rows[0].policyId ===
+    localIndependentBookingPolicy.admissionPolicyId
+    ? localStoredPolicy(c, localIndependentBookingPolicy.policyId)
+    : base;
+}
+
+/** Historical actions keep the booking's immutable original policy. */
+async function storedBookingPolicy(
+  c: BookingWorkflowContext,
+  headers: Headers,
+  bookingId: string,
+  action: WorkflowAction,
+) {
+  const base = requireBookingPolicy(c);
+  if (!getLocalWorkflow(c.runtime)) return base;
+  if (!z.uuid().safeParse(bookingId).success) throw new AccessError(404);
+  const identity = await requireIdentity(c.runtime, headers);
+  const rows = await c.runtime.db.execute<{ policyId: string }>(sql`
+    SELECT b.workflow_policy_id AS "policyId" FROM public.bookings b
+    JOIN public.tutor_profiles t ON t.id=b.tutor_id
+    WHERE b.id=${bookingId}::uuid AND b.source='local_operation'
+      AND public.workflow_identity(${identity.userId},${identity.sessionId},b.source)
+      AND public.booking_workflow_policy_current(b.workflow_policy_id)
+      AND public.has_current_booking_beneficiary(b.booked_by_user_id,b.learner_id,b.admission_policy_id)
+      AND (public.has_current_learner_authority(${identity.userId},${identity.sessionId},b.learner_id,b.admission_policy_id)
+        OR (t.user_id=${identity.userId} AND public.has_current_tutor_screening(t.id,b.source)
+          AND EXISTS(SELECT 1 FROM public.user_roles r WHERE r.user_id=${identity.userId} AND r.role='tutor'))
+        OR public.has_booking_workflow_task(${identity.userId},${identity.sessionId},b.id,${action}))`);
+  if (!rows.rows[0]) throw new AccessError(404);
+  return localStoredPolicy(c, rows.rows[0].policyId);
+}
 export function requireBookingPolicy(
   c: BookingWorkflowContext,
 ): EnabledBookingPolicy {
@@ -169,6 +254,22 @@ async function candidateIntervals(
     stepMinutes: p.stepMinutes,
   });
 }
+
+async function currentActorTimezone(
+  tx: Transaction,
+  identity: { userId: string; sessionId: string },
+) {
+  const result = await tx.execute<{ timezone: string }>(sql`
+    SELECT u.timezone
+    FROM public."user" u
+    JOIN public.user_access a ON a.user_id=u.id AND a.status='active'
+    JOIN public.session s ON s.user_id=u.id AND s.id=${identity.sessionId}
+      AND s.expires_at>clock_timestamp()
+    WHERE u.id=${identity.userId} AND u.email_verified`);
+  if (!result.rows[0]) throw new AccessError(404);
+  return result.rows[0].timezone;
+}
+
 async function currentChoice(
   tx: Transaction,
   id: { userId: string; sessionId: string },
@@ -176,12 +277,16 @@ async function currentChoice(
   v: z.infer<typeof workflowChoice>,
   privatePacket: PrivateWorkflowPacket | null,
 ) {
+  const learnerAuthority =
+    p.version === "local-parent-booking-v2"
+      ? sql`EXISTS(SELECT 1 FROM public.learner_admissions a WHERE a.learner_id=l.id AND a.management='guardian' AND a.source='local_operation' AND a.policy_id IN (${p.acceptedGuardianPolicyIds[0]}::uuid,${p.acceptedGuardianPolicyIds[1]}::uuid) AND public.has_current_learner_authority(${id.userId},${id.sessionId},l.id,a.policy_id))`
+      : sql`public.has_current_learner_authority(${id.userId},${id.sessionId},l.id,${p.admissionPolicyId}::uuid)`;
   const r = await tx.execute<{
     id: string;
     timezone: string;
     subjectId: string;
   }>(
-    sql`SELECT t.id,t.timezone,s.id AS "subjectId" FROM public.tutor_profiles t JOIN public.subjects s ON s.slug=${v.subjectSlug} AND s.is_active JOIN public.tutor_subjects ts ON ts.tutor_id=t.id AND ts.subject_id=s.id JOIN public.learner_profiles l ON l.id=${v.learnerId}::uuid AND l.level=ANY(ts.levels) WHERE ${privateTutorPredicate(privatePacket, sql`t.id`)} AND ${privateActorPredicate(privatePacket, sql`${id.userId}`)} AND t.slug=${v.tutorSlug} AND public.booking_workflow_policy_current(${p.policyId}::uuid) AND public.has_current_learner_authority(${id.userId},${id.sessionId},l.id,${p.admissionPolicyId}::uuid) AND public.has_current_tutor_screening(t.id,${p.source}) AND t.review_status='approved' AND EXISTS(SELECT 1 FROM public."user" u JOIN public.user_access a ON a.user_id=u.id AND a.status='active' JOIN public.user_roles r ON r.user_id=u.id AND r.role='tutor' WHERE u.id=t.user_id AND u.email_verified AND (${p.source}='local_operation' OR u.email LIKE '%.test'))`,
+    sql`SELECT t.id,t.timezone,s.id AS "subjectId" FROM public.tutor_profiles t JOIN public.subjects s ON s.slug=${v.subjectSlug} AND s.is_active JOIN public.tutor_subjects ts ON ts.tutor_id=t.id AND ts.subject_id=s.id JOIN public.learner_profiles l ON l.id=${v.learnerId}::uuid AND l.level=ANY(ts.levels) WHERE ${privateTutorPredicate(privatePacket, sql`t.id`)} AND ${privateActorPredicate(privatePacket, sql`${id.userId}`)} AND t.slug=${v.tutorSlug} AND public.booking_workflow_policy_current(${p.policyId}::uuid) AND ${learnerAuthority} AND public.has_current_tutor_screening(t.id,${p.source}) AND t.review_status='approved' AND EXISTS(SELECT 1 FROM public."user" u JOIN public.user_access a ON a.user_id=u.id AND a.status='active' JOIN public.user_roles r ON r.user_id=u.id AND r.role='tutor' WHERE u.id=t.user_id AND u.email_verified AND (${p.source}='local_operation' OR u.email LIKE '%.test'))`,
   );
   if (!r.rows[0]) throw new AccessError(404);
   return r.rows[0];
@@ -195,8 +300,20 @@ export async function loadWorkflowOptions(
   const admission = admissionContext(c.runtime);
   // Test-owned composition installs W5 capability separately; no inferred authority.
   const learners = await listAdmittedLearners(admission, headers);
-  const current = await c.runtime.db.execute<{ ok: boolean }>(
-    sql`SELECT public.booking_workflow_policy_current(${p.policyId}::uuid) AND EXISTS(SELECT 1 FROM public.session s WHERE s.id=${id.sessionId} AND s.user_id=${id.userId} AND s.expires_at>clock_timestamp()) AS ok`,
+  const current = await c.runtime.db.execute<{
+    ok: boolean;
+    immediateConfirmationLearnerIds: string[];
+  }>(
+    sql`SELECT public.booking_workflow_policy_current(${p.policyId}::uuid) AND EXISTS(SELECT 1 FROM public.session s WHERE s.id=${id.sessionId} AND s.user_id=${id.userId} AND s.expires_at>clock_timestamp()) AS ok,
+      COALESCE(ARRAY(
+        SELECT a.learner_id::text FROM public.learner_admissions a
+        WHERE ${getLocalWorkflow(c.runtime) !== null}
+          AND a.policy_id IN (${localParentBookingPolicy.admissionPolicyId}::uuid,${localIndependentBookingPolicy.admissionPolicyId}::uuid)
+          AND public.has_current_learner_authority(${id.userId},${id.sessionId},a.learner_id,a.policy_id)
+          AND ((a.policy_id=${localParentBookingPolicy.admissionPolicyId}::uuid AND public.booking_workflow_policy_current(${localParentBookingPolicy.policyId}::uuid))
+            OR (a.policy_id=${localIndependentBookingPolicy.admissionPolicyId}::uuid AND public.booking_workflow_policy_current(${localIndependentBookingPolicy.policyId}::uuid)))
+        ORDER BY a.learner_id
+      ),ARRAY[]::text[]) AS "immediateConfirmationLearnerIds"`,
   );
   if (!current.rows[0]?.ok) throw new AccessError(503);
   const currentSession = await c.runtime.auth.api.getSession({
@@ -214,6 +331,8 @@ export async function loadWorkflowOptions(
       getPrivateWorkflow(c.runtime),
     ),
     timezone: currentSession.user.timezone,
+    immediateConfirmationLearnerIds:
+      current.rows[0].immediateConfirmationLearnerIds,
   };
 }
 export async function readWorkflowCandidates(
@@ -221,10 +340,10 @@ export async function readWorkflowCandidates(
   headers: Headers,
   input: unknown,
 ) {
-  const p = requireBookingPolicy(c),
-    id = await actor(c, headers),
+  const id = await actor(c, headers),
     v = workflowChoice.parse(input);
   return workflowTransaction(c.runtime, async (tx) => {
+    const p = await creationPolicy(tx, c, id, v.learnerId);
     await tx
       .select({ id: tutorProfiles.id })
       .from(tutorProfiles)
@@ -249,11 +368,11 @@ export async function createPolicyReservation(
   headers: Headers,
   input: unknown,
 ) {
-  const p = requireBookingPolicy(c),
-    id = await actor(c, headers),
+  const id = await actor(c, headers),
     v = workflowCreate.parse(input),
     hash = fingerprint(v);
   return workflowTransaction(c.runtime, async (tx) => {
+    const p = await creationPolicy(tx, c, id, v.learnerId, v.idempotencyKey);
     await tx
       .select({ id: tutorProfiles.id })
       .from(tutorProfiles)
@@ -317,7 +436,7 @@ export async function changePolicyBooking(
   action: WorkflowAction,
   input: unknown,
 ) {
-  const p = requireBookingPolicy(c),
+  const p = await storedBookingPolicy(c, headers, bookingId, action),
     id =
       ["confirm", "complete", "no_show"].includes(action) &&
       !(action === "complete" && supportsTutorCompletion(p))
@@ -341,11 +460,23 @@ export async function changePolicyBooking(
       .where(eq(bookings.id, bookingId))
       .for("no key update");
     if (!original) throw new AccessError(404);
+    let trustedMove = moved;
     if (moved) {
       const t = await tx.execute<{ id: string; timezone: string }>(
         sql`SELECT t.id,t.timezone FROM public.tutor_profiles t JOIN public.bookings b ON b.tutor_id=t.id WHERE b.id=${bookingId}::uuid`,
       );
       if (!t.rows[0]) throw new AccessError(404);
+      const displayTimezone = await currentActorTimezone(tx, id);
+      if (moved.displayTimezone !== displayTimezone)
+        throw new RuleError(
+          409,
+          "Your account time zone changed. Reload current times and try again.",
+        );
+      const trusted = {
+        ...moved,
+        displayTimezone,
+      };
+      trustedMove = trusted;
       const prior = await tx.execute<{ id: string }>(
         sql`SELECT id FROM public.booking_lifecycle_events WHERE actor_user_id=${id.userId} AND request_id=${v.requestId}::uuid`,
       );
@@ -355,8 +486,8 @@ export async function changePolicyBooking(
           !slots.some(
             (t) =>
               t.start.toISOString() ===
-                new Date(moved.startAtUtc).toISOString() &&
-              t.end.toISOString() === new Date(moved.endAtUtc).toISOString(),
+                new Date(trusted.startAtUtc).toISOString() &&
+              t.end.toISOString() === new Date(trusted.endAtUtc).toISOString(),
           )
         )
           throw new RuleError(
@@ -372,7 +503,7 @@ export async function changePolicyBooking(
       booking_id: string | null;
       event_id: string | null;
     }>(
-      sql`SELECT * FROM public.change_policy_booking(${id.userId},${id.sessionId},${bookingId}::uuid,${v.requestId}::uuid,${p.policyId}::uuid,${v.expectedRevision},${action},${v.reasonCode},${moved?.startAtUtc ?? null}::timestamptz,${moved?.endAtUtc ?? null}::timestamptz,${moved?.displayTimezone ?? null},${fingerprint({ bookingId, action, ...v })})`,
+      sql`SELECT * FROM public.change_policy_booking(${id.userId},${id.sessionId},${bookingId}::uuid,${v.requestId}::uuid,${p.policyId}::uuid,${v.expectedRevision},${action},${v.reasonCode},${trustedMove?.startAtUtc ?? null}::timestamptz,${trustedMove?.endAtUtc ?? null}::timestamptz,${trustedMove?.displayTimezone ?? null},${fingerprint({ bookingId, action, ...(trustedMove ?? v) })})`,
     );
     const r = saved(result.rows[0]);
     return receipt(
@@ -430,7 +561,7 @@ export async function readTutorCompletion(
   headers: Headers,
   bookingId: string,
 ) {
-  const p = requireBookingPolicy(c);
+  const p = await storedBookingPolicy(c, headers, bookingId, "complete");
   if (!supportsTutorCompletion(p)) return null;
   const id = await actor(c, headers);
   if (!z.uuid().safeParse(bookingId).success) throw new AccessError(404);
@@ -452,7 +583,7 @@ export async function readWorkflowMoveCandidates(
   headers: Headers,
   bookingId: string,
 ) {
-  const p = requireBookingPolicy(c),
+  const p = await storedBookingPolicy(c, headers, bookingId, "reschedule"),
     id = await actor(c, headers);
   z.uuid().parse(bookingId);
   return workflowTransaction(c.runtime, async (tx) => {
@@ -468,7 +599,8 @@ export async function readWorkflowMoveCandidates(
       sql`SELECT t.id,t.timezone FROM public.bookings b JOIN public.tutor_profiles t ON t.id=b.tutor_id WHERE ${privateBookingPredicate(getPrivateWorkflow(c.runtime), sql`b.id`)} AND ${privateActorPredicate(getPrivateWorkflow(c.runtime), sql`${id.userId}`)} AND b.id=${bookingId}::uuid AND b.source=${p.source} AND b.state IN('provisional','confirmed') AND (b.state='confirmed' OR b.expires_at>clock_timestamp()) AND b.start_at_utc>clock_timestamp()+interval '60 minutes' AND b.workflow_policy_id=${p.policyId}::uuid AND public.booking_workflow_policy_current(b.workflow_policy_id) AND public.has_current_learner_authority(${id.userId},${id.sessionId},b.learner_id,b.admission_policy_id) AND public.has_current_tutor_screening(t.id,${p.source})`,
     );
     if (!fresh.rows[0]) throw new AccessError(404);
-    return slots.map((t) => formatLessonTime(t.start, t.end, "UTC"));
+    const displayTimezone = await currentActorTimezone(tx, id);
+    return slots.map((t) => formatLessonTime(t.start, t.end, displayTimezone));
   });
 }
 

@@ -9,8 +9,16 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { z } from "zod";
 import { readPrivateJson } from "./staging-database";
 import { assertPrivateDirectory } from "./private-workflow-local";
-import { localAdmissionPolicy } from "../src/features/learner-admission/policy";
-import { localBookingPolicy } from "../src/features/booking-workflows/policy";
+import {
+  localAdmissionPolicy,
+  localGuardianAdmissionPolicy,
+  localIndependentAdmissionPolicy,
+} from "../src/features/learner-admission/policy";
+import {
+  localBookingPolicy,
+  localIndependentBookingPolicy,
+  localParentBookingPolicy,
+} from "../src/features/booking-workflows/policy";
 import { localScreeningPolicy } from "../src/features/tutor-screening/policy";
 import { runtimeGrantsSql } from "./runtime-grants";
 
@@ -118,6 +126,159 @@ export async function prepareLocalPolicies(client: PoolClient) {
     `INSERT INTO public.tutor_screening_policy_heads(provenance,version,status) VALUES('local_operation',$1,'enabled') ON CONFLICT DO NOTHING`,
     [s.version],
   );
+  // Additive guardian and parent-booking receipts never replace either v1 head.
+  const guardian = localGuardianAdmissionPolicy,
+    parentBooking = localParentBookingPolicy;
+  await client.query(
+    `INSERT INTO public.learner_admission_policies(id,source,authority,version,reference,market_code,content_digest,notice_version,guardian_proof_method,independent_eligibility_rule,reviewer_capability_code,revocation_effect)
+    VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ON CONFLICT DO NOTHING`,
+    [
+      guardian.policyId,
+      guardian.source,
+      guardian.authority,
+      guardian.version,
+      guardian.reference,
+      guardian.marketCode,
+      guardian.contentDigest,
+      guardian.noticeVersion,
+      guardian.guardianProofMethod,
+      guardian.independentEligibilityRule,
+      guardian.reviewerCapabilityCode,
+      guardian.revocationEffect,
+    ],
+  );
+  const guardianReceipt = await client.query(
+    `SELECT 1 FROM public.learner_admission_policies WHERE id=$1 AND source=$2 AND authority=$3 AND version=$4 AND reference=$5 AND market_code=$6 AND content_digest=$7 AND notice_version=$8 AND guardian_proof_method=$9 AND independent_eligibility_rule=$10 AND reviewer_capability_code=$11 AND revocation_effect=$12`,
+    [
+      guardian.policyId,
+      guardian.source,
+      guardian.authority,
+      guardian.version,
+      guardian.reference,
+      guardian.marketCode,
+      guardian.contentDigest,
+      guardian.noticeVersion,
+      guardian.guardianProofMethod,
+      guardian.independentEligibilityRule,
+      guardian.reviewerCapabilityCode,
+      guardian.revocationEffect,
+    ],
+  );
+  if (guardianReceipt.rowCount !== 1)
+    throw new Error("Existing local guardian policy differs.");
+  await client.query(
+    `INSERT INTO public.learner_admission_policy_state(source,market_code,current_policy_id,enabled) VALUES('local_operation',$1,$2,true) ON CONFLICT DO NOTHING`,
+    [guardian.marketCode, guardian.policyId],
+  );
+  await client.query(
+    `INSERT INTO public.booking_workflow_policies(id,version,reference,content_digest,terms) VALUES($1,$2,$3,$4,$5::jsonb) ON CONFLICT DO NOTHING`,
+    [
+      parentBooking.policyId,
+      parentBooking.version,
+      parentBooking.reference,
+      parentBooking.contentDigest,
+      JSON.stringify(parentBooking),
+    ],
+  );
+  const parentReceipt = await client.query(
+    `SELECT 1 FROM public.booking_workflow_policies WHERE id=$1 AND version=$2 AND reference=$3 AND content_digest=$4 AND terms=$5::jsonb`,
+    [
+      parentBooking.policyId,
+      parentBooking.version,
+      parentBooking.reference,
+      parentBooking.contentDigest,
+      JSON.stringify(parentBooking),
+    ],
+  );
+  if (parentReceipt.rowCount !== 1)
+    throw new Error("Existing local parent booking policy differs.");
+  // Independent-v2 receipts use their own admission state and never replace v1.
+  const independent = localIndependentAdmissionPolicy,
+    independentBooking = localIndependentBookingPolicy;
+  await client.query(
+    `INSERT INTO public.learner_admission_policies(id,source,authority,version,reference,market_code,content_digest,notice_version,guardian_proof_method,independent_eligibility_rule,reviewer_capability_code,revocation_effect)
+    VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ON CONFLICT DO NOTHING`,
+    [
+      independent.policyId,
+      independent.source,
+      independent.authority,
+      independent.version,
+      independent.reference,
+      independent.marketCode,
+      independent.contentDigest,
+      independent.noticeVersion,
+      independent.guardianProofMethod,
+      independent.independentEligibilityRule,
+      independent.reviewerCapabilityCode,
+      independent.revocationEffect,
+    ],
+  );
+  const independentReceipt = await client.query(
+    `SELECT 1 FROM public.learner_admission_policies WHERE id=$1 AND source=$2 AND authority=$3 AND version=$4 AND reference=$5 AND market_code=$6 AND content_digest=$7 AND notice_version=$8 AND guardian_proof_method=$9 AND independent_eligibility_rule=$10 AND reviewer_capability_code=$11 AND revocation_effect=$12`,
+    [
+      independent.policyId,
+      independent.source,
+      independent.authority,
+      independent.version,
+      independent.reference,
+      independent.marketCode,
+      independent.contentDigest,
+      independent.noticeVersion,
+      independent.guardianProofMethod,
+      independent.independentEligibilityRule,
+      independent.reviewerCapabilityCode,
+      independent.revocationEffect,
+    ],
+  );
+  if (independentReceipt.rowCount !== 1)
+    throw new Error("Existing local independent policy differs.");
+  await client.query(
+    `INSERT INTO public.learner_admission_policy_state(source,market_code,current_policy_id,enabled) VALUES('local_operation',$1,$2,true) ON CONFLICT DO NOTHING`,
+    [independent.marketCode, independent.policyId],
+  );
+  await client.query(
+    `INSERT INTO public.booking_workflow_policies(id,version,reference,content_digest,terms) VALUES($1,$2,$3,$4,$5::jsonb) ON CONFLICT DO NOTHING`,
+    [
+      independentBooking.policyId,
+      independentBooking.version,
+      independentBooking.reference,
+      independentBooking.contentDigest,
+      JSON.stringify(independentBooking),
+    ],
+  );
+  const independentBookingReceipt = await client.query(
+    `SELECT 1 FROM public.booking_workflow_policies WHERE id=$1 AND version=$2 AND reference=$3 AND content_digest=$4 AND terms=$5::jsonb`,
+    [
+      independentBooking.policyId,
+      independentBooking.version,
+      independentBooking.reference,
+      independentBooking.contentDigest,
+      JSON.stringify(independentBooking),
+    ],
+  );
+  if (independentBookingReceipt.rowCount !== 1)
+    throw new Error("Existing local independent booking policy differs.");
+  const guardianHead = await client.query(
+    `SELECT public.local_guardian_policy_current($1) AS guardian,
+      public.booking_workflow_policy_current($2) AS parent_booking,
+      public.local_independent_policy_current($3) AS independent,
+      public.booking_workflow_policy_current($4) AS independent_booking`,
+    [
+      guardian.policyId,
+      parentBooking.policyId,
+      independent.policyId,
+      independentBooking.policyId,
+    ],
+  );
+  if (
+    guardianHead.rows[0]?.guardian !== true ||
+    guardianHead.rows[0]?.parent_booking !== true ||
+    guardianHead.rows[0]?.independent !== true ||
+    guardianHead.rows[0]?.independent_booking !== true
+  )
+    throw new Error(
+      "Current automatic learner or direct booking policy is revoked or differs.",
+    );
   const heads = await client.query(
     `SELECT EXISTS(SELECT 1 FROM public.learner_admission_policy_state WHERE source='local_operation' AND market_code='local_operation' AND current_policy_id=$1 AND enabled) AND EXISTS(SELECT 1 FROM public.booking_workflow_policy_head WHERE source='local_operation' AND policy_id=$2 AND enabled) AND EXISTS(SELECT 1 FROM public.tutor_screening_policy_heads WHERE provenance='local_operation' AND version=$3 AND status='enabled') AS valid`,
     [a.policyId, b.policyId, s.version],
@@ -229,7 +390,7 @@ export async function localWorkflowMain(argv: string[], root = process.cwd()) {
       await client.query("COMMIT");
       return {
         status: "applied" as const,
-        policies: 3,
+        policies: 7,
         staff: values.admin ? 1 : 0,
       };
     } finally {

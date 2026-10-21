@@ -1,5 +1,12 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { StatusForm } from "@/features/support/status-form";
@@ -89,15 +96,15 @@ describe("defensive error parsing", () => {
       vi.fn().mockResolvedValue({ ok: false, json: body }),
     );
     render(<ScreeningForm tutorId="t1" detail={{ ...detail, checks: [] }} />);
-    await userEvent.type(screen.getByLabelText("Evidence reference"), "x");
-    await userEvent.type(
-      screen.getByLabelText("Checked at (UTC ISO date)"),
-      "2026-10-12T12:00:00Z",
-    );
-    await userEvent.type(
-      screen.getByLabelText("Expires at (UTC ISO date)"),
-      "2026-10-13T12:00:00Z",
-    );
+    expect(
+      screen.queryByLabelText("Evidence reference"),
+    ).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Checked at"), {
+      target: { value: "2026-10-12T12:00" },
+    });
+    fireEvent.change(screen.getByLabelText("Expires at"), {
+      target: { value: "2026-10-13T12:00" },
+    });
     await userEvent.click(screen.getByRole("button", { name: "Record check" }));
   }
   it("hides parser text for a non-JSON body", async () => {

@@ -1,0 +1,282 @@
+@layer components {
+  .admin-hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 2rem;
+    padding: 2.5rem 2.75rem;
+    border-radius: 1.5rem;
+    background: var(--brand-navy);
+    color: var(--text-inverse);
+    --focus-ring: var(--focus-ring-inverse);
+  }
+  /* Decorative mint band and glow from the brand kit's navy fields. */
+  .admin-hero::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    right: -10%;
+    bottom: -1.875rem;
+    width: 70%;
+    height: 6rem;
+    background: var(--brand-mint);
+    opacity: 0.95;
+    transform: rotate(-9deg);
+  }
+  .admin-hero::after {
+    content: "";
+    position: absolute;
+    z-index: -2;
+    inset: 0;
+    background: radial-gradient(
+      50% 70% at 90% 0%,
+      color-mix(in srgb, var(--accent-primary) 22%, transparent),
+      transparent 70%
+    );
+  }
+  .admin-hero-orb {
+    position: absolute;
+    z-index: -1;
+    right: 16%;
+    bottom: 3.75rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    box-shadow: 0 0 0 0.375rem var(--brand-navy);
+  }
+  .admin-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    color: var(--brand-mint);
+    font-size: 0.8125rem;
+    font-weight: 500;
+  }
+  .admin-eyebrow::before {
+    content: "";
+    width: 1.5rem;
+    height: 1.5px;
+    background: currentColor;
+  }
+  .admin-hero-title {
+    margin-top: 0.875rem;
+    font-size: clamp(2.125rem, 1.6rem + 1.6vw, 2.75rem);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+  }
+  .admin-hero-title em {
+    color: var(--brand-mint);
+    font-family: var(--font-reading);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  .admin-who {
+    margin-top: 0.625rem;
+    color: var(--text-inverse-muted);
+    font-size: 0.875rem;
+  }
+  .admin-lede {
+    max-width: 58ch;
+    margin-top: 1.25rem;
+    color: color-mix(in srgb, var(--text-inverse) 88%, var(--brand-navy));
+    font-size: 0.9375rem;
+    text-wrap: pretty;
+  }
+  .admin-hero-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    min-width: 0;
+    padding-bottom: 4rem;
+  }
+  .admin-hero-primary {
+    gap: 0.75rem;
+    padding-inline: 1.25rem 0.625rem;
+    border-radius: 0.75rem;
+    background: var(--accent-primary);
+    color: var(--brand-navy);
+    font-weight: 500;
+    transition: background-color 150ms;
+  }
+  .admin-hero-primary:hover {
+    background: var(--brand-mint);
+    color: var(--brand-navy);
+  }
+  .admin-hero-arrow {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.5rem;
+    background: var(--brand-navy);
+    color: var(--text-inverse);
+  }
+  .admin-hero-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    color: var(--text-inverse);
+    font-size: 0.875rem;
+    text-decoration: underline;
+    text-decoration-color: color-mix(
+      in srgb,
+      var(--brand-mint) 60%,
+      transparent
+    );
+    text-underline-offset: 3px;
+  }
+  .admin-hero-link:hover {
+    color: var(--brand-mint);
+  }
+  .admin-section-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    margin-bottom: 1rem;
+  }
+  .admin-section-heading h2 {
+    color: var(--brand-navy);
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .admin-section-heading p,
+  .admin-area > p {
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    text-wrap: pretty;
+  }
+  .admin-areas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .admin-area {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 1.375rem 1.375rem 0.625rem;
+    border: 1px solid var(--border-default);
+    border-radius: 1.25rem;
+    background: var(--bg-surface);
+  }
+  .admin-area-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.375rem;
+  }
+  .admin-area-heading h3 {
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .admin-area-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, var(--brand-mint) 30%, var(--bg-surface));
+    color: var(--accent-strong);
+  }
+  .admin-area[data-tone="navy"] .admin-area-icon {
+    background: color-mix(in srgb, var(--brand-navy) 10%, var(--bg-surface));
+    color: var(--brand-navy);
+  }
+  .admin-area > p {
+    margin-bottom: 0.75rem;
+  }
+  .admin-area-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 2.875rem;
+    padding: 0.625rem 0.25rem;
+    border-top: 1px solid var(--border-default);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    line-height: 1.3;
+    text-decoration: none;
+  }
+  .admin-area-row svg {
+    flex: none;
+    color: var(--text-muted);
+    transition: color 150ms;
+  }
+  .admin-area-row:hover {
+    color: var(--brand-navy);
+  }
+  .admin-area-row:hover svg {
+    color: var(--brand-navy);
+  }
+  .admin-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+  }
+  .admin-note {
+    display: flex;
+    flex: 1 1 20rem;
+    align-items: flex-start;
+    gap: 0.875rem;
+    min-width: 0;
+    padding: 1rem 1.25rem;
+    border: 1px dashed var(--border-default);
+    border-radius: 1rem;
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+  }
+  .admin-note svg {
+    flex: none;
+    margin-top: 1px;
+    color: var(--brand-navy);
+  }
+  .admin-note strong {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+  @media (max-width: 68.75rem) {
+    .admin-areas {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .admin-hero {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .admin-hero-actions {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem 1.25rem;
+    }
+  }
+  @media (max-width: 53.75rem) {
+    .admin-hero {
+      padding: 1.75rem 1.5rem;
+    }
+    .admin-areas {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (forced-colors: active) {
+    .admin-hero::before,
+    .admin-hero::after,
+    .admin-hero-orb {
+      display: none;
+    }
+  }
+}

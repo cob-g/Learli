@@ -2,6 +2,7 @@
 
 import { useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { RefreshCw } from "lucide-react";
 
 export function LoadingTutorBookings() {
   return (
@@ -22,10 +23,11 @@ export function TutorBookingRefresh() {
   return (
     <form action="/tutor" method="get" onSubmit={refresh} aria-busy={pending}>
       <button
-        className="action action-outline"
+        className="action action-outline tutor-refresh"
         type="submit"
         disabled={pending}
       >
+        <RefreshCw size={15} aria-hidden="true" />
         Refresh bookings
       </button>
       {pending && <LoadingTutorBookings />}

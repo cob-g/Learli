@@ -10,6 +10,10 @@ export const runtimeGrantsSql = `
     GRANT EXECUTE ON FUNCTION public.assert_booking_workflow_receipt(text,text,uuid,uuid,text,uuid,boolean,text,timestamptz,timestamptz,timestamptz) TO learli_app;
     GRANT EXECUTE ON FUNCTION public.publication_policy_current(uuid),public.publication_completion_current(text,uuid,uuid,integer),public.publication_author_allowed(text,text,uuid,uuid,integer,uuid),public.publication_moderator_allowed(text,text,uuid,uuid),public.submit_publication_review(text,text,uuid,uuid,integer,uuid,uuid,integer,text),public.decide_publication_review(text,text,uuid,uuid,integer,uuid,text,boolean) TO learli_app;
     REVOKE ALL ON ALL TABLES IN SCHEMA public FROM learli_app;
+    GRANT SELECT ON learner_guardian_attestations TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.create_parent_child(text,text,uuid,uuid,text,text,text,integer,text,text,boolean,boolean), public.claim_guardian_admission_exception(text,text,uuid,uuid,uuid) TO learli_app;
+    GRANT SELECT ON learner_independent_attestations TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.create_independent_learner(text,text,uuid,uuid,text,text,text,text,boolean) TO learli_app;
     GRANT SELECT ON local_workflow_staff, local_workflow_claims TO learli_app;
     GRANT EXECUTE ON FUNCTION public.workflow_identity(text,text,text), public.has_local_workflow_staff(text,text,text), public.claim_local_workflow_task(text,text,text,text,uuid), public.local_workflow_claim_current(text,text,text,text), public.admission_reviewer_allowed(text,text,uuid), public.admission_policy_current(uuid) TO learli_app;
     GRANT SELECT ON transactional_deliveries TO learli_app;

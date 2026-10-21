@@ -19,6 +19,7 @@ export type MeetingActor = {
 export type MeetingSnapshot = {
   source: "local_simulation" | "synthetic_readiness" | "local_operation";
   live: boolean;
+  awaitingConfirmation: boolean;
   canEdit: boolean;
   now: string;
   url: string | null;
@@ -44,6 +45,7 @@ export async function queryPrivateMeeting(
     ), permitted AS (
       SELECT b.id, b.source, a.now,
         ((b.source='local_simulation' AND b.state IN('demo_reserved','demo_confirmed') AND b.expires_at > a.now) OR (b.source IN('synthetic_readiness','local_operation') AND b.state='confirmed' AND b.end_at_utc>a.now AND public.booking_workflow_policy_current(b.workflow_policy_id))) AS live,
+        (b.source IN('synthetic_readiness','local_operation') AND b.state='provisional' AND b.expires_at>a.now AND b.end_at_utc>a.now AND public.booking_workflow_policy_current(b.workflow_policy_id)) AS awaiting_confirmation,
         tp.user_id=a.id AND EXISTS (
           SELECT 1 FROM user_roles r WHERE r.user_id=a.id AND r.role='tutor'
         ) AS can_edit
@@ -65,7 +67,7 @@ export async function queryPrivateMeeting(
           ))`
           }
         )
-    ) SELECT p.source, p.live, p.can_edit AS "canEdit", p.now::text AS now,
+    ) SELECT p.source, p.live, p.awaiting_confirmation AS "awaitingConfirmation", p.can_edit AS "canEdit", p.now::text AS now,
       m.url, m.provider, m.revision
     FROM permitted p LEFT JOIN booking_meeting_links m ON m.booking_id=p.id AND p.live
   `);

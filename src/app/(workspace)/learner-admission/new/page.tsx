@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { requireIdentity } from "@/lib/permissions/access";
 import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { randomUUID } from "node:crypto";
 import type { Metadata } from "next";
@@ -11,7 +13,10 @@ import { listTimeZoneOptions } from "@/lib/time/zones";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { privateBookingHref } from "@/features/bookings/selection";
-import { initialAdmissionManagement } from "@/features/student-onboarding/continuation";
+import {
+  initialAdmissionManagement,
+  studentOnboardingHref,
+} from "@/features/student-onboarding/continuation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Request learner admission",
@@ -32,11 +37,28 @@ export default async function Page({
   if (initialManagement === "self") query.set("management", "self");
   if (canonicalNext) query.set("next", canonicalNext);
   const path = `/learner-admission/new${query.size ? `?${query}` : ""}`;
-  const context = await loadPrivatePage(path, async (runtime, headers) => ({
-    ...(await readAdmissionIntake(admissionContext(runtime), headers)),
-    privateWorkflow: hasPersistentWorkflow(runtime),
-    localWorkflow: getLocalWorkflow(runtime) !== null,
-  }));
+  const context = await loadPrivatePage(path, async (runtime, headers) => {
+    const localWorkflow = getLocalWorkflow(runtime) !== null;
+    if (localWorkflow) {
+      const identity = await requireIdentity(runtime, headers);
+      return {
+        redirectTo:
+          initialManagement !== "self" && identity.roles.includes("parent")
+            ? canonicalNext
+              ? `/parent/children/new?next=${encodeURIComponent(privateBookingHref(canonicalNext))}`
+              : "/parent/children/new"
+            : studentOnboardingHref(
+                canonicalNext ? privateBookingHref(canonicalNext) : undefined,
+              ),
+      };
+    }
+    return {
+      redirectTo: null,
+      ...(await readAdmissionIntake(admissionContext(runtime), headers)),
+      privateWorkflow: hasPersistentWorkflow(runtime),
+      localWorkflow,
+    };
+  });
   if (!context)
     return (
       <UnavailablePage
@@ -44,6 +66,7 @@ export default async function Page({
         message="We cannot open admission intake on this account."
       />
     );
+  if (context.redirectTo !== null) redirect(context.redirectTo);
   const { privateWorkflow } = context;
   const next =
     canonicalNext && privateWorkflow

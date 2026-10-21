@@ -214,6 +214,36 @@ test("multi-role and roleless shared pages are neutral; unassigned routes stay d
   );
 });
 
+test("multi-role booking entry preserves parent or student scope through sign-in", async ({
+  page,
+}) => {
+  const account = await signIn(page, ["parent", "student"]);
+  for (const scope of ["student", "guardian"] as const) {
+    expect(
+      (
+        await page.request.post("/api/auth/sign-out", {
+          headers: { origin },
+          data: {},
+        })
+      ).ok(),
+    ).toBe(true);
+    await page.goto("/account");
+    await expect(page).toHaveURL(/\/sign-in\?next=%2Faccount$/);
+    const next = `/bookings/new?scope=${scope}`;
+    await page.goto(`/sign-in?${new URLSearchParams({ next })}`);
+    await page.getByLabel("Email", { exact: true }).fill(account.email);
+    await page.getByLabel("Password", { exact: true }).fill(password);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await expect(page).toHaveURL(next);
+    await expect(
+      page.getByRole("heading", {
+        name: "Booking request unavailable",
+        exact: true,
+      }),
+    ).toBeVisible();
+  }
+});
+
 test("mobile menu, keyboard, long names and 200 percent text remain readable", async ({
   page,
 }) => {

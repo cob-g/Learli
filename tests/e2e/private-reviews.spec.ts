@@ -199,6 +199,7 @@ for (const [label, width, height] of [
       const menu = admin.getByRole("button", { name: "Workspace menu" });
       if (await menu.isVisible()) await menu.click();
       await admin
+        .locator(".workspace-sidebar")
         .getByRole("link", { name: "Private synthetic reviews", exact: true })
         .click();
       await admin.getByRole("link", { name: "Open scoped review 1" }).click();

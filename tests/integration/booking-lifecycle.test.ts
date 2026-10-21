@@ -231,9 +231,11 @@ describe("local booking lifecycle actual PostgreSQL", () => {
       "guardian",
     );
     expect(original.currentHeadId).toBe(newRow.id);
-    expect(original.events.some((e) => e.event === "demo_rescheduled")).toBe(
-      true,
-    );
+    expect(original.events.map((event) => event.event)).toEqual([
+      "demo_reserved",
+      "demo_rescheduled",
+      "demo_reserved",
+    ]);
     expect(
       await changeDemoBooking(
         world.runtime,

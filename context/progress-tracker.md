@@ -1,5 +1,724 @@
 # Learli — Progress Tracker
 
+## 2026-10-21 — Browser verification of the workspace redesign; private-workflow blockers in earlier Oct-18 work
+
+- Default browser suite (`npm run test:e2e`, isolated `learli_test`, fresh
+  production build with the test env): **219/219 PASS**, no retries needed, on
+  the final run. Redesign defects found and fixed during the runs:
+  - Subjects: the acronym monogram ("SAT") duplicated the subject name as
+    page text. It is now drawn from `data-monogram` with CSS `content`.
+  - The sidebar current link and the chips no longer transition colour. Axe
+    measured a mid-fade frame at 1.73:1.
+  - Forced colours: the navy panels (Tutor setup, availability week view,
+    time-off calendar header and date tiles, support guidance, profile preview)
+    now carry `data-surface="inverse"`. A shared forced-colours rule in
+    `workspace-page.css` maps their text, links and buttons to system colours;
+    authored mint/white text had been left on Canvas.
+  - `/account` cards: the settings side column is a `div`, not a second
+    unnamed `aside` (landmark-unique).
+  - The scoped Axe scan (`wcag2a/aa`, `wcag21aa`) is clean for all 12 Admin
+    views and the 5 Tutor pages, in normal mode and in emulated
+    forced-colours/reduced-motion mode, including populated time off and
+    overnight availability.
+- One known flake (`auth.spec.ts:248` sign-out URL race) passed 3/3 alone and
+  in the final run. One stale expectation from the Oct-18 copy change was
+  updated: `learners.spec.ts` no-JS text is now "JavaScript is required to edit
+  this profile".
+- Private suite (`npm run test:e2e:private`): **3 FAIL, 1 PASS**. All three
+  failures come from the earlier uncommitted Oct-18 work, not the redesign:
+  1. `/student/onboarding` h1 was renamed to "Set up your Student profile" in
+     every mode. ui-context scopes that wording to ordinary local V2; the
+     private helpers still expect "Set up College Student".
+  2. Booking preparation: after "Show available times" the selected slot is no
+     longer kept in the URL (`startAtUtc`/`endAtUtc` null) and the first slot
+     radio is not preselected (Oct-18 booking choice form).
+  With the heading check relaxed temporarily (helper restored byte-for-byte
+  afterwards), the private Admin journey passed MFA entry and refresh, adding a
+  subject, learner admission authority and assigned screening, then stopped at
+  failure 2. Its later Admin stages (assigned bookings, catalog corrections,
+  accounts, suspension, sign-out) remain unverified in the browser until the
+  owner settles 1–2.
+
+## 2026-10-21 — Workspace redesign consistency review and fixes VERIFIED (unit/build); browser e2e pending
+
+- Owner asked for a check of every Admin/Tutor redesign change for bugs,
+  inconsistency, code-standard and UI-standard alignment. There was an
+  independent read-only bug review plus a standards audit of the new CSS/TSX.
+- Fixed:
+  - Removed `src/app/(workspace)/admin/loading.tsx` and `admin-loading.css`
+    (added in the navigation-speed entry below). A route loading boundary hides
+    streamed page content without JavaScript, contrary to the R4 decision in
+    `docs/decisions/2026-10-12-local-learner-onboarding.md` and to the "Page
+    loading" rule in ui-context. The global `NavigationProgress` bar remains
+    the slow-navigation feedback.
+  - `TutorSetupPanel` again always shows the readiness next action (only an
+    identical href+label link is not repeated). Before, "Complete profile" and
+    "Review profile status" were hidden behind "Edit profile".
+  - Time off calendar: local day bounds (the costly time-zone work) are now
+    memoised per month and zone through the new `localDayBounds` and
+    `coverageWithin` helpers. Saved coverage is memoised per exceptions, and
+    the draft overlay is a plain comparison on each keystroke.
+  - Tutor profile: a new edit after a save clears the success notice, so the
+    "Unsaved changes" hint is no longer hidden. Subject category labels are h2
+    again (as in the original form) and the learner preview has an h2.
+  - Unassigned reviews: the queue count and the per-item "Unassigned" pill are
+    aria-hidden, so heading names are "Review queue" and the request kind.
+  - Chip ticks are hidden with `visibility` rather than a transparent colour,
+    so forced colours cannot reveal an unchecked tick.
+  - UI rules: content links (tutor names, account names, case subjects) are
+    underlined again. Text states no longer use opacity. Decorative hover lifts
+    and arrow nudges were removed (colour transitions only). The learner-record
+    arrow is a real icon chip via `LearnerLink` `trailing` instead of a
+    hardcoded-hex data URI.
+- Consolidated duplication (code standards: extract real repetition):
+  - New `src/components/workspace/workspace-page.css`, loaded by the workspace
+    layout: page frame/header/eyebrow/note, `workspace-pill` with `data-tone`
+    (replacing 7 pill variants), `workspace-count`, `workspace-action` +
+    `workspace-action-icon` (replacing 5 navy arrow buttons),
+    `workspace-savebar` (2 copies) and `workspace-blank` (3 empty states).
+  - New `src/lib/initials.ts` `nameInitials` replaces 6 local copies,
+    including the header account chip and the public tutor card.
+  - `tutor-page.css` became `src/features/tutors/review-notice.css`, imported
+    by `ReviewNotice`. Feature CSS no longer imports `admin-review-queue.css`
+    for shared styles. A scripted check confirms every CSS import resolves and
+    no class is used undefined or defined unused.
+- Checked out of scope: the reviewer also listed copy and behaviour changes in
+  `navigation.ts`, `tutors/review.ts`, `booking-workspace.ts`,
+  `learner-admission/forms.tsx`, `api/bookings/route.ts`, the `/admin` summary
+  and the tutor-queue notice. Those predate this redesign (uncommitted 2026-10-18
+  workflow work already present at session start) and were left as they are.
+- Owner decision: the references' gradients/glow, glass blur (sticky
+  bars and topbar), pill status tags and 12px/20px radii are kept and recorded
+  as a scoped exception in ui-context ("Admin and Tutor workspace style —
+  2026-10-21").
+- Verified: lint (clean), typecheck, `npm test` 2337/160, production
+  `npm run build` PASS (no errors or warnings). Visual regression at 1440px for
+  12 Admin views (removed temporary preview) and 5 real Tutor pages as Test
+  Tutor Maya; no horizontal overflow. The dev server needed a restart after the
+  CSS file moves (stale webpack graph). Playwright e2e not run.
+
+## 2026-10-21 — Tutor account settings UI IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `src/learli Tutor Account Settings (standalone).html`.
+  It matches the card layout already built for Admin.
+- The layout moved from `src/features/admin/admin-account-settings.*` to
+  `src/features/account/account-settings-cards.*` as `AccountSettingsCards`.
+  `/account` now uses it when the account holds the admin **or tutor** role.
+  Parent-only and Student-only accounts keep the original page. Administrator
+  security still appears only for admins.
+- The workspace breadcrumb now also names shared destinations (Support requests,
+  Account settings) on styled workspaces, e.g. "Tutor workspace / Account
+  settings". `.workspace-current` text is unchanged.
+- As with Admin, the reference's password Show/Hide, length meter, live match
+  text and "Current" tag were not adopted.
+- Verified: lint (clean), typecheck, `npm test` 2337/160. Screenshots as local
+  Test Tutor Maya at 1440/390 px; no horizontal overflow. Playwright e2e not
+  run.
+
+## 2026-10-21 — Tutor Profile UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `src/learli Tutor Profile (standalone).html`,
+  presentation only.
+- `/tutor/profile` uses the shared Tutor header ("Your listing"). The review
+  notice is now a one-row banner: the new `ReviewNotice` `banner` mode keeps
+  the same wording and links, and its default layout is unchanged.
+  `TutorProfileForm` is rearranged into:
+  - numbered cards: 01 About you (with character counters), 02 Teaching
+    languages, and 03 Subjects and levels;
+  - chip checkboxes, with the native input covering the chip;
+  - subject cards with an aria-hidden "All levels" / "N of 4 levels" /
+    "Not taught" summary;
+  - a sticky save bar showing the existing notice or a non-live "Unsaved
+    changes" hint;
+  - a "Learner preview" section that updates as the tutor types (name, zone,
+    headline, introduction, languages, subjects with short level names). Its
+    tag is "Not public yet", or "Approved profile" when approved.
+  Text fields stay uncontrolled and submit through FormData. A form-level
+  `onInput` only feeds the display copy.
+- Unchanged: the PUT request, offerings validation and focus, field
+  ids/names/labels/maxLengths, the specialty field shown only when levels are
+  selected, button labels (Submit application / Save profile and their pending
+  forms), the single status/alert, group names "Teaching languages (optional)"
+  and each subject name (number badges are aria-hidden inside the legend), and
+  the ProfileSummary path for non-editable profiles.
+- Verified: lint (clean), typecheck, `npm test` 2337/160. Screenshots as local
+  Test Tutor Maya at 1440/390 px. Unsaved edits checked the counter, the
+  "3 of 4 levels" summary and the live preview. Nothing was saved. No
+  horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Tutor Time off UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `src/learli Tutor Time Off (standalone).html`,
+  presentation only.
+- `/tutor/time-off` uses the shared Tutor header. The intro and time zone note
+  moved there (`TimeOffForm` takes `showIntro={false}`). The layout has three
+  parts:
+  - Add time off card: the native `datetime-local` inputs are kept rather than
+    split into date and time (tests and input behaviour depend on them). A draft
+    preview shows the duration and the range once both ends resolve, and a navy
+    Add button with an arrow chip.
+  - Saved time off: a count badge, date tiles, the existing two `<time>` labels
+    per period with sr-only From/until, the duration and zone, and Remove time
+    off.
+  - Month calendar (Monday first, month navigation): full days off, part days,
+    drafting days and today, with an sr-only monthly summary. The day grid is
+    aria-hidden.
+- New pure helpers in `src/features/time-off/calendar.ts` compute coverage and
+  instants in the tutor's IANA zone through the existing `resolveLocalTime` /
+  `utcOffsetLookup`, so DST days are handled. Today comes from the server
+  render. Tests are in `tests/unit/time-off-calendar.test.ts` (4 cases,
+  including a 23-hour New York DST day).
+- Unchanged: the submit/remove requests, schema validation, error mapping,
+  focus, busy rules, the "Wait for the current change" notice, Reload saved
+  time off, labels, the form name, the single status/alert, remove names and
+  the empty and locked copy.
+- Verified: lint (clean), typecheck, `npm test` (now 2337). Screenshots as local
+  Test Tutor Maya at 1440/390 px with an unsubmitted draft. Saved periods were
+  checked with a removed temporary preview (2 full days and 1 part day; 4
+  `<time>` tags for 2 periods). No horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Tutor Availability UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `src/learli Tutor Availability (standalone).html`,
+  presentation only.
+- `/tutor/availability` uses the shared Tutor page header (moved to
+  `src/features/tutors/tutor-page.css`). `AvailabilityForm` is rearranged into:
+  a time-zone card (intro, rules, globe select, help, change warning); a
+  Teaching hours card with one row per day, showing the day total or
+  "Not available" and a striped background when off; and range rows with
+  sr-only Start/End labels, a visible "to", an "Ends next day" chip around the
+  native checkbox, and an icon remove button. Below that sits a sticky save bar
+  (existing notice, or an "Unsaved changes" / "No unsaved changes" hint that is
+  not a live region) with Save availability. A "Week at a glance" section shows
+  weekly hours and 24-hour bars per day, with overnight ranges continuing on the
+  next day. Hours count only valid ranges.
+- Unchanged: validation, the submit request, server error mapping, focus
+  management, ids/data-fields, default new range, the 42-range limit, copy for
+  both workflow modes, fieldset groups named by day, label names, remove-button
+  names and the single status/alert notice.
+- Verified: lint (clean), typecheck, `npm test` 2333/159. Screenshots at
+  1440/390 px came from local Test Tutor Maya. An interaction pass (time edit,
+  overnight toggle, remove) checked the totals, carried bars and dirty hint
+  without saving. No horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Tutor workspace shell and Bookings UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `src/learli Tutor Bookings (standalone).html`,
+  presentation only.
+- Shell: the grouped, iconed sidebar and the calm topbar now apply to Tutor as
+  well as Admin. The selectors moved from `[data-workspace="admin"]` to
+  `[data-styled]`. Tutor groups are Teaching (Bookings, Availability, Time off)
+  and Your listing (Profile, Tutor screening), plus an "Account" label on the
+  shared links. The role pill reads "Tutor" and the breadcrumb reads
+  "Tutor workspace / <page>". Grouping logic moved to the generic
+  `src/components/workspace/link-groups.ts`, used by `groupAdminLinks` and the
+  new `groupTutorLinks`. Parent and Student shells are unchanged.
+- `/tutor`: page header with the Refresh bookings form (icon added, same native
+  GET and transition). The new `TutorSetupPanel` combines the readiness steps
+  ("N of 4 steps complete"), the stored review notice (wording shared through
+  the new `reviewNoticeText`) and the single readiness next action, which is
+  hidden when a strip link already covers its page. `TutorBookingAgenda` is
+  restyled in place: a Next session card, Upcoming and History panels,
+  "View all" links inside their panels, and status pills. Its `emptyAction`
+  now accepts `null`, and the page passes `null` so the action appears once.
+  A Sign out card replaces the bare button.
+- Unchanged: the guard, data reads, booking hrefs and accessible names
+  (`View booking for …`), headings and copy for both workflow modes, and
+  `TutorReadinessSummary` / `ReviewNotice` defaults (still used by
+  `/tutor/profile`).
+- Verified: lint (clean), typecheck, `npm test` 2333/159. The redesigned page
+  was screenshotted at 1440/390 px while signed in as local Test Tutor Maya;
+  populated agenda rows were checked with a removed temporary preview. No
+  horizontal overflow. Playwright e2e not run.
+- Note: the reference HTML sits in `src/`, so a repo-wide `prettier --check .`
+  flags it, as it does the root reference files.
+
+## 2026-10-21 — Admin navigation speed investigated; loading skeleton added
+
+- Owner report: Admin tab navigation felt slow under `npm run dev`.
+- Measured with authenticated admin navigation (isolated test DB, scratch copy of
+  the tree, temporary Playwright spec plus a server-timing preload; all removed
+  afterwards). Click to new h1:
+  - production build: 30–50 ms per tab;
+  - dev with the route already compiled: 50–110 ms;
+  - dev on a route's first visit: 500–1,250 ms, nearly all of it webpack
+    compilation before the first byte.
+- Server queries: 6–9 per page in 3–17 ms. The `/api/account` recheck takes
+  4–15 ms and never delayed the page. No redirects. The admin guard needs no
+  change: identity and assurance are already memoised per render.
+- (Later removed in the consistency review: it hid streamed content without
+  JavaScript, against decision R4.) Added `src/app/(workspace)/admin/loading.tsx` (+ `admin-loading.css`): an
+  immediately streamed skeleton (sr-only "Loading admin page…" status,
+  placeholders only, reduced-motion safe). A timed experiment with deliberately
+  slow sibling Admin routes showed the skeleton replacing the old page 45–110 ms
+  after the click, both with the sidebar's `prefetch={false}` and with default
+  prefetch, so sidebar prefetching is unchanged.
+- Not changed: dev stays on webpack (Turbopack fails on the private backup link,
+  see `docs/operations/local-workflow.md`), and the persistent dev cache stays
+  off (2026-10-14 decision). The remaining dev slowness is first-visit
+  compilation; production does not have it.
+- Verified: lint (clean), typecheck, `npm test` 2333/159. Playwright e2e not run.
+
+## 2026-10-21 — Admin account settings UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Account Settings (standalone).html`,
+  described by the owner as the admin account settings.
+- `/account` renders `AdminAccountSettings`
+  (`src/features/admin/admin-account-settings.tsx`) only when the signed-in
+  account holds the admin role. Parent, Student and Tutor accounts keep the
+  previous layout unchanged.
+- Admin layout: avatar header (h1 "Your account", "Signed in as …"), Profile
+  settings and Change password cards with footer actions, a side card with Your
+  workspaces / Account access icon rows, and a Sign out card. All links,
+  conditions, nav labels, headings and form ids/names are unchanged.
+- `AccountForm` and `PasswordForm` take an optional `panel` layout flag. The
+  default markup is unchanged; validation, requests, notices and recovery links
+  are untouched. `LearnerLink` and `AdmissionEntry` accept optional decorative
+  `leading`/`trailing` content.
+- Not adopted from the reference: the password Show/Hide toggle, the length
+  meter and the live "passwords match" text. They are new behaviour on a
+  credential form that deliberately keeps passwords out of visible state, and
+  they await owner approval. Neither the "Current" tag on Admin workspace (this
+  page is not that workspace) nor the client-only "Settings saved" flash was
+  adopted; the existing notices remain.
+- Verified: lint (clean), typecheck, `npm test` 2333/159. Screenshots at
+  1440/390 px came from a removed temporary preview route; no horizontal
+  overflow. Playwright e2e not run.
+
+## 2026-10-21 — Admin Assigned support cases UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Support Cases (standalone).html`,
+  presentation only.
+- `/admin/support` now uses `AdminSupportCases`
+  (`src/features/admin/admin-support-cases.tsx`). It has the Support header, a
+  navy report-guidance panel (the existing `DemoNotice` text plus decorative
+  "Keep out" chips), case cards (category icon, subject link, category, status
+  pill) and an illustrated empty state that holds the
+  "Unassigned reviews" / "Manage local assignments" link. When cases exist,
+  that link sits above the list. Case pagination is unchanged.
+- The shared `CaseRows` and the user-facing `/support` page are untouched.
+  `DemoNotice` takes an optional className with an unchanged default. Guards,
+  the dispatch-only fallback, copy, hrefs and link names are unchanged.
+- The unused `eslint-disable` directive that caused the long-standing lint
+  warning in `admin/support/page.tsx` is gone; `npm run lint` now reports 0
+  problems.
+- Verified: lint (clean), typecheck, `npm test` 2333/159. Screenshots at
+  1440/390 px of the empty and populated states came from a removed temporary
+  preview route; no horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Admin Accounts UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Accounts (standalone).html`,
+  presentation only.
+- `/admin/accounts` uses the shared Operations header. `AccountFilters` is now a
+  panel: name search with icon, role and status selects, a per-page stepper, a
+  scope note, a Clear link and Filter accounts. `TargetRows` shows account
+  cards (initials, name link, assigned roles, Active/Suspended access pill) and
+  an illustrated empty state. Reload accounts sits inside the empty state when
+  there are no results; otherwise it stays in the page navigation.
+- The new `PageSizeStepper` client component renders its −/+ buttons only after
+  hydration and uses the native `stepUp`/`stepDown` within the existing 1–20
+  bounds; the reference's 100 maximum was not adopted. `LocalRestrictionNotice`
+  takes an optional className.
+- Unchanged: the form's label/method/action, field labels and ids, query
+  parsing and guards, pagination hrefs, empty-state headings and copy, and the
+  detail page (`TargetView`, `AccessStatus`).
+- Verified: lint (0 errors; same pre-existing warning), typecheck, `npm test`
+  2333/159. Screenshots at 1440/390 px of the populated and empty states came
+  from a removed temporary preview route; no horizontal overflow. Playwright e2e
+  not run.
+
+## 2026-10-21 — Admin Subjects UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Subjects (standalone).html`,
+  presentation only.
+- `/admin/subjects` now uses `AdminSubjects` (`src/features/admin/admin-subjects.tsx`).
+  It has the Operations header with Active/Inactive tallies, category sections
+  (icon, label, active/inactive counts) and subject tiles. Each tile shows a
+  monogram, name, status dot and the existing toggle, plus Edit name for
+  specialized subjects. The Add a specialized subject form sits in a panel.
+- Behaviour is unchanged: `SubjectStateButton` takes an optional `tile` styling
+  flag and still toggles in one click. The reference's inline "Deactivate X?"
+  confirmation was not added. Several e2e tests rely on one-click toggling, and
+  a confirm step would change the admin flow. `SubjectNameForm`,
+  `AddSubjectForm`, their ids, names and status/alert regions are untouched.
+- Verified: lint (0 errors; same pre-existing warning), typecheck, `npm test`
+  2333/159. Screenshots at 1440/390 px came from a removed temporary preview
+  route; no horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Admin Assigned bookings UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Assigned Bookings (standalone).html`,
+  presentation only.
+- `/admin/bookings` now uses `AdminAssignedBookings`
+  (`src/features/admin/admin-assigned-bookings.tsx`). It has the Operations
+  header, a GET search form (Booking ID with search icon, Status, hidden
+  pageSize, Apply filters, Clear link), removable "Filtered by" chips, booking
+  cards, an illustrated empty state and the same pagination.
+- Booking cards show icon, subject, status pill, Tutor / Learner / Requested by,
+  LessonTime and "View booking details". Clear and the chip remove links are
+  plain links built with `staffBookingsHref`. They reset q and/or state to the
+  existing defaults, go back to page 1 and keep pageSize.
+- Kept for tests and behaviour: `role="search"` form label, input/select ids,
+  `li[data-booking-id]`, the heading accessible name `Subject · Status`
+  (sr-only separator), link names, the `role="status"` empty text, and all
+  guards and queries.
+- Verified: lint (0 errors; same pre-existing warning), typecheck, `npm test`
+  2333/159. Screenshots at 1440/390 px of the populated and filtered-empty
+  states came from a removed temporary preview route; no horizontal overflow.
+  Playwright e2e not run.
+
+## 2026-10-21 — Admin learner review records UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Learner Review Records (standalone).html`,
+  presentation only.
+- `/admin/learner-admission` now uses `AdminLearnerRecords`
+  (`src/features/admin/admin-learner-records.tsx`). It has the shared Reviews
+  header, "In this list" / "Not reviewed here" scope notes (local workflow only),
+  an "Assigned to you" bar with count, and record cards. Each card shows an icon,
+  the record label, a state pill, Policy and Requested details, and an
+  "Open record" / "Open request" link. Cursor paging and the Your account link
+  are kept.
+- The guard, cursor validation, list query, link targets and per-mode copy are
+  unchanged. In the local workflow the intro's second sentence now sits in the
+  "Not reviewed here" note. `tests/components/learner-review-presentation.test.tsx`
+  now asserts the two sentences separately.
+- Verified: lint (0 errors; same pre-existing warning), typecheck, `npm test`
+  2333/159. Screenshots at 1440/390 px came from a removed temporary preview
+  route; no horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Admin Tutor review queue UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Tutor Review Queue (standalone).html`,
+  presentation only.
+- `/admin/tutors` now uses `AdminTutorQueue`
+  (`src/features/admin/admin-tutor-queue.tsx`). It has the shared Reviews page
+  header, a GET filter bar (Applications count, Status select, Apply filters) and
+  application cards. Each card shows initials, name link, headline, status pill,
+  check count with a meter, the next screening step, the submitted date and a
+  "Review application" link. Pagination is the same as before.
+- The query, guard, filter values, page links and status text are unchanged. The
+  reference's per-check chips and subject tags are not shown. The queue
+  projection deliberately carries only check counts, and widening it would
+  change the data the queue exposes.
+- The "Review application" link takes the tutor name through `aria-describedby`,
+  so name-based link locators stay unambiguous.
+- Verified: lint (0 errors; same pre-existing warning), typecheck, `npm test`
+  2333/159. Screenshots at 1440/390 px came from a removed temporary preview
+  route; no horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Admin Unassigned reviews UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Unassigned Reviews (standalone).html`,
+  presentation only.
+- `/admin/requests` now uses `AdminReviewQueue`
+  (`src/features/admin/admin-review-queue.tsx`). It has a page header and legend,
+  a Review queue panel (count, Refresh link, per-kind icons, Unassigned badge,
+  oldest-first footer), and a Claim account support panel listing its limits.
+  The guard (`loadPrivatePage` + `listLocalReviews`), claim API, idempotent
+  request key and redirect to the claimed review are unchanged. The design's
+  in-queue "Claimed by you" state is not shown, because claiming navigates to
+  the review. The legend says that instead.
+- `ClaimLocalReview` and `ClaimLocalAccount` take an optional `queue` styling
+  flag. The button name stays "Claim review".
+- Admin topbar crumb now appends the current Admin page label.
+- Verified: `npm run lint` (0 errors; same pre-existing warning), `npm run typecheck`,
+  `npm test` 2333/159. Screenshots at 1440/390 px came from a removed temporary
+  preview route; no horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Admin workspace UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner request to apply `learli Admin Workspace (standalone).html` to
+  the Admin workflow without changing functionality.
+- Admin-only shell styling (`data-workspace="admin"`): grouped Reviews /
+  Operations / Support sidebar with icons, Admin role pill, `learli /` crumb,
+  pill account chip, sticky sidebar/topbar only at ≥64rem wide and ≥40rem tall.
+  Other role workspaces render unchanged. Mobile keeps the approved in-flow menu.
+- `/admin` overview: navy hero, work-area cards built from the same
+  `workspaceLinks("admin", …)` the sidebar uses, access-scope note, and the existing
+  Sign out in main. Copy is the previous text, split into summary and scope note.
+  Routes, guards, link destinations and labels are unchanged;
+  `groupAdminLinks` only arranges existing links.
+- Five e2e locators that clicked admin links on `/admin` without a scope now
+  target the sidebar, because the overview cards repeat those link names.
+- Verified: `npm run lint` (0 errors; 1 pre-existing warning in
+  `admin/support/page.tsx`), `npm run typecheck`, `npm test` 2333/159 including
+  new `tests/unit/admin-navigation.test.ts`. Prettier is clean apart from the
+  untracked design HTML. Screenshots at 1440 and 390 px came from a temporary
+  preview route with a mocked session; the route was then removed. No horizontal
+  overflow.
+- Not run: Playwright e2e suites and a real signed-in MFA admin session.
+
+## 2026-10-18 — Cross-role workflow UX alignment VERIFIED locally
+
+- Authority: `prompts/features/m8-10-cross-role-ux-alignment.md`, recorded as
+  `AUTHORIZED — build-feature delegation` after the owner's approval of the
+  recommended Parent, Student, Tutor and Admin UX slice. The final independent
+  read-only Review found zero Critical, Important or Minor findings and reported
+  the implementation ready for Verification.
+- Booking entry now preserves a validated guardian/student presentation scope
+  through sign-in and Student onboarding without carrying learner IDs, submitted
+  roles, payment claims or other authoritative fields. Trusted learner ownership
+  still determines booking-history scope. Learner → Subject → Tutor choices are
+  compatibility-aware after hydration, while the server-rendered GET form keeps
+  complete native option sets for a usable no-JavaScript fallback. The free-text
+  display zone is replaced by the shared IANA selector.
+- Parent/Student ordinary navigation no longer presents school-style learner
+  admission as a routine task. Direct legacy records, assignment checks,
+  pagination, receipts and audit history remain accessible under neutral earlier
+  or assigned learner-review wording; no stored admission row was converted,
+  approved, relabelled or deleted.
+- Tutor availability now uses required native minute-resolution time controls and
+  preserves the existing minute-of-week, overnight, overlap and revision contract.
+  Tutor/Admin screening surfaces show truthful current-check progress, and the
+  Tutor dashboard derives Profile → Screening → Availability → Public listing
+  readiness from existing authoritative reads. A recovered duplicate setup action
+  now has one keyboard target while retaining the blueprint's empty-agenda CTA.
+- Current integrated Verification: `npm run check` PASS (format, type generation,
+  TypeScript, lint with one unrelated pre-existing unused-disable warning, 158
+  files/2,328 tests); production build PASS with the repository's established
+  8 GB Node heap; PostgreSQL coverage PASS across the broad 82-file run plus the
+  required focused hosted-auth rerun (aggregate 1,129 passed, 8 skipped);
+  affected Chromium projects PASS for workspace shell 16/16, availability 3/3,
+  learner review 6/6, Tutor screening 2/2, Tutor dashboard 7/7, booking history
+  6/6, family dashboard 4/4 and bookings 5/5. Impeccable detection returned no
+  findings; responsive/keyboard/Axe/no-JavaScript checks ran in the affected
+  browser suites.
+- Recovery history retained: Review first found a lost booking scope across auth
+  recovery and the finish pass found incomplete no-JavaScript booking options;
+  browser Verification found the duplicate Tutor setup CTA. All three were fixed
+  and independently re-reviewed. One intermediate Tutor rerun used a stale `.next`
+  bundle and reproduced the old CTA; rebuilding the current production bundle
+  followed by the same 7-case suite passed.
+- Boundaries: this slice adds no schema, migration, dependency, payment,
+  admission/screening policy, authorization or production-data change. No commit,
+  merge, push, deployment, live provider action or production operation was
+  performed. Real screening/provider criteria, payments, launch-market consent
+  rules and live Zoom/Meet/Resend verification remain separate gates.
+
+## 2026-10-18 — Tutor screening Admin UX VERIFIED locally
+
+- Authority: `prompts/features/m8-10-tutor-screening-admin-ux.md`, authorized by
+  the owner's “implement that blue print” instruction and completed through the
+  repository Build Feature workflow. Final independent read-only Review reported
+  zero Critical, Important or Minor findings and **READY FOR VERIFICATION**.
+- Replaced editable evidence references and raw UTC strings with labelled native
+  date/time controls, browser-IANA-to-UTC conversion, UTC-stable server hydration,
+  understandable invalid/DST/future-time errors, and plain-language Identity and
+  Eligibility states. Expiry remains an explicit Admin choice because no approved
+  duration exists; the UI uses `Passed and current`, not an unsupported
+  `Verified` claim.
+- Reviewer-visible receipts now use the immutable database check-row UUID and are
+  one-to-one with that record. Tutor-owner/public reads omit the receipt. Existing
+  legacy `evidence_reference` values remain internal and unchanged; exact old
+  retries reuse the stored value, while new callers cannot choose the displayed
+  receipt. No schema migration or historical rewrite was introduced.
+- Verification on the integrated working tree: focused unit/component 61/61;
+  timezone helper under `Pacific/Auckland` 8/8; focused PostgreSQL screening
+  39/39; direct Chromium screening project 2/2; `npm run check` PASS (format,
+  typecheck, lint with one pre-existing unused-disable warning, 153 files/2,285
+  tests); production build PASS; Impeccable detector returned no findings.
+- The dependency-chain Playwright attempt passed 76 checks, then stopped before
+  Tutor Screening on an unrelated stale `tests/e2e/learners.spec.ts` assertion
+  that still expects “local demonstration profile” after the approved ordinary
+  wording change. The targeted screening run with `--no-deps` passed; the stale
+  Learner assertion remains a separate test-maintenance item.
+- Boundaries: no real screening criteria/provider, automatic expiry policy,
+  production activation, migration, deployment or production-data operation was
+  performed. TUT-01/M8.10 real screening and safeguarding policy remains open.
+
+## 2026-10-18 — Master workflow alignment VERIFIED locally
+
+- Authority: owner-approved master workflow-alignment blueprint plus fourteen
+  explicit implementation conditions; executed through Architect → Implementation
+  → Review → Verification. Final read-only Review and the later focused route
+  Review both returned **READY FOR VERIFICATION** with no confirmed findings.
+- Delivered eligible independent-adult self-service for one self-managed College
+  Support profile under immutable `local-independent-admission-v2` attestation.
+  The declaration is explicitly unverified and College Support is not treated as
+  proof of adulthood. Eligible profiles can create confirmed, idempotent,
+  concurrency-protected `local-independent-booking-v2` no-money bookings without
+  routine Admin admission or booking approval; no payment or paid state exists.
+- Preserved Parent-v2 migration 0038 and all legacy admissions, policy receipts,
+  evidence, links, bookings, lifecycle history and audit records. Populated v1
+  pending/authorized/rejected/revoked guardian and self records retained their
+  exact values and original behavior across migration 0039. No old request was
+  approved, converted, deleted or relabeled.
+- Reconciled ordinary intake away from the legacy Admin queue, corrected truthful
+  provisional meeting status, persisted the presented IANA timezone during
+  rescheduling, made booking-history ordering deterministic, and retained existing
+  assigned-Tutor cancel/reschedule backend authority. The UI currently hides those
+  two Tutor actions; any authority narrowing remains a separate product decision.
+- Browser verification exposed a pre-existing route regression: commit `07007af`
+  had replaced booking-list GET when adding POST. Restored authenticated
+  `GET /api/bookings` through the existing ownership-enforcing read handler while
+  preserving POST byte-for-byte; focused independent Review found no issue.
+- Final verification on the integrated tree: `npm run check` PASS (format, type,
+  lint with one pre-existing unused-disable warning, 152 files/2,271 tests);
+  integration PASS (83 files/1,126 tests); isolated local-operation PASS
+  (4 files/38 tests); restricted SQL PASS (28 tests); production build PASS;
+  affected Playwright PASS (32/32) plus the focused repaired case PASS (1/1);
+  restore drill PASS (1/1). The first restore attempt correctly failed closed
+  because the owned test database lacked 0039; `npm run db:migrate:test` aligned
+  that isolated database and the unchanged drill passed. Recovery evidence is in
+  `prompts/recovery/2026-10-18-master-workflow-review-repairs.md`.
+- Migration 0039 was exercised only against owned local test fixtures/databases.
+  No production data, hosted Neon branch, Railway deployment, payment system,
+  commit, merge or push was performed. Parent-v2 baseline work remained present.
+- Remaining gates: manual desktop/mobile/keyboard/Axe verification of the complete
+  new Student signup → declaration → dashboard → discovery → booking journey;
+  launch-market adult/minor/legal and secure existing-account-linking policy;
+  real Resend and Zoom/Meet behavior; payments/commercial rules; and separately
+  authorized production migration/deployment. Run Remember before handoff.
+
+## 2026-10-18 — Booking-list GET route repaired; integrated verification pending
+
+- Authority: AUTHORIZED — build-feature delegation; approved master workflow
+  blueprint and missing booking-list GET recovery scope.
+- Restored `GET /api/bookings` through the existing private read handler; the
+  POST creation function is unchanged. A route regression exercises real read
+  dispatch/private empty-list JSON and preserves POST creation dispatch.
+- Focused checks passed: `npx vitest run tests/unit/booking-route.test.ts
+  tests/unit/booking-read.test.ts` (2 files, 9 tests), `npm run typecheck`,
+  targeted ESLint/Prettier, and route diff whitespace check.
+- Independent Review, failed Playwright case/full affected set rerun, and final
+  integrated Verification remain pending with the coordinator. No database,
+  production, deployment or policy changes were made by this repair.
+
+## 2026-10-18 — Independent adult self-service V2 IMPLEMENTED; final review pending
+
+- Authority: approved master workflow-alignment blueprint and fourteen explicit
+  owner conditions. Parent-v2 source/migration 0038, dirty work, historical
+  admissions, evidence, policies, bookings and audits were preserved.
+- Implemented: exact `local-independent-admission-v2` self-attestation creates
+  one active College Support self profile and trusted Student role atomically.
+  The UI states that the declaration is unverified and College level does not
+  prove adulthood. `local-independent-booking-v2` creates confirmed no-money
+  bookings directly with existing overlap/idempotency/ownership boundaries; it
+  creates no Admin confirmation assignment and makes no paid claim.
+- Schema: additive migration 0039 adds only the immutable independent-attestation
+  relation, exact policy/function branches, grants and widened integrity checks.
+  Fresh plus populated 0034/0037/0038 forward-migration preservation passed 4/4;
+  the populated 0038 case preserves a real Parent-v2 attestation/profile.
+- Focused verification: unit/component 114/114, restricted SQL 28/28 and
+  persisted ordinary workflow 2/2 passed; targeted ESLint and
+  `npm run typecheck` passed. The workflow run took 65.87s because it exercised
+  the real auth throttle. An independent read-only SQL/snapshot audit found no
+  confirmed defect.
+- Operating boundary: migration 0039 was applied only to the explicitly isolated
+  owned port 55434 local fixture for these checks. Production, deployment,
+  payments, real eligibility proof, minors, existing-account linking, external
+  delivery and live meetings were untouched. Tutor cancel/reschedule behavior
+  was not removed or narrowed by this slice.
+- Remaining: separate review and final repository-wide verification/Remember are
+  still required before this approved build-feature operation is complete.
+
+## 2026-10-18 — Owner-requested second local Admin created
+
+- Owner explicitly requested a separate second Admin and its password. Created
+  one NEW local account through actual Better Auth signup, captured verification
+  proof and sign-in. Supported owner-only preparation authorized exactly that
+  new returned identity, without migrations or alteration of the existing Admin.
+  The previous request to identify an existing Admin is superseded by this choice.
+- Restricted readback confirmed active/verified identity, Admin role and the
+  supported local admission/screening/booking/support/account staff capabilities.
+  Nine accounts/two Admins now exist. Every original account's selected identity,
+  verification/status/role projection remained unchanged. No tutor screening
+  check, approval, booking, task assignment or MFA assurance was fabricated.
+- Actual Playwright UI sign-in passed, redirected to `/account/security`, showed
+  Set up authenticator and preserved the session on refresh. User completes
+  authenticator enrollment with their own app before privileged reads/actions;
+  the expected pre-MFA403 was verified, not bypassed. The first setup readback
+  incorrectly expected Admin access before MFA; only that private harness was
+  corrected to assert the established denial. No application source changed.
+- New credentials and readback/browser evidence are owner-private and ignored
+  under `.local/manual-admin2-20261018/`; refreshed private account list now has
+  all9 current accounts. No password or cookie is recorded in tracked documents.
+  Next: owner signs in, completes MFA, and performs normal assigned review for
+  the two pending fictional tutors. They remain unbookable pending that review.
+
+## 2026-10-18 — Two requested local test tutors prepared; approval pending
+
+- Owner requested two tutors to test the new child-booking flow. The normal
+  operating directory had no currently eligible tutors; its one existing tutor
+  profile was preserved. Added exactly two new fictional accounts, Test Tutor
+  Maya and Test Tutor Leo, through real Better Auth registration, locally
+  captured verification proofs and sign-in, then own-account tutor services.
+- Both profiles explicitly disclose fictional local software testing and make no
+  human identity, qualification or safeguarding-screening claims. Both offer
+  active Math, Science and English across supported levels including Middle
+  School/Grade8, with daily08:00–22:00 Asia/Manila recurring availability.
+- Actual restricted-runtime readback passed: both verified identities, own
+  profiles, three subject offerings, Grade8 support, seven saved windows and
+  pending screening requests. Total profiles are now3, currently eligible0;
+  the public eligibility boundary correctly withholds both pending accounts.
+  Normal3000 health returned200. No application source, existing account,
+  booking, screening evidence, Admin authority or approval was modified.
+- Exact owner-selected registered/verified Admin identity remains pending; the
+  owner was asked for that email while tutor preparation continued. Normal
+  current-MFA assigned tutor review is still required before bookability; no
+  Admin identity was guessed and no synthetic screening evidence was fabricated.
+  This setup is not yet a successful child-booking test. Private credentials,
+  stable setup manifest and readback evidence remain ignored/owner-private under
+  `.local/manual-tutors-20261018/`. No bulk seed/reset or test suite touched the
+  operating database. Prior automatic-child source validation below is unchanged.
+
+## 2026-10-18 — Automatic Parent child onboarding VERIFIED
+
+- Owner-authorized blueprint `prompts/features/m4-04-automatic-parent-child-onboarding.md`
+  and decision `docs/decisions/2026-10-18-automatic-parent-child-onboarding.md`.
+  Verified-email Parent can save a NEW private child with explicit guardian
+  declaration/consent and immediately use it for tutoring. No ordinary child,
+  additional-child, grade-edit or new Parent-booking Admin approval. Existing
+  student-account claims remain separate; no name/email linking was introduced.
+- New immutable guardian admission-v2/attestation and Parent booking-v2 use forward
+  `0038`; original v1 policy heads/receipts, pending requests, independent College,
+  tutor screening, ownership and saved histories are preserved. Old review lists
+  exclude new automatic receipts before pagination; direct receipt copy describes
+  consent accurately. New directly confirmed bookings show no provisional deadline.
+- Read-only Review: READY FOR VERIFICATION, alignment/integrity/scope PASS, no
+  remaining confirmed findings over56-entry source manifest. Fresh Impeccable
+  finish: ship, no material fixes; existing design retained. Review ran no tests.
+- Executed final `npm run check`: format/lint/type PASS and148 files/2,236 tests
+  PASS. Lint retains one pre-existing unused-disable warning in Admin Support.
+  `NODE_OPTIONS=--max-old-space-size=8192 npm run build` PASS. Actual Playwright
+  normal-mode fixture:44 checks/5 responsive Axe audits PASS, zero violations,
+  overflow or page errors. Detector11 changed UI targets: no findings.
+- Isolated ordinary55434 PostgreSQL: migrations3/3 (fresh/populated0034/populated0037),
+  restricted SQL21/21 (including actual lock-wait revocation), real-provider
+  workflow/pagination2/2 PASS, including genuine attested-child v2 after-end Tutor
+  completion/replay and exact one completion event. No fixture data entered the
+  operating database. Public delivery/physical devices/external meetings untested.
+- Operating local migration applied after private readable backup. All81 original
+  table projections/100 existing rows remained byte-identical;4 additive rows
+  represent new receipts/head/migration only. No account elevated, data reset,
+  ordinary record conversion, commit, push or deployment. Updated app is running
+  at the existing normal local origin; operating cluster remains55432.
+- Extra restore acceptance found the standard test SOURCE was still0037. Its
+  inventory guard correctly refused before artifacts were created. Recovery note:
+  `prompts/recovery/2026-10-18-automatic-parent-child-restore-source.md`. Guarded
+  test-only migration preserved80 existing public tables and exact39 receipts;
+  actual restore acceptance then PASS1/1. Initial83-file/1,126-test integration
+  run passed on the earlier test schema. The final full rerun on0038 also PASS:
+  83 files/1,126 tests in547.14s. This current-schema run is final integration
+  evidence, not an inference from the earlier source state.
+- Evidence is ignored/private under `.local/automatic-children-20261018/` and
+  `.impeccable/review/automatic-children-20261018/`. Initial format/test/harness
+  failures remain recorded; targeted fixes were rerun without weakening guards.
+  Final documenter checked the existing design/code/captures and preserved all
+  global design files; no system drift or documentation change was needed.
+  Temporary3300 app and owned55434 fixture are stopped with data preserved;
+  normal3000 app and owned55432 operating cluster remain running. Final direct
+  application-role current-policy checks for new and historical policies passed;
+  signed-out child creation returns401. Internal helper EXECUTE remains denied.
+- Next: owner refreshes My Children → Add Child to exercise the new form. Earlier
+  pending requests remain historical, not automatically converted without fresh
+  declarations. Work is local/uncommitted on main; no new commit/merge/push is
+  implied. Secure existing-account linking and public legal/safeguarding/payment
+  activation remain separate work. Exact initial Admin selection is still pending
+  for tutor/College reviews and exceptions, not ordinary new-child/Parent bookings.
+  Local handoff is saved separately after this completed verification.
+
 ## 2026-10-18 — Local main committed; completed worktrees and branches removed
 
 - Owner explicitly authorized commit, local-main integration and cleanup. The

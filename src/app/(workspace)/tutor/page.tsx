@@ -7,10 +7,10 @@ import {
 } from "@/features/tutors/booking-workspace";
 import { TutorBookingAgenda } from "@/features/tutors/booking-agenda";
 import { TutorBookingRefresh } from "@/features/tutors/booking-refresh";
-import { ReviewNotice } from "@/features/tutors/review-notice";
 import { SignOut } from "@/features/auth/sign-out";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
+import { TutorSetupPanel } from "@/features/tutors/setup-panel";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Your bookings",
@@ -45,36 +45,44 @@ export default async function TutorWorkspacePage() {
       </>
     );
   const { data, privateWorkflow } = result;
+  const active = data.overview?.active.items.map(tutorAgendaBooking) ?? [];
   return (
-    <div className="page-shell page-space">
-      <h1 className="text-page-title">Your bookings</h1>
-      <p className="mt-3 max-w-prose text-small text-muted-foreground">
-        {privateWorkflow
-          ? "Manage sessions assigned to you. Times use your current account time zone."
-          : "Local simulated bookings assigned to you. Times use your current account time zone."}
-      </p>
-      <div className="mt-6 border-y border-border py-3">
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">Tutor workspace</p>
+          <h1>Your bookings</h1>
+          <p>
+            {privateWorkflow
+              ? "Manage sessions assigned to you. Times use your current account time zone."
+              : "Local simulated bookings assigned to you. Times use your current account time zone."}
+          </p>
+        </div>
         <TutorBookingRefresh />
+      </header>
+      <TutorSetupPanel
+        readiness={data.readiness}
+        reviewStatus={data.profile?.reviewStatus ?? null}
+        publicHref={
+          data.profile && data.readiness.publicListing
+            ? `/tutors/${data.profile.slug}`
+            : undefined
+        }
+        privateWorkflow={privateWorkflow}
+      />
+      <TutorBookingAgenda
+        active={active}
+        history={data.overview?.history.items.map(tutorAgendaBooking) ?? []}
+        evaluatedAt={data.overview?.active.snapshotAtUtc}
+        hasMoreActive={data.overview?.active.hasNext ?? false}
+        hasMoreHistory={data.overview?.history.hasNext ?? false}
+        privateWorkflow={privateWorkflow}
+        emptyAction={null}
+      />
+      <div className="tutor-signout">
+        <p>Signed in on this device</p>
+        <SignOut className="" />
       </div>
-      <div className="mt-8">
-        <TutorBookingAgenda
-          active={data.overview?.active.items.map(tutorAgendaBooking) ?? []}
-          history={data.overview?.history.items.map(tutorAgendaBooking) ?? []}
-          evaluatedAt={data.overview?.active.snapshotAtUtc}
-          hasMoreActive={data.overview?.active.hasNext ?? false}
-          hasMoreHistory={data.overview?.history.hasNext ?? false}
-          privateWorkflow={privateWorkflow}
-        />
-      </div>
-      <div className="mt-12">
-        <ReviewNotice
-          status={data.profile?.reviewStatus ?? null}
-          editHref="/tutor/profile"
-          publicHref={data.profile ? `/tutors/${data.profile.slug}` : undefined}
-          privateWorkflow={privateWorkflow}
-        />
-      </div>
-      <SignOut />
     </div>
   );
 }

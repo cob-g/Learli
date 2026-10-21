@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { readFile, readdir, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -8,12 +8,36 @@ import { createLocalAuth } from "@/lib/auth-factory";
 import type { LocalMessage } from "@/lib/email/local-mail";
 import { admissionContext } from "@/features/learner-admission/context";
 import {
+  localGuardianAdmissionPolicy,
+  localIndependentAdmissionPolicy,
+} from "@/features/learner-admission/policy";
+import {
+  localIndependentBookingPolicy,
+  localParentBookingPolicy,
+} from "@/features/booking-workflows/policy";
+import {
   createAdmission,
   listAdmittedLearners,
+  listMyAdmissions,
+  readMyAdmission,
   listAssignedAdmissions,
   mutateAdmissionReview,
   readAssignedAdmission,
+  readAdmittedLearner,
+  updateAdmittedLearner,
 } from "@/features/learner-admission/service";
+import {
+  createParentChild,
+  readParentChildIntake,
+} from "@/features/parent-children/service";
+import { handleParentChildRequest } from "@/features/parent-children/handler";
+import {
+  createIndependentLearner,
+  readIndependentLearnerIntake,
+} from "@/features/independent-learner/service";
+import { handleIndependentLearnerRequest } from "@/features/independent-learner/handler";
+import { readFamilyDashboard } from "@/features/family-dashboard/read";
+import { handleAdmissionRequest } from "@/features/learner-admission/handler";
 import { getScreeningContext } from "@/features/tutor-screening/composition";
 import {
   decideScreening,
@@ -147,7 +171,8 @@ async function historicalConfirmed(input: {
   tutorId: string;
   learnerId: string;
   requesterId: string;
-  reviewerId: string;
+  confirmationActorId: string;
+  confirmationReason?: "local_prerequisite_review" | "local_parent_booking";
   subjectId: string;
   bookingPolicyId: string;
   admissionPolicyId: string;
@@ -176,8 +201,15 @@ async function historicalConfirmed(input: {
       ],
     );
     await client.query(
-      "INSERT INTO booking_lifecycle_events(logical_booking_id,booking_id,actor_user_id,event,request_id,request_fingerprint,created_at,workflow_policy_id,workflow_revision,reason_code) VALUES($1,$1,$2,'workflow_confirmed',$3,$4,clock_timestamp()-interval '2 hours',$5,0,'local_prerequisite_review')",
-      [id, input.reviewerId, key, "a".repeat(64), input.bookingPolicyId],
+      "INSERT INTO booking_lifecycle_events(logical_booking_id,booking_id,actor_user_id,event,request_id,request_fingerprint,created_at,workflow_policy_id,workflow_revision,reason_code) VALUES($1,$1,$2,'workflow_confirmed',$3,$4,clock_timestamp()-interval '2 hours',$5,0,$6)",
+      [
+        id,
+        input.confirmationActorId,
+        key,
+        "a".repeat(64),
+        input.bookingPolicyId,
+        input.confirmationReason ?? "local_prerequisite_review",
+      ],
     );
     await client.query("COMMIT");
     return id;
@@ -254,6 +286,65 @@ afterAll(async () => {
 });
 
 describe("ordinary persisted feature services on the explicit separate local fixture", () => {
+  it("excludes automatic guardian receipts before requester list pagination while preserving historical and College requests", async () => {
+    const parent = await registeredAccount(
+      "Admission history pagination parent",
+    );
+    await enrollParentWorkspace(world.runtime, parent.headers, {});
+    const context = admissionContext(world.runtime);
+    if (context.admission.authority === "disabled") throw new Error();
+    const legacyFields = {
+      policyVersion: context.admission.version,
+      policyDigest: context.admission.contentDigest,
+      displayName: "Historical request pagination fixture",
+      level: "middle_school",
+      timezone: "Asia/Manila",
+    };
+    const historical: string[] = [];
+    for (let index = 0; index < 19; index++) {
+      const request = await createAdmission(context, parent.headers, {
+        ...legacyFields,
+        requestId: randomUUID(),
+        management: "guardian",
+      });
+      historical.push(request.id);
+    }
+    const intake = await readParentChildIntake(world.runtime, parent.headers);
+    if (!intake.enabled) throw new Error();
+    const child = await createParentChild(world.runtime, parent.headers, {
+      ...legacyFields,
+      requestId: randomUUID(),
+      policyVersion: intake.policyVersion,
+      policyDigest: intake.policyDigest,
+      noticeVersion: intake.noticeVersion,
+      guardianConfirmed: true,
+      consentConfirmed: true,
+    });
+    const college = await createAdmission(context, parent.headers, {
+      ...legacyFields,
+      requestId: randomUUID(),
+      management: "self",
+      level: "college_support",
+    });
+    historical.push(college.id);
+    const page = await listMyAdmissions(context, parent.headers);
+    expect(page.items).toHaveLength(20);
+    expect(new Set(page.items.map((row) => row.id))).toEqual(
+      new Set(historical),
+    );
+    expect(page.nextCursor).toBeNull();
+    expect(page.items.some((row) => row.id === child.admissionId)).toBe(false);
+    await expect(
+      listMyAdmissions(context, parent.headers, child.admissionId),
+    ).rejects.toMatchObject({ status: 404 });
+    expect(
+      await readMyAdmission(context, parent.headers, child.admissionId),
+    ).toMatchObject({ id: child.admissionId, currentAccess: true });
+    expect(
+      (await listMyAdmissions(context, parent.headers, page.items.at(-1)!.id))
+        .items,
+    ).toEqual([]);
+  }, 120000);
   it("uses actual normal accounts, claimed reviews, the same confirmed booking and minimum scoped support", async () => {
     const admin = await registeredAccount("Operational fixture administrator");
     const parent = await registeredAccount("Operational fixture parent");
@@ -276,7 +367,196 @@ describe("ordinary persisted feature services on the explicit separate local fix
     await enrollParentWorkspace(world.runtime, parent.headers, {});
     const admission = admissionContext(world.runtime);
     if (admission.admission.authority === "disabled") throw new Error();
-    const pending = await createAdmission(admission, parent.headers, {
+    const retiredSelfIntake = await handleAdmissionRequest(
+      world.runtime,
+      new Request(`${world.runtime.origin}/api/learner-admission`, {
+        method: "POST",
+        headers: {
+          cookie: unrelated.cookie,
+          origin: world.runtime.origin,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          requestId: randomUUID(),
+          policyVersion: admission.admission.version,
+          policyDigest: admission.admission.contentDigest,
+          management: "self",
+          displayName: "Fresh independent learner",
+          level: "college_support",
+          timezone: "Asia/Manila",
+        }),
+      }),
+    );
+    expect(retiredSelfIntake.status).toBe(409);
+    expect(await retiredSelfIntake.json()).toEqual({
+      message: expect.stringContaining("/student/onboarding"),
+    });
+    expect(
+      (
+        await world.owner.pool.query(
+          "SELECT count(*)::int count FROM learner_admissions WHERE requester_user_id=$1",
+          [unrelated.id],
+        )
+      ).rows[0].count,
+    ).toBe(0);
+    const adult = await registeredAccount(
+      "Self-service independent College learner",
+    );
+    const independentIntake = await readIndependentLearnerIntake(
+      world.runtime,
+      adult.headers,
+    );
+    expect(independentIntake).toMatchObject({
+      enabled: true,
+      existingLearnerId: null,
+      policyVersion: localIndependentAdmissionPolicy.version,
+      policyDigest: localIndependentAdmissionPolicy.contentDigest,
+      noticeVersion: localIndependentAdmissionPolicy.noticeVersion,
+    });
+    const independentRequests = [randomUUID(), randomUUID()].map(
+      (requestId) => ({
+        requestId,
+        policyVersion: independentIntake.policyVersion,
+        policyDigest: independentIntake.policyDigest,
+        noticeVersion: independentIntake.noticeVersion,
+        displayName: "Self-service College learner",
+        timezone: "Asia/Manila",
+        eligibilityDeclared: true as const,
+      }),
+    );
+    const independentAttempts = await Promise.allSettled(
+      independentRequests.map((value) =>
+        createIndependentLearner(world.runtime, adult.headers, value),
+      ),
+    );
+    expect(
+      independentAttempts.filter((value) => value.status === "fulfilled"),
+    ).toHaveLength(1);
+    const independentWinnerIndex = independentAttempts.findIndex(
+      (value) => value.status === "fulfilled",
+    );
+    const independentWinner = independentAttempts[independentWinnerIndex];
+    if (independentWinner.status !== "fulfilled") throw new Error();
+    const independentLearner = independentWinner.value;
+    expect(independentLearner).toMatchObject({
+      state: "authorized",
+      verificationStatus: "self_attested_unverified",
+      replayed: false,
+    });
+    const independentLoser = independentAttempts.find(
+      (value) => value.status === "rejected",
+    );
+    expect(
+      independentLoser?.status === "rejected" ? independentLoser.reason : null,
+    ).toMatchObject({ status: 409 });
+    expect(
+      await createIndependentLearner(
+        world.runtime,
+        adult.headers,
+        independentRequests[independentWinnerIndex],
+      ),
+    ).toMatchObject({
+      id: independentLearner.id,
+      admissionId: independentLearner.admissionId,
+      replayed: true,
+    });
+    const intakeAfterCreation = await readIndependentLearnerIntake(
+      world.runtime,
+      adult.headers,
+    );
+    expect(intakeAfterCreation).toMatchObject({
+      enabled: false,
+      existingLearnerId: independentLearner.id,
+    });
+    const replayResponse = await handleIndependentLearnerRequest(
+      world.runtime,
+      new Request(`${world.runtime.origin}/api/student/profile`, {
+        method: "POST",
+        headers: {
+          cookie: adult.cookie,
+          origin: world.runtime.origin,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(independentRequests[independentWinnerIndex]),
+      }),
+    );
+    expect(replayResponse.status).toBe(200);
+    expect(await replayResponse.json()).toMatchObject({
+      id: independentLearner.id,
+      replayed: true,
+    });
+    await expect(
+      createIndependentLearner(world.runtime, adult.headers, {
+        ...independentRequests[independentWinnerIndex],
+        displayName: "Changed replay",
+      }),
+    ).rejects.toMatchObject({ status: 409 });
+    const independentOrigin = await world.owner.pool.query(
+      `SELECT l.management,l.level,l.status,a.state,
+        ia.eligibility_declared,ia.verification_status AS attestation_status,
+        (SELECT count(*)::int FROM learner_admission_assignments aa WHERE aa.admission_id=a.id) assignments,
+        (SELECT count(*)::int FROM learner_admission_evidence ae WHERE ae.admission_id=a.id) evidence,
+        (SELECT count(*)::int FROM learner_admission_events e WHERE e.admission_id=a.id AND e.event='independent_profile_created') creation_events,
+        (SELECT count(*)::int FROM user_roles r WHERE r.user_id=$2 AND r.role='student') student_roles,
+        (SELECT count(*)::int FROM audit_events ae WHERE ae.actor_user_id=$2 AND ae.target_user_id=$2 AND ae.action='student_role.self_granted') role_audits
+       FROM learner_profiles l
+       JOIN learner_admissions a ON a.learner_id=l.id
+       JOIN learner_independent_attestations ia ON ia.admission_id=a.id
+       WHERE l.id=$1`,
+      [independentLearner.id, adult.id],
+    );
+    expect(independentOrigin.rows[0]).toEqual({
+      management: "self",
+      level: "college_support",
+      status: "active",
+      state: "authorized",
+      eligibility_declared: true,
+      attestation_status: "self_attested_unverified",
+      assignments: 0,
+      evidence: 0,
+      creation_events: 1,
+      student_roles: 1,
+      role_audits: 1,
+    });
+    expect(
+      (await listMyAdmissions(admission, adult.headers)).items.some(
+        (row) => row.id === independentLearner.admissionId,
+      ),
+    ).toBe(false);
+    expect(
+      (await listAdmittedLearners(admission, adult.headers)).find(
+        (row) => row.id === independentLearner.id,
+      ),
+    ).toMatchObject({
+      management: "self",
+      level: "college_support",
+    });
+    const injectedAuthority = await handleIndependentLearnerRequest(
+      world.runtime,
+      new Request(`${world.runtime.origin}/api/student/profile`, {
+        method: "POST",
+        headers: {
+          cookie: unrelated.cookie,
+          origin: world.runtime.origin,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          ...independentRequests[0],
+          requestId: randomUUID(),
+          userId: adult.id,
+        }),
+      }),
+    );
+    expect(injectedAuthority.status).toBe(400);
+    expect(
+      (
+        await world.owner.pool.query(
+          "SELECT count(*)::int count FROM learner_profiles WHERE user_id=$1 AND management='self'",
+          [unrelated.id],
+        )
+      ).rows[0].count,
+    ).toBe(0);
+    const legacyRequest = {
       requestId: randomUUID(),
       policyVersion: admission.admission.version,
       policyDigest: admission.admission.contentDigest,
@@ -285,7 +565,30 @@ describe("ordinary persisted feature services on the explicit separate local fix
       level: "middle_school",
       grade: 8,
       timezone: "Asia/Manila",
+    };
+    const publicLegacy = await handleAdmissionRequest(
+      world.runtime,
+      new Request(`${world.runtime.origin}/api/learner-admission`, {
+        method: "POST",
+        headers: {
+          cookie: parent.cookie,
+          origin: world.runtime.origin,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(legacyRequest),
+      }),
+    );
+    expect(publicLegacy.status).toBe(409);
+    expect(await publicLegacy.json()).toMatchObject({
+      message: expect.stringContaining("Add Child"),
     });
+    // Historical/test-owned v1 service contract remains available to provision
+    // its old receipt regression; ordinary public guardian intake is denied.
+    const pending = await createAdmission(
+      admission,
+      parent.headers,
+      legacyRequest,
+    );
     expect(pending.currentAccess).toBe(false);
     expect(await listAdmittedLearners(admission, parent.headers)).toEqual([]);
     await expect(
@@ -375,8 +678,123 @@ describe("ordinary persisted feature services on the explicit separate local fix
         action: "authorize",
       },
     );
-    const [learner] = await listAdmittedLearners(admission, parent.headers);
-    expect(learner).toMatchObject({ id: pending.learner.id, grade: 8 });
+    const [legacyLearner] = await listAdmittedLearners(
+      admission,
+      parent.headers,
+    );
+    expect(legacyLearner).toMatchObject({ id: pending.learner.id, grade: 8 });
+    const intake = await readParentChildIntake(world.runtime, parent.headers);
+    if (!intake.enabled) throw new Error("Current guardian intake required.");
+    const childInput = {
+      requestId: randomUUID(),
+      displayName: "Immediate private child",
+      level: "middle_school",
+      grade: 8,
+      timezone: "Asia/Manila",
+      policyVersion: intake.policyVersion,
+      policyDigest: intake.policyDigest,
+      noticeVersion: intake.noticeVersion,
+      guardianConfirmed: true,
+      consentConfirmed: true,
+    };
+    const newChild = await createParentChild(
+      world.runtime,
+      parent.headers,
+      childInput,
+    );
+    expect(newChild).toMatchObject({ state: "authorized", replayed: false });
+    expect(
+      await createParentChild(world.runtime, parent.headers, childInput),
+    ).toMatchObject({
+      id: newChild.id,
+      admissionId: newChild.admissionId,
+      replayed: true,
+    });
+    const additionalInput = {
+      ...childInput,
+      requestId: randomUUID(),
+      displayName: "Additional child",
+    };
+    const [sameA, sameB] = await Promise.all([
+      createParentChild(world.runtime, parent.headers, additionalInput),
+      createParentChild(world.runtime, parent.headers, additionalInput),
+    ]);
+    expect(sameA.id).toBe(sameB.id);
+    expect(sameA.id).not.toBe(newChild.id);
+    expect([sameA.replayed, sameB.replayed].sort()).toEqual([false, true]);
+    await expect(
+      createParentChild(world.runtime, parent.headers, {
+        ...childInput,
+        displayName: "Changed replay",
+      }),
+    ).rejects.toMatchObject({ status: 409 });
+    await expect(
+      createParentChild(world.runtime, parent.headers, {
+        ...childInput,
+        requestId: randomUUID(),
+        consentConfirmed: false,
+      }),
+    ).rejects.toHaveProperty("name", "ZodError");
+    const badRequest = new Request(
+      `${world.runtime.origin}/api/parent/children`,
+      {
+        method: "POST",
+        headers: {
+          cookie: parent.cookie,
+          origin: world.runtime.origin,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          ...childInput,
+          requestId: randomUUID(),
+          learnerId: legacyLearner.id,
+        }),
+      },
+    );
+    expect(
+      (await handleParentChildRequest(world.runtime, badRequest)).status,
+    ).toBe(400);
+    const learner = await readAdmittedLearner(
+      admission,
+      parent.headers,
+      newChild.id,
+    );
+    expect(learner).toMatchObject({ grade: 8, management: "guardian" });
+    const emptyDashboard = await readFamilyDashboard(
+      world.runtime,
+      parent.headers,
+      "parent",
+      {},
+    );
+    expect(emptyDashboard.learners.map((row) => row.id)).toEqual(
+      expect.arrayContaining([legacyLearner.id, newChild.id, sameA.id]),
+    );
+    expect(emptyDashboard.active).toEqual([]);
+    const ordinaryOrigin = await world.owner.pool.query(
+      "SELECT (SELECT count(*)::int FROM learner_admission_assignments WHERE admission_id=$1) assignments,(SELECT count(*)::int FROM learner_admission_evidence WHERE admission_id=$1) evidence,(SELECT count(*)::int FROM learner_guardian_attestations WHERE admission_id=$1) attestations",
+      [newChild.admissionId],
+    );
+    expect(ordinaryOrigin.rows[0]).toEqual({
+      assignments: 0,
+      evidence: 0,
+      attestations: 1,
+    });
+    await updateAdmittedLearner(admission, parent.headers, newChild.id, {
+      displayName: learner.displayName,
+      timezone: learner.timezone,
+      grade: 9,
+    });
+    expect(
+      await readAdmittedLearner(admission, parent.headers, newChild.id),
+    ).toMatchObject({ grade: 9 });
+    await updateAdmittedLearner(admission, parent.headers, newChild.id, {
+      displayName: learner.displayName,
+      timezone: learner.timezone,
+      grade: 8,
+    });
+    await expect(
+      readAdmittedLearner(admission, unrelated.headers, newChild.id),
+    ).rejects.toMatchObject({ status: 404 });
     await startTutorApplication(world.runtime, tutor.headers, {});
     await world.owner.pool.query(
       "INSERT INTO subjects(slug,name,category,is_active) VALUES('math','Math','academic_core',true) ON CONFLICT(slug) DO NOTHING",
@@ -440,16 +858,389 @@ describe("ordinary persisted feature services on the explicit separate local fix
       })),
     });
     const context = bookingWorkflowContext(world.runtime);
+    const independentOptions = await loadWorkflowOptions(
+      context,
+      adult.headers,
+    );
     expect(
-      (await loadWorkflowOptions(context, parent.headers)).tutors.some(
-        (t) => t.slug === profile.slug,
+      independentOptions.learners.find(
+        (row) => row.id === independentLearner.id,
       ),
+    ).toMatchObject({
+      management: "self",
+      level: "college_support",
+    });
+    expect(independentOptions.immediateConfirmationLearnerIds).toContain(
+      independentLearner.id,
+    );
+    expect(
+      independentOptions.tutors.some((row) => row.slug === profile.slug),
     ).toBe(true);
+    const independentChoice = {
+      learnerId: independentLearner.id,
+      tutorSlug: profile.slug,
+      subjectSlug: "math",
+      displayTimezone: independentOptions.timezone,
+    };
+    const [independentSlot] = await readWorkflowCandidates(
+      context,
+      adult.headers,
+      independentChoice,
+    );
+    if (!independentSlot)
+      throw new Error("Actual independent learner slot required.");
+    const independentBookingInputs = [randomUUID(), randomUUID()].map(
+      (idempotencyKey) => ({
+        ...independentChoice,
+        startAtUtc: independentSlot.startAtUtc,
+        endAtUtc: independentSlot.endAtUtc,
+        idempotencyKey,
+      }),
+    );
+    const independentBookingAttempts = await Promise.allSettled(
+      independentBookingInputs.map((value) =>
+        createPolicyReservation(context, adult.headers, value),
+      ),
+    );
+    expect(
+      independentBookingAttempts.filter(
+        (value) => value.status === "fulfilled",
+      ),
+    ).toHaveLength(1);
+    const independentBookingWinnerIndex = independentBookingAttempts.findIndex(
+      (value) => value.status === "fulfilled",
+    );
+    const independentBookingWinner =
+      independentBookingAttempts[independentBookingWinnerIndex];
+    if (independentBookingWinner.status !== "fulfilled") throw new Error();
+    const independentBooking = independentBookingWinner.value;
+    expect(independentBooking).toMatchObject({
+      state: "confirmed",
+      policyVersion: localIndependentBookingPolicy.version,
+    });
+    expect(
+      independentBookingAttempts.find((value) => value.status === "rejected"),
+    ).toMatchObject({ status: "rejected", reason: { status: 409 } });
+    expect(
+      await createPolicyReservation(
+        context,
+        adult.headers,
+        independentBookingInputs[independentBookingWinnerIndex],
+      ),
+    ).toMatchObject({
+      id: independentBooking.id,
+      state: "confirmed",
+      policyVersion: localIndependentBookingPolicy.version,
+    });
+    expect(
+      (
+        await world.owner.pool.query(
+          `SELECT b.state,b.workflow_policy_id,b.admission_policy_id,
+            (SELECT count(*)::int FROM booking_lifecycle_events e WHERE e.booking_id=b.id AND e.event='workflow_confirmed' AND e.reason_code='local_independent_booking') confirmations,
+            (SELECT count(*)::int FROM local_workflow_claims t WHERE t.kind='booking' AND t.target_id=b.id::text) assignments
+           FROM bookings b WHERE b.id=$1`,
+          [independentBooking.id],
+        )
+      ).rows[0],
+    ).toEqual({
+      state: "confirmed",
+      workflow_policy_id: localIndependentBookingPolicy.policyId,
+      admission_policy_id: localIndependentAdmissionPolicy.policyId,
+      confirmations: 1,
+      assignments: 0,
+    });
+    for (const [actor, scope] of [
+      [adult, "student"],
+      [tutor, "tutor"],
+    ] as const)
+      expect(
+        await readParticipantBooking(
+          world.runtime,
+          actor.headers,
+          independentBooking.id,
+          scope,
+        ),
+      ).toMatchObject({
+        id: independentBooking.id,
+        state: "confirmed",
+        policyVersion: localIndependentBookingPolicy.version,
+      });
+    for (const [actor, scope] of [
+      [parent, "guardian"],
+      [unrelated, "student"],
+    ] as const)
+      await expect(
+        readParticipantBooking(
+          world.runtime,
+          actor.headers,
+          independentBooking.id,
+          scope,
+        ),
+      ).rejects.toMatchObject({ status: 404 });
+    await expect(
+      readWorkflowTask(context, admin.headers, independentBooking.id),
+    ).rejects.toMatchObject({ status: 404 });
+    // A direct-v2 booking is visible through an exactly assigned support case,
+    // with actual current provider MFA; support does not grant confirmation.
+    const independentReport = await createCase(world.runtime, adult.headers, {
+      requestKey: randomUUID(),
+      category: "account",
+      subject: "Independent booking support fixture",
+      body: "Isolated cross-role support regression.",
+      bookingId: independentBooking.id,
+    });
+    await expect(
+      readCase(world.runtime, admin.headers, independentReport.id, "reviewer"),
+    ).rejects.toMatchObject({ status: 404 });
+    const supportReadsBefore = (
+      await world.owner.pool.query(
+        "SELECT count(*)::int n FROM support_booking_access_events WHERE case_id=$1",
+        [independentReport.id],
+      )
+    ).rows[0].n;
+    expect(supportReadsBefore).toBe(0);
+    expect(
+      (
+        await world.owner.pool.query(
+          "SELECT booking_id FROM support_case_bookings WHERE case_id=$1",
+          [independentReport.id],
+        )
+      ).rows,
+    ).toEqual([{ booking_id: independentBooking.id }]);
+    await claim(admin, "support", independentReport.id);
+    const independentSupport = await readCase(
+      world.runtime,
+      admin.headers,
+      independentReport.id,
+      "reviewer",
+    );
+    expect(independentSupport.booking).toEqual({
+      available: true,
+      source: "local_operation",
+      tutorName: expect.any(String),
+      subjectName: expect.any(String),
+      state: "confirmed",
+      time: expect.any(Object),
+      events: [{ event: "workflow_confirmed", time: expect.any(Object) }],
+    });
+    expect(
+      (
+        await world.owner.pool.query(
+          "SELECT count(*)::int n FROM support_booking_access_events WHERE case_id=$1 AND actor_user_id=$2",
+          [independentReport.id, admin.id],
+        )
+      ).rows[0].n,
+    ).toBe(supportReadsBefore + 1);
+    await expect(
+      readWorkflowTask(context, admin.headers, independentBooking.id),
+    ).rejects.toMatchObject({ status: 404 });
+    await expect(
+      changePolicyBooking(
+        context,
+        admin.headers,
+        independentBooking.id,
+        "confirm",
+        {
+          requestId: randomUUID(),
+          expectedRevision: independentBooking.workflowRevision,
+          reasonCode: "local_prerequisite_review",
+        },
+      ),
+    ).rejects.toMatchObject({ status: 404 });
+    expect(
+      (
+        await world.owner.pool.query(
+          "SELECT count(*)::int n FROM booking_workflow_grants WHERE logical_booking_id=$1 AND actor_user_id=$2",
+          [independentBooking.logicalBookingId, admin.id],
+        )
+      ).rows[0].n,
+    ).toBe(0);
+
+    // Preserve the existing assigned Tutor mutation boundary. Slot discovery is
+    // intentionally performed by the beneficiary, while the Tutor acts using
+    // the Tutor account's current IANA display zone.
+    const tutorMoveSlot = (
+      await readWorkflowMoveCandidates(
+        context,
+        adult.headers,
+        independentBooking.id,
+      )
+    ).find((value) => value.startAtUtc !== independentSlot.startAtUtc);
+    if (!tutorMoveSlot)
+      throw new Error("Actual alternate Tutor regression slot required.");
+    const tutorTimezone = (
+      await world.owner.pool.query(
+        'SELECT timezone FROM public."user" WHERE id=$1',
+        [tutor.id],
+      )
+    ).rows[0].timezone as string;
+    const tutorMove = {
+      requestId: randomUUID(),
+      expectedRevision: independentBooking.workflowRevision,
+      reasonCode: "local_participant_change",
+      startAtUtc: tutorMoveSlot.startAtUtc,
+      endAtUtc: tutorMoveSlot.endAtUtc,
+      displayTimezone: tutorTimezone,
+    };
+    const tutorMoved = await changePolicyBooking(
+      context,
+      tutor.headers,
+      independentBooking.id,
+      "reschedule",
+      tutorMove,
+    );
+    expect(tutorMoved).toMatchObject({
+      logicalBookingId: independentBooking.logicalBookingId,
+      revision: 1,
+      workflowRevision: 0,
+      state: "confirmed",
+      policyVersion: localIndependentBookingPolicy.version,
+    });
+    expect(tutorMoved.id).not.toBe(independentBooking.id);
+    expect(
+      await changePolicyBooking(
+        context,
+        tutor.headers,
+        independentBooking.id,
+        "reschedule",
+        tutorMove,
+      ),
+    ).toEqual(tutorMoved);
+    const tutorCancel = {
+      requestId: randomUUID(),
+      expectedRevision: tutorMoved.workflowRevision,
+      reasonCode: "local_participant_change",
+    };
+    const tutorCancelled = await changePolicyBooking(
+      context,
+      tutor.headers,
+      tutorMoved.id,
+      "cancel",
+      tutorCancel,
+    );
+    expect(tutorCancelled).toMatchObject({
+      id: tutorMoved.id,
+      logicalBookingId: independentBooking.logicalBookingId,
+      revision: 1,
+      workflowRevision: 1,
+      state: "cancelled",
+    });
+    expect(
+      await changePolicyBooking(
+        context,
+        tutor.headers,
+        tutorMoved.id,
+        "cancel",
+        tutorCancel,
+      ),
+    ).toEqual(tutorCancelled);
+    expect(
+      (
+        await world.owner.pool.query(
+          `SELECT id,logical_booking_id,replaces_booking_id,revision,workflow_revision,state,display_timezone,workflow_policy_id,admission_policy_id
+       FROM bookings WHERE logical_booking_id=$1 ORDER BY revision`,
+          [independentBooking.logicalBookingId],
+        )
+      ).rows,
+    ).toEqual([
+      {
+        id: independentBooking.id,
+        logical_booking_id: independentBooking.logicalBookingId,
+        replaces_booking_id: null,
+        revision: 0,
+        workflow_revision: 1,
+        state: "replaced",
+        display_timezone: independentOptions.timezone,
+        workflow_policy_id: localIndependentBookingPolicy.policyId,
+        admission_policy_id: localIndependentAdmissionPolicy.policyId,
+      },
+      {
+        id: tutorMoved.id,
+        logical_booking_id: independentBooking.logicalBookingId,
+        replaces_booking_id: independentBooking.id,
+        revision: 1,
+        workflow_revision: 1,
+        state: "cancelled",
+        display_timezone: tutorTimezone,
+        workflow_policy_id: localIndependentBookingPolicy.policyId,
+        admission_policy_id: localIndependentAdmissionPolicy.policyId,
+      },
+    ]);
+    expect(
+      (
+        await world.owner.pool.query(
+          `SELECT booking_id,actor_user_id,event,workflow_revision,reason_code,replacement_booking_id
+       FROM booking_lifecycle_events WHERE logical_booking_id=$1
+       ORDER BY created_at,CASE event WHEN 'workflow_rescheduled' THEN 0 ELSE 1 END`,
+          [independentBooking.logicalBookingId],
+        )
+      ).rows,
+    ).toEqual([
+      {
+        booking_id: independentBooking.id,
+        actor_user_id: adult.id,
+        event: "workflow_confirmed",
+        workflow_revision: 0,
+        reason_code: "local_independent_booking",
+        replacement_booking_id: null,
+      },
+      {
+        booking_id: independentBooking.id,
+        actor_user_id: tutor.id,
+        event: "workflow_rescheduled",
+        workflow_revision: 1,
+        reason_code: "local_participant_change",
+        replacement_booking_id: tutorMoved.id,
+      },
+      {
+        booking_id: tutorMoved.id,
+        actor_user_id: tutor.id,
+        event: "workflow_confirmed",
+        workflow_revision: 0,
+        reason_code: "local_independent_booking",
+        replacement_booking_id: null,
+      },
+      {
+        booking_id: tutorMoved.id,
+        actor_user_id: tutor.id,
+        event: "workflow_cancelled",
+        workflow_revision: 1,
+        reason_code: "local_participant_change",
+        replacement_booking_id: null,
+      },
+    ]);
+    for (const [actor, scope] of [
+      [adult, "student"],
+      [tutor, "tutor"],
+    ] as const) {
+      const history = await readParticipantBooking(
+        world.runtime,
+        actor.headers,
+        tutorMoved.id,
+        scope,
+      );
+      expect(history).toMatchObject({
+        id: tutorMoved.id,
+        state: "cancelled",
+        logicalBookingId: independentBooking.logicalBookingId,
+        currentHeadId: tutorMoved.id,
+      });
+      expect(history.events.map((event) => event.event)).toEqual([
+        "workflow_confirmed",
+        "workflow_rescheduled",
+        "workflow_confirmed",
+        "workflow_cancelled",
+      ]);
+    }
+    const parentOptions = await loadWorkflowOptions(context, parent.headers);
+    expect(parentOptions.tutors.some((t) => t.slug === profile.slug)).toBe(
+      true,
+    );
     const choice = {
       learnerId: learner.id,
       tutorSlug: profile.slug,
       subjectSlug: "math",
-      displayTimezone: "Asia/Manila",
+      displayTimezone: parentOptions.timezone,
     };
     const [slot] = await readWorkflowCandidates(
       context,
@@ -497,20 +1288,14 @@ describe("ordinary persisted feature services on the explicit separate local fix
     await expect(
       createDemoReservation(world.runtime, parent.headers, input),
     ).rejects.toMatchObject({ status: 503 });
-    await claim(admin, "booking", booking.id);
-    const task = await readWorkflowTask(context, admin.headers, booking.id);
-    expect(task.actions).toContain("confirm");
-    const confirmed = await changePolicyBooking(
-      context,
-      admin.headers,
-      booking.id,
-      "confirm",
-      {
-        requestId: randomUUID(),
-        expectedRevision: booking.workflowRevision,
-        reasonCode: "local_prerequisite_review",
-      },
-    );
+    expect(booking).toMatchObject({
+      state: "confirmed",
+      policyVersion: "local-parent-booking-v2",
+    });
+    await expect(
+      readWorkflowTask(context, admin.headers, booking.id),
+    ).rejects.toMatchObject({ status: 404 });
+    const confirmed = booking;
     expect(confirmed.state).toBe("confirmed");
     for (const [actor, scope] of [
       [parent, "guardian"],
@@ -575,7 +1360,7 @@ describe("ordinary persisted feature services on the explicit separate local fix
         reasonCode: "local_participant_change",
         startAtUtc: alternate.startAtUtc,
         endAtUtc: alternate.endAtUtc,
-        displayTimezone: "Asia/Manila",
+        displayTimezone: parentOptions.timezone,
       },
     );
     expect(moved.id).not.toBe(booking.id);
@@ -594,6 +1379,48 @@ describe("ordinary persisted feature services on the explicit separate local fix
         })
       ).state,
     ).toBe("cancelled");
+    // A previously reviewed guardian keeps its actual v1 admission receipt while
+    // newly booking under the parent-v2 policy; no new admission/confirmation task.
+    const reviewedChoice = { ...choice, learnerId: legacyLearner.id };
+    const [reviewedSlot] = await readWorkflowCandidates(
+      context,
+      parent.headers,
+      reviewedChoice,
+    );
+    if (!reviewedSlot) throw new Error();
+    const reviewedBooking = await createPolicyReservation(
+      context,
+      parent.headers,
+      {
+        ...reviewedChoice,
+        startAtUtc: reviewedSlot.startAtUtc,
+        endAtUtc: reviewedSlot.endAtUtc,
+        idempotencyKey: randomUUID(),
+      },
+    );
+    expect(reviewedBooking).toMatchObject({
+      state: "confirmed",
+      policyVersion: "local-parent-booking-v2",
+    });
+    expect(
+      (
+        await world.owner.pool.query(
+          "SELECT admission_policy_id FROM bookings WHERE id=$1",
+          [reviewedBooking.id],
+        )
+      ).rows[0].admission_policy_id,
+    ).toBe(admission.admission.policyId);
+    await changePolicyBooking(
+      context,
+      parent.headers,
+      reviewedBooking.id,
+      "cancel",
+      {
+        requestId: randomUUID(),
+        expectedRevision: reviewedBooking.workflowRevision,
+        reasonCode: "local_participant_change",
+      },
+    );
     const report = await createCase(world.runtime, parent.headers, {
       requestKey: randomUUID(),
       category: "account",
@@ -625,9 +1452,9 @@ describe("ordinary persisted feature services on the explicit separate local fix
     if (context.booking.authority !== "local_operation") throw new Error();
     const historicalFields = {
       tutorId: profile.id,
-      learnerId: learner.id,
+      learnerId: legacyLearner.id,
       requesterId: parent.id,
-      reviewerId: admin.id,
+      confirmationActorId: admin.id,
       subjectId: subject,
       bookingPolicyId: context.booking.policyId,
       admissionPolicyId: context.booking.admissionPolicyId,
@@ -664,6 +1491,86 @@ describe("ordinary persisted feature services on the explicit separate local fix
         })
       ).state,
     ).toBe("completed");
+    // A separate historical fixture exercises elapsed time without pretending
+    // that the newly booked future lesson has already occurred.
+    const endedParentV2 = await historicalConfirmed({
+      ...historicalFields,
+      learnerId: newChild.id,
+      confirmationActorId: parent.id,
+      confirmationReason: "local_parent_booking",
+      bookingPolicyId: localParentBookingPolicy.policyId,
+      admissionPolicyId: localGuardianAdmissionPolicy.policyId,
+      start: new Date(Date.now() - 75 * 60000).toISOString(),
+      end: new Date(Date.now() - 15 * 60000).toISOString(),
+    });
+    expect(
+      (
+        await world.owner.pool.query(
+          "SELECT expires_at<clock_timestamp() AS elapsed FROM bookings WHERE id=$1",
+          [endedParentV2],
+        )
+      ).rows[0].elapsed,
+    ).toBe(true);
+    expect(
+      await readParticipantBooking(
+        world.runtime,
+        parent.headers,
+        endedParentV2,
+        "guardian",
+      ),
+    ).toMatchObject({
+      state: "confirmed",
+      policyVersion: "local-parent-booking-v2",
+    });
+    const completionInput = {
+      requestId: randomUUID(),
+      expectedRevision: 0,
+      reasonCode: "local_completed",
+    };
+    for (const actor of [parent, unrelated])
+      await expect(
+        changePolicyBooking(context, actor.headers, endedParentV2, "complete", {
+          ...completionInput,
+          requestId: randomUUID(),
+        }),
+      ).rejects.toMatchObject({ status: 404 });
+    const parentV2Completion = await changePolicyBooking(
+      context,
+      tutor.headers,
+      endedParentV2,
+      "complete",
+      completionInput,
+    );
+    expect(parentV2Completion).toMatchObject({
+      id: endedParentV2,
+      state: "completed",
+      policyVersion: "local-parent-booking-v2",
+    });
+    expect(
+      await changePolicyBooking(
+        context,
+        tutor.headers,
+        endedParentV2,
+        "complete",
+        completionInput,
+      ),
+    ).toMatchObject({
+      eventId: parentV2Completion.eventId,
+      state: "completed",
+    });
+    expect(
+      (
+        await world.owner.pool.query(
+          "SELECT b.state,b.workflow_policy_id,b.admission_policy_id,(SELECT count(*)::int FROM booking_lifecycle_events e WHERE e.booking_id=b.id AND e.event='workflow_completed') completions FROM bookings b WHERE b.id=$1",
+          [endedParentV2],
+        )
+      ).rows[0],
+    ).toEqual({
+      state: "completed",
+      workflow_policy_id: localParentBookingPolicy.policyId,
+      admission_policy_id: localGuardianAdmissionPolicy.policyId,
+      completions: 1,
+    });
     const student = await registeredAccount(
       "Independent fixture college learner",
     );
@@ -889,6 +1796,47 @@ describe("ordinary persisted feature services on the explicit separate local fix
     await rename(
       temporaryHandoff,
       path.join(world.fixture, "browser-accounts.json"),
+    );
+    const emptyParent = await registeredAccount(
+      "Empty Parent browser acceptance",
+    );
+    const secondParent = await registeredAccount(
+      "Other Parent browser acceptance",
+    );
+    for (const actor of [emptyParent, secondParent])
+      await enrollParentWorkspace(world.runtime, actor.headers, {});
+    const browserDirectory = path.join(
+      world.checkout,
+      ".local/automatic-children-20261018",
+    );
+    await mkdir(browserDirectory, { recursive: true, mode: 0o700 });
+    const browserTemporary = path.join(
+      browserDirectory,
+      `.browser-accounts-${randomUUID()}.json`,
+    );
+    await writeFile(
+      browserTemporary,
+      JSON.stringify({
+        origin: world.runtime.origin,
+        accounts: {
+          parent: accountHandoff(emptyParent),
+          secondParent: accountHandoff(secondParent),
+          tutor: accountHandoff(tutor),
+          admin: accountHandoff(admin),
+        },
+        records: {
+          tutorId: profile.id,
+          tutorSlug: profile.slug,
+          subjectSlug: "math",
+          tutorSubjectId: subject,
+          level: "middle_school",
+        },
+      }),
+      { mode: 0o600, flag: "wx" },
+    );
+    await rename(
+      browserTemporary,
+      path.join(browserDirectory, "browser-accounts.json"),
     );
   }, 120000);
 });

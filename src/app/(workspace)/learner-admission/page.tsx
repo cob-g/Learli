@@ -6,9 +6,10 @@ import { admissionContext } from "@/features/learner-admission/context";
 import { listMyAdmissions } from "@/features/learner-admission/service";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Your admission requests",
+  title: "Your learner review records",
   robots: { index: false, follow: false },
 };
 export default async function Page({
@@ -23,8 +24,8 @@ export default async function Page({
   } catch {
     return (
       <UnavailablePage
-        title="Admission unavailable"
-        message="Reload the admission list with a valid cursor."
+        title="Learner reviews unavailable"
+        message="Reload the learner review list with a valid cursor."
       />
     );
   }
@@ -33,23 +34,30 @@ export default async function Page({
     async (runtime, headers) => ({
       ...(await listMyAdmissions(admissionContext(runtime), headers, cursor)),
       privateWorkflow: hasPersistentWorkflow(runtime),
+      localWorkflow: getLocalWorkflow(runtime) !== null,
     }),
   );
   if (!result)
     return (
       <UnavailablePage
-        title="Admission unavailable"
-        message="We cannot open admission requests on this account."
+        title="Learner reviews unavailable"
+        message="We cannot open learner review records on this account."
       />
     );
-  const { items: rows, nextCursor, privateWorkflow } = result;
+  const { items: rows, nextCursor, privateWorkflow, localWorkflow } = result;
   return (
     <div className="page-shell page-space">
-      <h1 className="text-page-title">Your admission requests</h1>
+      <h1 className="text-page-title">
+        {localWorkflow
+          ? "Earlier learner review records"
+          : "Your admission requests"}
+      </h1>
       <p className="mt-4 max-w-prose text-body">
-        {privateWorkflow
-          ? "Check each request’s current review status. Pending requests grant no learner or booking access."
-          : "Synthetic readiness only. No real guardian consent, age or eligibility is established."}
+        {localWorkflow
+          ? "These retained records cover earlier or exceptional learner reviews. New child profiles and eligible independent College Support learners use self-service setup."
+          : privateWorkflow
+            ? "Check each request’s current review status. Pending requests grant no learner or booking access."
+            : "Synthetic readiness only. No real guardian consent, age or eligibility is established."}
       </p>
       <div className="mt-6 max-w-5xl rounded-surface border border-border bg-surface p-6 sm:p-8">
         {rows.length ? (
@@ -58,8 +66,12 @@ export default async function Page({
               <li key={row.id} className="min-w-0 py-4 first:pt-0 last:pb-0">
                 <p className="text-body">
                   {row.management === "self"
-                    ? "Independent College Support"
-                    : "Guardian-managed request"}
+                    ? localWorkflow
+                      ? "Independent College Support record"
+                      : "Independent College Support"
+                    : localWorkflow
+                      ? "Guardian-managed record"
+                      : "Guardian-managed request"}
                   .{" "}
                   {privateWorkflow
                     ? row.state.charAt(0).toUpperCase() + row.state.slice(1)
@@ -78,21 +90,32 @@ export default async function Page({
                 <LearnerLink
                   href={`/learner-admission/${row.id}`}
                   className="mt-2 inline-flex min-h-11 items-center"
-                  label="Open request"
+                  label={localWorkflow ? "Open record" : "Open request"}
                 />
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-body">No admission requests are available.</p>
+          <p className="text-body">
+            {localWorkflow
+              ? "No earlier learner review records are available."
+              : "No admission requests are available."}
+          </p>
         )}
       </div>
-      <LearnerLink
-        href="/learner-admission/new"
-        className="action action-primary mt-6 w-full sm:w-auto"
-        label="Request admission review"
-      />
-      <nav aria-label="Admission list pages" className="mt-8 flex gap-6">
+      {!result.localWorkflow && (
+        <LearnerLink
+          href="/learner-admission/new"
+          className="action action-primary mt-6 w-full sm:w-auto"
+          label="Request admission review"
+        />
+      )}
+      <nav
+        aria-label={
+          localWorkflow ? "Learner review record pages" : "Admission list pages"
+        }
+        className="mt-8 flex gap-6"
+      >
         {cursor && (
           <LearnerLink
             href="/learner-admission"

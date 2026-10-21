@@ -1,0 +1,55 @@
+@layer components {
+  /* ReviewNotice banner mode */
+  .review-banner {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--border-default);
+    border-radius: 1.25rem;
+    background: var(--bg-surface);
+  }
+  .review-banner-icon {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    background: var(--brand-navy);
+    color: var(--brand-mint);
+  }
+  .review-banner[data-approved] .review-banner-icon {
+    background: color-mix(in srgb, var(--brand-mint) 30%, var(--bg-surface));
+    color: var(--accent-strong);
+  }
+  .review-banner h2 {
+    color: var(--brand-navy);
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+  .review-banner h2 + p {
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+  }
+  .review-banner-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+  }
+  .review-banner-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  @media (max-width: 53.75rem) {
+    .review-banner {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+    .review-banner-links {
+      grid-column: 2;
+    }
+  }
+}

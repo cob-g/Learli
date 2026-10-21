@@ -35,16 +35,20 @@ export default async function TutorProfilePage() {
   const { profile, account, subjects } = data;
   const editable = !profile || tutorCanEdit(profile.reviewStatus);
   return (
-    <div className="page-shell page-space">
-      <h1 className="text-page-title">Tutor profile</h1>
-      <div className="mt-6">
-        <ReviewNotice
-          status={profile?.reviewStatus ?? null}
-          publicHref={profile ? `/tutors/${profile.slug}` : undefined}
-          privateWorkflow={data.privateWorkflow}
-        />
-      </div>
-      <div className="mt-8">
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">Your listing</p>
+          <h1>Tutor profile</h1>
+        </div>
+      </header>
+      <ReviewNotice
+        status={profile?.reviewStatus ?? null}
+        publicHref={profile ? `/tutors/${profile.slug}` : undefined}
+        privateWorkflow={data.privateWorkflow}
+        banner
+      />
+      <div>
         {editable ? (
           <TutorProfileForm
             // Only the editable values cross into the browser bundle's props.
@@ -69,6 +73,12 @@ export default async function TutorProfilePage() {
               ...(profile ? [profile.timezone] : []),
             ])}
             defaultTimeZone={account.timezone}
+            previewName={account.name}
+            previewTag={
+              profile?.reviewStatus === "approved"
+                ? "Approved profile"
+                : "Not public yet"
+            }
           />
         ) : (
           <ProfileSummary

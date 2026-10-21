@@ -6,6 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { SignOut } from "@/features/auth/sign-out";
 import { authClient } from "@/lib/auth-client";
+import { nameInitials } from "@/lib/initials";
 
 /** Presentation only. The account destination still authorizes every request. */
 export function HeaderAccount() {
@@ -105,11 +106,7 @@ export function SignedInAccount({
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const panelId = useId();
-  const words = name.split(/\s+/);
-  const initials = [words[0], ...(words.length > 1 ? [words.at(-1)!] : [])]
-    .map((word) => Array.from(word)[0])
-    .join("")
-    .toLocaleUpperCase();
+  const initials = nameInitials(name);
 
   useEffect(() => {
     if (!open) return;

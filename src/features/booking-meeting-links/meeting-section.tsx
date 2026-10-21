@@ -164,6 +164,12 @@ export function BookingMeetingSection({
             : "No test meeting link has been provided."}
         </p>
       )}
+      {meeting.state === "awaiting_confirmation" && (
+        <p className="mt-4 text-body">
+          This booking is awaiting confirmation. Its private meeting link will
+          be available after confirmation.
+        </p>
+      )}
       {meeting.state === "expired" && (
         <p className="mt-4 text-body">
           {privateWorkflow

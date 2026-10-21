@@ -1,5 +1,35 @@
 # Learli — Product Requirements Document (PRD)
 
+### Independent adult self-service — 2026-10-18
+
+The owner approved a new ordinary local path for a verified, active user to
+create one self-managed College Support learner after an explicit unchecked
+declaration that they are an adult or otherwise legally eligible to manage the
+account independently. The declaration is an immutable self-attestation, not
+verified proof of age, identity, capacity or legal eligibility. College Support
+is the only independent level supported by this initial V2 path and is never
+treated as evidence of adulthood. Eligible V2 learners receive trusted Student
+authority atomically and may create confirmed no-money bookings without routine
+Admin admission or booking confirmation. Confirmed never means paid; payments
+remain disabled. Historical v1 admissions, review evidence, policy receipts,
+bookings and audit events keep their original meaning and state. Independent
+minor access and existing-student account linking remain gated. See
+`docs/decisions/2026-10-18-independent-adult-self-service.md`.
+
+### Automatic Parent child creation — 2026-10-18
+
+The owner explicitly approved Add Child → guardian declaration and consent →
+Save → immediately available private profile and booking, without routine Admin
+approval. FAM-01/03 and BKG-03 now require this ordinary local Parent path,
+including additional children and grade edits. New valid Parent bookings confirm
+atomically without an Admin confirmation task. Verified email is required but is
+not proof of guardianship. Existing-student account linking is never inferred
+from name/email; exceptional disputes/suspicious access remain separately scoped.
+Historical pending requests, v1 receipts and independent College rules remain.
+This supersedes routine-review wording below only for this new local slice;
+public-market/legal/minor-safeguarding gates are unchanged. See
+`docs/decisions/2026-10-18-automatic-parent-child-onboarding.md`.
+
 ### Local operating override — 2026-10-18
 
 The owner requested normal local-main registration and saved role workflows,
@@ -435,16 +465,22 @@ policy gates. The original safe tutor/slot continuation survives setup. See
 `prompts/features/m2-04-parent-onboarding.md`; implementation/verification status
 is recorded separately in progress-tracker.
 
-**Owner-approved College Student onboarding (2026-10-16, M8.9):** College Student
-selection is intent leading to the existing independent College Support admission
-and assigned eligibility review. Verification, current authorized self profile and
-trusted Student grant are required before corresponding access; no signup role
-grant or independent minor enrollment is introduced. Existing accounts can use
-Account settings, valid public tutor/time selections survive setup, and pending
-requests reopen instead of creating another self profile. Ordinary intake remains
-disabled without the explicit private fictional capability. See
+**College Student onboarding (M8.9; updated by the 2026-10-18 approved V2 direction):**
+College Student selection is intent. In ordinary local operation, an active,
+verified account holder can create one self-managed College Support profile with
+an explicit unverified adult/legal-eligibility declaration, without routine Admin
+admission. College Support is not proof of adulthood. Only the successful atomic
+profile operation grants trusted Student access; signup alone grants no role.
+Valid public tutor/time selections survive setup. Eligible V2 bookings confirm
+directly as no-money bookings, without provisional Admin approval; payments stay
+disabled. Historical v1 requests reopen under their original review rules and
+retain unchanged policy receipts, evidence, history and audits; new ordinary
+independent requests do not enter that queue. Existing-account linking,
+independent minor access and public eligibility remain separately gated. The
+earlier private fictional capability and assigned-review contract are historical:
 `docs/decisions/2026-10-16-college-student-onboarding.md` and
-`prompts/features/m8-09-student-workflow-acceptance.md`.
+`prompts/features/m8-09-student-workflow-acceptance.md`. Current authority is
+`prompts/features/m4-04-master-workflow-alignment.md`.
 
 #### AUTH-04 — Safe account settings `P1 [RECOMMENDED]`
 

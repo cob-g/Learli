@@ -32,6 +32,9 @@ import {
   type AdmissionCapability,
   type EnabledAdmissionCapability,
   validateAdmissionCapability,
+  localAdmissionPolicy,
+  localGuardianAdmissionPolicy,
+  localIndependentAdmissionPolicy,
 } from "./policy";
 import type { AdmissionState } from "@/lib/db/schema/learner-admission";
 import type { PrivateLearner } from "@/features/learners/service";
@@ -219,7 +222,7 @@ async function admissionPage(
   const cursor = admissionListCursor(input);
   const visible = reviewer
     ? reviewerPredicate(identity, source)
-    : sql`a.source=${source} AND a.requester_user_id=${identity.userId} AND ${requesterPredicate(identity, source)}`;
+    : sql`a.source=${source} AND a.requester_user_id=${identity.userId} AND ${requesterPredicate(identity, source)} ${source === "local_operation" ? sql`AND a.policy_id NOT IN (${localGuardianAdmissionPolicy.policyId}::uuid,${localIndependentAdmissionPolicy.policyId}::uuid)` : sql``}`;
   const comparison = reviewer
     ? sql`(a.created_at,a.id)>(SELECT created_at,id FROM point)`
     : sql`(a.created_at,a.id)<(SELECT created_at,id FROM point)`;
@@ -344,23 +347,49 @@ export async function listAdmittedLearners(
   const cap = capability(context);
   const identity = await requireIdentity(context.runtime, headers);
   const result = await context.runtime.db
-    .execute<PrivateLearner>(sql`SELECT l.id,l.display_name AS "displayName",l.level,l.grade,l.timezone,l.management FROM public.learner_profiles l WHERE
-    ${currentLearnerAuthorityPredicate({ ...identity, learnerId: sql`l.id`, policyId: cap.policyId })} ORDER BY l.created_at,l.id LIMIT 100`);
+    .execute<PrivateLearner>(sql`SELECT l.id,l.display_name AS "displayName",l.level,l.grade,l.timezone,l.management FROM public.learner_profiles l JOIN public.learner_admissions a ON a.learner_id=l.id WHERE a.source=${cap.source} AND ${acceptedAdmissionPolicy(cap, sql`a.policy_id`)} AND
+    ${currentLearnerAuthorityPredicate({ ...identity, learnerId: sql`l.id`, policyId: sql`a.policy_id` })} ORDER BY l.created_at,l.id LIMIT 100`);
   return result.rows;
 }
-export async function readAdmittedLearner(
+function acceptedAdmissionPolicy(
+  cap: EnabledAdmissionCapability,
+  policyId: SQL,
+) {
+  return cap.authority === "local_operation"
+    ? sql`${policyId} IN (${localAdmissionPolicy.policyId}::uuid,${localGuardianAdmissionPolicy.policyId}::uuid,${localIndependentAdmissionPolicy.policyId}::uuid)`
+    : sql`${policyId}=${cap.policyId}::uuid`;
+}
+/** Resolve only through current owned authority; foreign/missing records share one denial. */
+export async function readAdmittedLearnerReceipt(
   context: AdmissionContext,
   headers: Headers,
   id: string,
 ) {
   const cap = capability(context);
   if (!z.uuid().safeParse(id).success) throw new AccessError(404);
-  return readCurrentAuthorizedLearner(
-    context.runtime.db,
-    await requireIdentity(context.runtime, headers),
-    id,
-    cap.policyId,
-  );
+  const identity = await requireIdentity(context.runtime, headers);
+  const result = await context.runtime.db.execute<
+    PrivateLearner & { policyId: string }
+  >(sql`
+    SELECT l.id,l.display_name AS "displayName",l.level,l.grade,l.timezone,l.management,a.policy_id AS "policyId"
+    FROM public.learner_profiles l JOIN public.learner_admissions a ON a.learner_id=l.id
+    WHERE l.id=${id}::uuid AND a.source=${cap.source} AND ${acceptedAdmissionPolicy(cap, sql`a.policy_id`)}
+      AND ${currentLearnerAuthorityPredicate({ ...identity, learnerId: id, policyId: sql`a.policy_id` })}`);
+  const row = result.rows[0];
+  if (!row) throw new AccessError(404);
+  const { policyId, ...profile } = row;
+  return {
+    profile,
+    policyId,
+    parentDeclared: policyId === localGuardianAdmissionPolicy.policyId,
+  };
+}
+export async function readAdmittedLearner(
+  context: AdmissionContext,
+  headers: Headers,
+  id: string,
+) {
+  return (await readAdmittedLearnerReceipt(context, headers, id)).profile;
 }
 export async function updateAdmittedLearner(
   context: AdmissionContext,
@@ -368,8 +397,12 @@ export async function updateAdmittedLearner(
   id: string,
   input: unknown,
 ) {
-  const cap = capability(context);
-  const profile = await readAdmittedLearner(context, headers, id);
+  capability(context);
+  const { profile, policyId } = await readAdmittedLearnerReceipt(
+    context,
+    headers,
+    id,
+  );
   const identity = await requireIdentity(context.runtime, headers);
   const value = admittedLearnerInput.parse(input);
   if (profile.level === "college_support" && value.grade != null)
@@ -382,11 +415,11 @@ export async function updateAdmittedLearner(
       async (tx) => {
         const result = await tx.execute<{ updated: boolean }>(
           value.grade === undefined
-            ? sql`SELECT public.update_admitted_learner(${identity.userId},${identity.sessionId},${id}::uuid,${cap.policyId}::uuid,${value.displayName},${value.timezone}) AS updated`
-            : sql`SELECT public.update_admitted_learner_with_grade(${identity.userId},${identity.sessionId},${id}::uuid,${cap.policyId}::uuid,${value.displayName},${value.timezone},${value.grade}::integer) AS updated`,
+            ? sql`SELECT public.update_admitted_learner(${identity.userId},${identity.sessionId},${id}::uuid,${policyId}::uuid,${value.displayName},${value.timezone}) AS updated`
+            : sql`SELECT public.update_admitted_learner_with_grade(${identity.userId},${identity.sessionId},${id}::uuid,${policyId}::uuid,${value.displayName},${value.timezone},${value.grade}::integer) AS updated`,
         );
         if (!result.rows[0]?.updated) throw new AccessError(404);
-        return readCurrentAuthorizedLearner(tx, identity, id, cap.policyId);
+        return readCurrentAuthorizedLearner(tx, identity, id, policyId);
       },
       { isolationLevel: "read committed" },
     ),

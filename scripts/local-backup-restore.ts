@@ -507,6 +507,11 @@ export const syntheticProvenance = [
   ["learner_admission_policies", "source", ["synthetic_readiness"]],
   ["learner_admission_policy_state", "source", ["synthetic_readiness"]],
   ["learner_admissions", "source", ["synthetic_readiness"]],
+  // This table has no synthetic variant. Only an empty table can participate
+  // in a synthetic restoration; ordinary guardian receipts remain excluded.
+  ["learner_guardian_attestations", "source", []],
+  // Independent self-attestation is also ordinary-operation-only and immutable.
+  ["learner_independent_attestations", "source", []],
   ["learner_admission_reviewers", "source", ["synthetic_readiness"]],
   ["learner_admission_assignments", "source", ["synthetic_readiness"]],
   ["learner_admission_evidence", "source", ["synthetic_readiness"]],
@@ -658,6 +663,8 @@ async function probes(owner: Client, appConfig: ClientConfig) {
       ["learner_admission_events", "55000"],
       ["learner_admission_policies", "55000"],
       ["learner_admission_evidence", "55000"],
+      ["learner_guardian_attestations", "55000"],
+      ["learner_independent_attestations", "55000"],
       ["tutor_screening_checks", "55000"],
       ["tutor_screening_decisions", "55000"],
       ["tutor_screening_decision_checks", "55000"],

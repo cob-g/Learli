@@ -11,10 +11,13 @@ export const screeningCheckInput = z
     requestKey: z.uuid(),
     code: z.string().regex(/^[a-z][a-z0-9_]{0,47}$/),
     outcome: z.enum(["passed", "failed", "revoked"]),
+    // Accepted temporarily for callers created before references became
+    // server-owned. The service validates but ignores this value.
     reference: z
       .string()
       .regex(/^screening:[0-9a-f-]{36}$/)
-      .refine((v) => z.uuid().safeParse(v.slice(10)).success),
+      .refine((v) => z.uuid().safeParse(v.slice(10)).success)
+      .optional(),
     checkedAt: z.iso.datetime({ offset: true }),
     expiresAt: z.iso.datetime({ offset: true }),
   })

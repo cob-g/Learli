@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
+import { ArrowRight } from "lucide-react";
 import { useHydrated } from "@/hooks/use-hydrated";
 import {
   localReviewClaimInput,
@@ -11,9 +12,12 @@ import {
 export function ClaimLocalReview({
   kind,
   targetId,
+  queue = false,
 }: {
   kind: LocalReviewKind;
   targetId: string;
+  /** Admin queue presentation; the request and its handling are unchanged. */
+  queue?: boolean;
 }) {
   const ready = useHydrated();
   const submitting = useRef(false);
@@ -68,15 +72,20 @@ export function ClaimLocalReview({
       method="post"
       action="/api/admin/requests/claim"
       onSubmit={claim}
-      className="mt-3"
+      className={queue ? "review-claim-form" : "mt-3"}
     >
       <button
         type="submit"
-        className="action action-outline"
+        className={queue ? "action workspace-action" : "action action-outline"}
         disabled={!ready || pending}
         aria-busy={pending}
       >
         {pending ? "Claiming review…" : "Claim review"}
+        {queue && (
+          <span className="workspace-action-icon" aria-hidden="true">
+            <ArrowRight size={13} />
+          </span>
+        )}
       </button>
       {message && (
         <p
@@ -98,10 +107,10 @@ export function ClaimLocalReview({
   );
 }
 
-export function ClaimLocalAccount() {
+export function ClaimLocalAccount({ queue = false }: { queue?: boolean }) {
   const [targetId, setTargetId] = useState("");
   return (
-    <div className="mt-4">
+    <div className={queue ? "review-account" : "mt-4"}>
       <label htmlFor="account-support-id" className="text-label">
         Account ID
       </label>
@@ -112,9 +121,16 @@ export function ClaimLocalAccount() {
         onChange={(event) => setTargetId(event.target.value)}
         maxLength={128}
         autoComplete="off"
+        spellCheck={false}
+        placeholder={queue ? "Paste the account ID" : undefined}
       />
       {targetId && (
-        <ClaimLocalReview key={targetId} kind="account" targetId={targetId} />
+        <ClaimLocalReview
+          key={targetId}
+          kind="account"
+          targetId={targetId}
+          queue={queue}
+        />
       )}
     </div>
   );

@@ -1,5 +1,14 @@
+import Link from "next/link";
 import { AccountReadLink } from "./pending";
-import { Ban, Check } from "lucide-react";
+import {
+  Ban,
+  Check,
+  LockKeyhole,
+  RefreshCw,
+  Search,
+  UserRound,
+} from "lucide-react";
+import { PageSizeStepper } from "./page-size-stepper";
 import {
   accountListHref,
   accountTargetHref,
@@ -8,15 +17,18 @@ import {
 } from "./input";
 import type { TargetDetail, TargetSummary } from "./service";
 import { ChangeAccessForm } from "./change-form";
+import { nameInitials } from "@/lib/initials";
 export function LocalRestrictionNotice({
   privateWorkflow = false,
   localWorkflow = false,
+  className = "mt-4 max-w-prose text-body text-muted-foreground",
 }: {
   privateWorkflow?: boolean;
   localWorkflow?: boolean;
+  className?: string;
 }) {
   return (
-    <p className="mt-4 max-w-prose text-body text-muted-foreground">
+    <p className={className}>
       {localWorkflow
         ? "Only accounts assigned to you are available. Changes affect account access; existing bookings, history and separate eligibility decisions are retained."
         : privateWorkflow
@@ -50,71 +62,78 @@ export function AccountFilters({ query }: { query: AccountQuery }) {
     <form
       method="get"
       action="/admin/accounts"
-      className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+      className="account-filters"
       aria-label="Filter authorized accounts"
     >
-      <div>
-        <label className="block text-label" htmlFor="account-query">
-          Account name
-        </label>
-        <input
-          className="field mt-2"
-          id="account-query"
-          name="q"
-          maxLength={100}
-          defaultValue={query.q}
-        />
+      <div className="account-filter-row">
+        <div className="account-field">
+          <label className="text-label" htmlFor="account-query">
+            Account name
+          </label>
+          <span className="account-search">
+            <Search size={16} aria-hidden="true" />
+            <input
+              className="field"
+              id="account-query"
+              name="q"
+              maxLength={100}
+              autoComplete="off"
+              placeholder="Search by name"
+              defaultValue={query.q}
+            />
+          </span>
+        </div>
+        <div className="account-field">
+          <label className="text-label" htmlFor="account-role">
+            Assigned role
+          </label>
+          <select
+            className="field"
+            id="account-role"
+            name="role"
+            defaultValue={query.role}
+          >
+            <option value="">All assigned roles</option>
+            <option value="parent">Parent</option>
+            <option value="student">Student</option>
+            <option value="tutor">Tutor</option>
+          </select>
+        </div>
+        <div className="account-field">
+          <label className="text-label" htmlFor="account-status">
+            Access status
+          </label>
+          <select
+            className="field"
+            id="account-status"
+            name="status"
+            defaultValue={query.status}
+          >
+            <option value="">All access statuses</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </div>
+        <div className="account-field">
+          <label className="text-label" htmlFor="account-page-size">
+            Accounts per page
+          </label>
+          <PageSizeStepper defaultValue={query.pageSize} />
+        </div>
       </div>
-      <div>
-        <label className="block text-label" htmlFor="account-role">
-          Assigned role
-        </label>
-        <select
-          className="field mt-2"
-          id="account-role"
-          name="role"
-          defaultValue={query.role}
-        >
-          <option value="">All assigned roles</option>
-          <option value="parent">Parent</option>
-          <option value="student">Student</option>
-          <option value="tutor">Tutor</option>
-        </select>
-      </div>
-      <div>
-        <label className="block text-label" htmlFor="account-status">
-          Access status
-        </label>
-        <select
-          className="field mt-2"
-          id="account-status"
-          name="status"
-          defaultValue={query.status}
-        >
-          <option value="">All access statuses</option>
-          <option value="active">Active</option>
-          <option value="suspended">Suspended</option>
-        </select>
-      </div>
-      <div>
-        <label className="block text-label" htmlFor="account-page-size">
-          Accounts per page
-        </label>
-        <input
-          className="field mt-2"
-          id="account-page-size"
-          name="pageSize"
-          type="number"
-          min={1}
-          max={20}
-          step={1}
-          defaultValue={query.pageSize}
-        />
-      </div>
-      <div className="sm:col-span-2 lg:col-span-4">
-        <button className="action action-outline" type="submit">
-          Filter accounts
-        </button>
+      <div className="account-filter-foot">
+        <p>
+          <LockKeyhole size={14} aria-hidden="true" />
+          Results are limited to your assigned access.
+        </p>
+        <div className="account-filter-actions">
+          <Link className="account-clear" href="/admin/accounts">
+            Clear
+          </Link>
+          <button className="action action-primary" type="submit">
+            Filter accounts
+          </button>
+        </div>
       </div>
     </form>
   );
@@ -123,52 +142,83 @@ export function TargetRows({
   targets,
   query,
   localWorkflow = false,
+  reloadHref,
 }: {
   targets: TargetSummary[];
   query?: AccountQuery;
   localWorkflow?: boolean;
+  /** Shown inside the empty state; the page shows it in its navigation otherwise. */
+  reloadHref?: string;
 }) {
   return targets.length ? (
-    <ul className="mt-8 divide-y divide-border">
+    <ul className="account-list">
       {targets.map((t) => (
-        <li
-          key={t.id}
-          className="flex min-w-0 flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between"
-        >
-          <h2 className="min-w-0 text-item-title wrap-anywhere">
-            <AccountReadLink
-              href={
-                query
-                  ? accountTargetHref(t.id, query)
-                  : `/admin/accounts/${t.id}`
-              }
-            >
-              {t.name}
-            </AccountReadLink>
-          </h2>
-          <AccessStatus status={t.status} />
-          {query && (
-            <p className="text-small text-muted-foreground">
-              Assigned roles: <RoleNames roles={t.roles} />
-            </p>
-          )}
+        <li key={t.id} className="account-card">
+          <span className="account-avatar" aria-hidden="true">
+            {nameInitials(t.name)}
+          </span>
+          <div className="min-w-0">
+            <h2 className="wrap-anywhere">
+              <AccountReadLink
+                className="account-name"
+                href={
+                  query
+                    ? accountTargetHref(t.id, query)
+                    : `/admin/accounts/${t.id}`
+                }
+              >
+                {t.name}
+              </AccountReadLink>
+            </h2>
+            {query && (
+              <p>
+                Assigned roles: <RoleNames roles={t.roles} />
+              </p>
+            )}
+          </div>
+          <span
+            className="workspace-pill"
+            data-tone={t.status === "active" ? "success" : undefined}
+          >
+            {t.status === "active" ? (
+              <Check aria-hidden="true" size={12} />
+            ) : (
+              <Ban aria-hidden="true" size={12} />
+            )}
+            {t.status === "active" ? "Active access" : "Suspended access"}
+          </span>
         </li>
       ))}
     </ul>
   ) : (
-    <section className="mt-8 max-w-prose">
-      <h2 className="text-item-title">
+    <section className="workspace-blank">
+      <span className="account-blank-art" aria-hidden="true">
+        <span>
+          <UserRound size={26} />
+        </span>
+        <span>
+          <UserRound size={26} />
+        </span>
+        <i />
+      </span>
+      <h2>
         {query
           ? "No matching authorized accounts"
           : "No accounts authorized for you"}
       </h2>
-      <p className="mt-2 text-body">
+      <p>
         {localWorkflow
           ? "No accounts match these filters within your assigned access."
           : query
             ? "No fictional accounts match these filters within your assigned access."
             : "Only synthetic targets assigned through trusted local fixture tooling appear here."}
       </p>
+      {reloadHref && (
+        <AccountReadLink className="account-reload" href={reloadHref}>
+          <RefreshCw size={15} aria-hidden="true" />
+          Reload accounts
+        </AccountReadLink>
+      )}
     </section>
   );
 }

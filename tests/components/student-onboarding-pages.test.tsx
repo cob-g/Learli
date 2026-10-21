@@ -22,6 +22,10 @@ const reads = vi.hoisted(() => ({
   accountRuntime: vi.fn(),
   domainRuntime: vi.fn(),
   privateWorkflow: vi.fn(),
+  localWorkflow: vi.fn(),
+  identity: vi.fn(),
+  list: vi.fn(),
+  groups: vi.fn(),
   redirect: vi.fn(),
 }));
 vi.mock("@/lib/permissions/workspace", () => ({ loadPrivatePage: reads.load }));
@@ -35,6 +39,20 @@ vi.mock("@/features/learner-admission/context", () => ({
 vi.mock("@/features/learner-admission/service", () => ({
   readAdmissionIntake: reads.intake,
   readMyAdmission: reads.admission,
+  listMyAdmissions: reads.list,
+}));
+vi.mock("@/features/local-workflow/runtime", () => ({
+  getLocalWorkflow: reads.localWorkflow,
+}));
+vi.mock("@/lib/permissions/access", async (original) => ({
+  ...(await original<typeof import("@/lib/permissions/access")>()),
+  requireIdentity: reads.identity,
+}));
+vi.mock("@/features/learners/composition", () => ({
+  listLearnerGroups: reads.groups,
+}));
+vi.mock("@/features/learners/service", () => ({
+  readLearnerCreationContext: vi.fn(),
 }));
 vi.mock("@/features/private-workflow/runtime", () => ({
   isPrivateWorkflow: reads.privateWorkflow,
@@ -66,6 +84,11 @@ vi.mock("@/features/learners/learner-link", () => ({
     <a href={href}>{label}</a>
   ),
 }));
+vi.mock("@/features/independent-learner/form", () => ({
+  IndependentLearnerForm: ({ next }: { next?: string }) => (
+    <form aria-label="College Student profile" data-next={next} />
+  ),
+}));
 vi.mock("@/lib/auth", () => ({
   getAccountAuthRuntime: reads.accountRuntime,
   getDomainAuthRuntime: reads.domainRuntime,
@@ -88,6 +111,8 @@ import StudentOnboardingPage from "@/app/(workspace)/student/onboarding/page";
 import NewAdmissionPage from "@/app/(workspace)/learner-admission/new/page";
 import AdmissionPage from "@/app/(workspace)/learner-admission/[admissionId]/page";
 import AccountPage from "@/app/(workspace)/account/page";
+import AdmissionListPage from "@/app/(workspace)/learner-admission/page";
+import LearnersPage from "@/app/(workspace)/learners/page";
 
 const choice = bookingSelectionHref(
   {
@@ -130,7 +155,12 @@ beforeEach(() => {
     (_path, load: (runtime: unknown, headers: Headers) => unknown) =>
       load(runtime, requestHeaders),
   );
-  reads.onboarding.mockResolvedValue({ enabled: true, admissionId: null });
+  reads.onboarding.mockResolvedValue({
+    kind: "legacy",
+    enabled: true,
+    admissionId: null,
+    existingLearnerId: null,
+  });
   reads.intake.mockResolvedValue({
     enabled: true,
     policyVersion: "synthetic-admission-v1",
@@ -138,6 +168,15 @@ beforeEach(() => {
   });
   reads.admission.mockResolvedValue(admissionRow());
   reads.privateWorkflow.mockReturnValue(true);
+  reads.localWorkflow.mockReturnValue(null);
+  reads.identity.mockResolvedValue({ roles: [] });
+  reads.list.mockResolvedValue({ items: [], nextCursor: null });
+  reads.groups.mockResolvedValue({
+    demo: [],
+    readiness: [],
+    demoAllowed: false,
+    admissionEnabled: true,
+  });
   reads.redirect.mockImplementation(() => {
     throw new Error("navigation redirect");
   });
@@ -152,18 +191,49 @@ beforeEach(() => {
 });
 
 describe("College Student onboarding and admission pages", () => {
+  it("describes a direct automatic-child receipt as consent, without inventing assigned review", async () => {
+    reads.admission.mockResolvedValue({
+      ...admissionRow("authorized", true, "guardian"),
+      policyVersion: "local-guardian-admission-v2",
+    });
+    render(
+      await AdmissionPage({
+        params: Promise.resolve({ admissionId: "own-self-request" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    expect(
+      screen.getByRole("heading", { name: "Child profile consent record" }),
+    ).toBeVisible();
+    expect(
+      screen.getByText(/guardian declaration, consent and current access/),
+    ).toBeVisible();
+    expect(screen.getByRole("link", { name: "My Children" })).toHaveAttribute(
+      "href",
+      "/parent/children",
+    );
+    expect(
+      screen.queryByText(/learner’s review status|Assigned review is required/),
+    ).toBeNull();
+  });
+
   it("shows truthful disabled intake with no form or workspace link", async () => {
-    reads.onboarding.mockResolvedValue({ enabled: false, admissionId: null });
+    reads.onboarding.mockResolvedValue({
+      kind: "independent",
+      enabled: false,
+      admissionId: null,
+      existingLearnerId: null,
+    });
     render(
       await StudentOnboardingPage({
         searchParams: Promise.resolve({ next: choice }),
       }),
     );
     expect(
-      screen.getByRole("heading", { name: "Set up College Student" }),
+      screen.getByRole("heading", { name: "Set up your Student profile" }),
     ).toBeVisible();
     expect(
-      screen.getByText(/Independent admission is unavailable/),
+      screen.getByText(/Independent Student setup is unavailable/),
     ).toHaveTextContent("No learner details are collected");
     expect(
       screen.queryByRole("link", { name: "Request independent admission" }),
@@ -174,6 +244,16 @@ describe("College Student onboarding and admission pages", () => {
     expect(document.querySelector("form")).toBeNull();
   });
   it("guides a verified fresh account into self intake and preserves its safe sign-in recovery", async () => {
+    reads.onboarding.mockResolvedValue({
+      kind: "independent",
+      enabled: true,
+      admissionId: null,
+      existingLearnerId: null,
+      policyVersion: "local-independent-admission-v2",
+      policyDigest: "b".repeat(64),
+      noticeVersion: "local-independent-notice-v2",
+      timezone: "Asia/Manila",
+    });
     render(
       await StudentOnboardingPage({
         searchParams: Promise.resolve({ next: choice }),
@@ -184,16 +264,28 @@ describe("College Student onboarding and admission pages", () => {
       reads.onboarding,
     );
     expect(
+      screen.getByRole("form", { name: "College Student profile" }),
+    ).toHaveAttribute("data-next", choice);
+    expect(
+      screen.getByText(/College Support is an education level/),
+    ).toHaveTextContent("does not establish that you are an adult");
+  });
+  it("retains synthetic readiness intake outside the ordinary local workflow", async () => {
+    render(
+      await StudentOnboardingPage({
+        searchParams: Promise.resolve({ next: choice }),
+      }),
+    );
+    expect(
       screen.getByRole("link", { name: "Request independent admission" }),
     ).toHaveAttribute("href", independentAdmissionHref(choice));
-    expect(screen.getByText(/Choosing College Student/)).toHaveTextContent(
-      "does not grant a workspace or booking access",
-    );
   });
   it("reopens an existing self request with the current public choice", async () => {
     reads.onboarding.mockResolvedValue({
+      kind: "legacy",
       enabled: false,
       admissionId: "own-self-request",
+      existingLearnerId: null,
     });
     await expect(
       StudentOnboardingPage({
@@ -228,6 +320,79 @@ describe("College Student onboarding and admission pages", () => {
     expect(
       screen.queryByRole("link", { name: "Student workspace" }),
     ).not.toBeInTheDocument();
+  });
+  it.each(
+    [undefined, "self", "guardian", ["self", "guardian"]].map((management) => ({
+      management,
+    })),
+  )(
+    "redirects a fresh ordinary non-parent to self-service instead of legacy intake: $management",
+    async ({ management }) => {
+      reads.localWorkflow.mockReturnValue({});
+      await expect(
+        NewAdmissionPage({
+          searchParams: Promise.resolve({ management, next: choice }),
+        }),
+      ).rejects.toThrow("navigation redirect");
+      expect(reads.redirect).toHaveBeenCalledWith(
+        studentOnboardingHref(choice),
+      );
+      expect(reads.intake).not.toHaveBeenCalled();
+    },
+  );
+  it("keeps ordinary Parent intake on Add Child while honoring explicit independent intent", async () => {
+    reads.localWorkflow.mockReturnValue({});
+    reads.identity.mockResolvedValue({ roles: ["parent"] });
+    await expect(
+      NewAdmissionPage({ searchParams: Promise.resolve({ next: choice }) }),
+    ).rejects.toThrow("navigation redirect");
+    expect(reads.redirect).toHaveBeenLastCalledWith(
+      `/parent/children/new?next=${encodeURIComponent(choice)}`,
+    );
+    await expect(
+      NewAdmissionPage({
+        searchParams: Promise.resolve({ management: "self", next: choice }),
+      }),
+    ).rejects.toThrow("navigation redirect");
+    expect(reads.redirect).toHaveBeenLastCalledWith(
+      studentOnboardingHref(choice),
+    );
+    expect(reads.intake).not.toHaveBeenCalled();
+  });
+  it("retains ordinary historical request links without advertising new review intake", async () => {
+    reads.localWorkflow.mockReturnValue({});
+    reads.list.mockResolvedValue({
+      items: [
+        { ...admissionRow(), createdAt: new Date("2026-10-12T12:00:00Z") },
+      ],
+      nextCursor: null,
+    });
+    render(await AdmissionListPage({ searchParams: Promise.resolve({}) }));
+    expect(
+      screen.getByRole("heading", { name: "Earlier learner review records" }),
+    ).toBeVisible();
+    expect(
+      screen.getByText(/retained records cover earlier or exceptional/),
+    ).toHaveTextContent("use self-service setup");
+    expect(screen.getByRole("link", { name: "Open record" })).toHaveAttribute(
+      "href",
+      "/learner-admission/own-self-request",
+    );
+    expect(document.body).not.toHaveTextContent("Your admission requests");
+    expect(
+      screen.queryByRole("link", { name: "Request admission review" }),
+    ).toBeNull();
+  });
+  it("points a fresh ordinary learner list to Student setup without manual-review advertisements", async () => {
+    reads.localWorkflow.mockReturnValue({});
+    render(await LearnersPage());
+    expect(
+      screen.getByRole("link", { name: "Set up your Student profile" }),
+    ).toHaveAttribute("href", "/student/onboarding");
+    expect(document.querySelector('a[href^="/learner-admission"]')).toBeNull();
+    expect(document.body).not.toHaveTextContent(
+      /Request an admission review|pending reviews/i,
+    );
   });
   it("does not interpret duplicate management or forged private choice as admission authority", async () => {
     render(
@@ -334,6 +499,16 @@ describe("College Student onboarding and admission pages", () => {
 });
 
 describe("Account College Student access links", () => {
+  it("labels retained review history neutrally in the ordinary local workflow", async () => {
+    reads.localWorkflow.mockReturnValue({});
+    render(await AccountPage());
+    expect(
+      screen.getByRole("link", { name: "Earlier learner review records" }),
+    ).toHaveAttribute("href", "/learner-admission");
+    expect(
+      screen.queryByRole("link", { name: "Learner admission requests" }),
+    ).not.toBeInTheDocument();
+  });
   it("keeps a roleless hosted account usable without requiring a domain runtime", async () => {
     reads.domainRuntime.mockRejectedValue(new Error("domain unavailable"));
     render(await AccountPage());

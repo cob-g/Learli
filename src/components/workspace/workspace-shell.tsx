@@ -3,18 +3,44 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { Menu, X, ArrowUpRight } from "lucide-react";
+import {
+  ArrowUpRight,
+  CircleHelp,
+  Flag,
+  Globe,
+  Inbox,
+  Menu,
+  Settings,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import type { Role } from "@/lib/db/schema/app";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { SignedInAccount } from "@/components/shared/header-account";
 import { SignOut } from "@/features/auth/sign-out";
+import { groupAdminLinks } from "@/features/admin/admin-navigation";
+import { groupTutorLinks } from "@/features/tutors/tutor-navigation";
+import type { GroupedNavLink } from "./link-groups";
 import {
   currentWorkspace,
   isCurrentLink,
   workspaceLabels,
   workspaceLinks,
 } from "./navigation";
+
+// Admin and Tutor chrome only; other workspaces keep their text-only links.
+const sharedIcons: Record<string, LucideIcon> = {
+  "/support": Inbox,
+  "/account": Settings,
+  "/contact": CircleHelp,
+  "/report-a-concern": Flag,
+};
+function LinkIcon({ icon: Icon }: { icon?: LucideIcon | null }) {
+  return Icon ? (
+    <Icon className="workspace-link-icon" size={18} aria-hidden="true" />
+  ) : null;
+}
 
 type Account = { id: string; name: string; roles: Role[] };
 function parseAccount(value: unknown, userId: string): Account | null {
@@ -270,6 +296,9 @@ function WorkspaceChrome({
   if (context !== role && !(roles === null && preserveContext))
     setContext(role);
   const title = role ? workspaceLabels[role] : "Your account";
+  const admin = role === "admin";
+  // Workspaces moved to the grouped, iconed sidebar so far.
+  const styled = admin || role === "tutor";
   useEffect(() => {
     if (open) panel.current?.querySelector<HTMLElement>("a, summary")?.focus();
   }, [open]);
@@ -279,6 +308,7 @@ function WorkspaceChrome({
     privateAccounts,
     localWorkflow,
   });
+  // The sidebar's aria-current link already names the page for assistive tech.
   const common = [
     ...(role === null
       ? (roles ?? [])
@@ -291,9 +321,21 @@ function WorkspaceChrome({
     { href: "/support", label: "Support requests" },
     { href: "/account", label: "Account settings" },
   ];
+  // The breadcrumb names the current role or shared destination.
+  const page = [...links, ...common].find(
+    (link) =>
+      link.href !== "/admin" &&
+      !link.href.startsWith("/bookings?") &&
+      isCurrentLink(pathname, link, scope),
+  );
   return (
     <>
-      <header className="workspace-topbar" aria-label="Workspace account">
+      <header
+        className="workspace-topbar"
+        aria-label="Workspace account"
+        data-workspace={role ?? undefined}
+        data-styled={styled || undefined}
+      >
         <div className="workspace-heading">
           <button
             ref={trigger}
@@ -318,7 +360,21 @@ function WorkspaceChrome({
             )}{" "}
             Menu
           </button>
+          {admin && (
+            <span
+              className="workspace-crumb workspace-crumb-root text-small"
+              aria-hidden="true"
+            >
+              learli <span>/</span>
+            </span>
+          )}
           <p className="workspace-current text-label-strong">{title}</p>
+          {styled && page && (
+            <span className="workspace-crumb text-small" aria-hidden="true">
+              <span>/</span>
+              <b>{page.label}</b>
+            </span>
+          )}
         </div>
         <div className="workspace-account">
           {account ? (
@@ -355,6 +411,8 @@ function WorkspaceChrome({
         id={panelId}
         className="workspace-sidebar"
         data-open={open || undefined}
+        data-workspace={role ?? undefined}
+        data-styled={styled || undefined}
         onClick={(event) => {
           if (event.target instanceof Element && event.target.closest("a")) {
             const chooser = panel.current?.querySelector("details[open]");
@@ -380,6 +438,9 @@ function WorkspaceChrome({
         >
           <BrandLogo />
         </Link>
+        {styled && (
+          <p className="workspace-role">{admin ? "Admin" : "Tutor"}</p>
+        )}
         {roles && (
           <div className="workspace-chooser">
             {roles.length > 1 ? (
@@ -418,25 +479,38 @@ function WorkspaceChrome({
           <nav
             aria-label={`${role === "admin" ? "Admin" : role === "tutor" ? "Tutor" : role === "parent" ? "Parent" : "Student"} work areas`}
           >
-            <ul>
-              {links.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    prefetch={false}
-                    href={link.href}
-                    className="workspace-link"
-                    aria-current={
-                      isCurrentLink(pathname, link, scope) ? "page" : undefined
-                    }
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            {styled ? (
+              <GroupedLinks
+                grouped={
+                  admin ? groupAdminLinks(links) : groupTutorLinks(links)
+                }
+                pathname={pathname}
+                scope={scope}
+              />
+            ) : (
+              <ul>
+                {links.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      prefetch={false}
+                      href={link.href}
+                      className="workspace-link"
+                      aria-current={
+                        isCurrentLink(pathname, link, scope)
+                          ? "page"
+                          : undefined
+                      }
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </nav>
         )}
         <nav aria-label="Workspace navigation" className="workspace-secondary">
+          {role === "tutor" && <p className="workspace-group-title">Account</p>}
           <ul>
             {common.map((link) => (
               <li key={link.href}>
@@ -455,6 +529,7 @@ function WorkspaceChrome({
                       : undefined
                   }
                 >
+                  {styled && <LinkIcon icon={sharedIcons[link.href]} />}
                   {link.label}
                 </Link>
               </li>
@@ -468,18 +543,68 @@ function WorkspaceChrome({
             </Link>
           )}
           <Link href="/contact" className="workspace-link">
+            {styled && <LinkIcon icon={CircleHelp} />}
             Contact support
           </Link>
           <Link href="/report-a-concern" className="workspace-link">
+            {styled && <LinkIcon icon={Flag} />}
             Report a concern
           </Link>
           {/* Replacing the private document keeps public/auth entry free of its bootstrap. */}
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a href="/" className="workspace-link">
+            {styled && <LinkIcon icon={Globe} />}
             Visit website <ArrowUpRight size={16} aria-hidden="true" />
           </a>
         </nav>
       </aside>
+    </>
+  );
+}
+
+function GroupedLinks({
+  grouped: { ungrouped, groups },
+  pathname,
+  scope,
+}: {
+  grouped: {
+    ungrouped: GroupedNavLink[];
+    groups: { id: string; label: string; links: GroupedNavLink[] }[];
+  };
+  pathname: string;
+  scope: string | null | undefined;
+}) {
+  const item = (link: GroupedNavLink) => (
+    <li key={link.href}>
+      <Link
+        prefetch={false}
+        href={link.href}
+        className="workspace-link"
+        aria-current={isCurrentLink(pathname, link, scope) ? "page" : undefined}
+      >
+        <LinkIcon icon={link.icon} />
+        {link.label}
+      </Link>
+    </li>
+  );
+  return (
+    <>
+      {ungrouped.length > 0 && (
+        <ul className="workspace-group">{ungrouped.map(item)}</ul>
+      )}
+      {groups.map((group) => (
+        <div key={group.id} className="workspace-group">
+          <p
+            id={`workspace-group-${group.id}`}
+            className="workspace-group-title"
+          >
+            {group.label}
+          </p>
+          <ul aria-labelledby={`workspace-group-${group.id}`}>
+            {group.links.map(item)}
+          </ul>
+        </div>
+      ))}
     </>
   );
 }

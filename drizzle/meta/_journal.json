@@ -267,6 +267,20 @@
       "when": 1792254478531,
       "tag": "0037_local_claim_receipts",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1792303657109,
+      "tag": "0038_automatic_parent_child",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1792311520140,
+      "tag": "0039_independent_adult_learner",
+      "breakpoints": true
     }
   ]
 }

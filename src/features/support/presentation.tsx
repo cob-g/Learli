@@ -9,12 +9,14 @@ import { SupportBookingSection } from "@/features/support-bookings/presentation"
 export function DemoNotice({
   privateWorkflow = false,
   localWorkflow = false,
+  className = "mt-4 max-w-prose rounded-control border border-border bg-subtle p-4 text-small text-muted-foreground",
 }: {
   privateWorkflow?: boolean;
   localWorkflow?: boolean;
+  className?: string;
 }) {
   return (
-    <p className="mt-4 max-w-prose rounded-control border border-border bg-subtle p-4 text-small text-muted-foreground">
+    <p className={className}>
       {localWorkflow
         ? "Reports are saved for an assigned reviewer. This is not an emergency channel. Keep contact details, dates of birth, school names and private meeting links out of the report."
         : privateWorkflow

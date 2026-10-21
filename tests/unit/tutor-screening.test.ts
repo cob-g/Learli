@@ -69,6 +69,11 @@ describe("strict check and decision requests", () => {
   });
   it("accepts a bounded opaque check receipt request", () =>
     expect(screeningCheckInput.safeParse(check()).success).toBe(true));
+  it("accepts a check request without a client receipt reference", () => {
+    const input: Record<string, unknown> = check();
+    delete input.reference;
+    expect(screeningCheckInput.safeParse(input).success).toBe(true);
+  });
   it.each([
     { reference: "https://example.test/document" },
     { reference: "screening:../../secret" },
