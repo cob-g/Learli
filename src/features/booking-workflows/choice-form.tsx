@@ -138,11 +138,21 @@ export function BookingChoiceForm({
               nextLevel,
               nextSubject || undefined,
             );
+            const tutorStillEligible = nextTutors.some(
+              (row) => row.slug === tutorSlug,
+            );
             setLearnerId(nextLearnerId);
             setSubjectSlug(nextSubject);
-            if (!nextTutors.some((row) => row.slug === tutorSlug))
-              setTutorSlug("");
-            choicesChanged();
+            if (!tutorStillEligible) setTutorSlug("");
+            // Choosing the learner for a time picked on a tutor profile keeps
+            // that time; only a learner it no longer fits clears it. The
+            // server still rechecks availability and eligibility.
+            if (
+              nextLevel !== requestedTime?.level ||
+              nextSubject !== subjectSlug ||
+              !tutorStillEligible
+            )
+              choicesChanged();
           }}
         >
           <option value="">Choose learner</option>

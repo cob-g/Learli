@@ -189,6 +189,27 @@ describe("booking workflow choices", () => {
     );
   });
 
+  it("keeps a profile-selected time when the chosen learner fits it", async () => {
+    // Arriving from a tutor profile: no learner yet, tutor/subject/time chosen.
+    const view = form({ learnerId: "" });
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Learner" }),
+      "self-learner",
+    );
+    expect(screen.getByRole("combobox", { name: "Subject" })).toHaveValue(
+      "science",
+    );
+    expect(screen.getByRole("combobox", { name: "Tutor" })).toHaveValue(
+      "science-tutor",
+    );
+    expect(
+      view.container.querySelector('input[name="startAtUtc"]'),
+    ).toHaveValue("2030-10-18T02:00:00.000Z");
+    expect(view.container.querySelector('input[name="endAtUtc"]')).toHaveValue(
+      "2030-10-18T03:00:00.000Z",
+    );
+  });
+
   it("normalizes incompatible retained query values instead of submitting them", () => {
     const view = form({
       learnerId: "guardian-learner",

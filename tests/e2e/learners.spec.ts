@@ -783,9 +783,7 @@ test("unhydrated create form cannot submit private fields as a URL", async ({
     page.getByRole("button", { name: "Save profile", exact: true }),
   ).toBeDisabled();
   await expect(
-    page.getByText(
-      /JavaScript is required to edit this profile/,
-    ),
+    page.getByText(/JavaScript is required to edit this profile/),
   ).toBeVisible();
   expect(await page.locator("form").getAttribute("method")).toBe("post");
   await page.keyboard.press("Enter");

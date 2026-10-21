@@ -46,16 +46,35 @@ export default async function StudentOnboardingPage({
   return (
     <div className="page-shell page-space">
       <div className="max-w-xl">
-        <h1 className="text-page-title">Set up your Student profile</h1>
-        <p className="mt-4 text-body">
-          Create your own College Support learner profile when you are legally
-          eligible to manage a tutoring account independently.
-        </p>
-        <p className="mt-4 text-body">
-          College Support is an education level. It does not establish that you
-          are an adult or otherwise legally eligible, and this setup does not
-          create a guardian relationship.
-        </p>
+        {/* Ordinary local V2 creates the profile directly; the earlier private
+            path still sends a request for an assigned review (ui-context). */}
+        {context.kind === "independent" ? (
+          <>
+            <h1 className="text-page-title">Set up your Student profile</h1>
+            <p className="mt-4 text-body">
+              Create your own College Support learner profile when you are
+              legally eligible to manage a tutoring account independently.
+            </p>
+            <p className="mt-4 text-body">
+              College Support is an education level. It does not establish that
+              you are an adult or otherwise legally eligible, and this setup
+              does not create a guardian relationship.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="text-page-title">Set up College Student</h1>
+            <p className="mt-4 text-body">
+              Request your own College Support learner profile. Choosing College
+              Student does not grant a workspace or booking access.
+            </p>
+            <p className="mt-4 text-body">
+              An assigned reviewer must authorize independent eligibility. A
+              pending request does not grant learner access, and no guardian
+              relationship is created for an independent learner.
+            </p>
+          </>
+        )}
         {context.enabled ? (
           context.kind === "independent" ? (
             <IndependentLearnerForm

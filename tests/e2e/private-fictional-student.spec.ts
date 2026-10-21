@@ -21,6 +21,7 @@ import {
   type CollegeActor,
 } from "../support/private-student-browser";
 import { historicalWorkflowBooking } from "../support/booking-workflows-fixtures";
+import { openedMeetingDestination } from "../support/meeting-popup";
 
 test.use({ trace: "off", screenshot: "off", video: "off" });
 const h = new PrivateStudentBrowser();
@@ -637,27 +638,15 @@ async function openMeeting(
   bookingId: string,
   destination: string,
 ) {
-  await actor.context.route("https://meet.google.com/**", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "text/html",
-      body: "<title>Intercepted fictional College meeting</title>",
-    }),
-  );
   await actor.page.goto(
     `/bookings/${bookingId}?scope=${actor.email.startsWith("college-tutor-") ? "tutor" : "student"}`,
   );
-  const popup = actor.context.waitForEvent("page");
-  await actor.page
-    .getByRole("link", {
-      name: "Open meeting on Google Meet (new tab)",
-      exact: true,
-    })
-    .click();
-  const external = await popup;
-  await external.waitForLoadState();
-  expect(external.url() === destination).toBe(true);
-  await external.close();
+  expect(
+    (await openedMeetingDestination(
+      actor.page,
+      "Open meeting on Google Meet (new tab)",
+    )) === destination,
+  ).toBe(true);
 }
 
 async function noMeeting(

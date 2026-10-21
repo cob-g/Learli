@@ -388,6 +388,23 @@ describe("policy booking actual PostgreSQL authority and integrity", () => {
         wrongTimezone,
       ),
     ).rejects.toMatchObject({ status: 409 });
+    // An outsider's stale zone or unavailable time must not reveal the booking.
+    await expect(
+      changePolicyBooking(
+        f.context,
+        outsider.headers,
+        r.receipt.id,
+        "reschedule",
+        {
+          ...wrongTimezone,
+          requestId: randomUUID(),
+          startAtUtc: new Date(
+            Date.parse(t.startAtUtc) + 420_000,
+          ).toISOString(),
+          endAtUtc: new Date(Date.parse(t.endAtUtc) + 420_000).toISOString(),
+        },
+      ),
+    ).rejects.toMatchObject({ status: 404 });
     const v = {
       ...wrongTimezone,
       requestId: randomUUID(),

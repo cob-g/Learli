@@ -462,8 +462,11 @@ export async function changePolicyBooking(
     if (!original) throw new AccessError(404);
     let trustedMove = moved;
     if (moved) {
+      // Participants only, before the time zone and slot checks, so an
+      // outsider gets 404 rather than a 409 that confirms the booking exists.
+      // change_policy_booking still applies the exact action rule.
       const t = await tx.execute<{ id: string; timezone: string }>(
-        sql`SELECT t.id,t.timezone FROM public.tutor_profiles t JOIN public.bookings b ON b.tutor_id=t.id WHERE b.id=${bookingId}::uuid`,
+        sql`SELECT t.id,t.timezone FROM public.tutor_profiles t JOIN public.bookings b ON b.tutor_id=t.id WHERE b.id=${bookingId}::uuid AND public.booking_workflow_participant(${id.userId},${id.sessionId},b.id)`,
       );
       if (!t.rows[0]) throw new AccessError(404);
       const displayTimezone = await currentActorTimezone(tx, id);

@@ -1,5 +1,35 @@
 # Learli — Progress Tracker
 
+## 2026-10-21 — Oct-18 private-workflow blockers FIXED; all browser suites VERIFIED
+
+- Private suite (`npm run test:e2e:private`): **4/4 PASS**, including the
+  complete private Admin journey (before: 3 failed, 1 passed). Default suite
+  (`npm run test:e2e`): **219/219 PASS**. Unit tests 2338/2338; format, lint
+  and typecheck pass. Booking integration suites (`npm run test:integration`,
+  11 files): 149/149 PASS.
+- Fixed:
+  1. `/student/onboarding` heading follows the mode: "Set up your Student
+     profile" for ordinary local V2 (independent), "Set up College Student"
+     with the pending-authorization copy otherwise.
+  2. Booking choice form: changing the learner keeps a time chosen from the
+     tutor profile when that learner still fits the tutor, subject and level.
+     New component test.
+  3. **Privacy:** a non-participant's reschedule request returned 409 (stale
+     time zone or unavailable time) before the participant check, which
+     confirmed that the booking exists. `changePolicyBooking` now requires
+     `public.booking_workflow_participant` before those checks, so outsiders
+     get 404. `change_policy_booking` still applies the exact action rule. New
+     regression in `tests/integration/policy-booking.test.ts`, confirmed to
+     fail without the fix (409 "That time is no longer available").
+  4. Meeting-link popup tests: Playwright runs route handlers only on the
+     first URL of a redirect, so the `meet.google.com` intercept never fired
+     and the tests loaded the real Google Meet, which now rewrites its URL to
+     `/meet/…`. The new `tests/support/meeting-popup.ts` fetches the app's
+     `?open=1` request without following its 303, asserts the exact `Location`
+     and fulfills locally. Nothing reaches Zoom or Meet.
+- Still not pushed. Next: stage 2 of the roadmap (an Admin approves the test
+  tutors, then a real Parent → Tutor booking in the local workflow).
+
 ## 2026-10-21 — Browser verification of the workspace redesign; private-workflow blockers in earlier Oct-18 work
 
 - Default browser suite (`npm run test:e2e`, isolated `learli_test`, fresh

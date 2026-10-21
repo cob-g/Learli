@@ -23,6 +23,7 @@ import { totpCode } from "../support/admin-mfa";
 import { assertOwnedReadinessDatabase } from "../support/readiness-placement";
 import { resetPrivateBrowserAuthAttempts } from "../support/private-student-browser";
 import { historicalWorkflowBooking } from "../support/booking-workflows-fixtures";
+import { openedMeetingDestination } from "../support/meeting-popup";
 import type {
   WorkflowReceipt,
   WorkflowState,
@@ -826,24 +827,12 @@ async function openMeeting(
   const value = await response.json();
   expect(value.state).toBe("present");
   expect(value.url === url).toBe(true);
-  await actor.context.route("https://meet.google.com/**", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "text/html",
-      body: "<title>Intercepted fictional meeting</title>",
-    }),
-  );
-  const popup = actor.context.waitForEvent("page");
-  await actor.page
-    .getByRole("link", {
-      name: "Open meeting on Google Meet (new tab)",
-      exact: true,
-    })
-    .click();
-  const external = await popup;
-  await external.waitForLoadState();
-  expect(external.url() === url).toBe(true);
-  await external.close();
+  expect(
+    (await openedMeetingDestination(
+      actor.page,
+      "Open meeting on Google Meet (new tab)",
+    )) === url,
+  ).toBe(true);
 }
 
 async function candidateStarts(
@@ -1355,26 +1344,12 @@ test("normal private build connects guardian booking interruption, cross-role ch
   await tutor.page.reload();
   await parent.page.goto(`/bookings/${bookingId}?scope=guardian`);
   for (const actor of [parent, tutor]) {
-    await actor.context.route("https://meet.google.com/**", (route) =>
-      route.fulfill({
-        status: 200,
-        contentType: "text/html",
-        body: "<title>Intercepted fictional meeting</title>",
-      }),
-    );
-    const popup = actor.context.waitForEvent("page");
-    await actor.page
-      .getByRole("link", {
-        name: "Open meeting on Google Meet (new tab)",
-        exact: true,
-      })
-      .click();
-    const external = await popup;
-    await external.waitForLoadState();
-    expect(external.url() === "https://meet.google.com/abc-defg-hij").toBe(
-      true,
-    );
-    await external.close();
+    expect(
+      (await openedMeetingDestination(
+        actor.page,
+        "Open meeting on Google Meet (new tab)",
+      )) === "https://meet.google.com/abc-defg-hij",
+    ).toBe(true);
   }
   expect(
     (
