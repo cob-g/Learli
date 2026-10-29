@@ -8,6 +8,7 @@ import { AccessError } from "@/lib/permissions/access";
 import { resolveCoordinationSession } from "@/lib/permissions/coordination-session";
 import { RuleError } from "@/lib/rule-error";
 import { validateMeetingLink } from "@/lib/validation/meeting-link";
+import { googleMeetConfig } from "@/features/google-meet/config";
 import { meetingEditInput } from "./input";
 import { queryPrivateMeeting } from "./query";
 import type { PrivateMeetingState } from "./model";
@@ -36,8 +37,49 @@ export async function readPrivateMeetingLink(
   if (!row) throw new AccessError(404);
   if (row.awaitingConfirmation) return { state: "awaiting_confirmation" };
   if (!row.live) return { state: "expired" };
-  if (!row.url || !row.provider || !row.revision)
-    return { state: "missing", canEdit: row.canEdit, revision: 0 };
+  if (!row.url || !row.provider || !row.revision) {
+    let provisioning: "preparing" | "action_required" | undefined;
+    if (row.source === "local_operation") {
+      let fingerprint: string | null = null;
+      try {
+        fingerprint = googleMeetConfig()?.fingerprint ?? null;
+      } catch {
+        // Optional provider setup must not hide the authorized manual form.
+        // Database and fresh authorization failures still propagate below.
+        provisioning = "action_required";
+      }
+      const result = await runtime.db.execute<{
+        status: "preparing" | "action_required" | null;
+      }>(
+        sql`SELECT public.google_meet_job_status(${actor.userId},${actor.sessionId},${bookingId}::uuid,${fingerprint}) AS status`,
+      );
+      provisioning = result.rows[0]?.status ?? provisioning;
+      // A second private read prevents a revocation during the status query from
+      // returning a stale authorized projection, without any provider I/O.
+      const fresh = await queryPrivateMeeting(runtime.db, actor, bookingId);
+      if (!fresh?.live) throw new AccessError(404);
+      if (fresh.url && fresh.provider && fresh.revision)
+        return {
+          state: "present",
+          canEdit: fresh.canEdit,
+          revision: fresh.revision,
+          provider: fresh.provider,
+          url: fresh.url,
+        };
+      return {
+        state: "missing",
+        canEdit: fresh.canEdit,
+        revision: 0,
+        ...(provisioning ? { provisioning } : {}),
+      };
+    }
+    return {
+      state: "missing",
+      canEdit: row.canEdit,
+      revision: 0,
+      ...(provisioning ? { provisioning } : {}),
+    };
+  }
   return {
     state: "present",
     canEdit: row.canEdit,

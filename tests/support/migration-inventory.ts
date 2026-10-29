@@ -8,8 +8,14 @@ import {
 import { expectedProtections } from "../../scripts/staging-migrations/protections";
 import { runtimeGrantsSql } from "../../scripts/runtime-grants";
 
+/** Historical prefixes must never grant functions introduced by Meet. */
+export const runtimeGrantsBeforeMeet = runtimeGrantsSql
+  .split("\n")
+  .filter((line) => !line.includes("public.google_meet_"))
+  .join("\n");
+
 /** Original current chain before additive guardian creation. */
-export const runtimeGrantsBeforeAutomaticChildren = runtimeGrantsSql
+export const runtimeGrantsBeforeAutomaticChildren = runtimeGrantsBeforeMeet
   .split("\n")
   .filter(
     (line) =>
@@ -21,7 +27,7 @@ export const runtimeGrantsBeforeAutomaticChildren = runtimeGrantsSql
   .join("\n");
 
 /** Exact runtime policy after Parent-v2 and before independent-adult-v2. */
-export const runtimeGrantsBeforeIndependent = runtimeGrantsSql
+export const runtimeGrantsBeforeIndependent = runtimeGrantsBeforeMeet
   .split("\n")
   .filter(
     (line) =>
@@ -31,7 +37,7 @@ export const runtimeGrantsBeforeIndependent = runtimeGrantsSql
   .join("\n");
 
 /** Historical migrations cannot grant objects introduced by ordinary local operation. */
-export const runtimeGrantsBeforeOperation = runtimeGrantsSql
+export const runtimeGrantsBeforeOperation = runtimeGrantsBeforeMeet
   .split("\n")
   .filter(
     (line) =>
@@ -82,6 +88,9 @@ export function expectLocalOperationRowPreservation(
   after: Record<string, string>,
 ) {
   const added = [
+    "tutor_google_meet_connections",
+    "booking_meeting_provisioning",
+    "google_meet_oauth_attempts",
     "learner_guardian_attestations",
     "learner_independent_attestations",
     "local_workflow_claims",

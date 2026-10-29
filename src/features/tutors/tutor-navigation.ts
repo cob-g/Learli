@@ -1,6 +1,7 @@
 import {
   CalendarDays,
   CalendarOff,
+  Video,
   Clock,
   ShieldCheck,
   UserRound,
@@ -21,6 +22,7 @@ const placement: LinkPlacement<TutorGroupId>[] = [
   ["/tutor", "teaching", CalendarDays],
   ["/tutor/availability", "teaching", Clock],
   ["/tutor/time-off", "teaching", CalendarOff],
+  ["/tutor/meetings", "teaching", Video],
   ["/tutor/profile", "listing", UserRound],
   ["/tutor/screening", "listing", ShieldCheck],
 ];

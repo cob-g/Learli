@@ -61,7 +61,9 @@ describe("ordinary parent child creation", () => {
     ).not.toBeChecked();
     fireEvent.click(screen.getByRole("button", { name: "Save child profile" }));
     await screen.findByText("Confirm your guardian authority.");
-    expect(screen.getByRole("checkbox", { name: /I confirm/ })).toHaveFocus();
+    await waitFor(() =>
+      expect(screen.getByRole("checkbox", { name: /I confirm/ })).toHaveFocus(),
+    );
     expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({
       requestId,
       displayName: "Test Child",

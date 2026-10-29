@@ -490,7 +490,10 @@ Use `.env.example` with unmistakable placeholders; never commit actual values.
 - Do not log full private links or display them to unrelated people.
 - Learli **does not** provide audio/video, recording, waiting rooms, or attendance verification.
 - Do not claim Zoom/Meet attendance happened unless a real verified integration provides that evidence.
-- Meeting creation OAuth/SDK integrations are **later** features.
+- Optional tutor-owned automatic Google Meet creation is approved only within
+  `prompts/features/m5-01-google-meet-provisioning.md` (2026-10-26). It remains
+  disabled by default, with manual fallback and separately gated provider/production
+  activation. Other meeting OAuth/SDK features remain **later** work.
 
 ### Resend
 

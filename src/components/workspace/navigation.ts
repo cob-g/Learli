@@ -98,6 +98,9 @@ export function workspaceLinks(
         { href: "/tutor", label: "Bookings", exact: true },
         { href: "/tutor/availability", label: "Availability" },
         { href: "/tutor/time-off", label: "Time off" },
+        ...(localWorkflow
+          ? [{ href: "/tutor/meetings", label: "Meeting setup" }]
+          : []),
         { href: "/tutor/profile", label: "Profile" },
         ...(screening
           ? [{ href: "/tutor/screening", label: "Tutor screening" }]

@@ -1,5 +1,484 @@
 # Learli — Progress Tracker
 
+### 2026-10-29 — Manual Google Meet links chosen for now; M5.1 committed and merged to local main
+
+- Owner decision: use tutor-entered (manual) Google Meet links for now. Automatic
+  creation stays disabled by default in code; the owned local `.env.local` now sets
+  `GOOGLE_MEET_ENABLED='false'` (private, untracked). Automatic acceptance remains
+  FAIL403 with cause unknown; re-enabling needs a separate decision after that is
+  resolved. Saved Google connection, blocked jobs and historical bookings untouched.
+- Re-verified the unchanged Oct-27 source before committing: `npm run check` PASS
+  (format, lint, typecheck, 2,377 tests / 165 files); Meet + private-link real-PG
+  suites PASS 54/54. Secret scan of committed files found no credentials or private
+  meeting URLs; `.env.local` and `.local/` remain ignored.
+- Committed the blast-radius skill install and the M5.1 feature (incl. migration
+  `0040_google_meet_provisioning.sql`, already applied to local dev/test only) on
+  `feature/google-meet-provisioning`, then merged it into local `main` with
+  `--no-ff`. This also brings in the workspace-redesign commits 52ff333/6d9a8fc.
+  Untracked `designs/` excluded. No push, deployment or production migration.
+- Note: Maya's 24-hour synthetic screening expired 2026-10-28 07:10Z, so she is not
+  currently bookable; any new booking test needs a fresh, authorized screening.
+
+### 2026-10-27 — Approved optional-config manual fallback repair
+
+- User approved fixing the blast-radius finding in the existing M5.1 blueprint;
+  supplemental plan is recorded in `prompts/features/m5-01-google-meet-provisioning.md`.
+  Existing dirty Meet implementation, migrations, skill installation and other
+  work preserved. No provider/configuration/database changes or live Google calls.
+- Meeting reader now isolates only optional Google configuration parsing, using
+  safe action-required status and a null fingerprint on failure. Existing status
+  SQL and the fresh private authorization read remain outside the catch. Current
+  links, read-only participants, concurrent manual saves, denial and database
+  errors retain their original contracts. Strict automatic validation unchanged.
+- Added `tests/unit/booking-meeting-read-fallback.test.ts`: actual new regression
+  run on the original reader failed6/passed4, then passed10/10 with the correction.
+  Evidence `.local/google-meet/fallback-before.log` and `fallback-after.log`.
+  Operations runbook explains the bounded fallback and strict automatic gate.
+- Same-agent separate read-only Review: plan alignment and unintended-change
+  audit PASS, no confirmed findings, READY FOR VERIFICATION. No independent
+  reviewer claim for this repair. Narrow source diff compared against the saved
+  pre-repair reader; existing feature work remains distinct.
+- Final verification: `npm run check` PASS (format, lint, typecheck,2377 tests in
+  165 files); targeted real-PostgreSQL Meet/private-link suites PASS54/54.
+  Initial check stopped at pre-existing recovery-note formatting; normalized only
+  `prompts/recovery/2026-10-26-google-meet.md` whitespace and verified its content
+  remained identical ignoring whitespace before the successful rerun.
+- Production build: default attempt failed at Node's roughly4GiB heap limit;
+  the same `npm run build` passed with a command-only8GiB heap override. No runtime
+  config or dependency change. Logs `fallback-check-final.log`,
+  `fallback-integration.log`, initial `fallback-build.log` under the private
+  `.local/google-meet/`; successful build exit0 observed in tool session74495.
+- No new browser/live-provider run for this source-only reader correction; UI
+  markup unchanged and full component tests passed. Automatic provider acceptance
+  remains blocked403, exact cause unknown; no retry/production release implied.
+  No new migration, commit, merge or deployment. Next: user manual QA or a
+  separately authorized integration decision. Local memory handoff updated.
+
+### 2026-10-27 — Repository-local blast-radius skill installed
+
+- Installed only `pstack/skills/blast-radius` from `cursor/plugins` at upstream
+  commit `519d36aa98955bf680db01bcde5fdfba686dc901`, using the skill-installer helper
+  with the repository `skills/` destination. Source: https://github.com/cursor/plugins/blob/519d36aa98955bf680db01bcde5fdfba686dc901/pstack/skills/blast-radius/SKILL.md.
+- Canonical source `skills/blast-radius/SKILL.md` preserved as supplied, including
+  explicit-invocation metadata. Added relative discovery symlinks in `.agents/skills/`
+  and `.claude/skills/`, plus catalog/invocation entries in `AGENTS.md`.
+- Upstream references companion skills `how`, `why`, `arena`, and `unslop`; those
+  were not included in this single-skill installation. No blast-radius audit was
+  invoked. Application code, runtime configuration and existing work preserved.
+- Validation: installed frontmatter/name and both discovery targets inspected;
+  no application tests required for this documentation/discovery-only install.
+
+### 2026-10-27 — Manual meeting-link workflow verified on the real local booking
+
+- User requested confirming manual workflow and subsequently reported seeing the
+  working link. Reused the existing future confirmed Parent booking; no new booking,
+  schema, application source, policy or production change.
+- Google Meet's normal signed-in website created one meeting for later using the
+  previously authorized account. Assigned Tutor saved its actual URL through the
+  normal Learli form. Private link saved at revision1 with human provenance and one
+  edit event; survived Tutor page refresh. No private URL retained in these docs.
+- Linked Parent sees the same confirmed booking and private join action after
+  refresh, with no edit input. Opening it reached the correct real Google Meet
+  pre-join room. Closed preview without joining; no call, attendance, completion,
+  or participant admission claimed. User separately confirmed the link works.
+- Unrelated existing Tutor was denied the same booking in Tutor scope and its
+  private-link API returned no URL. Logged-out protected booking requires sign-in.
+  Restored authorized Parent booking page as the browser deliverable.
+- Executed affected real-PostgreSQL private-link suite PASS29/29 and scoped
+  Playwright private-link suite PASS4/4 (save/replace/conflict, ownership/revocation,
+  private redirects/cache, invalid/expired/error states, responsive accessibility).
+  Private logs `manual-integration.log`, `manual-e2e.log` under `.local/google-meet/`.
+- Final read-only local result:2 bookings/2 jobs/1 manual link; future booking still
+  confirmed at original time with one confirmation event. Original ended booking
+  unchanged/no link. Automatic job remains blocked/attempts1/no automatic receipt;
+  no API creation replay. One readback query used the wrong provenance column name
+  and failed read-only; corrected to actual `actor_kind`, then readback passed.
+- Evidence: private `manual-acceptance-result.json` and URL-free `manual-parent.jpg`.
+  Owned local app/restricted worker restarted at127.0.0.1:3000; blocked jobs retained.
+  Manual coordination PASS; automatic Meet creation remains FAIL403. Video-call
+  connectivity/host admission still require actual participant testing.
+
+### 2026-10-27 — Approved future booking retest completed; Google still denies creation
+
+- Owner explicitly approved one fresh synthetic Math booking for Oct28,10–11AM
+  Manila after checks and current availability validation. Selected that exact
+  offered slot through the normal Parent UI, clicked confirmation once. Saved
+  UTC02:00–03:00, display zone Asia/Manila, confirmed/local_operation, correct
+  parent/child/tutor/subject, one confirmation event. No money or new consent grant.
+- Updated worker claimed the one new job and returned safe diagnostic HTTP403,
+  PERMISSION_DENIED, UNCLASSIFIED reason. Job blocked/create_rejected, attempts1,
+  no space/URI receipt or saved link. No replay/rearm. Google authorization failure
+  is confirmed; precise account/project/policy cause remains unestablished.
+- Parent and assigned Tutor views display the same confirmed booking and actual
+  equivalent UTC time, matching unchanged UTC account preferences. Parent's link
+  refresh truthfully reports tutor must arrange it; Tutor offers manual fallback.
+  No real joining/attendance/completion tested. Original ended booking remains
+  confirmed with original time, blocked job/attempts1 and no link. Read-only final
+  counts:2 bookings,2 jobs,0 links. Existing historical records preserved.
+- Evidence private: `diagnostics-live-result.json`, `diagnostics-parent.jpg`,
+  `diagnostics-tutor.jpg`, and safe `diagnostics-runtime.log` under
+  `.local/google-meet/`. Source unchanged after verified check2367/PG54/browser6/build.
+  App and restricted worker restarted and running at127.0.0.1:3000. No production,
+  billing, scope expansion, weaker meeting access, commit or deployment.
+- Outcome: diagnostic slice verified; live automatic meeting acceptance FAIL403.
+  The expired-job operator remains unnecessary/deferred. Next: resolve provider
+  account/project eligibility through a separate bounded decision; manual links
+  remain available. No Workspace purchase or new provider approach approved.
+
+### 2026-10-27 — Safe Google rejection diagnostics implemented; live retest gated
+
+- User approved the supplemental diagnostic/retest blueprint. Startup clock showed
+  the original booking had ended, so its current-eligibility retry guard must refuse.
+  No rearm/new booking/provider request made. Explicit fresh future-booking approval
+  requested separately and initially pending; later approved and executed as
+  recorded above. Existing job/history retained.
+- Implemented finite HTTP/status/ErrorInfo-reason diagnostics in provider/worker,
+  bounded by10seconds/64KiB, no raw messages/body/metadata/identifiers. Default
+  failure codes, restrictions and blocked-job retry semantics unchanged.
+- Focused unit verification PASS22/22 across diagnostic and existing Meet provider
+  files, including no replay, sensitive-content omission, malformed/oversized bodies,
+  deadline and non-acknowledging cancellation. Separate read-only same-agent scoped
+  Review found no confirmed findings in this diagnostic slice; READY FOR
+  VERIFICATION. Full `npm run check` PASS (format/lint/typecheck and2367 tests in164
+  files); affected Meet/private-link real-PG suites PASS54/54, including reporting
+  failure isolation and blocked-job no-replay. Production build PASS; affected
+  Playwright PASS6/6 (private-link authorization/actions, responsive accessibility,
+  no-JS and denied-role setup). Private `diagnostics-{check,integration,build,e2e}.log`
+  retain exact executed evidence. No live provider acceptance implied.
+- Original implementation and unrelated designs preserved. No dependency/schema/
+  migration/production change. Source snapshot private under
+  `.local/google-meet/diagnostics-before/`. Owned app/worker launcher stopped for
+  build/browser validation and restarted with updated code; local database/data
+  retained. The subsequently approved future-booking result is recorded above. The exact-job
+  operator and live retry are deferred because the approved target has ended;
+  this is not a completed provider acceptance test or a full retry-plan PASS.
+
+### 2026-10-27 — 24-hour synthetic Maya approval saved; live Meet creation FAILED403
+
+- User explicitly approved documented synthetic identity/eligibility checks valid
+  24hours for this fictional local-only Tutor, preserving the fictional label and
+  production separation. Through the assigned, human-MFA-confirmed Admin UI,
+  recorded exactly two checks and confirmed approval. Checked2026-10-27T07:10Z,
+  expire2026-10-28T07:10Z (3:10PM Manila). State Approved/revision3,2/2 current.
+  This is owner-authorized synthetic test data, NOT real-person verification or a
+  general screening-validity policy. Private basis/receipts:
+  `.local/google-meet/local-test-screening.json` and `maya-approved-local-test.jpg`.
+- Used existing synthetic Parent/authorized Middle School child through the normal
+  browser booking form. Created exactly one Math session with Maya on Oct27,
+  4:30–5:30PM Manila (08:30–09:30UTC). Booking confirmed atomically, no money/payment
+  activation or routine Admin booking approval. Parent/Tutor dashboards and detail
+  pages display the same persisted booking. Account time zones remain unchanged.
+- Worker claimed one new durable job, refreshed its connected grant and sent one
+  create request. Saved result: blocked/create_rejected, attempts1, no space/URI
+  receipt, no private link. Google Cloud UI independently confirms Meet API Enabled,
+  one `google.apps.meet.v2.SpacesService.CreateSpace` request,100% error, HTTP403.
+  Exact provider reason is NOT captured by the current safe error classification;
+  do not infer Workspace requirement or account compatibility from this alone.
+- Parent refresh truthfully shows Tutor needs to arrange the link; Tutor shows
+  automatic preparation needs attention and offers existing manual fallback.
+  No fabricated link, weaker meeting settings, retry/requeue, additional booking,
+  remote deletion, real joining, billing, publishing or production action.
+- Final owned-local readback: bookings1, confirmation lifecycle events1, jobs1,
+  links0, attempts still1. Both other Tutor profile hashes unchanged. Initial
+  baseline had zero bookings/jobs; no historical booking converted/deleted.
+- Private evidence: `.local/google-meet/live-booking-result.json`,
+  `live-booking-parent.jpg`, `live-booking-tutor.jpg`, `google-api-403.jpg`.
+  No source/dependency/schema/migration change; no new automated suites. Earlier
+  2358-check/52-PG/6-browser/build results remain scoped to unchanged source and
+  do NOT prove live creation. Git diff whitespace check recorded separately.
+- Next: diagnose Google's precise403 authorization/account reason with bounded
+  safe provider diagnostics before any controlled retest. Preserve the blocked
+  job/booking and never blindly replay non-idempotent create. No purchase or
+  Calendar/provider redesign authorized. App/worker/DB remain running locally;
+  current browser is Tutor booking details. Full provider acceptance remains FAIL.
+
+### 2026-10-27 — Assigned Admin MFA completed; synthetic screening decision pending
+
+- User completed the existing assigned Admin's MFA directly in Chrome. Actual
+  browser now displays Maya's authorized review, Pending, revision0 and0/2 current
+  checks. No code/secret shared through chat. The profile expressly identifies the
+  account as fictional and disclaims real identity/qualifications/safeguarding.
+- The form requires identity and eligibility passed receipts with explicit expiry;
+  no validity duration is approved as a general policy. Prepared a focused user
+  decision: authorize documented synthetic local-test check records valid24hours,
+  retaining the fictional label and without claiming real-person verification or
+  changing production. Awaiting that specific decision; no checks/approval saved.
+- Verified ordinary isolated local target and captured a private read-only
+  acceptance baseline: zero existing bookings/jobs, two other Tutor profiles to
+  preserve. File `.local/google-meet/booking-acceptance-baseline.json`; no row
+  contents or sensitive values printed. No booking/Meet create, migration, source,
+  production or policy change executed. No new test suite; previous evidence kept.
+- Browser review retained, private screenshot
+  `.local/google-meet/maya-screening-confirmation.jpg`. Next: consume the explicit
+  local-test decision, then only its authorized screening/booking acceptance;
+  do not represent fixture checks as real tutor verification.
+
+### 2026-10-27 — Owner requested Maya approval/live booking; Admin MFA pending
+
+- Owner explicitly requested approving the existing synthetic Tutor and testing
+  automatic link generation. Read-only local preflight found the review already
+  assigned to an authorized existing Admin, still pending with zero check receipts.
+  A different Admin's earlier failed claim is retained; no assignment override.
+- The assigned Admin has MFA enabled. Signed out of the synthetic Tutor and used
+  the assigned Admin's existing local credentials through the normal browser form.
+  Current page is **Verify administrator access**, awaiting the owner's authenticator
+  (or saved recovery code) directly in the browser. No MFA secret/code read,
+  changed or printed. Browser tab retained for human input.
+- Booking prerequisites inspected without changes: Tutor has active Math/Science/
+  English coverage and recurring hours; existing test Parent has an active,
+  authorized Middle School child. No new learner, approval/check, booking, room,
+  source change, migration or production action created. Existing Google connection
+  remains saved; prior verified source/check evidence unchanged; no new suites run.
+- Next: owner completes assigned Admin MFA, then inspect and perform only supported
+  evidence-backed screening actions. Do not fabricate checks or expiration policy.
+  After genuine approval, create one prospective synthetic booking and verify
+  automatic private Meet generation. Private handoff screenshot:
+  `.local/google-meet/admin-mfa-required.jpg`.
+
+### 2026-10-27 — Live Google OAuth connected; strict issuer callback repaired
+
+- User explicitly approved Google identity/email and app-created Meet access for
+  the selected host and existing synthetic Tutor account. Completed the actual
+  Google consent UI. Initial and fresh callbacks failed before token exchange:
+  attempt was unexpired/unconsumed; temporary boolean-only diagnostics established
+  Google returned `iss`, which the callback rejected as unexpected. No tokens or
+  query values were logged; diagnostic code removed after isolation.
+- Surgical repair: `src/features/google-meet/service.ts` accepts optional issuer
+  only when exactly `https://accounts.google.com`, preserving rejection of unknown
+  and duplicate fields plus state/browser/session, PKCE, nonce, identity, scope and
+  encrypted-storage checks. No schema or migration. Regression in
+  `tests/integration/google-meet.test.ts` failed before the fix (valid issuer got
+  HTTP400), then passed with invalid/duplicate/lookalike issuers rejected before
+  exchange. Existing issuer-absent callbacks remain covered.
+- Same-agent separate focused read-only Review: READY FOR VERIFICATION; authorized
+  callback compatibility correction, no broader permission/policy change. Actual
+  live retry now returned Connected; refresh retained connection. Owned-local
+  readback: active connection, encrypted refresh credential and exactly `openid`,
+  userinfo.email, meetings.space.created scopes. Private screenshot
+  `.local/google-meet/google-connected.jpg`. No credential values in tracked docs.
+- `npm run check` PASS: formatting, lint, typecheck and 2,358 tests/163 files.
+  Targeted real PostgreSQL Meet/private-links suites PASS, 52/52 (one new regression).
+  Evidence: `.local/google-meet/oauth-issuer-{red,check,integration}.log`.
+  Production build PASS with `NODE_OPTIONS=--max-old-space-size=8192 npm run build`;
+  scoped Playwright PASS, 6/6, with `npm run test:e2e -- --config playwright.meet.config.ts`.
+  Evidence: `.local/google-meet/oauth-issuer-{build,e2e}.log`.
+- Live space creation, effective restricted meeting settings and real joining are
+  NOT VERIFIED: the selected synthetic Tutor is still pending normal screening.
+  Do not fabricate screening approval or bypass public/bookability restrictions.
+  No booking created or historical record converted for this provider test.
+- Existing records, migrations, manual fallback and unrelated changes preserved.
+  No production, billing, public publishing, commit, merge, push or deployment.
+  Final read-only delta/doc review found no additional issues. Local app/worker
+  restarted after checks and Connected persisted after refresh. Services remain
+  available at `http://127.0.0.1:3000`; no host/participant call was started.
+  Next: owner completes genuine normal tutor screening before the prospective
+  booking/live meeting acceptance test.
+- Files changed in this resumed slice: `src/features/google-meet/service.ts`,
+  `tests/integration/google-meet.test.ts`, `context/progress-tracker.md`,
+  `docs/operations/google-meet.md`, existing feature blueprint and recovery note.
+  Local ignored `memory.md` updated separately; no migration introduced.
+
+### 2026-10-27 — Local Google OAuth client created and configured; consent pending
+
+- User explicitly approved creating **Learli Local Meet Web**, private local
+  credential storage and saving only the prepared identity/email/app-created Meet
+  scope metadata. Google confirmed client creation and **Data access changes saved**.
+  Web client has exactly the approved loopback callback, no JavaScript origins,
+  and no AI-agent flag. Audience remains External/Testing; no billing or public
+  publishing action.
+- Saved credentials privately under ignored `.local/google-meet/` and configured
+  `.env.local` with a newly generated encryption key, matching client/callback and
+  restricted worker URL. Original local environment backed up privately. Confirmed
+  owner-only file permissions; secured the matching browser-downloaded credential
+  file too. No credentials printed or added to tracked files.
+- Started existing owned PostgreSQL without reset, ran `npm run meet:prepare-worker`
+  successfully once, then started `npm run dev:meet`. Launcher validated the
+  restricted worker; runtime reported **Google Meet worker ready** and Next.js
+  16.4.3 **Ready** at `http://127.0.0.1:3000`. No migration or historical backfill.
+- Browser verification: signed into an existing verified synthetic Tutor account,
+  opened Meeting setup and reached Google OAuth using the selected test account.
+  Google displayed its testing-app warning, then the email-identity consent screen.
+  Paused before granting access; exact identity and app-created Meet grant approval
+  requested. No live grant, space creation or host/participant joining verified yet.
+- Local app/worker/database remain running for consent continuation. No application
+  source, schema, dependency, production, commit, merge, push or deployment change
+  in this setup slice. Earlier automated check/build/PG/Playwright evidence remains
+  valid for unchanged source; those suites were not rerun for private configuration.
+- Next: explicit Google consent approval (or human completion), then bounded live
+  provider acceptance. Do not infer Gmail compatibility from successful client
+  creation or OAuth navigation. Private screenshot:
+  `.local/google-meet/google-consent-confirmation.jpg`.
+
+### 2026-10-27 — OAuth test app created; local client ready for confirmation
+
+- After the user's explicit action-time policy approval, accepted the Google API
+  Services User Data Policy and created the **Learli Local Test** OAuth app in
+  `learli-meet-local-test`. UI confirmed OAuth configuration created. Audience
+  remains External/Testing; exactly the user-selected account was saved as its
+  single test user. No public publishing or billing action.
+- Prepared, but have NOT saved, exactly `openid`, userinfo.email and
+  `https://www.googleapis.com/auth/meetings.space.created` scope metadata. No
+  Gmail mailbox, Drive, Calendar, cloud-platform or other scope selected.
+- Separate retained client form: **Web application**, **Learli Local Meet Web**,
+  one redirect `http://127.0.0.1:3000/api/tutor/meeting-providers/google/callback`,
+  no JavaScript origins, AI-agent checkbox unchecked. Stopped before Create
+  because it generates persistent credentials. Awaiting specific action-time
+  confirmation to create this client and store its credentials privately locally.
+- No client ID/secret or Google data grant generated yet. Local preflight confirms
+  ordinary workflow enabled, Meet disabled, no existing client/secret/encryption
+  keys or worker credential file. No private values printed. No application
+  changes or new checks; previous automated verification evidence unchanged.
+
+
+### 2026-10-27 — Google project/API created; OAuth policy approval pending
+
+- MFA/account prerequisites are now cleared for the user-selected account.
+  Through Computer Use, created isolated project **Learli Meet Local Test**,
+  project ID `learli-meet-local-test`. Google UI confirmed project creation and
+  completion of `Enable service: meet.googleapis.com`. No trial/subscription
+  started and no billing linked. This is API enablement, not proof of Gmail
+  meeting-creation compatibility.
+- Prepared Google Auth Platform setup: **Learli Local Test**, owner-selected
+  support/contact account, **External / Testing** audience. Stopped at the
+  unchecked **Google API Services: User Data Policy** agreement before final
+  app creation. Browser tab retained with prepared form for action-time approval.
+- No OAuth client/secret or grants created, scopes granted, worker credential
+  prepared, local provider enabled, live meeting created, or application code
+  changed this turn. No new tests. Existing automated evidence remains unchanged.
+- Next: user confirms acceptance of this specific policy, then finish OAuth app
+  identity setup and prepare the local Web client. Computer Use requires fresh
+  confirmation at legal-agreement and security-sensitive access actions.
+
+
+### 2026-10-27 — Live Google setup authorized; blocked at Google account prerequisites
+
+- User approved Computer Use setup using their selected already-logged-in personal
+  Google account. Supplemental plan approval recorded in the existing M5.1
+  blueprint. No paid subscription, billing or production action authorized.
+- Opened Google Cloud and switched to the exact user-selected account through its
+  visible account menu. Google displays first-use Cloud Terms plus an access-blocked
+  page requiring 2-Step Verification. Account contents beyond this setup were not
+  accessed. No Terms accepted, authentication changed, project created, API enabled,
+  credential created, local provider enabled or live meeting created.
+- Browser tab retained as a user handoff. User must review/accept the Cloud Terms
+  if they agree and complete the required 2-Step Verification themselves, then
+  return for project/OAuth setup. Computer Use requires action-time agreement
+  confirmation and a human handoff for authentication changes. No new tests ran;
+  earlier automated evidence remains unchanged. No application code edited.
+
+
+### 2026-10-27 — Next patch APPLIED; local automated Meet verification PASS
+
+- User explicitly approved exact Next.js and matching eslint-config-next 16.4.3
+  in this checkout, then verification continuation. Both are pinned to 16.4.3;
+  lockfile updates are the matching Next/env/SWC/ESLint packages. Official release:
+  <https://github.com/vercel/next.js/releases/tag/v16.4.3>. Existing Meet work,
+  migrations, historical records and untracked `designs/` preserved.
+- Same-agent separate Review of the approved patch, dependency/lockfile diff and
+  affected configuration: alignment/unintended-change PASS, READY FOR VERIFICATION;
+  no application behavior or security bypass added. The approved blueprint and
+  recovery note record this supplemental authorization. No new migration.
+- `npm run check` **PASS**: format, lint, typecheck and **2,358 tests / 163 files**.
+- `npm run test:integration -- tests/integration/google-meet.test.ts tests/integration/booking-meeting-links.test.ts`
+  **PASS, 51/51** after the patch, using isolated synthetic PostgreSQL. Earlier
+  broad 1,151-case evidence remains below; that full suite was not repeated for
+  this dependency-only patch.
+- `NODE_OPTIONS=--max-old-space-size=8192 npm run build` **PASS**, Next 16.4.3,
+  no security-gate failure. `npm run test:e2e -- --config playwright.meet.config.ts`
+  **PASS, 6/6**, current development source. Includes private link edits/conflicts,
+  participant visibility/refusal, service/expired states, meeting setup at
+  1440/390/320px, Axe/keyboard, refresh, role checks and no-JavaScript fallback.
+- Private ignored evidence: `.local/google-meet-next-patch-install.log`,
+  `.local/google-meet-patched-check.log`, `.local/google-meet-patched-integration.log`,
+  `.local/google-meet-patched-build.log`, `.local/google-meet-patched-e2e.log`,
+  `.local/google-meet-patched-audit.json`.
+- Production dependency audit after the patch: zero critical, two high advisories
+  remain in unchanged Undici 8.11.2 and Zod 4.6.5. No broad audit fix or unrelated
+  version changes. This is not security/release clearance for production.
+- Local automated verification is now **PASS** for the approved scope. Live
+  Google OAuth/code exchange/account compatibility/host admission/joining remain
+  **NOT RUN**. Integration stays disabled until separate dedicated-provider setup
+  and authorization; manual Zoom/Meet links remain available. No production,
+  provider, commit, merge, push or deployment action. Local testing services are
+  stopped after checks; existing data retained.
+- Next: separately authorize/configure a dedicated Google Cloud OAuth client and
+  eligible test host using `docs/operations/google-meet.md`, then execute live
+  provider acceptance. Full provider acceptance and production readiness are
+  **NOT ESTABLISHED**. The Oct26 build/browser blockers below are historical and
+  superseded by this entry; their original failure evidence is retained.
+
+### 2026-10-26 — M5.1 optional Google Meet IMPLEMENTED; verification BLOCKED
+
+- Authority: user-approved `prompts/features/m5-01-google-meet-provisioning.md`
+  and explicit implementation request through build-feature. Branch
+  `feature/google-meet-provisioning`; baseline/HEAD
+  `6d9a8fcb5cebf15c0d621e3f710e39c67d965bc7`. Uncommitted feature changes;
+  pre-existing untracked `designs/` preserved untouched. No commit/merge/deployment.
+- Implementation: optional Tutor Meeting setup, separate session/browser-bound
+  Google OAuth with PKCE/OIDC, encrypted credentials, narrow app/worker functions,
+  confirmed-booking intent, supervised local worker, explicit automation provenance,
+  fresh post-provider authorization and manual-link precedence. Cancellation,
+  replacement/rescheduling, disconnect, stale eligibility and uncertain create
+  outcomes cannot overwrite a manual link or change booking/payment state.
+  Existing private participant views remain authoritative. No backfill, Calendar,
+  attendance, recording, completion or payment integration.
+- Migration: additive `0040_google_meet_provisioning.sql` plus Drizzle snapshot
+  and journal. Applied only to owned local development/test targets. Before the
+  development migration, created an owner-only ignored custom-format backup;
+  receipt `.local/google-meet/migration-1793023855643.json` confirms all **82**
+  original public tables' row projections/counts preserved and all three new
+  feature tables empty. Provider activation remains false. No production data
+  touched. Earlier draft test ledger/data preserved by archiving the owned test
+  DB as `learli_test_before_meet_1793022789003`, never dropped or rewritten.
+- Worker role provisioning is an explicit separate local operator command, not a
+  schema migration requirement. `meet:prepare-worker` was **NOT RUN**; no worker
+  LOGIN credential or Google client was activated. The launcher separates child
+  credentials and validates matching owned local targets before starting either.
+- Review: same agent, separate read-only stage against the approved blueprint and
+  baseline-to-working-tree feature diff, including relevant untracked files.
+  Plan alignment and unintended-change audit PASS; recommendation **READY FOR
+  VERIFICATION**, no remaining confirmed code findings in scope. The final review
+  corrected a same-account omitted-refresh-token INSERT, process credential
+  sharing, stale projections, nonportable cluster-role migration and private
+  directory reuse. See `prompts/recovery/2026-10-26-google-meet.md` for failures,
+  diagnoses and targeted repairs. This was not an independent second reviewer.
+- Final `npm run check`: **PASS**, including format/lint/typecheck and **2,358
+  tests / 163 files**. The unchanged Parent child-form focus assertion failed in
+  two full runs and passed three isolated reruns; its assertion now waits for the
+  existing React focus effect. No application behavior or assertion target changed.
+- PostgreSQL: new Meet suite **22/22 PASS**; related five-file group **95/95 PASS**.
+  Final broad `npm run test:integration`: **1,143 PASS / 8 skipped**, 83/84 files
+  passed, command exit 1 solely because hosted-auth setup required its assigned
+  TLS port. Explicit
+  `LEARLI_STAGING_TEST_PORT=55703 npm run test:integration -- tests/integration/hosted-auth.test.ts`
+  then passed **8/8**. All **1,151 distinct integration cases** passed across
+  those two runs; do not describe the broad command itself as exit-zero. Includes
+  real PostgreSQL roles, permissions, preservation, authorization, competing
+  workers, rollback, manual races and recovery with synthetic/fake provider I/O.
+- Build: **FAIL**, existing Next 16.4.0 security-advisory gate, after compilation,
+  TypeScript and page generation. Scoped current-source Playwright: **6 FAIL** at
+  startup/transport after that gate stopped Next, before meaningful UI evidence.
+  Browser responsive/Axe/no-JS acceptance therefore **UNVERIFIED**, not PASS.
+  Existing baseline Next/Undici/Zod production dependency advisories remain;
+  no unsafe bypass or broad audit fix was applied. Approval requested for the
+  separate exact Next/eslint-config-next 16.4.3 patch; no response received yet.
+- Live OAuth, actual Google meeting creation/account compatibility, host admission
+  and joining: **NOT RUN**; dedicated provider setup/authorization still required.
+  Integration remains disabled by default, with manual Zoom/Meet fallback.
+- Evidence (private ignored logs): `.local/google-meet-final-check.log`,
+  `.local/google-meet-integration.log`, `.local/google-meet-related-integration.log`,
+  `.local/google-meet-all-integration.log`, `.local/google-meet-hosted-auth.log`,
+  `.local/google-meet-build.log`, `.local/google-meet-e2e.log`.
+- Documentation: approved exception recorded in AGENTS, all eight canonical
+  context files, `docs/decisions/2026-10-26-optional-google-meet.md` and
+  `docs/operations/google-meet.md`. Local ignored memory handoff follows the
+  separate Remember stage. Owned local PostgreSQL stopped after verification;
+  database files, backup and historical records preserved; no app server remains.
+- Next: obtain the pending framework-patch decision, apply only if approved, then
+  review/reverify affected checks and production build/scoped browser acceptance.
+  Afterwards perform separately authorized dedicated-Google acceptance. Status is
+  **INCOMPLETE VERIFICATION**, not feature-complete or production-ready.
+
 ## 2026-10-21 — Oct-18 private-workflow blockers FIXED; all browser suites VERIFIED
 
 - Private suite (`npm run test:e2e:private`): **4/4 PASS**, including the

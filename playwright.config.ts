@@ -286,7 +286,7 @@ export default defineConfig({
     },
     {
       name: "booking-meeting-links",
-      testMatch: "booking-meeting-links.spec.ts",
+      testMatch: ["booking-meeting-links.spec.ts", "google-meet.spec.ts"],
       dependencies: ["account-password"],
       fullyParallel: false,
       use: {

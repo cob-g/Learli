@@ -250,6 +250,8 @@ export const auditActions = [
   "subject.activated",
   "subject.deactivated",
   "subject.renamed",
+  "google_meet.connected",
+  "google_meet.disconnected",
 ] as const;
 export type AuditAction = (typeof auditActions)[number];
 
@@ -274,7 +276,7 @@ export const auditEvents = pgTable(
   (table) => [
     check(
       "audit_action_allowed",
-      sql`${table.action} IN ('account.created', 'account.updated', 'fixture.roles_granted', 'tutor_role.self_granted', 'parent_role.self_granted', 'student_role.self_granted', 'local_workflow.staff_authorized', 'tutor_profile.submitted', 'tutor_profile.updated', 'tutor_availability.updated', 'tutor_time_off.updated', 'tutor_review.approved', 'tutor_review.rejected', 'tutor_review.suspended', 'tutor_review.reinstated', 'tutor_review.reopened', 'subject.created', 'subject.activated', 'subject.deactivated', 'subject.renamed')`,
+      sql`${table.action} IN ('account.created', 'account.updated', 'fixture.roles_granted', 'tutor_role.self_granted', 'parent_role.self_granted', 'student_role.self_granted', 'local_workflow.staff_authorized', 'tutor_profile.submitted', 'tutor_profile.updated', 'tutor_availability.updated', 'tutor_time_off.updated', 'tutor_review.approved', 'tutor_review.rejected', 'tutor_review.suspended', 'tutor_review.reinstated', 'tutor_review.reopened', 'subject.created', 'subject.activated', 'subject.deactivated', 'subject.renamed', 'google_meet.connected', 'google_meet.disconnected')`,
     ),
   ],
 );

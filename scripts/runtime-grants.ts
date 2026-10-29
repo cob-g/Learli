@@ -2,6 +2,7 @@
 export const runtimeGrantsSql = `
     REVOKE ALL ON SCHEMA public FROM PUBLIC;
     GRANT USAGE ON SCHEMA public TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.google_meet_metadata(text,text), public.google_meet_begin(text,text,text,text,text,text,text,boolean), public.google_meet_consume(text,text,text,text,text), public.google_meet_complete(text,text,text,text,text,text,text[],text), public.google_meet_disconnect(text,text), public.google_meet_job_status(text,text,uuid,text) TO learli_app;
     GRANT EXECUTE ON FUNCTION public.submit_private_review(text,text,uuid,integer,uuid,integer,text), public.moderate_private_review(text,text,uuid,integer,uuid,text) TO learli_app;
     GRANT EXECUTE ON FUNCTION public.create_local_learner_with_grade(text,text,uuid,text,text,text,text,integer), public.create_learner_admission_with_grade(text,text,uuid,uuid,text,text,text,text,text,integer), public.update_admitted_learner_with_grade(text,text,uuid,uuid,text,text,integer) TO learli_app;
     GRANT EXECUTE ON FUNCTION public.create_learner_admission(text,text,uuid,uuid,text,text,text,text,text), public.record_learner_admission_evidence(text,text,uuid,integer,uuid,text,text), public.decide_learner_admission(text,text,uuid,integer,uuid,text), public.revoke_learner_admission_evidence(text,text,uuid,integer,uuid,uuid), public.update_admitted_learner(text,text,uuid,uuid,text,text), public.has_current_learner_authority(text,text,uuid,uuid) TO learli_app;

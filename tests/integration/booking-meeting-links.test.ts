@@ -332,8 +332,15 @@ describe("private links on real PostgreSQL reservations", () => {
     expect(rows).toHaveLength(2);
     expect(rows.map((r) => r.revision)).toEqual([1, 2]);
     expect(JSON.stringify(rows)).not.toContain(url);
+    expect(
+      rows.every(
+        (row) => row.actor_kind === "human" && row.automation_job_id === null,
+      ),
+    ).toBe(true);
     expect(Object.keys(rows[0]).sort()).toEqual([
+      "actor_kind",
       "actor_user_id",
+      "automation_job_id",
       "booking_id",
       "created_at",
       "id",
