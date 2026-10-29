@@ -5,8 +5,10 @@ import { WorkflowBookingPage } from "@/features/booking-workflows/page";
 import {
   bookingDiscoveryHref,
   bookingSelectionHref,
+  parsePrivateBookingScope,
   parsePublicBookingDiscovery,
   parsePublicBookingSelection,
+  withPrivateBookingScope,
   type SearchValues,
 } from "@/features/bookings/selection";
 import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
@@ -24,17 +26,24 @@ export default async function NewBookingPage({
   searchParams: Promise<SearchValues>;
 }) {
   const query = await searchParams;
-  // A learner ID is private. Only validated public choices cross sign-in.
+  // Learner identity is private and scope is presentation intent. Only the
+  // validated public tutor/subject/time contract crosses sign-in with them.
   const publicQuery = Object.fromEntries(
-    Object.entries(query).filter(([key]) => key !== "learnerId"),
+    Object.entries(query).filter(
+      ([key]) => key !== "learnerId" && key !== "scope",
+    ),
   );
+  const scope = parsePrivateBookingScope(query.scope);
   const choice = parsePublicBookingSelection(publicQuery);
   const discovery = parsePublicBookingDiscovery(publicQuery);
-  const returnTo = choice
-    ? bookingSelectionHref(choice, true)
-    : discovery
-      ? bookingDiscoveryHref(discovery, true)
-      : "/bookings/new";
+  const returnTo = withPrivateBookingScope(
+    choice
+      ? bookingSelectionHref(choice, true)
+      : discovery
+        ? bookingDiscoveryHref(discovery, true)
+        : "/bookings/new",
+    scope,
+  );
   const result = await loadPrivatePage(returnTo, async (runtime, headers) => {
     if (
       !hasPersistentWorkflow(runtime) ||

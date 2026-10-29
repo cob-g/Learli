@@ -1,5 +1,81 @@
 # Learli — Build Plan
 
+### Approved optional Google Meet integration — 2026-10-26
+
+Owner-approved blueprint: `prompts/features/m5-01-google-meet-provisioning.md`
+(M5.1/2/5/11; MEET-01/02/03). Optional tutor-owned Google OAuth may create a
+separate private Meet space for each new eligible confirmed booking. Manual
+Zoom/Meet links remain supported; Learli retains booking/scheduling/completion
+ownership. This bounded exception supersedes older blanket later-only OAuth
+wording, without enabling Calendar sync, attendance, recordings or payments.
+Implementation is present locally; full verification remains incomplete. See
+`context/progress-tracker.md` for executed checks and blockers. Default operation
+stays disabled; production/deployment and live provider actions remain separately
+gated. New encrypted credentials, durable jobs and explicit system provenance
+must preserve existing history, permissions and manual-link behavior. Ambiguous
+remote create outcomes do not automatically replay. See the blueprint for exact
+scope, additive migration, failure handling, UI and verification requirements.
+
+
+### M8.10 Tutor screening Admin UX safe slice — 2026-10-18
+
+The authorized source slice replaces editable evidence references and raw UTC
+text entry with native local date/time controls, visible device-time-zone/UTC
+context, a database-owned immutable `screening:<check-row UUID>` receipt, and
+plain-language Identity/Eligibility states. The receipt is one-to-one with the
+persisted screening check. Assigned reviewers may see it and the check
+timestamps; Tutor-owner reads keep timestamps but omit all receipt identifiers.
+The legacy `evidence_reference` stays internal and immutable and is reused only
+for an old exact replay; a new mutation receives a separate server-owned
+compatibility value. Existing exact assignment, MFA, policy, revision,
+idempotency, audit and eligibility gates remain authoritative. No schema
+migration or historical-record conversion is planned for this slice.
+
+Expiry remains an explicit reviewer choice. The screening duration, real
+criteria/provider evidence, and permission to call a check `Verified` remain
+`[OPEN]` under TUT-01 and M8.10; this work does not close the real screening or
+public-launch gate. Required verification covers local-to-UTC conversion, DST
+and future-time rejection, explicit UTC server rendering before browser-zone
+hydration, database-row receipt linkage, legacy exact replay, reviewer-only
+receipt exposure, truthful state labels, accessibility, and regression
+protection for current authorization. Executed results belong in
+`context/progress-tracker.md`, not in this plan.
+
+### Independent adult V2 supplement — 2026-10-18
+
+- **M2.4/M2.9:** grant Student authority only inside successful atomic
+  independent-profile creation; require an explicit declaration and state that
+  it is unverified. College Support is the initial supported level, not proof of
+  adulthood.
+- **M4.4/M4.6/M4.8:** use exact immutable V2 admission and booking receipts,
+  one self profile per user, current server ownership, PostgreSQL overlap
+  protection and opaque idempotency keys.
+- **M4.9/M4.10:** allow a direct confirmed no-money booking for the approved V2
+  learner without Admin confirmation; never represent it as paid. Preserve
+  historical v1 and Parent-v2 records and Tutor cancellation/rescheduling
+  behavior.
+- **M5.3–M5.5:** project the same booking to the authorized Student, assigned
+  Tutor and scoped Admin surfaces. Keep meeting details private and status text
+  truthful.
+- **Required evidence:** absent/false/stale declaration denial, injected-authority
+  denial, concurrent profile and booking creation, exact role/audit grant,
+  immutable receipt protection, suspended/unverified/expired authority denial,
+  Parent-v2 populated migration preservation, cross-role reads, no payment
+  activation, and existing Tutor action regression protection.
+
+### M4.4 supplement — automatic Parent child onboarding, 2026-10-18
+
+Owner-authorized slice: new private child creation and guardian consent without
+routine Admin review; immediate family/dashboard/booking eligibility; additional
+children and ordinary edits; atomic confirmed no-money Parent bookings. Related
+M4.5–10/M5.1–5 keep exact current authority, private links, conflicts and history.
+Preserve v1 receipts/heads/pending requests and independent College. Secure
+existing-account linking and public-minor launch remain separate gates. Blueprint:
+`prompts/features/m4-04-automatic-parent-child-onboarding.md`. Run isolated real
+PostgreSQL ownership/idempotency/concurrency and populated-migration preservation
+checks plus desktop/phone interaction checks. Never reset operating data.
+Implementation and check outcomes are recorded in the tracker, not inferred here.
+
 ### Current local work package — 2026-10-18
 
 M8-03 ordinary local operational workflow supersedes the separate private manual
@@ -1073,11 +1149,18 @@ from the new future booking's browser test.
 Owner approved College Student onboarding intent, correction of role-view
 filtering and dedicated normal-build Student acceptance. Blueprint
 `prompts/features/m8-09-student-workflow-acceptance.md` is
-AUTHORIZED — build-feature delegation. Reuse assigned independent eligibility
-review and existing atomic booking/coordination; no early Student role, guardian
-link, independent minor policy or payment activation. Verify two admitted college
-accounts, Science/College Support, retries/overlaps, privacy, changes and a
-separately identified historical completion record. The checklist is
+AUTHORIZED — build-feature delegation. The original assigned independent review
+applies to historical v1 requests only. The approved 2026-10-18 V2 direction uses
+self-service creation for eligible self-attesting adults in initial College
+Support-only scope, without routine Admin admission. College Support is not proof
+of adulthood and the declaration is unverified. Grant Student only with the
+atomic self profile, then directly confirm eligible no-money bookings without
+provisional Admin approval. Keep legacy admissions, policy receipts, history and
+audits unchanged and readable under their original review/booking rules; do not create
+new ordinary independent v1 requests. Existing-account linking, independent minor
+access and public eligibility remain gated; payments stay disabled. Verify two
+eligible college accounts, Science/College Support, retries/overlaps, privacy,
+changes and a separately identified historical completion record. The checklist is
 `docs/qa/student-workflow-checklist.md`; actual results belong in progress-tracker.
 This entry does not mark M8.9, hosted acceptance or launch complete.
 
@@ -1157,3 +1240,17 @@ Completion of a fresh lesson requires its actual end and cannot be substituted
 with the automated suite’s historical fixture. This slice is not completion of
 all M8 gates, hosted staging deployment, payment activation or launch clearance.
 Actual check/Review outcomes belong in the progress tracker.
+
+### M8.10 cross-role workflow UX supplement — 2026-10-18
+
+The owner authorized a bounded Parent/Student/Tutor/Admin UX alignment under the
+existing business-gate review work: preserve guardian versus self-managed booking
+history scope; remove routine school-style admission navigation while retaining
+historical records; constrain booking choices to compatible learner-level subject
+offerings; replace minute-option availability selects with native time inputs; and
+show truthful Tutor screening/readiness guidance. The canonical blueprint is
+`prompts/features/m8-10-cross-role-ux-alignment.md`. No schema, admission policy,
+screening policy, booking authority, payment, deployment or production-data change
+is part of this supplement. Review and executed verification evidence belong in
+`context/progress-tracker.md`; this note does not complete M8.10, the M8.11 pilot,
+or release approval.

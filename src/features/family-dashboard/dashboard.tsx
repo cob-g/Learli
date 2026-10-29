@@ -334,9 +334,13 @@ function NextReservation({
 export function FamilyDashboard({
   data,
   privateWorkflow = false,
+  ordinaryParent = false,
+  ordinaryStudent = false,
 }: {
   data: DashboardData;
   privateWorkflow?: boolean;
+  ordinaryParent?: boolean;
+  ordinaryStudent?: boolean;
 }) {
   const { workspace, learners, selectedLearner, active, history } = data;
   const next = active.find((row) => row.startAtUtc > data.checkedAt.startAtUtc);
@@ -367,9 +371,13 @@ export function FamilyDashboard({
           </p>
         )}
         <p className="mt-3 max-w-prose text-small text-muted-foreground">
-          {privateWorkflow
-            ? "Manage upcoming sessions and booking history. Provisional requests await an assigned review before confirmation."
-            : "Local simulation only. Reservations expire after ten minutes and do not confirm a lesson."}
+          {ordinaryParent
+            ? "Manage upcoming sessions and booking history for your children."
+            : ordinaryStudent
+              ? "Manage upcoming sessions and booking history."
+              : privateWorkflow
+                ? "Manage upcoming sessions and booking history. Provisional requests await an assigned review before confirmation."
+                : "Local simulation only. Reservations expire after ten minutes and do not confirm a lesson."}
         </p>
         {privateWorkflow && (
           <nav
@@ -382,18 +390,24 @@ export function FamilyDashboard({
             {!!learners.length && (
               <DashboardLink href="/bookings/new">New booking</DashboardLink>
             )}
-            <DashboardLink
-              href={
-                workspace === "parent"
-                  ? "/parent/children/new"
-                  : "/learner-admission/new"
-              }
-            >
-              {workspace === "parent" ? "Add Child" : "Request learner review"}
-            </DashboardLink>
-            <DashboardLink href="/learner-admission">
-              Admission requests
-            </DashboardLink>
+            {!ordinaryStudent && (
+              <DashboardLink
+                href={
+                  workspace === "parent"
+                    ? "/parent/children/new"
+                    : "/learner-admission/new"
+                }
+              >
+                {workspace === "parent"
+                  ? "Add Child"
+                  : "Request learner review"}
+              </DashboardLink>
+            )}
+            {!ordinaryParent && !ordinaryStudent && (
+              <DashboardLink href="/learner-admission">
+                Admission requests
+              </DashboardLink>
+            )}
           </nav>
         )}
         {workspace === "parent" && learners.length > 1 && (
@@ -444,27 +458,39 @@ export function FamilyDashboard({
         </div>
         {!learners.length ? (
           <section className="mt-8 rounded-surface border border-border bg-surface p-6 sm:p-8">
-            <h2 className="text-item-title">No authorized learner available</h2>
+            <h2 className="text-item-title">
+              {ordinaryParent
+                ? "Add your first child"
+                : "No authorized learner available"}
+            </h2>
             <p className="mt-2 max-w-prose text-body">
-              {privateWorkflow
-                ? "Request a learner review to continue. Pending requests grant no learner or booking access; an assigned reviewer must authorize the request first."
-                : "This account has no eligible local learner profile. Create a fictional profile to try the local booking flow."}
+              {ordinaryParent
+                ? "Add your child and confirm your guardian authority and consent. The saved profile will be ready for booking."
+                : ordinaryStudent
+                  ? "Set up your Student profile and confirm your independent eligibility to start arranging tutoring."
+                  : privateWorkflow
+                    ? "Request a learner review to continue. Pending requests grant no learner or booking access; an assigned reviewer must authorize the request first."
+                    : "This account has no eligible local learner profile. Create a fictional profile to try the local booking flow."}
             </p>
             <div className="mt-4">
               <DashboardLink
                 href={
                   workspace === "parent"
                     ? "/parent/children/new"
-                    : privateWorkflow
-                      ? "/learner-admission"
-                      : "/learners/new"
+                    : ordinaryStudent
+                      ? "/student/onboarding"
+                      : privateWorkflow
+                        ? "/learner-admission"
+                        : "/learners/new"
                 }
               >
                 {workspace === "parent"
                   ? "Add Child"
-                  : privateWorkflow
-                    ? "View admission requests"
-                    : "Create a local learner"}
+                  : ordinaryStudent
+                    ? "Set up your Student profile"
+                    : privateWorkflow
+                      ? "View admission requests"
+                      : "Create a local learner"}
               </DashboardLink>
             </div>
           </section>

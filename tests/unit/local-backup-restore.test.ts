@@ -98,6 +98,29 @@ describe("local backup restoration boundaries", () => {
         );
     },
   );
+  it.each([
+    "learner_guardian_attestations",
+    "learner_independent_attestations",
+  ])(
+    "allows %s only when empty and refuses ordinary or fabricated synthetic receipts",
+    (table) => {
+      expect(() => assertAllowedProvenance(table, "source", [])).not.toThrow();
+      for (const source of [
+        "local_operation",
+        "synthetic_readiness",
+        "local_fixture",
+        "local_synthetic",
+        "synthetic_test",
+        null,
+      ])
+        expect(() =>
+          assertAllowedProvenance(table, "source", [source]),
+        ).toThrow("synthetic-only");
+      expect(acceptedTableInventory(process.cwd())).toContain(
+        `public.${table}`,
+      );
+    },
+  );
   it("permits the accepted booking sources without promoting private reviews", () => {
     expect(() =>
       assertAllowedProvenance("bookings", "source", [

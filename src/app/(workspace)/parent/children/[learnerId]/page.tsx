@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import type { Metadata } from "next";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { readComposedLearner } from "@/features/learners/composition";
@@ -28,7 +29,11 @@ export default async function ChildProfilePage({
       const resolved = await readComposedLearner(runtime, headers, learnerId);
       if (resolved.profile.management !== "guardian")
         throw new AccessError(404);
-      return { ...resolved, privateWorkflow: hasPersistentWorkflow(runtime) };
+      return {
+        ...resolved,
+        privateWorkflow: hasPersistentWorkflow(runtime),
+        ordinaryParent: getLocalWorkflow(runtime) !== null,
+      };
     },
   );
   if (!result)
@@ -38,7 +43,7 @@ export default async function ChildProfilePage({
         message="We cannot find an authorized child profile on this account. Return to My Children or try again later."
       />
     );
-  const { profile, reviewed, privateWorkflow } = result;
+  const { profile, reviewed, privateWorkflow, ordinaryParent } = result;
   return (
     <div className="page-shell page-space">
       <LearnerLink
@@ -51,11 +56,13 @@ export default async function ChildProfilePage({
         Profile for {profile.displayName}
       </p>
       <p className="mt-2 max-w-prose text-small text-muted-foreground">
-        {reviewed
-          ? "Authorized — current reviewed access. The reviewed education level cannot be changed here."
-          : "Saved for local testing. Use fictional child details."}
+        {ordinaryParent
+          ? "Your child’s private profile. Save permitted details and grade changes here."
+          : reviewed
+            ? "Authorized — current reviewed access. The reviewed education level cannot be changed here."
+            : "Saved for local testing. Use fictional child details."}
       </p>
-      {privateWorkflow && (
+      {privateWorkflow && !ordinaryParent && (
         <p className="mt-2 max-w-prose text-small text-muted-foreground">
           This staging profile does not establish real consent or guardian
           identity.

@@ -11,12 +11,13 @@ skills are relative to the repository root unless explicitly stated otherwise.
 - **recover** — Diagnose failures and prepare a safe recovery handoff. Read [SKILL.md](skills/recover/SKILL.md).
 - **remember** — Save or restore a concise session handoff. Read [SKILL.md](skills/remember/SKILL.md).
 - **review** — Review implementation against its approved blueprint. Read [SKILL.md](skills/review/SKILL.md).
+- **blast-radius** — Assess what a change could break beyond its diff and prove critical safety assumptions. Read [SKILL.md](skills/blast-radius/SKILL.md). Preserve Learli's separate planning, review, and verification boundaries.
 
 In Codex, invoke these with `$build-feature <feature>`, `$architect`, `$recover`, `$remember save`,
-`$remember restore`, or `$review`. Slash-command examples inside the skill
+`$remember restore`, `$review`, or `$blast-radius <change>`. Slash-command examples inside the skill
 instructions express the same intent; use `$name` for Codex skill mentions.
 In Claude Code, invoke them as `/build-feature <feature>`, `/architect`, `/recover`, `/remember save`,
-`/remember restore`, or `/review`.
+`/remember restore`, `/review`, or `/blast-radius <change>`.
 Other agents can read the linked files directly. Load the applicable skill
 before using it and preserve its scope. Standalone skills do not automatically
 chain. When the user requests the complete `build-feature` workflow, its
@@ -489,7 +490,10 @@ Use `.env.example` with unmistakable placeholders; never commit actual values.
 - Do not log full private links or display them to unrelated people.
 - Learli **does not** provide audio/video, recording, waiting rooms, or attendance verification.
 - Do not claim Zoom/Meet attendance happened unless a real verified integration provides that evidence.
-- Meeting creation OAuth/SDK integrations are **later** features.
+- Optional tutor-owned automatic Google Meet creation is approved only within
+  `prompts/features/m5-01-google-meet-provisioning.md` (2026-10-26). It remains
+  disabled by default, with manual fallback and separately gated provider/production
+  activation. Other meeting OAuth/SDK features remain **later** work.
 
 ### Resend
 

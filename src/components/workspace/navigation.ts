@@ -61,8 +61,16 @@ export function workspaceLinks(
         { href: "/parent/children", label: "My Children" },
         ...(privateWorkflow
           ? [
-              { href: "/learner-admission", label: "Learner requests" },
-              { href: "/bookings/new", label: "Book a session", exact: true },
+              ...(!localWorkflow
+                ? [{ href: "/learner-admission", label: "Learner requests" }]
+                : []),
+              {
+                href: localWorkflow
+                  ? "/bookings/new?scope=guardian"
+                  : "/bookings/new",
+                label: "Book a session",
+                exact: true,
+              },
             ]
           : []),
       ];
@@ -72,8 +80,16 @@ export function workspaceLinks(
         { href: "/learners", label: "Learners" },
         ...(privateWorkflow
           ? [
-              { href: "/learner-admission", label: "Learner requests" },
-              { href: "/bookings/new", label: "Book a session", exact: true },
+              ...(!localWorkflow
+                ? [{ href: "/learner-admission", label: "Learner requests" }]
+                : []),
+              {
+                href: localWorkflow
+                  ? "/bookings/new?scope=student"
+                  : "/bookings/new",
+                label: "Book a session",
+                exact: true,
+              },
             ]
           : []),
       ];
@@ -82,6 +98,9 @@ export function workspaceLinks(
         { href: "/tutor", label: "Bookings", exact: true },
         { href: "/tutor/availability", label: "Availability" },
         { href: "/tutor/time-off", label: "Time off" },
+        ...(localWorkflow
+          ? [{ href: "/tutor/meetings", label: "Meeting setup" }]
+          : []),
         { href: "/tutor/profile", label: "Profile" },
         ...(screening
           ? [{ href: "/tutor/screening", label: "Tutor screening" }]
@@ -114,7 +133,9 @@ export function workspaceLinks(
           : []),
         {
           href: "/admin/learner-admission",
-          label: "Learner admission reviews",
+          label: localWorkflow
+            ? "Assigned learner review records"
+            : "Learner admission reviews",
         },
         ...(!privateWorkflow
           ? [{ href: "/admin/safeguarding", label: "Safeguarding cases" }]
@@ -129,6 +150,7 @@ export function isCurrentLink(
   link: WorkspaceLink,
   scope?: string | null,
 ) {
+  const linkPath = link.href.split("?", 1)[0];
   const bookingScope =
     link.href === "/bookings?scope=guardian"
       ? "guardian"
@@ -151,7 +173,7 @@ export function isCurrentLink(
   )
     return false;
   return (
-    pathname === link.href ||
-    (!link.exact && pathname.startsWith(`${link.href}/`))
+    pathname === linkPath ||
+    (!link.exact && pathname.startsWith(`${linkPath}/`))
   );
 }

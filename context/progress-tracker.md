@@ -1,5 +1,1233 @@
 # Learli — Progress Tracker
 
+### 2026-10-29 — Manual Google Meet links chosen for now; M5.1 committed and merged to local main
+
+- Owner decision: use tutor-entered (manual) Google Meet links for now. Automatic
+  creation stays disabled by default in code; the owned local `.env.local` now sets
+  `GOOGLE_MEET_ENABLED='false'` (private, untracked). Automatic acceptance remains
+  FAIL403 with cause unknown; re-enabling needs a separate decision after that is
+  resolved. Saved Google connection, blocked jobs and historical bookings untouched.
+- Re-verified the unchanged Oct-27 source before committing: `npm run check` PASS
+  (format, lint, typecheck, 2,377 tests / 165 files); Meet + private-link real-PG
+  suites PASS 54/54. Secret scan of committed files found no credentials or private
+  meeting URLs; `.env.local` and `.local/` remain ignored.
+- Committed the blast-radius skill install and the M5.1 feature (incl. migration
+  `0040_google_meet_provisioning.sql`, already applied to local dev/test only) on
+  `feature/google-meet-provisioning`, then merged it into local `main` with
+  `--no-ff`. This also brings in the workspace-redesign commits 52ff333/6d9a8fc.
+  Untracked `designs/` excluded. No push, deployment or production migration.
+- Note: Maya's 24-hour synthetic screening expired 2026-10-28 07:10Z, so she is not
+  currently bookable; any new booking test needs a fresh, authorized screening.
+
+### 2026-10-27 — Approved optional-config manual fallback repair
+
+- User approved fixing the blast-radius finding in the existing M5.1 blueprint;
+  supplemental plan is recorded in `prompts/features/m5-01-google-meet-provisioning.md`.
+  Existing dirty Meet implementation, migrations, skill installation and other
+  work preserved. No provider/configuration/database changes or live Google calls.
+- Meeting reader now isolates only optional Google configuration parsing, using
+  safe action-required status and a null fingerprint on failure. Existing status
+  SQL and the fresh private authorization read remain outside the catch. Current
+  links, read-only participants, concurrent manual saves, denial and database
+  errors retain their original contracts. Strict automatic validation unchanged.
+- Added `tests/unit/booking-meeting-read-fallback.test.ts`: actual new regression
+  run on the original reader failed6/passed4, then passed10/10 with the correction.
+  Evidence `.local/google-meet/fallback-before.log` and `fallback-after.log`.
+  Operations runbook explains the bounded fallback and strict automatic gate.
+- Same-agent separate read-only Review: plan alignment and unintended-change
+  audit PASS, no confirmed findings, READY FOR VERIFICATION. No independent
+  reviewer claim for this repair. Narrow source diff compared against the saved
+  pre-repair reader; existing feature work remains distinct.
+- Final verification: `npm run check` PASS (format, lint, typecheck,2377 tests in
+  165 files); targeted real-PostgreSQL Meet/private-link suites PASS54/54.
+  Initial check stopped at pre-existing recovery-note formatting; normalized only
+  `prompts/recovery/2026-10-26-google-meet.md` whitespace and verified its content
+  remained identical ignoring whitespace before the successful rerun.
+- Production build: default attempt failed at Node's roughly4GiB heap limit;
+  the same `npm run build` passed with a command-only8GiB heap override. No runtime
+  config or dependency change. Logs `fallback-check-final.log`,
+  `fallback-integration.log`, initial `fallback-build.log` under the private
+  `.local/google-meet/`; successful build exit0 observed in tool session74495.
+- No new browser/live-provider run for this source-only reader correction; UI
+  markup unchanged and full component tests passed. Automatic provider acceptance
+  remains blocked403, exact cause unknown; no retry/production release implied.
+  No new migration, commit, merge or deployment. Next: user manual QA or a
+  separately authorized integration decision. Local memory handoff updated.
+
+### 2026-10-27 — Repository-local blast-radius skill installed
+
+- Installed only `pstack/skills/blast-radius` from `cursor/plugins` at upstream
+  commit `519d36aa98955bf680db01bcde5fdfba686dc901`, using the skill-installer helper
+  with the repository `skills/` destination. Source: https://github.com/cursor/plugins/blob/519d36aa98955bf680db01bcde5fdfba686dc901/pstack/skills/blast-radius/SKILL.md.
+- Canonical source `skills/blast-radius/SKILL.md` preserved as supplied, including
+  explicit-invocation metadata. Added relative discovery symlinks in `.agents/skills/`
+  and `.claude/skills/`, plus catalog/invocation entries in `AGENTS.md`.
+- Upstream references companion skills `how`, `why`, `arena`, and `unslop`; those
+  were not included in this single-skill installation. No blast-radius audit was
+  invoked. Application code, runtime configuration and existing work preserved.
+- Validation: installed frontmatter/name and both discovery targets inspected;
+  no application tests required for this documentation/discovery-only install.
+
+### 2026-10-27 — Manual meeting-link workflow verified on the real local booking
+
+- User requested confirming manual workflow and subsequently reported seeing the
+  working link. Reused the existing future confirmed Parent booking; no new booking,
+  schema, application source, policy or production change.
+- Google Meet's normal signed-in website created one meeting for later using the
+  previously authorized account. Assigned Tutor saved its actual URL through the
+  normal Learli form. Private link saved at revision1 with human provenance and one
+  edit event; survived Tutor page refresh. No private URL retained in these docs.
+- Linked Parent sees the same confirmed booking and private join action after
+  refresh, with no edit input. Opening it reached the correct real Google Meet
+  pre-join room. Closed preview without joining; no call, attendance, completion,
+  or participant admission claimed. User separately confirmed the link works.
+- Unrelated existing Tutor was denied the same booking in Tutor scope and its
+  private-link API returned no URL. Logged-out protected booking requires sign-in.
+  Restored authorized Parent booking page as the browser deliverable.
+- Executed affected real-PostgreSQL private-link suite PASS29/29 and scoped
+  Playwright private-link suite PASS4/4 (save/replace/conflict, ownership/revocation,
+  private redirects/cache, invalid/expired/error states, responsive accessibility).
+  Private logs `manual-integration.log`, `manual-e2e.log` under `.local/google-meet/`.
+- Final read-only local result:2 bookings/2 jobs/1 manual link; future booking still
+  confirmed at original time with one confirmation event. Original ended booking
+  unchanged/no link. Automatic job remains blocked/attempts1/no automatic receipt;
+  no API creation replay. One readback query used the wrong provenance column name
+  and failed read-only; corrected to actual `actor_kind`, then readback passed.
+- Evidence: private `manual-acceptance-result.json` and URL-free `manual-parent.jpg`.
+  Owned local app/restricted worker restarted at127.0.0.1:3000; blocked jobs retained.
+  Manual coordination PASS; automatic Meet creation remains FAIL403. Video-call
+  connectivity/host admission still require actual participant testing.
+
+### 2026-10-27 — Approved future booking retest completed; Google still denies creation
+
+- Owner explicitly approved one fresh synthetic Math booking for Oct28,10–11AM
+  Manila after checks and current availability validation. Selected that exact
+  offered slot through the normal Parent UI, clicked confirmation once. Saved
+  UTC02:00–03:00, display zone Asia/Manila, confirmed/local_operation, correct
+  parent/child/tutor/subject, one confirmation event. No money or new consent grant.
+- Updated worker claimed the one new job and returned safe diagnostic HTTP403,
+  PERMISSION_DENIED, UNCLASSIFIED reason. Job blocked/create_rejected, attempts1,
+  no space/URI receipt or saved link. No replay/rearm. Google authorization failure
+  is confirmed; precise account/project/policy cause remains unestablished.
+- Parent and assigned Tutor views display the same confirmed booking and actual
+  equivalent UTC time, matching unchanged UTC account preferences. Parent's link
+  refresh truthfully reports tutor must arrange it; Tutor offers manual fallback.
+  No real joining/attendance/completion tested. Original ended booking remains
+  confirmed with original time, blocked job/attempts1 and no link. Read-only final
+  counts:2 bookings,2 jobs,0 links. Existing historical records preserved.
+- Evidence private: `diagnostics-live-result.json`, `diagnostics-parent.jpg`,
+  `diagnostics-tutor.jpg`, and safe `diagnostics-runtime.log` under
+  `.local/google-meet/`. Source unchanged after verified check2367/PG54/browser6/build.
+  App and restricted worker restarted and running at127.0.0.1:3000. No production,
+  billing, scope expansion, weaker meeting access, commit or deployment.
+- Outcome: diagnostic slice verified; live automatic meeting acceptance FAIL403.
+  The expired-job operator remains unnecessary/deferred. Next: resolve provider
+  account/project eligibility through a separate bounded decision; manual links
+  remain available. No Workspace purchase or new provider approach approved.
+
+### 2026-10-27 — Safe Google rejection diagnostics implemented; live retest gated
+
+- User approved the supplemental diagnostic/retest blueprint. Startup clock showed
+  the original booking had ended, so its current-eligibility retry guard must refuse.
+  No rearm/new booking/provider request made. Explicit fresh future-booking approval
+  requested separately and initially pending; later approved and executed as
+  recorded above. Existing job/history retained.
+- Implemented finite HTTP/status/ErrorInfo-reason diagnostics in provider/worker,
+  bounded by10seconds/64KiB, no raw messages/body/metadata/identifiers. Default
+  failure codes, restrictions and blocked-job retry semantics unchanged.
+- Focused unit verification PASS22/22 across diagnostic and existing Meet provider
+  files, including no replay, sensitive-content omission, malformed/oversized bodies,
+  deadline and non-acknowledging cancellation. Separate read-only same-agent scoped
+  Review found no confirmed findings in this diagnostic slice; READY FOR
+  VERIFICATION. Full `npm run check` PASS (format/lint/typecheck and2367 tests in164
+  files); affected Meet/private-link real-PG suites PASS54/54, including reporting
+  failure isolation and blocked-job no-replay. Production build PASS; affected
+  Playwright PASS6/6 (private-link authorization/actions, responsive accessibility,
+  no-JS and denied-role setup). Private `diagnostics-{check,integration,build,e2e}.log`
+  retain exact executed evidence. No live provider acceptance implied.
+- Original implementation and unrelated designs preserved. No dependency/schema/
+  migration/production change. Source snapshot private under
+  `.local/google-meet/diagnostics-before/`. Owned app/worker launcher stopped for
+  build/browser validation and restarted with updated code; local database/data
+  retained. The subsequently approved future-booking result is recorded above. The exact-job
+  operator and live retry are deferred because the approved target has ended;
+  this is not a completed provider acceptance test or a full retry-plan PASS.
+
+### 2026-10-27 — 24-hour synthetic Maya approval saved; live Meet creation FAILED403
+
+- User explicitly approved documented synthetic identity/eligibility checks valid
+  24hours for this fictional local-only Tutor, preserving the fictional label and
+  production separation. Through the assigned, human-MFA-confirmed Admin UI,
+  recorded exactly two checks and confirmed approval. Checked2026-10-27T07:10Z,
+  expire2026-10-28T07:10Z (3:10PM Manila). State Approved/revision3,2/2 current.
+  This is owner-authorized synthetic test data, NOT real-person verification or a
+  general screening-validity policy. Private basis/receipts:
+  `.local/google-meet/local-test-screening.json` and `maya-approved-local-test.jpg`.
+- Used existing synthetic Parent/authorized Middle School child through the normal
+  browser booking form. Created exactly one Math session with Maya on Oct27,
+  4:30–5:30PM Manila (08:30–09:30UTC). Booking confirmed atomically, no money/payment
+  activation or routine Admin booking approval. Parent/Tutor dashboards and detail
+  pages display the same persisted booking. Account time zones remain unchanged.
+- Worker claimed one new durable job, refreshed its connected grant and sent one
+  create request. Saved result: blocked/create_rejected, attempts1, no space/URI
+  receipt, no private link. Google Cloud UI independently confirms Meet API Enabled,
+  one `google.apps.meet.v2.SpacesService.CreateSpace` request,100% error, HTTP403.
+  Exact provider reason is NOT captured by the current safe error classification;
+  do not infer Workspace requirement or account compatibility from this alone.
+- Parent refresh truthfully shows Tutor needs to arrange the link; Tutor shows
+  automatic preparation needs attention and offers existing manual fallback.
+  No fabricated link, weaker meeting settings, retry/requeue, additional booking,
+  remote deletion, real joining, billing, publishing or production action.
+- Final owned-local readback: bookings1, confirmation lifecycle events1, jobs1,
+  links0, attempts still1. Both other Tutor profile hashes unchanged. Initial
+  baseline had zero bookings/jobs; no historical booking converted/deleted.
+- Private evidence: `.local/google-meet/live-booking-result.json`,
+  `live-booking-parent.jpg`, `live-booking-tutor.jpg`, `google-api-403.jpg`.
+  No source/dependency/schema/migration change; no new automated suites. Earlier
+  2358-check/52-PG/6-browser/build results remain scoped to unchanged source and
+  do NOT prove live creation. Git diff whitespace check recorded separately.
+- Next: diagnose Google's precise403 authorization/account reason with bounded
+  safe provider diagnostics before any controlled retest. Preserve the blocked
+  job/booking and never blindly replay non-idempotent create. No purchase or
+  Calendar/provider redesign authorized. App/worker/DB remain running locally;
+  current browser is Tutor booking details. Full provider acceptance remains FAIL.
+
+### 2026-10-27 — Assigned Admin MFA completed; synthetic screening decision pending
+
+- User completed the existing assigned Admin's MFA directly in Chrome. Actual
+  browser now displays Maya's authorized review, Pending, revision0 and0/2 current
+  checks. No code/secret shared through chat. The profile expressly identifies the
+  account as fictional and disclaims real identity/qualifications/safeguarding.
+- The form requires identity and eligibility passed receipts with explicit expiry;
+  no validity duration is approved as a general policy. Prepared a focused user
+  decision: authorize documented synthetic local-test check records valid24hours,
+  retaining the fictional label and without claiming real-person verification or
+  changing production. Awaiting that specific decision; no checks/approval saved.
+- Verified ordinary isolated local target and captured a private read-only
+  acceptance baseline: zero existing bookings/jobs, two other Tutor profiles to
+  preserve. File `.local/google-meet/booking-acceptance-baseline.json`; no row
+  contents or sensitive values printed. No booking/Meet create, migration, source,
+  production or policy change executed. No new test suite; previous evidence kept.
+- Browser review retained, private screenshot
+  `.local/google-meet/maya-screening-confirmation.jpg`. Next: consume the explicit
+  local-test decision, then only its authorized screening/booking acceptance;
+  do not represent fixture checks as real tutor verification.
+
+### 2026-10-27 — Owner requested Maya approval/live booking; Admin MFA pending
+
+- Owner explicitly requested approving the existing synthetic Tutor and testing
+  automatic link generation. Read-only local preflight found the review already
+  assigned to an authorized existing Admin, still pending with zero check receipts.
+  A different Admin's earlier failed claim is retained; no assignment override.
+- The assigned Admin has MFA enabled. Signed out of the synthetic Tutor and used
+  the assigned Admin's existing local credentials through the normal browser form.
+  Current page is **Verify administrator access**, awaiting the owner's authenticator
+  (or saved recovery code) directly in the browser. No MFA secret/code read,
+  changed or printed. Browser tab retained for human input.
+- Booking prerequisites inspected without changes: Tutor has active Math/Science/
+  English coverage and recurring hours; existing test Parent has an active,
+  authorized Middle School child. No new learner, approval/check, booking, room,
+  source change, migration or production action created. Existing Google connection
+  remains saved; prior verified source/check evidence unchanged; no new suites run.
+- Next: owner completes assigned Admin MFA, then inspect and perform only supported
+  evidence-backed screening actions. Do not fabricate checks or expiration policy.
+  After genuine approval, create one prospective synthetic booking and verify
+  automatic private Meet generation. Private handoff screenshot:
+  `.local/google-meet/admin-mfa-required.jpg`.
+
+### 2026-10-27 — Live Google OAuth connected; strict issuer callback repaired
+
+- User explicitly approved Google identity/email and app-created Meet access for
+  the selected host and existing synthetic Tutor account. Completed the actual
+  Google consent UI. Initial and fresh callbacks failed before token exchange:
+  attempt was unexpired/unconsumed; temporary boolean-only diagnostics established
+  Google returned `iss`, which the callback rejected as unexpected. No tokens or
+  query values were logged; diagnostic code removed after isolation.
+- Surgical repair: `src/features/google-meet/service.ts` accepts optional issuer
+  only when exactly `https://accounts.google.com`, preserving rejection of unknown
+  and duplicate fields plus state/browser/session, PKCE, nonce, identity, scope and
+  encrypted-storage checks. No schema or migration. Regression in
+  `tests/integration/google-meet.test.ts` failed before the fix (valid issuer got
+  HTTP400), then passed with invalid/duplicate/lookalike issuers rejected before
+  exchange. Existing issuer-absent callbacks remain covered.
+- Same-agent separate focused read-only Review: READY FOR VERIFICATION; authorized
+  callback compatibility correction, no broader permission/policy change. Actual
+  live retry now returned Connected; refresh retained connection. Owned-local
+  readback: active connection, encrypted refresh credential and exactly `openid`,
+  userinfo.email, meetings.space.created scopes. Private screenshot
+  `.local/google-meet/google-connected.jpg`. No credential values in tracked docs.
+- `npm run check` PASS: formatting, lint, typecheck and 2,358 tests/163 files.
+  Targeted real PostgreSQL Meet/private-links suites PASS, 52/52 (one new regression).
+  Evidence: `.local/google-meet/oauth-issuer-{red,check,integration}.log`.
+  Production build PASS with `NODE_OPTIONS=--max-old-space-size=8192 npm run build`;
+  scoped Playwright PASS, 6/6, with `npm run test:e2e -- --config playwright.meet.config.ts`.
+  Evidence: `.local/google-meet/oauth-issuer-{build,e2e}.log`.
+- Live space creation, effective restricted meeting settings and real joining are
+  NOT VERIFIED: the selected synthetic Tutor is still pending normal screening.
+  Do not fabricate screening approval or bypass public/bookability restrictions.
+  No booking created or historical record converted for this provider test.
+- Existing records, migrations, manual fallback and unrelated changes preserved.
+  No production, billing, public publishing, commit, merge, push or deployment.
+  Final read-only delta/doc review found no additional issues. Local app/worker
+  restarted after checks and Connected persisted after refresh. Services remain
+  available at `http://127.0.0.1:3000`; no host/participant call was started.
+  Next: owner completes genuine normal tutor screening before the prospective
+  booking/live meeting acceptance test.
+- Files changed in this resumed slice: `src/features/google-meet/service.ts`,
+  `tests/integration/google-meet.test.ts`, `context/progress-tracker.md`,
+  `docs/operations/google-meet.md`, existing feature blueprint and recovery note.
+  Local ignored `memory.md` updated separately; no migration introduced.
+
+### 2026-10-27 — Local Google OAuth client created and configured; consent pending
+
+- User explicitly approved creating **Learli Local Meet Web**, private local
+  credential storage and saving only the prepared identity/email/app-created Meet
+  scope metadata. Google confirmed client creation and **Data access changes saved**.
+  Web client has exactly the approved loopback callback, no JavaScript origins,
+  and no AI-agent flag. Audience remains External/Testing; no billing or public
+  publishing action.
+- Saved credentials privately under ignored `.local/google-meet/` and configured
+  `.env.local` with a newly generated encryption key, matching client/callback and
+  restricted worker URL. Original local environment backed up privately. Confirmed
+  owner-only file permissions; secured the matching browser-downloaded credential
+  file too. No credentials printed or added to tracked files.
+- Started existing owned PostgreSQL without reset, ran `npm run meet:prepare-worker`
+  successfully once, then started `npm run dev:meet`. Launcher validated the
+  restricted worker; runtime reported **Google Meet worker ready** and Next.js
+  16.4.3 **Ready** at `http://127.0.0.1:3000`. No migration or historical backfill.
+- Browser verification: signed into an existing verified synthetic Tutor account,
+  opened Meeting setup and reached Google OAuth using the selected test account.
+  Google displayed its testing-app warning, then the email-identity consent screen.
+  Paused before granting access; exact identity and app-created Meet grant approval
+  requested. No live grant, space creation or host/participant joining verified yet.
+- Local app/worker/database remain running for consent continuation. No application
+  source, schema, dependency, production, commit, merge, push or deployment change
+  in this setup slice. Earlier automated check/build/PG/Playwright evidence remains
+  valid for unchanged source; those suites were not rerun for private configuration.
+- Next: explicit Google consent approval (or human completion), then bounded live
+  provider acceptance. Do not infer Gmail compatibility from successful client
+  creation or OAuth navigation. Private screenshot:
+  `.local/google-meet/google-consent-confirmation.jpg`.
+
+### 2026-10-27 — OAuth test app created; local client ready for confirmation
+
+- After the user's explicit action-time policy approval, accepted the Google API
+  Services User Data Policy and created the **Learli Local Test** OAuth app in
+  `learli-meet-local-test`. UI confirmed OAuth configuration created. Audience
+  remains External/Testing; exactly the user-selected account was saved as its
+  single test user. No public publishing or billing action.
+- Prepared, but have NOT saved, exactly `openid`, userinfo.email and
+  `https://www.googleapis.com/auth/meetings.space.created` scope metadata. No
+  Gmail mailbox, Drive, Calendar, cloud-platform or other scope selected.
+- Separate retained client form: **Web application**, **Learli Local Meet Web**,
+  one redirect `http://127.0.0.1:3000/api/tutor/meeting-providers/google/callback`,
+  no JavaScript origins, AI-agent checkbox unchecked. Stopped before Create
+  because it generates persistent credentials. Awaiting specific action-time
+  confirmation to create this client and store its credentials privately locally.
+- No client ID/secret or Google data grant generated yet. Local preflight confirms
+  ordinary workflow enabled, Meet disabled, no existing client/secret/encryption
+  keys or worker credential file. No private values printed. No application
+  changes or new checks; previous automated verification evidence unchanged.
+
+
+### 2026-10-27 — Google project/API created; OAuth policy approval pending
+
+- MFA/account prerequisites are now cleared for the user-selected account.
+  Through Computer Use, created isolated project **Learli Meet Local Test**,
+  project ID `learli-meet-local-test`. Google UI confirmed project creation and
+  completion of `Enable service: meet.googleapis.com`. No trial/subscription
+  started and no billing linked. This is API enablement, not proof of Gmail
+  meeting-creation compatibility.
+- Prepared Google Auth Platform setup: **Learli Local Test**, owner-selected
+  support/contact account, **External / Testing** audience. Stopped at the
+  unchecked **Google API Services: User Data Policy** agreement before final
+  app creation. Browser tab retained with prepared form for action-time approval.
+- No OAuth client/secret or grants created, scopes granted, worker credential
+  prepared, local provider enabled, live meeting created, or application code
+  changed this turn. No new tests. Existing automated evidence remains unchanged.
+- Next: user confirms acceptance of this specific policy, then finish OAuth app
+  identity setup and prepare the local Web client. Computer Use requires fresh
+  confirmation at legal-agreement and security-sensitive access actions.
+
+
+### 2026-10-27 — Live Google setup authorized; blocked at Google account prerequisites
+
+- User approved Computer Use setup using their selected already-logged-in personal
+  Google account. Supplemental plan approval recorded in the existing M5.1
+  blueprint. No paid subscription, billing or production action authorized.
+- Opened Google Cloud and switched to the exact user-selected account through its
+  visible account menu. Google displays first-use Cloud Terms plus an access-blocked
+  page requiring 2-Step Verification. Account contents beyond this setup were not
+  accessed. No Terms accepted, authentication changed, project created, API enabled,
+  credential created, local provider enabled or live meeting created.
+- Browser tab retained as a user handoff. User must review/accept the Cloud Terms
+  if they agree and complete the required 2-Step Verification themselves, then
+  return for project/OAuth setup. Computer Use requires action-time agreement
+  confirmation and a human handoff for authentication changes. No new tests ran;
+  earlier automated evidence remains unchanged. No application code edited.
+
+
+### 2026-10-27 — Next patch APPLIED; local automated Meet verification PASS
+
+- User explicitly approved exact Next.js and matching eslint-config-next 16.4.3
+  in this checkout, then verification continuation. Both are pinned to 16.4.3;
+  lockfile updates are the matching Next/env/SWC/ESLint packages. Official release:
+  <https://github.com/vercel/next.js/releases/tag/v16.4.3>. Existing Meet work,
+  migrations, historical records and untracked `designs/` preserved.
+- Same-agent separate Review of the approved patch, dependency/lockfile diff and
+  affected configuration: alignment/unintended-change PASS, READY FOR VERIFICATION;
+  no application behavior or security bypass added. The approved blueprint and
+  recovery note record this supplemental authorization. No new migration.
+- `npm run check` **PASS**: format, lint, typecheck and **2,358 tests / 163 files**.
+- `npm run test:integration -- tests/integration/google-meet.test.ts tests/integration/booking-meeting-links.test.ts`
+  **PASS, 51/51** after the patch, using isolated synthetic PostgreSQL. Earlier
+  broad 1,151-case evidence remains below; that full suite was not repeated for
+  this dependency-only patch.
+- `NODE_OPTIONS=--max-old-space-size=8192 npm run build` **PASS**, Next 16.4.3,
+  no security-gate failure. `npm run test:e2e -- --config playwright.meet.config.ts`
+  **PASS, 6/6**, current development source. Includes private link edits/conflicts,
+  participant visibility/refusal, service/expired states, meeting setup at
+  1440/390/320px, Axe/keyboard, refresh, role checks and no-JavaScript fallback.
+- Private ignored evidence: `.local/google-meet-next-patch-install.log`,
+  `.local/google-meet-patched-check.log`, `.local/google-meet-patched-integration.log`,
+  `.local/google-meet-patched-build.log`, `.local/google-meet-patched-e2e.log`,
+  `.local/google-meet-patched-audit.json`.
+- Production dependency audit after the patch: zero critical, two high advisories
+  remain in unchanged Undici 8.11.2 and Zod 4.6.5. No broad audit fix or unrelated
+  version changes. This is not security/release clearance for production.
+- Local automated verification is now **PASS** for the approved scope. Live
+  Google OAuth/code exchange/account compatibility/host admission/joining remain
+  **NOT RUN**. Integration stays disabled until separate dedicated-provider setup
+  and authorization; manual Zoom/Meet links remain available. No production,
+  provider, commit, merge, push or deployment action. Local testing services are
+  stopped after checks; existing data retained.
+- Next: separately authorize/configure a dedicated Google Cloud OAuth client and
+  eligible test host using `docs/operations/google-meet.md`, then execute live
+  provider acceptance. Full provider acceptance and production readiness are
+  **NOT ESTABLISHED**. The Oct26 build/browser blockers below are historical and
+  superseded by this entry; their original failure evidence is retained.
+
+### 2026-10-26 — M5.1 optional Google Meet IMPLEMENTED; verification BLOCKED
+
+- Authority: user-approved `prompts/features/m5-01-google-meet-provisioning.md`
+  and explicit implementation request through build-feature. Branch
+  `feature/google-meet-provisioning`; baseline/HEAD
+  `6d9a8fcb5cebf15c0d621e3f710e39c67d965bc7`. Uncommitted feature changes;
+  pre-existing untracked `designs/` preserved untouched. No commit/merge/deployment.
+- Implementation: optional Tutor Meeting setup, separate session/browser-bound
+  Google OAuth with PKCE/OIDC, encrypted credentials, narrow app/worker functions,
+  confirmed-booking intent, supervised local worker, explicit automation provenance,
+  fresh post-provider authorization and manual-link precedence. Cancellation,
+  replacement/rescheduling, disconnect, stale eligibility and uncertain create
+  outcomes cannot overwrite a manual link or change booking/payment state.
+  Existing private participant views remain authoritative. No backfill, Calendar,
+  attendance, recording, completion or payment integration.
+- Migration: additive `0040_google_meet_provisioning.sql` plus Drizzle snapshot
+  and journal. Applied only to owned local development/test targets. Before the
+  development migration, created an owner-only ignored custom-format backup;
+  receipt `.local/google-meet/migration-1793023855643.json` confirms all **82**
+  original public tables' row projections/counts preserved and all three new
+  feature tables empty. Provider activation remains false. No production data
+  touched. Earlier draft test ledger/data preserved by archiving the owned test
+  DB as `learli_test_before_meet_1793022789003`, never dropped or rewritten.
+- Worker role provisioning is an explicit separate local operator command, not a
+  schema migration requirement. `meet:prepare-worker` was **NOT RUN**; no worker
+  LOGIN credential or Google client was activated. The launcher separates child
+  credentials and validates matching owned local targets before starting either.
+- Review: same agent, separate read-only stage against the approved blueprint and
+  baseline-to-working-tree feature diff, including relevant untracked files.
+  Plan alignment and unintended-change audit PASS; recommendation **READY FOR
+  VERIFICATION**, no remaining confirmed code findings in scope. The final review
+  corrected a same-account omitted-refresh-token INSERT, process credential
+  sharing, stale projections, nonportable cluster-role migration and private
+  directory reuse. See `prompts/recovery/2026-10-26-google-meet.md` for failures,
+  diagnoses and targeted repairs. This was not an independent second reviewer.
+- Final `npm run check`: **PASS**, including format/lint/typecheck and **2,358
+  tests / 163 files**. The unchanged Parent child-form focus assertion failed in
+  two full runs and passed three isolated reruns; its assertion now waits for the
+  existing React focus effect. No application behavior or assertion target changed.
+- PostgreSQL: new Meet suite **22/22 PASS**; related five-file group **95/95 PASS**.
+  Final broad `npm run test:integration`: **1,143 PASS / 8 skipped**, 83/84 files
+  passed, command exit 1 solely because hosted-auth setup required its assigned
+  TLS port. Explicit
+  `LEARLI_STAGING_TEST_PORT=55703 npm run test:integration -- tests/integration/hosted-auth.test.ts`
+  then passed **8/8**. All **1,151 distinct integration cases** passed across
+  those two runs; do not describe the broad command itself as exit-zero. Includes
+  real PostgreSQL roles, permissions, preservation, authorization, competing
+  workers, rollback, manual races and recovery with synthetic/fake provider I/O.
+- Build: **FAIL**, existing Next 16.4.0 security-advisory gate, after compilation,
+  TypeScript and page generation. Scoped current-source Playwright: **6 FAIL** at
+  startup/transport after that gate stopped Next, before meaningful UI evidence.
+  Browser responsive/Axe/no-JS acceptance therefore **UNVERIFIED**, not PASS.
+  Existing baseline Next/Undici/Zod production dependency advisories remain;
+  no unsafe bypass or broad audit fix was applied. Approval requested for the
+  separate exact Next/eslint-config-next 16.4.3 patch; no response received yet.
+- Live OAuth, actual Google meeting creation/account compatibility, host admission
+  and joining: **NOT RUN**; dedicated provider setup/authorization still required.
+  Integration remains disabled by default, with manual Zoom/Meet fallback.
+- Evidence (private ignored logs): `.local/google-meet-final-check.log`,
+  `.local/google-meet-integration.log`, `.local/google-meet-related-integration.log`,
+  `.local/google-meet-all-integration.log`, `.local/google-meet-hosted-auth.log`,
+  `.local/google-meet-build.log`, `.local/google-meet-e2e.log`.
+- Documentation: approved exception recorded in AGENTS, all eight canonical
+  context files, `docs/decisions/2026-10-26-optional-google-meet.md` and
+  `docs/operations/google-meet.md`. Local ignored memory handoff follows the
+  separate Remember stage. Owned local PostgreSQL stopped after verification;
+  database files, backup and historical records preserved; no app server remains.
+- Next: obtain the pending framework-patch decision, apply only if approved, then
+  review/reverify affected checks and production build/scoped browser acceptance.
+  Afterwards perform separately authorized dedicated-Google acceptance. Status is
+  **INCOMPLETE VERIFICATION**, not feature-complete or production-ready.
+
+## 2026-10-21 — Oct-18 private-workflow blockers FIXED; all browser suites VERIFIED
+
+- Private suite (`npm run test:e2e:private`): **4/4 PASS**, including the
+  complete private Admin journey (before: 3 failed, 1 passed). Default suite
+  (`npm run test:e2e`): **219/219 PASS**. Unit tests 2338/2338; format, lint
+  and typecheck pass. Booking integration suites (`npm run test:integration`,
+  11 files): 149/149 PASS.
+- Fixed:
+  1. `/student/onboarding` heading follows the mode: "Set up your Student
+     profile" for ordinary local V2 (independent), "Set up College Student"
+     with the pending-authorization copy otherwise.
+  2. Booking choice form: changing the learner keeps a time chosen from the
+     tutor profile when that learner still fits the tutor, subject and level.
+     New component test.
+  3. **Privacy:** a non-participant's reschedule request returned 409 (stale
+     time zone or unavailable time) before the participant check, which
+     confirmed that the booking exists. `changePolicyBooking` now requires
+     `public.booking_workflow_participant` before those checks, so outsiders
+     get 404. `change_policy_booking` still applies the exact action rule. New
+     regression in `tests/integration/policy-booking.test.ts`, confirmed to
+     fail without the fix (409 "That time is no longer available").
+  4. Meeting-link popup tests: Playwright runs route handlers only on the
+     first URL of a redirect, so the `meet.google.com` intercept never fired
+     and the tests loaded the real Google Meet, which now rewrites its URL to
+     `/meet/…`. The new `tests/support/meeting-popup.ts` fetches the app's
+     `?open=1` request without following its 303, asserts the exact `Location`
+     and fulfills locally. Nothing reaches Zoom or Meet.
+- Still not pushed. Next: stage 2 of the roadmap (an Admin approves the test
+  tutors, then a real Parent → Tutor booking in the local workflow).
+
+## 2026-10-21 — Browser verification of the workspace redesign; private-workflow blockers in earlier Oct-18 work
+
+- Default browser suite (`npm run test:e2e`, isolated `learli_test`, fresh
+  production build with the test env): **219/219 PASS**, no retries needed, on
+  the final run. Redesign defects found and fixed during the runs:
+  - Subjects: the acronym monogram ("SAT") duplicated the subject name as
+    page text. It is now drawn from `data-monogram` with CSS `content`.
+  - The sidebar current link and the chips no longer transition colour. Axe
+    measured a mid-fade frame at 1.73:1.
+  - Forced colours: the navy panels (Tutor setup, availability week view,
+    time-off calendar header and date tiles, support guidance, profile preview)
+    now carry `data-surface="inverse"`. A shared forced-colours rule in
+    `workspace-page.css` maps their text, links and buttons to system colours;
+    authored mint/white text had been left on Canvas.
+  - `/account` cards: the settings side column is a `div`, not a second
+    unnamed `aside` (landmark-unique).
+  - The scoped Axe scan (`wcag2a/aa`, `wcag21aa`) is clean for all 12 Admin
+    views and the 5 Tutor pages, in normal mode and in emulated
+    forced-colours/reduced-motion mode, including populated time off and
+    overnight availability.
+- One known flake (`auth.spec.ts:248` sign-out URL race) passed 3/3 alone and
+  in the final run. One stale expectation from the Oct-18 copy change was
+  updated: `learners.spec.ts` no-JS text is now "JavaScript is required to edit
+  this profile".
+- Private suite (`npm run test:e2e:private`): **3 FAIL, 1 PASS**. All three
+  failures come from the earlier uncommitted Oct-18 work, not the redesign:
+  1. `/student/onboarding` h1 was renamed to "Set up your Student profile" in
+     every mode. ui-context scopes that wording to ordinary local V2; the
+     private helpers still expect "Set up College Student".
+  2. Booking preparation: after "Show available times" the selected slot is no
+     longer kept in the URL (`startAtUtc`/`endAtUtc` null) and the first slot
+     radio is not preselected (Oct-18 booking choice form).
+  With the heading check relaxed temporarily (helper restored byte-for-byte
+  afterwards), the private Admin journey passed MFA entry and refresh, adding a
+  subject, learner admission authority and assigned screening, then stopped at
+  failure 2. Its later Admin stages (assigned bookings, catalog corrections,
+  accounts, suspension, sign-out) remain unverified in the browser until the
+  owner settles 1–2.
+
+## 2026-10-21 — Workspace redesign consistency review and fixes VERIFIED (unit/build); browser e2e pending
+
+- Owner asked for a check of every Admin/Tutor redesign change for bugs,
+  inconsistency, code-standard and UI-standard alignment. There was an
+  independent read-only bug review plus a standards audit of the new CSS/TSX.
+- Fixed:
+  - Removed `src/app/(workspace)/admin/loading.tsx` and `admin-loading.css`
+    (added in the navigation-speed entry below). A route loading boundary hides
+    streamed page content without JavaScript, contrary to the R4 decision in
+    `docs/decisions/2026-10-12-local-learner-onboarding.md` and to the "Page
+    loading" rule in ui-context. The global `NavigationProgress` bar remains
+    the slow-navigation feedback.
+  - `TutorSetupPanel` again always shows the readiness next action (only an
+    identical href+label link is not repeated). Before, "Complete profile" and
+    "Review profile status" were hidden behind "Edit profile".
+  - Time off calendar: local day bounds (the costly time-zone work) are now
+    memoised per month and zone through the new `localDayBounds` and
+    `coverageWithin` helpers. Saved coverage is memoised per exceptions, and
+    the draft overlay is a plain comparison on each keystroke.
+  - Tutor profile: a new edit after a save clears the success notice, so the
+    "Unsaved changes" hint is no longer hidden. Subject category labels are h2
+    again (as in the original form) and the learner preview has an h2.
+  - Unassigned reviews: the queue count and the per-item "Unassigned" pill are
+    aria-hidden, so heading names are "Review queue" and the request kind.
+  - Chip ticks are hidden with `visibility` rather than a transparent colour,
+    so forced colours cannot reveal an unchecked tick.
+  - UI rules: content links (tutor names, account names, case subjects) are
+    underlined again. Text states no longer use opacity. Decorative hover lifts
+    and arrow nudges were removed (colour transitions only). The learner-record
+    arrow is a real icon chip via `LearnerLink` `trailing` instead of a
+    hardcoded-hex data URI.
+- Consolidated duplication (code standards: extract real repetition):
+  - New `src/components/workspace/workspace-page.css`, loaded by the workspace
+    layout: page frame/header/eyebrow/note, `workspace-pill` with `data-tone`
+    (replacing 7 pill variants), `workspace-count`, `workspace-action` +
+    `workspace-action-icon` (replacing 5 navy arrow buttons),
+    `workspace-savebar` (2 copies) and `workspace-blank` (3 empty states).
+  - New `src/lib/initials.ts` `nameInitials` replaces 6 local copies,
+    including the header account chip and the public tutor card.
+  - `tutor-page.css` became `src/features/tutors/review-notice.css`, imported
+    by `ReviewNotice`. Feature CSS no longer imports `admin-review-queue.css`
+    for shared styles. A scripted check confirms every CSS import resolves and
+    no class is used undefined or defined unused.
+- Checked out of scope: the reviewer also listed copy and behaviour changes in
+  `navigation.ts`, `tutors/review.ts`, `booking-workspace.ts`,
+  `learner-admission/forms.tsx`, `api/bookings/route.ts`, the `/admin` summary
+  and the tutor-queue notice. Those predate this redesign (uncommitted 2026-10-18
+  workflow work already present at session start) and were left as they are.
+- Owner decision: the references' gradients/glow, glass blur (sticky
+  bars and topbar), pill status tags and 12px/20px radii are kept and recorded
+  as a scoped exception in ui-context ("Admin and Tutor workspace style —
+  2026-10-21").
+- Verified: lint (clean), typecheck, `npm test` 2337/160, production
+  `npm run build` PASS (no errors or warnings). Visual regression at 1440px for
+  12 Admin views (removed temporary preview) and 5 real Tutor pages as Test
+  Tutor Maya; no horizontal overflow. The dev server needed a restart after the
+  CSS file moves (stale webpack graph). Playwright e2e not run.
+
+## 2026-10-21 — Tutor account settings UI IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `src/learli Tutor Account Settings (standalone).html`.
+  It matches the card layout already built for Admin.
+- The layout moved from `src/features/admin/admin-account-settings.*` to
+  `src/features/account/account-settings-cards.*` as `AccountSettingsCards`.
+  `/account` now uses it when the account holds the admin **or tutor** role.
+  Parent-only and Student-only accounts keep the original page. Administrator
+  security still appears only for admins.
+- The workspace breadcrumb now also names shared destinations (Support requests,
+  Account settings) on styled workspaces, e.g. "Tutor workspace / Account
+  settings". `.workspace-current` text is unchanged.
+- As with Admin, the reference's password Show/Hide, length meter, live match
+  text and "Current" tag were not adopted.
+- Verified: lint (clean), typecheck, `npm test` 2337/160. Screenshots as local
+  Test Tutor Maya at 1440/390 px; no horizontal overflow. Playwright e2e not
+  run.
+
+## 2026-10-21 — Tutor Profile UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `src/learli Tutor Profile (standalone).html`,
+  presentation only.
+- `/tutor/profile` uses the shared Tutor header ("Your listing"). The review
+  notice is now a one-row banner: the new `ReviewNotice` `banner` mode keeps
+  the same wording and links, and its default layout is unchanged.
+  `TutorProfileForm` is rearranged into:
+  - numbered cards: 01 About you (with character counters), 02 Teaching
+    languages, and 03 Subjects and levels;
+  - chip checkboxes, with the native input covering the chip;
+  - subject cards with an aria-hidden "All levels" / "N of 4 levels" /
+    "Not taught" summary;
+  - a sticky save bar showing the existing notice or a non-live "Unsaved
+    changes" hint;
+  - a "Learner preview" section that updates as the tutor types (name, zone,
+    headline, introduction, languages, subjects with short level names). Its
+    tag is "Not public yet", or "Approved profile" when approved.
+  Text fields stay uncontrolled and submit through FormData. A form-level
+  `onInput` only feeds the display copy.
+- Unchanged: the PUT request, offerings validation and focus, field
+  ids/names/labels/maxLengths, the specialty field shown only when levels are
+  selected, button labels (Submit application / Save profile and their pending
+  forms), the single status/alert, group names "Teaching languages (optional)"
+  and each subject name (number badges are aria-hidden inside the legend), and
+  the ProfileSummary path for non-editable profiles.
+- Verified: lint (clean), typecheck, `npm test` 2337/160. Screenshots as local
+  Test Tutor Maya at 1440/390 px. Unsaved edits checked the counter, the
+  "3 of 4 levels" summary and the live preview. Nothing was saved. No
+  horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Tutor Time off UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `src/learli Tutor Time Off (standalone).html`,
+  presentation only.
+- `/tutor/time-off` uses the shared Tutor header. The intro and time zone note
+  moved there (`TimeOffForm` takes `showIntro={false}`). The layout has three
+  parts:
+  - Add time off card: the native `datetime-local` inputs are kept rather than
+    split into date and time (tests and input behaviour depend on them). A draft
+    preview shows the duration and the range once both ends resolve, and a navy
+    Add button with an arrow chip.
+  - Saved time off: a count badge, date tiles, the existing two `<time>` labels
+    per period with sr-only From/until, the duration and zone, and Remove time
+    off.
+  - Month calendar (Monday first, month navigation): full days off, part days,
+    drafting days and today, with an sr-only monthly summary. The day grid is
+    aria-hidden.
+- New pure helpers in `src/features/time-off/calendar.ts` compute coverage and
+  instants in the tutor's IANA zone through the existing `resolveLocalTime` /
+  `utcOffsetLookup`, so DST days are handled. Today comes from the server
+  render. Tests are in `tests/unit/time-off-calendar.test.ts` (4 cases,
+  including a 23-hour New York DST day).
+- Unchanged: the submit/remove requests, schema validation, error mapping,
+  focus, busy rules, the "Wait for the current change" notice, Reload saved
+  time off, labels, the form name, the single status/alert, remove names and
+  the empty and locked copy.
+- Verified: lint (clean), typecheck, `npm test` (now 2337). Screenshots as local
+  Test Tutor Maya at 1440/390 px with an unsubmitted draft. Saved periods were
+  checked with a removed temporary preview (2 full days and 1 part day; 4
+  `<time>` tags for 2 periods). No horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Tutor Availability UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `src/learli Tutor Availability (standalone).html`,
+  presentation only.
+- `/tutor/availability` uses the shared Tutor page header (moved to
+  `src/features/tutors/tutor-page.css`). `AvailabilityForm` is rearranged into:
+  a time-zone card (intro, rules, globe select, help, change warning); a
+  Teaching hours card with one row per day, showing the day total or
+  "Not available" and a striped background when off; and range rows with
+  sr-only Start/End labels, a visible "to", an "Ends next day" chip around the
+  native checkbox, and an icon remove button. Below that sits a sticky save bar
+  (existing notice, or an "Unsaved changes" / "No unsaved changes" hint that is
+  not a live region) with Save availability. A "Week at a glance" section shows
+  weekly hours and 24-hour bars per day, with overnight ranges continuing on the
+  next day. Hours count only valid ranges.
+- Unchanged: validation, the submit request, server error mapping, focus
+  management, ids/data-fields, default new range, the 42-range limit, copy for
+  both workflow modes, fieldset groups named by day, label names, remove-button
+  names and the single status/alert notice.
+- Verified: lint (clean), typecheck, `npm test` 2333/159. Screenshots at
+  1440/390 px came from local Test Tutor Maya. An interaction pass (time edit,
+  overnight toggle, remove) checked the totals, carried bars and dirty hint
+  without saving. No horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Tutor workspace shell and Bookings UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `src/learli Tutor Bookings (standalone).html`,
+  presentation only.
+- Shell: the grouped, iconed sidebar and the calm topbar now apply to Tutor as
+  well as Admin. The selectors moved from `[data-workspace="admin"]` to
+  `[data-styled]`. Tutor groups are Teaching (Bookings, Availability, Time off)
+  and Your listing (Profile, Tutor screening), plus an "Account" label on the
+  shared links. The role pill reads "Tutor" and the breadcrumb reads
+  "Tutor workspace / <page>". Grouping logic moved to the generic
+  `src/components/workspace/link-groups.ts`, used by `groupAdminLinks` and the
+  new `groupTutorLinks`. Parent and Student shells are unchanged.
+- `/tutor`: page header with the Refresh bookings form (icon added, same native
+  GET and transition). The new `TutorSetupPanel` combines the readiness steps
+  ("N of 4 steps complete"), the stored review notice (wording shared through
+  the new `reviewNoticeText`) and the single readiness next action, which is
+  hidden when a strip link already covers its page. `TutorBookingAgenda` is
+  restyled in place: a Next session card, Upcoming and History panels,
+  "View all" links inside their panels, and status pills. Its `emptyAction`
+  now accepts `null`, and the page passes `null` so the action appears once.
+  A Sign out card replaces the bare button.
+- Unchanged: the guard, data reads, booking hrefs and accessible names
+  (`View booking for …`), headings and copy for both workflow modes, and
+  `TutorReadinessSummary` / `ReviewNotice` defaults (still used by
+  `/tutor/profile`).
+- Verified: lint (clean), typecheck, `npm test` 2333/159. The redesigned page
+  was screenshotted at 1440/390 px while signed in as local Test Tutor Maya;
+  populated agenda rows were checked with a removed temporary preview. No
+  horizontal overflow. Playwright e2e not run.
+- Note: the reference HTML sits in `src/`, so a repo-wide `prettier --check .`
+  flags it, as it does the root reference files.
+
+## 2026-10-21 — Admin navigation speed investigated; loading skeleton added
+
+- Owner report: Admin tab navigation felt slow under `npm run dev`.
+- Measured with authenticated admin navigation (isolated test DB, scratch copy of
+  the tree, temporary Playwright spec plus a server-timing preload; all removed
+  afterwards). Click to new h1:
+  - production build: 30–50 ms per tab;
+  - dev with the route already compiled: 50–110 ms;
+  - dev on a route's first visit: 500–1,250 ms, nearly all of it webpack
+    compilation before the first byte.
+- Server queries: 6–9 per page in 3–17 ms. The `/api/account` recheck takes
+  4–15 ms and never delayed the page. No redirects. The admin guard needs no
+  change: identity and assurance are already memoised per render.
+- (Later removed in the consistency review: it hid streamed content without
+  JavaScript, against decision R4.) Added `src/app/(workspace)/admin/loading.tsx` (+ `admin-loading.css`): an
+  immediately streamed skeleton (sr-only "Loading admin page…" status,
+  placeholders only, reduced-motion safe). A timed experiment with deliberately
+  slow sibling Admin routes showed the skeleton replacing the old page 45–110 ms
+  after the click, both with the sidebar's `prefetch={false}` and with default
+  prefetch, so sidebar prefetching is unchanged.
+- Not changed: dev stays on webpack (Turbopack fails on the private backup link,
+  see `docs/operations/local-workflow.md`), and the persistent dev cache stays
+  off (2026-10-14 decision). The remaining dev slowness is first-visit
+  compilation; production does not have it.
+- Verified: lint (clean), typecheck, `npm test` 2333/159. Playwright e2e not run.
+
+## 2026-10-21 — Admin account settings UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Account Settings (standalone).html`,
+  described by the owner as the admin account settings.
+- `/account` renders `AdminAccountSettings`
+  (`src/features/admin/admin-account-settings.tsx`) only when the signed-in
+  account holds the admin role. Parent, Student and Tutor accounts keep the
+  previous layout unchanged.
+- Admin layout: avatar header (h1 "Your account", "Signed in as …"), Profile
+  settings and Change password cards with footer actions, a side card with Your
+  workspaces / Account access icon rows, and a Sign out card. All links,
+  conditions, nav labels, headings and form ids/names are unchanged.
+- `AccountForm` and `PasswordForm` take an optional `panel` layout flag. The
+  default markup is unchanged; validation, requests, notices and recovery links
+  are untouched. `LearnerLink` and `AdmissionEntry` accept optional decorative
+  `leading`/`trailing` content.
+- Not adopted from the reference: the password Show/Hide toggle, the length
+  meter and the live "passwords match" text. They are new behaviour on a
+  credential form that deliberately keeps passwords out of visible state, and
+  they await owner approval. Neither the "Current" tag on Admin workspace (this
+  page is not that workspace) nor the client-only "Settings saved" flash was
+  adopted; the existing notices remain.
+- Verified: lint (clean), typecheck, `npm test` 2333/159. Screenshots at
+  1440/390 px came from a removed temporary preview route; no horizontal
+  overflow. Playwright e2e not run.
+
+## 2026-10-21 — Admin Assigned support cases UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Support Cases (standalone).html`,
+  presentation only.
+- `/admin/support` now uses `AdminSupportCases`
+  (`src/features/admin/admin-support-cases.tsx`). It has the Support header, a
+  navy report-guidance panel (the existing `DemoNotice` text plus decorative
+  "Keep out" chips), case cards (category icon, subject link, category, status
+  pill) and an illustrated empty state that holds the
+  "Unassigned reviews" / "Manage local assignments" link. When cases exist,
+  that link sits above the list. Case pagination is unchanged.
+- The shared `CaseRows` and the user-facing `/support` page are untouched.
+  `DemoNotice` takes an optional className with an unchanged default. Guards,
+  the dispatch-only fallback, copy, hrefs and link names are unchanged.
+- The unused `eslint-disable` directive that caused the long-standing lint
+  warning in `admin/support/page.tsx` is gone; `npm run lint` now reports 0
+  problems.
+- Verified: lint (clean), typecheck, `npm test` 2333/159. Screenshots at
+  1440/390 px of the empty and populated states came from a removed temporary
+  preview route; no horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Admin Accounts UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Accounts (standalone).html`,
+  presentation only.
+- `/admin/accounts` uses the shared Operations header. `AccountFilters` is now a
+  panel: name search with icon, role and status selects, a per-page stepper, a
+  scope note, a Clear link and Filter accounts. `TargetRows` shows account
+  cards (initials, name link, assigned roles, Active/Suspended access pill) and
+  an illustrated empty state. Reload accounts sits inside the empty state when
+  there are no results; otherwise it stays in the page navigation.
+- The new `PageSizeStepper` client component renders its −/+ buttons only after
+  hydration and uses the native `stepUp`/`stepDown` within the existing 1–20
+  bounds; the reference's 100 maximum was not adopted. `LocalRestrictionNotice`
+  takes an optional className.
+- Unchanged: the form's label/method/action, field labels and ids, query
+  parsing and guards, pagination hrefs, empty-state headings and copy, and the
+  detail page (`TargetView`, `AccessStatus`).
+- Verified: lint (0 errors; same pre-existing warning), typecheck, `npm test`
+  2333/159. Screenshots at 1440/390 px of the populated and empty states came
+  from a removed temporary preview route; no horizontal overflow. Playwright e2e
+  not run.
+
+## 2026-10-21 — Admin Subjects UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Subjects (standalone).html`,
+  presentation only.
+- `/admin/subjects` now uses `AdminSubjects` (`src/features/admin/admin-subjects.tsx`).
+  It has the Operations header with Active/Inactive tallies, category sections
+  (icon, label, active/inactive counts) and subject tiles. Each tile shows a
+  monogram, name, status dot and the existing toggle, plus Edit name for
+  specialized subjects. The Add a specialized subject form sits in a panel.
+- Behaviour is unchanged: `SubjectStateButton` takes an optional `tile` styling
+  flag and still toggles in one click. The reference's inline "Deactivate X?"
+  confirmation was not added. Several e2e tests rely on one-click toggling, and
+  a confirm step would change the admin flow. `SubjectNameForm`,
+  `AddSubjectForm`, their ids, names and status/alert regions are untouched.
+- Verified: lint (0 errors; same pre-existing warning), typecheck, `npm test`
+  2333/159. Screenshots at 1440/390 px came from a removed temporary preview
+  route; no horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Admin Assigned bookings UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Assigned Bookings (standalone).html`,
+  presentation only.
+- `/admin/bookings` now uses `AdminAssignedBookings`
+  (`src/features/admin/admin-assigned-bookings.tsx`). It has the Operations
+  header, a GET search form (Booking ID with search icon, Status, hidden
+  pageSize, Apply filters, Clear link), removable "Filtered by" chips, booking
+  cards, an illustrated empty state and the same pagination.
+- Booking cards show icon, subject, status pill, Tutor / Learner / Requested by,
+  LessonTime and "View booking details". Clear and the chip remove links are
+  plain links built with `staffBookingsHref`. They reset q and/or state to the
+  existing defaults, go back to page 1 and keep pageSize.
+- Kept for tests and behaviour: `role="search"` form label, input/select ids,
+  `li[data-booking-id]`, the heading accessible name `Subject · Status`
+  (sr-only separator), link names, the `role="status"` empty text, and all
+  guards and queries.
+- Verified: lint (0 errors; same pre-existing warning), typecheck, `npm test`
+  2333/159. Screenshots at 1440/390 px of the populated and filtered-empty
+  states came from a removed temporary preview route; no horizontal overflow.
+  Playwright e2e not run.
+
+## 2026-10-21 — Admin learner review records UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Learner Review Records (standalone).html`,
+  presentation only.
+- `/admin/learner-admission` now uses `AdminLearnerRecords`
+  (`src/features/admin/admin-learner-records.tsx`). It has the shared Reviews
+  header, "In this list" / "Not reviewed here" scope notes (local workflow only),
+  an "Assigned to you" bar with count, and record cards. Each card shows an icon,
+  the record label, a state pill, Policy and Requested details, and an
+  "Open record" / "Open request" link. Cursor paging and the Your account link
+  are kept.
+- The guard, cursor validation, list query, link targets and per-mode copy are
+  unchanged. In the local workflow the intro's second sentence now sits in the
+  "Not reviewed here" note. `tests/components/learner-review-presentation.test.tsx`
+  now asserts the two sentences separately.
+- Verified: lint (0 errors; same pre-existing warning), typecheck, `npm test`
+  2333/159. Screenshots at 1440/390 px came from a removed temporary preview
+  route; no horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Admin Tutor review queue UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Tutor Review Queue (standalone).html`,
+  presentation only.
+- `/admin/tutors` now uses `AdminTutorQueue`
+  (`src/features/admin/admin-tutor-queue.tsx`). It has the shared Reviews page
+  header, a GET filter bar (Applications count, Status select, Apply filters) and
+  application cards. Each card shows initials, name link, headline, status pill,
+  check count with a meter, the next screening step, the submitted date and a
+  "Review application" link. Pagination is the same as before.
+- The query, guard, filter values, page links and status text are unchanged. The
+  reference's per-check chips and subject tags are not shown. The queue
+  projection deliberately carries only check counts, and widening it would
+  change the data the queue exposes.
+- The "Review application" link takes the tutor name through `aria-describedby`,
+  so name-based link locators stay unambiguous.
+- Verified: lint (0 errors; same pre-existing warning), typecheck, `npm test`
+  2333/159. Screenshots at 1440/390 px came from a removed temporary preview
+  route; no horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Admin Unassigned reviews UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner reference `learli Admin Unassigned Reviews (standalone).html`,
+  presentation only.
+- `/admin/requests` now uses `AdminReviewQueue`
+  (`src/features/admin/admin-review-queue.tsx`). It has a page header and legend,
+  a Review queue panel (count, Refresh link, per-kind icons, Unassigned badge,
+  oldest-first footer), and a Claim account support panel listing its limits.
+  The guard (`loadPrivatePage` + `listLocalReviews`), claim API, idempotent
+  request key and redirect to the claimed review are unchanged. The design's
+  in-queue "Claimed by you" state is not shown, because claiming navigates to
+  the review. The legend says that instead.
+- `ClaimLocalReview` and `ClaimLocalAccount` take an optional `queue` styling
+  flag. The button name stays "Claim review".
+- Admin topbar crumb now appends the current Admin page label.
+- Verified: `npm run lint` (0 errors; same pre-existing warning), `npm run typecheck`,
+  `npm test` 2333/159. Screenshots at 1440/390 px came from a removed temporary
+  preview route; no horizontal overflow. Playwright e2e not run.
+
+## 2026-10-21 — Admin workspace UI redesign IMPLEMENTED; browser e2e pending
+
+- Authority: owner request to apply `learli Admin Workspace (standalone).html` to
+  the Admin workflow without changing functionality.
+- Admin-only shell styling (`data-workspace="admin"`): grouped Reviews /
+  Operations / Support sidebar with icons, Admin role pill, `learli /` crumb,
+  pill account chip, sticky sidebar/topbar only at ≥64rem wide and ≥40rem tall.
+  Other role workspaces render unchanged. Mobile keeps the approved in-flow menu.
+- `/admin` overview: navy hero, work-area cards built from the same
+  `workspaceLinks("admin", …)` the sidebar uses, access-scope note, and the existing
+  Sign out in main. Copy is the previous text, split into summary and scope note.
+  Routes, guards, link destinations and labels are unchanged;
+  `groupAdminLinks` only arranges existing links.
+- Five e2e locators that clicked admin links on `/admin` without a scope now
+  target the sidebar, because the overview cards repeat those link names.
+- Verified: `npm run lint` (0 errors; 1 pre-existing warning in
+  `admin/support/page.tsx`), `npm run typecheck`, `npm test` 2333/159 including
+  new `tests/unit/admin-navigation.test.ts`. Prettier is clean apart from the
+  untracked design HTML. Screenshots at 1440 and 390 px came from a temporary
+  preview route with a mocked session; the route was then removed. No horizontal
+  overflow.
+- Not run: Playwright e2e suites and a real signed-in MFA admin session.
+
+## 2026-10-18 — Cross-role workflow UX alignment VERIFIED locally
+
+- Authority: `prompts/features/m8-10-cross-role-ux-alignment.md`, recorded as
+  `AUTHORIZED — build-feature delegation` after the owner's approval of the
+  recommended Parent, Student, Tutor and Admin UX slice. The final independent
+  read-only Review found zero Critical, Important or Minor findings and reported
+  the implementation ready for Verification.
+- Booking entry now preserves a validated guardian/student presentation scope
+  through sign-in and Student onboarding without carrying learner IDs, submitted
+  roles, payment claims or other authoritative fields. Trusted learner ownership
+  still determines booking-history scope. Learner → Subject → Tutor choices are
+  compatibility-aware after hydration, while the server-rendered GET form keeps
+  complete native option sets for a usable no-JavaScript fallback. The free-text
+  display zone is replaced by the shared IANA selector.
+- Parent/Student ordinary navigation no longer presents school-style learner
+  admission as a routine task. Direct legacy records, assignment checks,
+  pagination, receipts and audit history remain accessible under neutral earlier
+  or assigned learner-review wording; no stored admission row was converted,
+  approved, relabelled or deleted.
+- Tutor availability now uses required native minute-resolution time controls and
+  preserves the existing minute-of-week, overnight, overlap and revision contract.
+  Tutor/Admin screening surfaces show truthful current-check progress, and the
+  Tutor dashboard derives Profile → Screening → Availability → Public listing
+  readiness from existing authoritative reads. A recovered duplicate setup action
+  now has one keyboard target while retaining the blueprint's empty-agenda CTA.
+- Current integrated Verification: `npm run check` PASS (format, type generation,
+  TypeScript, lint with one unrelated pre-existing unused-disable warning, 158
+  files/2,328 tests); production build PASS with the repository's established
+  8 GB Node heap; PostgreSQL coverage PASS across the broad 82-file run plus the
+  required focused hosted-auth rerun (aggregate 1,129 passed, 8 skipped);
+  affected Chromium projects PASS for workspace shell 16/16, availability 3/3,
+  learner review 6/6, Tutor screening 2/2, Tutor dashboard 7/7, booking history
+  6/6, family dashboard 4/4 and bookings 5/5. Impeccable detection returned no
+  findings; responsive/keyboard/Axe/no-JavaScript checks ran in the affected
+  browser suites.
+- Recovery history retained: Review first found a lost booking scope across auth
+  recovery and the finish pass found incomplete no-JavaScript booking options;
+  browser Verification found the duplicate Tutor setup CTA. All three were fixed
+  and independently re-reviewed. One intermediate Tutor rerun used a stale `.next`
+  bundle and reproduced the old CTA; rebuilding the current production bundle
+  followed by the same 7-case suite passed.
+- Boundaries: this slice adds no schema, migration, dependency, payment,
+  admission/screening policy, authorization or production-data change. No commit,
+  merge, push, deployment, live provider action or production operation was
+  performed. Real screening/provider criteria, payments, launch-market consent
+  rules and live Zoom/Meet/Resend verification remain separate gates.
+
+## 2026-10-18 — Tutor screening Admin UX VERIFIED locally
+
+- Authority: `prompts/features/m8-10-tutor-screening-admin-ux.md`, authorized by
+  the owner's “implement that blue print” instruction and completed through the
+  repository Build Feature workflow. Final independent read-only Review reported
+  zero Critical, Important or Minor findings and **READY FOR VERIFICATION**.
+- Replaced editable evidence references and raw UTC strings with labelled native
+  date/time controls, browser-IANA-to-UTC conversion, UTC-stable server hydration,
+  understandable invalid/DST/future-time errors, and plain-language Identity and
+  Eligibility states. Expiry remains an explicit Admin choice because no approved
+  duration exists; the UI uses `Passed and current`, not an unsupported
+  `Verified` claim.
+- Reviewer-visible receipts now use the immutable database check-row UUID and are
+  one-to-one with that record. Tutor-owner/public reads omit the receipt. Existing
+  legacy `evidence_reference` values remain internal and unchanged; exact old
+  retries reuse the stored value, while new callers cannot choose the displayed
+  receipt. No schema migration or historical rewrite was introduced.
+- Verification on the integrated working tree: focused unit/component 61/61;
+  timezone helper under `Pacific/Auckland` 8/8; focused PostgreSQL screening
+  39/39; direct Chromium screening project 2/2; `npm run check` PASS (format,
+  typecheck, lint with one pre-existing unused-disable warning, 153 files/2,285
+  tests); production build PASS; Impeccable detector returned no findings.
+- The dependency-chain Playwright attempt passed 76 checks, then stopped before
+  Tutor Screening on an unrelated stale `tests/e2e/learners.spec.ts` assertion
+  that still expects “local demonstration profile” after the approved ordinary
+  wording change. The targeted screening run with `--no-deps` passed; the stale
+  Learner assertion remains a separate test-maintenance item.
+- Boundaries: no real screening criteria/provider, automatic expiry policy,
+  production activation, migration, deployment or production-data operation was
+  performed. TUT-01/M8.10 real screening and safeguarding policy remains open.
+
+## 2026-10-18 — Master workflow alignment VERIFIED locally
+
+- Authority: owner-approved master workflow-alignment blueprint plus fourteen
+  explicit implementation conditions; executed through Architect → Implementation
+  → Review → Verification. Final read-only Review and the later focused route
+  Review both returned **READY FOR VERIFICATION** with no confirmed findings.
+- Delivered eligible independent-adult self-service for one self-managed College
+  Support profile under immutable `local-independent-admission-v2` attestation.
+  The declaration is explicitly unverified and College Support is not treated as
+  proof of adulthood. Eligible profiles can create confirmed, idempotent,
+  concurrency-protected `local-independent-booking-v2` no-money bookings without
+  routine Admin admission or booking approval; no payment or paid state exists.
+- Preserved Parent-v2 migration 0038 and all legacy admissions, policy receipts,
+  evidence, links, bookings, lifecycle history and audit records. Populated v1
+  pending/authorized/rejected/revoked guardian and self records retained their
+  exact values and original behavior across migration 0039. No old request was
+  approved, converted, deleted or relabeled.
+- Reconciled ordinary intake away from the legacy Admin queue, corrected truthful
+  provisional meeting status, persisted the presented IANA timezone during
+  rescheduling, made booking-history ordering deterministic, and retained existing
+  assigned-Tutor cancel/reschedule backend authority. The UI currently hides those
+  two Tutor actions; any authority narrowing remains a separate product decision.
+- Browser verification exposed a pre-existing route regression: commit `07007af`
+  had replaced booking-list GET when adding POST. Restored authenticated
+  `GET /api/bookings` through the existing ownership-enforcing read handler while
+  preserving POST byte-for-byte; focused independent Review found no issue.
+- Final verification on the integrated tree: `npm run check` PASS (format, type,
+  lint with one pre-existing unused-disable warning, 152 files/2,271 tests);
+  integration PASS (83 files/1,126 tests); isolated local-operation PASS
+  (4 files/38 tests); restricted SQL PASS (28 tests); production build PASS;
+  affected Playwright PASS (32/32) plus the focused repaired case PASS (1/1);
+  restore drill PASS (1/1). The first restore attempt correctly failed closed
+  because the owned test database lacked 0039; `npm run db:migrate:test` aligned
+  that isolated database and the unchanged drill passed. Recovery evidence is in
+  `prompts/recovery/2026-10-18-master-workflow-review-repairs.md`.
+- Migration 0039 was exercised only against owned local test fixtures/databases.
+  No production data, hosted Neon branch, Railway deployment, payment system,
+  commit, merge or push was performed. Parent-v2 baseline work remained present.
+- Remaining gates: manual desktop/mobile/keyboard/Axe verification of the complete
+  new Student signup → declaration → dashboard → discovery → booking journey;
+  launch-market adult/minor/legal and secure existing-account-linking policy;
+  real Resend and Zoom/Meet behavior; payments/commercial rules; and separately
+  authorized production migration/deployment. Run Remember before handoff.
+
+## 2026-10-18 — Booking-list GET route repaired; integrated verification pending
+
+- Authority: AUTHORIZED — build-feature delegation; approved master workflow
+  blueprint and missing booking-list GET recovery scope.
+- Restored `GET /api/bookings` through the existing private read handler; the
+  POST creation function is unchanged. A route regression exercises real read
+  dispatch/private empty-list JSON and preserves POST creation dispatch.
+- Focused checks passed: `npx vitest run tests/unit/booking-route.test.ts
+  tests/unit/booking-read.test.ts` (2 files, 9 tests), `npm run typecheck`,
+  targeted ESLint/Prettier, and route diff whitespace check.
+- Independent Review, failed Playwright case/full affected set rerun, and final
+  integrated Verification remain pending with the coordinator. No database,
+  production, deployment or policy changes were made by this repair.
+
+## 2026-10-18 — Independent adult self-service V2 IMPLEMENTED; final review pending
+
+- Authority: approved master workflow-alignment blueprint and fourteen explicit
+  owner conditions. Parent-v2 source/migration 0038, dirty work, historical
+  admissions, evidence, policies, bookings and audits were preserved.
+- Implemented: exact `local-independent-admission-v2` self-attestation creates
+  one active College Support self profile and trusted Student role atomically.
+  The UI states that the declaration is unverified and College level does not
+  prove adulthood. `local-independent-booking-v2` creates confirmed no-money
+  bookings directly with existing overlap/idempotency/ownership boundaries; it
+  creates no Admin confirmation assignment and makes no paid claim.
+- Schema: additive migration 0039 adds only the immutable independent-attestation
+  relation, exact policy/function branches, grants and widened integrity checks.
+  Fresh plus populated 0034/0037/0038 forward-migration preservation passed 4/4;
+  the populated 0038 case preserves a real Parent-v2 attestation/profile.
+- Focused verification: unit/component 114/114, restricted SQL 28/28 and
+  persisted ordinary workflow 2/2 passed; targeted ESLint and
+  `npm run typecheck` passed. The workflow run took 65.87s because it exercised
+  the real auth throttle. An independent read-only SQL/snapshot audit found no
+  confirmed defect.
+- Operating boundary: migration 0039 was applied only to the explicitly isolated
+  owned port 55434 local fixture for these checks. Production, deployment,
+  payments, real eligibility proof, minors, existing-account linking, external
+  delivery and live meetings were untouched. Tutor cancel/reschedule behavior
+  was not removed or narrowed by this slice.
+- Remaining: separate review and final repository-wide verification/Remember are
+  still required before this approved build-feature operation is complete.
+
+## 2026-10-18 — Owner-requested second local Admin created
+
+- Owner explicitly requested a separate second Admin and its password. Created
+  one NEW local account through actual Better Auth signup, captured verification
+  proof and sign-in. Supported owner-only preparation authorized exactly that
+  new returned identity, without migrations or alteration of the existing Admin.
+  The previous request to identify an existing Admin is superseded by this choice.
+- Restricted readback confirmed active/verified identity, Admin role and the
+  supported local admission/screening/booking/support/account staff capabilities.
+  Nine accounts/two Admins now exist. Every original account's selected identity,
+  verification/status/role projection remained unchanged. No tutor screening
+  check, approval, booking, task assignment or MFA assurance was fabricated.
+- Actual Playwright UI sign-in passed, redirected to `/account/security`, showed
+  Set up authenticator and preserved the session on refresh. User completes
+  authenticator enrollment with their own app before privileged reads/actions;
+  the expected pre-MFA403 was verified, not bypassed. The first setup readback
+  incorrectly expected Admin access before MFA; only that private harness was
+  corrected to assert the established denial. No application source changed.
+- New credentials and readback/browser evidence are owner-private and ignored
+  under `.local/manual-admin2-20261018/`; refreshed private account list now has
+  all9 current accounts. No password or cookie is recorded in tracked documents.
+  Next: owner signs in, completes MFA, and performs normal assigned review for
+  the two pending fictional tutors. They remain unbookable pending that review.
+
+## 2026-10-18 — Two requested local test tutors prepared; approval pending
+
+- Owner requested two tutors to test the new child-booking flow. The normal
+  operating directory had no currently eligible tutors; its one existing tutor
+  profile was preserved. Added exactly two new fictional accounts, Test Tutor
+  Maya and Test Tutor Leo, through real Better Auth registration, locally
+  captured verification proofs and sign-in, then own-account tutor services.
+- Both profiles explicitly disclose fictional local software testing and make no
+  human identity, qualification or safeguarding-screening claims. Both offer
+  active Math, Science and English across supported levels including Middle
+  School/Grade8, with daily08:00–22:00 Asia/Manila recurring availability.
+- Actual restricted-runtime readback passed: both verified identities, own
+  profiles, three subject offerings, Grade8 support, seven saved windows and
+  pending screening requests. Total profiles are now3, currently eligible0;
+  the public eligibility boundary correctly withholds both pending accounts.
+  Normal3000 health returned200. No application source, existing account,
+  booking, screening evidence, Admin authority or approval was modified.
+- Exact owner-selected registered/verified Admin identity remains pending; the
+  owner was asked for that email while tutor preparation continued. Normal
+  current-MFA assigned tutor review is still required before bookability; no
+  Admin identity was guessed and no synthetic screening evidence was fabricated.
+  This setup is not yet a successful child-booking test. Private credentials,
+  stable setup manifest and readback evidence remain ignored/owner-private under
+  `.local/manual-tutors-20261018/`. No bulk seed/reset or test suite touched the
+  operating database. Prior automatic-child source validation below is unchanged.
+
+## 2026-10-18 — Automatic Parent child onboarding VERIFIED
+
+- Owner-authorized blueprint `prompts/features/m4-04-automatic-parent-child-onboarding.md`
+  and decision `docs/decisions/2026-10-18-automatic-parent-child-onboarding.md`.
+  Verified-email Parent can save a NEW private child with explicit guardian
+  declaration/consent and immediately use it for tutoring. No ordinary child,
+  additional-child, grade-edit or new Parent-booking Admin approval. Existing
+  student-account claims remain separate; no name/email linking was introduced.
+- New immutable guardian admission-v2/attestation and Parent booking-v2 use forward
+  `0038`; original v1 policy heads/receipts, pending requests, independent College,
+  tutor screening, ownership and saved histories are preserved. Old review lists
+  exclude new automatic receipts before pagination; direct receipt copy describes
+  consent accurately. New directly confirmed bookings show no provisional deadline.
+- Read-only Review: READY FOR VERIFICATION, alignment/integrity/scope PASS, no
+  remaining confirmed findings over56-entry source manifest. Fresh Impeccable
+  finish: ship, no material fixes; existing design retained. Review ran no tests.
+- Executed final `npm run check`: format/lint/type PASS and148 files/2,236 tests
+  PASS. Lint retains one pre-existing unused-disable warning in Admin Support.
+  `NODE_OPTIONS=--max-old-space-size=8192 npm run build` PASS. Actual Playwright
+  normal-mode fixture:44 checks/5 responsive Axe audits PASS, zero violations,
+  overflow or page errors. Detector11 changed UI targets: no findings.
+- Isolated ordinary55434 PostgreSQL: migrations3/3 (fresh/populated0034/populated0037),
+  restricted SQL21/21 (including actual lock-wait revocation), real-provider
+  workflow/pagination2/2 PASS, including genuine attested-child v2 after-end Tutor
+  completion/replay and exact one completion event. No fixture data entered the
+  operating database. Public delivery/physical devices/external meetings untested.
+- Operating local migration applied after private readable backup. All81 original
+  table projections/100 existing rows remained byte-identical;4 additive rows
+  represent new receipts/head/migration only. No account elevated, data reset,
+  ordinary record conversion, commit, push or deployment. Updated app is running
+  at the existing normal local origin; operating cluster remains55432.
+- Extra restore acceptance found the standard test SOURCE was still0037. Its
+  inventory guard correctly refused before artifacts were created. Recovery note:
+  `prompts/recovery/2026-10-18-automatic-parent-child-restore-source.md`. Guarded
+  test-only migration preserved80 existing public tables and exact39 receipts;
+  actual restore acceptance then PASS1/1. Initial83-file/1,126-test integration
+  run passed on the earlier test schema. The final full rerun on0038 also PASS:
+  83 files/1,126 tests in547.14s. This current-schema run is final integration
+  evidence, not an inference from the earlier source state.
+- Evidence is ignored/private under `.local/automatic-children-20261018/` and
+  `.impeccable/review/automatic-children-20261018/`. Initial format/test/harness
+  failures remain recorded; targeted fixes were rerun without weakening guards.
+  Final documenter checked the existing design/code/captures and preserved all
+  global design files; no system drift or documentation change was needed.
+  Temporary3300 app and owned55434 fixture are stopped with data preserved;
+  normal3000 app and owned55432 operating cluster remain running. Final direct
+  application-role current-policy checks for new and historical policies passed;
+  signed-out child creation returns401. Internal helper EXECUTE remains denied.
+- Next: owner refreshes My Children → Add Child to exercise the new form. Earlier
+  pending requests remain historical, not automatically converted without fresh
+  declarations. Work is local/uncommitted on main; no new commit/merge/push is
+  implied. Secure existing-account linking and public legal/safeguarding/payment
+  activation remain separate work. Exact initial Admin selection is still pending
+  for tutor/College reviews and exceptions, not ordinary new-child/Parent bookings.
+  Local handoff is saved separately after this completed verification.
+
 ## 2026-10-18 — Local main committed; completed worktrees and branches removed
 
 - Owner explicitly authorized commit, local-main integration and cleanup. The

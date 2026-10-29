@@ -23,8 +23,10 @@ import {
 import {
   createPolicyReservation,
   readWorkflowCandidates,
+  readWorkflowMoveCandidates,
   changePolicyBooking,
 } from "@/features/booking-workflows/service";
+import { formatLessonTime } from "@/features/bookings/format-time";
 import {
   readParticipantBooking,
   listParticipantBookingOverview,
@@ -285,17 +287,15 @@ describe("policy booking actual PostgreSQL authority and integrity", () => {
     ).rows[0];
     expect(new Date(saved.expires_at).getTime()).toBeLessThan(Date.now());
   });
-  it("private provisional/missing/foreign links remain unavailable", async () => {
+  it("reports a live provisional link as awaiting confirmation while keeping it private", async () => {
     const r = await request();
     expect(
-      (
-        await readPrivateMeetingLink(
-          w.runtime,
-          f.requester.headers,
-          r.receipt.id,
-        )
-      ).state,
-    ).toBe("expired");
+      await readPrivateMeetingLink(
+        w.runtime,
+        f.requester.headers,
+        r.receipt.id,
+      ),
+    ).toEqual({ state: "awaiting_confirmation" });
     await expect(
       savePrivateMeetingLink(w.runtime, f.tutor.headers, r.receipt.id, {
         requestId: randomUUID(),
@@ -309,6 +309,10 @@ describe("policy booking actual PostgreSQL authority and integrity", () => {
   });
   it("failed move preserves original/head/events/link and successful replacement retires link", async () => {
     const r = await confirmed();
+    await w.owner.pool.query('UPDATE "user" SET timezone=$2 WHERE id=$1', [
+      f.requester.id,
+      "Pacific/Auckland",
+    ]);
     await savePrivateMeetingLink(w.runtime, f.tutor.headers, r.receipt.id, {
       requestId: randomUUID(),
       expectedRevision: 0,
@@ -354,13 +358,13 @@ describe("policy booking actual PostgreSQL authority and integrity", () => {
         )
       ).rows[0].n,
     ).toBe(before);
-    const slots = await readWorkflowCandidates(
+    const slots = await readWorkflowMoveCandidates(
         f.context,
         f.requester.headers,
-        f.choice,
+        r.receipt.id,
       ),
       t = slots[14],
-      v = {
+      wrongTimezone = {
         requestId: randomUUID(),
         expectedRevision: 1,
         reasonCode: "synthetic_participant_change",
@@ -368,6 +372,44 @@ describe("policy booking actual PostgreSQL authority and integrity", () => {
         endAtUtc: t.endAtUtc,
         displayTimezone: "UTC",
       };
+    expect(t).toEqual(
+      formatLessonTime(
+        new Date(t.startAtUtc),
+        new Date(t.endAtUtc),
+        "Pacific/Auckland",
+      ),
+    );
+    await expect(
+      changePolicyBooking(
+        f.context,
+        f.requester.headers,
+        r.receipt.id,
+        "reschedule",
+        wrongTimezone,
+      ),
+    ).rejects.toMatchObject({ status: 409 });
+    // An outsider's stale zone or unavailable time must not reveal the booking.
+    await expect(
+      changePolicyBooking(
+        f.context,
+        outsider.headers,
+        r.receipt.id,
+        "reschedule",
+        {
+          ...wrongTimezone,
+          requestId: randomUUID(),
+          startAtUtc: new Date(
+            Date.parse(t.startAtUtc) + 420_000,
+          ).toISOString(),
+          endAtUtc: new Date(Date.parse(t.endAtUtc) + 420_000).toISOString(),
+        },
+      ),
+    ).rejects.toMatchObject({ status: 404 });
+    const v = {
+      ...wrongTimezone,
+      requestId: randomUUID(),
+      displayTimezone: "Pacific/Auckland",
+    };
     const move = await changePolicyBooking(
       f.context,
       f.requester.headers,
@@ -377,6 +419,14 @@ describe("policy booking actual PostgreSQL authority and integrity", () => {
     );
     expect(move.state).toBe("confirmed");
     expect(move.logicalBookingId).toBe(r.receipt.logicalBookingId);
+    expect(
+      (
+        await w.owner.pool.query(
+          "SELECT display_timezone FROM bookings WHERE id=$1",
+          [move.id],
+        )
+      ).rows[0].display_timezone,
+    ).toBe("Pacific/Auckland");
     expect(
       (
         await changePolicyBooking(
@@ -401,6 +451,21 @@ describe("policy booking actual PostgreSQL authority and integrity", () => {
       (await readPrivateMeetingLink(w.runtime, f.requester.headers, move.id))
         .state,
     ).toBe("missing");
+    expect(
+      (
+        await readParticipantBooking(
+          w.runtime,
+          f.requester.headers,
+          r.receipt.id,
+          "guardian",
+        )
+      ).events.map((event) => event.event),
+    ).toEqual([
+      "workflow_provisional",
+      "workflow_confirmed",
+      "workflow_rescheduled",
+      "workflow_confirmed",
+    ]);
   });
   it("cancellation needs current family authority but not future subject eligibility", async () => {
     const r = await confirmed();

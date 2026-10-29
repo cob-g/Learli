@@ -89,6 +89,7 @@ export default async function Page({
           action="reschedule"
           scope={scope.data}
           times={data.times}
+          displayTimezone={data.booking.viewerTimezone}
           privateWorkflow={data.privateWorkflow}
           source={data.booking.source}
         />

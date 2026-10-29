@@ -36,6 +36,62 @@ export const reviewInput = z.strictObject({
 /** Applications per queue page. */
 export const reviewQueueLimit = 50;
 const notFound = "We can't find that application.";
+const queueScreeningSummary = z.object({
+  state: z.enum(["pending", "approved", "rejected", "suspended", "revoked"]),
+  currentCount: z.number().int().nonnegative(),
+  requiredCount: z.number().int().positive(),
+});
+export type QueueScreeningSummary = z.infer<typeof queueScreeningSummary>;
+
+/** Safe queue projection only: no receipts, evidence, timestamps or account data. */
+function screeningQueueProjection(runtime: AuthRuntime) {
+  const capability = getScreeningContext(runtime).screening;
+  if (capability.mode === "disabled") return sql<unknown>`NULL`;
+  const currentPolicy =
+    capability.mode === "local_operation"
+      ? sql`p.valid_from<=clock_timestamp() AND p.valid_until IS NULL`
+      : sql`p.valid_from<=clock_timestamp() AND p.valid_until>clock_timestamp()`;
+  return sql<unknown>`(
+    SELECT jsonb_build_object(
+      'state', c.state,
+      'requiredCount', cardinality(p.required_check_codes),
+      'currentCount', (
+        SELECT count(*)::int
+        FROM unnest(p.required_check_codes) AS required(required_code)
+        WHERE EXISTS (
+          SELECT 1
+          FROM public.tutor_screening_checks ck
+          WHERE ck.tutor_id=c.tutor_id
+            AND ck.round=c.round
+            AND ck.policy_version=c.policy_version
+            AND ck.check_code=required.required_code
+            AND ck.outcome='passed'
+            AND ck.checked_at<=clock_timestamp()
+            AND ck.expires_at>clock_timestamp()
+            AND NOT EXISTS (
+              SELECT 1
+              FROM public.tutor_screening_checks newer
+              WHERE newer.tutor_id=ck.tutor_id
+                AND newer.round=ck.round
+                AND newer.check_code=ck.check_code
+                AND newer.revision>ck.revision
+            )
+        )
+      )
+    )
+    FROM public.tutor_screening_cases c
+    JOIN public.tutor_screening_policies p
+      ON p.provenance=c.provenance AND p.version=c.policy_version
+    JOIN public.tutor_screening_policy_heads h
+      ON h.provenance=c.provenance AND h.version=c.policy_version
+    WHERE c.tutor_id=${tutorProfiles.id}
+      AND c.provenance=${capability.provenance}
+      AND c.policy_version=${capability.version}
+      AND h.status='enabled'
+      AND ${currentPolicy}
+    LIMIT 1
+  )`;
+}
 
 /**
  * One page of the review queue, oldest first (id breaks ties so pages never
@@ -66,6 +122,7 @@ export async function listTutorApplications(
       headline: tutorProfiles.headline,
       reviewStatus: tutorProfiles.reviewStatus,
       createdAt: tutorProfiles.createdAt,
+      screening: screeningQueueProjection(runtime),
     })
     .from(tutorProfiles)
     .innerJoin(user, eq(user.id, tutorProfiles.userId))
@@ -83,7 +140,14 @@ export async function listTutorApplications(
   assertPrivateWorkflowUnchanged(runtime, packet);
   return {
     total,
-    applications: applications.slice(0, reviewQueueLimit),
+    applications: applications
+      .slice(0, reviewQueueLimit)
+      .map((application) => ({
+        ...application,
+        screening: queueScreeningSummary
+          .nullable()
+          .parse(application.screening),
+      })),
     page: safe,
     hasMore: applications.length > reviewQueueLimit && safe < 1000,
   };

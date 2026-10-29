@@ -2,9 +2,11 @@ import {
   bookingDiscoveryHref,
   bookingSelectionHref,
   discoveryFromReturnPath,
+  privateBookingScopeFromReturnPath,
   privateBookingHref,
   safeBookingReturnPath,
   selectionFromReturnPath,
+  withPrivateBookingScope,
 } from "@/features/bookings/selection";
 
 export const studentOnboardingPath = "/student/onboarding";
@@ -35,11 +37,21 @@ export function studentContinuation(value: unknown): string {
   }
   const privateWorkflow =
     new URL(destination, base).pathname === "/bookings/new";
+  const scope = privateBookingScopeFromReturnPath(destination);
   const selection = selectionFromReturnPath(destination);
-  if (selection) return bookingSelectionHref(selection, privateWorkflow);
+  if (selection)
+    return withPrivateBookingScope(
+      bookingSelectionHref(selection, privateWorkflow),
+      scope,
+    );
   const discovery = discoveryFromReturnPath(destination);
-  return discovery
-    ? bookingDiscoveryHref(discovery, privateWorkflow)
+  if (discovery)
+    return withPrivateBookingScope(
+      bookingDiscoveryHref(discovery, privateWorkflow),
+      scope,
+    );
+  return privateWorkflow && scope
+    ? withPrivateBookingScope("/bookings/new", scope)
     : "/account";
 }
 

@@ -1,5 +1,22 @@
 # Learli — Code Standards
 
+### Approved optional Google Meet integration — 2026-10-26
+
+Owner-approved blueprint: `prompts/features/m5-01-google-meet-provisioning.md`
+(M5.1/2/5/11; MEET-01/02/03). Optional tutor-owned Google OAuth may create a
+separate private Meet space for each new eligible confirmed booking. Manual
+Zoom/Meet links remain supported; Learli retains booking/scheduling/completion
+ownership. This bounded exception supersedes older blanket later-only OAuth
+wording, without enabling Calendar sync, attendance, recordings or payments.
+Implementation is present locally; full verification remains incomplete. See
+`context/progress-tracker.md` for executed checks and blockers. Default operation
+stays disabled; production/deployment and live provider actions remain separately
+gated. New encrypted credentials, durable jobs and explicit system provenance
+must preserve existing history, permissions and manual-link behavior. Ambiguous
+remote create outcomes do not automatically replay. See the blueprint for exact
+scope, additive migration, failure handling, UI and verification requirements.
+
+
 > **Project:** Learli (`learli` in the visual brand)  
 > **Document:** `CODE-STANDARDS.md`  
 > **Version:** 1.0  

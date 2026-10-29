@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState, type FormEvent } from "react";
 import { useHydrated } from "@/hooks/use-hydrated";
 import type { MeetingSectionState, PrivateMeetingState } from "./model";
@@ -136,7 +137,7 @@ export function BookingMeetingSection({
       </h2>
       <p className="mt-2 max-w-prose text-small text-muted-foreground">
         {privateWorkflow
-          ? "The tutor provides the private Zoom or Google Meet link. It opens externally; Learli does not host calls, check meeting settings or verify attendance."
+          ? "The private Zoom or Google Meet link is arranged by your tutor or through their connected Google account. It opens externally; Learli does not host calls, check meeting settings or verify attendance."
           : "Local simulation only. A tutor-supplied test link opens externally on Zoom or Google Meet. Learli does not host calls, arrange a lesson, check meeting settings or verify attendance."}
       </p>
       {meeting.state === "present" && (
@@ -160,8 +161,30 @@ export function BookingMeetingSection({
       {meeting.state === "missing" && (
         <p className="mt-4 text-body">
           {privateWorkflow
-            ? "The tutor has not provided a meeting link yet."
+            ? meeting.provisioning === "preparing"
+              ? "Preparing your meeting link. Refresh to check its progress; your booking remains confirmed."
+              : meeting.provisioning === "action_required"
+                ? meeting.canEdit
+                  ? "Automatic meeting preparation needs attention. Check Meeting setup or save a manual Zoom or Meet link below."
+                  : "Your tutor needs to arrange the meeting link. Your booking remains confirmed."
+                : "The tutor has not provided a meeting link yet."
             : "No test meeting link has been provided."}
+        </p>
+      )}
+      {meeting.state === "missing" &&
+        meeting.canEdit &&
+        meeting.provisioning && (
+          <Link
+            href="/tutor/meetings"
+            className="mt-2 inline-flex min-h-11 items-center"
+          >
+            Meeting setup
+          </Link>
+        )}
+      {meeting.state === "awaiting_confirmation" && (
+        <p className="mt-4 text-body">
+          This booking is awaiting confirmation. Its private meeting link will
+          be available after confirmation.
         </p>
       )}
       {meeting.state === "expired" && (

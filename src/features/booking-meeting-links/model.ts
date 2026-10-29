@@ -1,8 +1,14 @@
 import type { MeetingProvider } from "@/lib/validation/meeting-link";
 
 export type PrivateMeetingState =
+  | { state: "awaiting_confirmation" }
   | { state: "expired" }
-  | { state: "missing"; canEdit: boolean; revision: 0 }
+  | {
+      state: "missing";
+      canEdit: boolean;
+      revision: 0;
+      provisioning?: "preparing" | "action_required";
+    }
   | {
       state: "present";
       canEdit: boolean;

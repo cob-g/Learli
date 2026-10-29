@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LockKeyhole } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useHydrated } from "@/hooks/use-hydrated";
@@ -21,7 +22,12 @@ const fields: { name: Field; label: string; autoComplete: string }[] = [
   },
 ];
 
-export function PasswordForm() {
+export function PasswordForm({
+  panel = false,
+}: {
+  /** Card layout used by the Admin account settings; behaviour is unchanged. */
+  panel?: boolean;
+} = {}) {
   const router = useRouter();
   const ready = useHydrated();
   const [pending, setPending] = useState(false);
@@ -131,25 +137,60 @@ export function PasswordForm() {
       setPending(false);
     }
   }
+  const heading = (
+    <h2
+      id="password-heading"
+      className={panel ? undefined : "text-section-title"}
+    >
+      Change password
+    </h2>
+  );
+  const help = (
+    <p
+      id="password-help"
+      className={panel ? undefined : "mt-4 text-body text-muted-foreground"}
+    >
+      Use 12 to 128 characters. Changing your password ends your other signed-in
+      sessions.
+    </p>
+  );
+  const changeButton = (
+    <button className="action action-outline w-full sm:w-auto" type="submit">
+      {pending ? "Changing password…" : "Change password"}
+    </button>
+  );
   return (
     <section
       aria-labelledby="password-heading"
-      className="mt-8 max-w-prose rounded-surface border border-border bg-surface p-6 sm:p-8"
+      className={
+        panel
+          ? "account-panel"
+          : "mt-8 max-w-prose rounded-surface border border-border bg-surface p-6 sm:p-8"
+      }
     >
-      <h2 id="password-heading" className="text-section-title">
-        Change password
-      </h2>
-      <p id="password-help" className="mt-4 text-body text-muted-foreground">
-        Use 12 to 128 characters. Changing your password ends your other
-        signed-in sessions.
-      </p>
+      {panel ? (
+        <div className="account-panel-head">
+          <span className="account-panel-icon" aria-hidden="true">
+            <LockKeyhole size={20} />
+          </span>
+          <div className="min-w-0">
+            {heading}
+            {help}
+          </div>
+        </div>
+      ) : (
+        <>
+          {heading}
+          {help}
+        </>
+      )}
       {!ready && (
-        <p className="mt-4 text-body">
+        <p className={panel ? "account-panel-note" : "mt-4 text-body"}>
           Enable JavaScript to change your password here.
         </p>
       )}
       <form
-        className="mt-6 space-y-6"
+        className={panel ? "account-panel-form" : "mt-6 space-y-6"}
         method="post"
         action="/api/account/password"
         onSubmit={submit}
@@ -187,10 +228,22 @@ export function PasswordForm() {
             </ul>
           </div>
         )}
-        <fieldset className="space-y-6" disabled={pending || !ready}>
+        <fieldset
+          className={panel ? "account-panel-fields" : "space-y-6"}
+          disabled={pending || !ready}
+        >
           <legend className="sr-only">Password fields</legend>
           {fields.map((field) => (
-            <div className="space-y-2" key={field.name}>
+            <div
+              className={
+                panel
+                  ? field.name === "currentPassword"
+                    ? "account-panel-field account-panel-wide"
+                    : "account-panel-field"
+                  : "space-y-2"
+              }
+              key={field.name}
+            >
               <label
                 className="block text-label"
                 htmlFor={`password-${field.name}`}
@@ -223,12 +276,11 @@ export function PasswordForm() {
               )}
             </div>
           ))}
-          <button
-            className="action action-outline w-full sm:w-auto"
-            type="submit"
-          >
-            {pending ? "Changing password…" : "Change password"}
-          </button>
+          {panel ? (
+            <div className="account-panel-foot">{changeButton}</div>
+          ) : (
+            changeButton
+          )}
         </fieldset>
         {pending && (
           <p role="status" className="text-body">

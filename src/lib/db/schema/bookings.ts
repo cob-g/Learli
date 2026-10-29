@@ -187,7 +187,7 @@ export const bookingLifecycleEvents = pgTable(
     }).onDelete("restrict"),
     check(
       "booking_lifecycle_events_event_check",
-      sql`(${table.workflowPolicyId} IS NULL AND ${table.event} IN ('demo_cancelled','demo_rescheduled','demo_confirmed','demo_completed') AND ${table.workflowRevision} IS NULL AND ${table.reasonCode} IS NULL) OR (${table.workflowPolicyId} IS NOT NULL AND ${table.event} IN ('workflow_provisional','workflow_confirmed','workflow_completed','workflow_no_show','workflow_expired','workflow_cancelled','workflow_rescheduled') AND ${table.workflowRevision}>=0 AND ${table.reasonCode} IN ('synthetic_request','synthetic_prerequisite_review','synthetic_completed','synthetic_no_show','synthetic_participant_change','synthetic_expiry','local_request','local_prerequisite_review','local_completed','local_no_show','local_participant_change','local_expiry'))`,
+      sql`(${table.workflowPolicyId} IS NULL AND ${table.event} IN ('demo_cancelled','demo_rescheduled','demo_confirmed','demo_completed') AND ${table.workflowRevision} IS NULL AND ${table.reasonCode} IS NULL) OR (${table.workflowPolicyId} IS NOT NULL AND ${table.event} IN ('workflow_provisional','workflow_confirmed','workflow_completed','workflow_no_show','workflow_expired','workflow_cancelled','workflow_rescheduled') AND ${table.workflowRevision}>=0 AND ${table.reasonCode} IN ('synthetic_request','synthetic_prerequisite_review','synthetic_completed','synthetic_no_show','synthetic_participant_change','synthetic_expiry','local_parent_booking','local_independent_booking','local_request','local_prerequisite_review','local_completed','local_no_show','local_participant_change','local_expiry'))`,
     ),
     check(
       "booking_lifecycle_events_request_fingerprint_check",

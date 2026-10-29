@@ -69,7 +69,7 @@ async function rowHashes(client: PoolClient, beforeGrade = false) {
   for (const { name } of tables) {
     if (!/^[a-z_]+$/.test(name)) throw new Error("Invalid fixture table.");
     const rows = await client.query(
-      `SELECT to_jsonb(t)${beforeGrade && name === "learner_profiles" ? " - 'grade'" : ""} AS row FROM public."${name}" t ORDER BY to_jsonb(t)::text`,
+      `SELECT to_jsonb(t)${beforeGrade && name === "learner_profiles" ? " - 'grade'" : ""}${["booking_meeting_links", "booking_meeting_link_events"].includes(name) ? " - 'actor_kind' - 'automation_job_id'" : ""} AS row FROM public."${name}" t ORDER BY to_jsonb(t)::text`,
     );
     hashes[name] = digest(JSON.stringify(rows.rows));
   }

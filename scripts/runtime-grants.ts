@@ -2,6 +2,7 @@
 export const runtimeGrantsSql = `
     REVOKE ALL ON SCHEMA public FROM PUBLIC;
     GRANT USAGE ON SCHEMA public TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.google_meet_metadata(text,text), public.google_meet_begin(text,text,text,text,text,text,text,boolean), public.google_meet_consume(text,text,text,text,text), public.google_meet_complete(text,text,text,text,text,text,text[],text), public.google_meet_disconnect(text,text), public.google_meet_job_status(text,text,uuid,text) TO learli_app;
     GRANT EXECUTE ON FUNCTION public.submit_private_review(text,text,uuid,integer,uuid,integer,text), public.moderate_private_review(text,text,uuid,integer,uuid,text) TO learli_app;
     GRANT EXECUTE ON FUNCTION public.create_local_learner_with_grade(text,text,uuid,text,text,text,text,integer), public.create_learner_admission_with_grade(text,text,uuid,uuid,text,text,text,text,text,integer), public.update_admitted_learner_with_grade(text,text,uuid,uuid,text,text,integer) TO learli_app;
     GRANT EXECUTE ON FUNCTION public.create_learner_admission(text,text,uuid,uuid,text,text,text,text,text), public.record_learner_admission_evidence(text,text,uuid,integer,uuid,text,text), public.decide_learner_admission(text,text,uuid,integer,uuid,text), public.revoke_learner_admission_evidence(text,text,uuid,integer,uuid,uuid), public.update_admitted_learner(text,text,uuid,uuid,text,text), public.has_current_learner_authority(text,text,uuid,uuid) TO learli_app;
@@ -10,6 +11,10 @@ export const runtimeGrantsSql = `
     GRANT EXECUTE ON FUNCTION public.assert_booking_workflow_receipt(text,text,uuid,uuid,text,uuid,boolean,text,timestamptz,timestamptz,timestamptz) TO learli_app;
     GRANT EXECUTE ON FUNCTION public.publication_policy_current(uuid),public.publication_completion_current(text,uuid,uuid,integer),public.publication_author_allowed(text,text,uuid,uuid,integer,uuid),public.publication_moderator_allowed(text,text,uuid,uuid),public.submit_publication_review(text,text,uuid,uuid,integer,uuid,uuid,integer,text),public.decide_publication_review(text,text,uuid,uuid,integer,uuid,text,boolean) TO learli_app;
     REVOKE ALL ON ALL TABLES IN SCHEMA public FROM learli_app;
+    GRANT SELECT ON learner_guardian_attestations TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.create_parent_child(text,text,uuid,uuid,text,text,text,integer,text,text,boolean,boolean), public.claim_guardian_admission_exception(text,text,uuid,uuid,uuid) TO learli_app;
+    GRANT SELECT ON learner_independent_attestations TO learli_app;
+    GRANT EXECUTE ON FUNCTION public.create_independent_learner(text,text,uuid,uuid,text,text,text,text,boolean) TO learli_app;
     GRANT SELECT ON local_workflow_staff, local_workflow_claims TO learli_app;
     GRANT EXECUTE ON FUNCTION public.workflow_identity(text,text,text), public.has_local_workflow_staff(text,text,text), public.claim_local_workflow_task(text,text,text,text,uuid), public.local_workflow_claim_current(text,text,text,text), public.admission_reviewer_allowed(text,text,uuid), public.admission_policy_current(uuid) TO learli_app;
     GRANT SELECT ON transactional_deliveries TO learli_app;

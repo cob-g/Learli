@@ -12,6 +12,8 @@ import { PasswordForm } from "@/features/account-password/password-form";
 import { SignOut } from "@/features/auth/sign-out";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { listTimeZoneOptions } from "@/lib/time/zones";
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
+import { AccountSettingsCards } from "@/features/account/account-settings-cards";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Your account",
@@ -20,10 +22,12 @@ export const metadata: Metadata = {
 export default async function AccountPage() {
   let account;
   let studentReady = false;
+  let localWorkflow = false;
   try {
     const runtime = await getAccountAuthRuntime();
     if (!runtime) throw new AccessError(503);
     const requestHeaders = await headers();
+    localWorkflow = getLocalWorkflow(runtime) !== null;
     account = await readAccount(runtime, requestHeaders);
     if (account.roles.includes("student")) {
       try {
@@ -47,6 +51,16 @@ export default async function AccountPage() {
   const workspaceRoles = account.roles.filter(
     (role) => role !== "student" || studentReady,
   );
+  // Roles moved to the redesigned workspaces so far get the card layout.
+  if (account.roles.includes("admin") || account.roles.includes("tutor"))
+    return (
+      <AccountSettingsCards
+        account={account}
+        timeZones={listTimeZoneOptions(new Date(), [account.timezone])}
+        workspaceRoles={workspaceRoles}
+        localWorkflow={localWorkflow}
+      />
+    );
   return (
     <div className="page-shell page-space">
       <div className="max-w-5xl">
@@ -112,7 +126,7 @@ export default async function AccountPage() {
                 ? "College Student setup and status"
                 : "Set up College Student"}
             </Link>
-            <AdmissionEntry />
+            <AdmissionEntry localWorkflow={localWorkflow} />
             <section
               className="mt-6 border-t border-border pt-6"
               aria-labelledby="account-access-heading"

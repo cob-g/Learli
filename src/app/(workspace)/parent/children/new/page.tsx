@@ -1,3 +1,8 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
+import { readParentChildIntake } from "@/features/parent-children/service";
+import { ParentChildForm } from "@/features/parent-children/form";
+import { canonicalAdmissionSelection } from "@/features/learner-admission/input";
+import { privateBookingHref } from "@/features/bookings/selection";
 import { randomUUID } from "node:crypto";
 import type { Metadata } from "next";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
@@ -18,12 +23,25 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AddChildPage() {
+export default async function AddChildPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string | string[] }>;
+}) {
+  const selected = canonicalAdmissionSelection((await searchParams)?.next);
+  const next = selected ? privateBookingHref(selected) : undefined;
   const result = await loadPrivatePage(
-    "/parent/children/new",
+    next
+      ? `/parent/children/new?next=${encodeURIComponent(next)}`
+      : "/parent/children/new",
     async (runtime, headers) => {
       const identity = await requireIdentity(runtime, headers);
       if (!identity.roles.includes("parent")) throw new AccessError(403);
+      if (getLocalWorkflow(runtime))
+        return {
+          kind: "parent" as const,
+          intake: await readParentChildIntake(runtime, headers),
+        };
       if (hasPersistentWorkflow(runtime))
         return {
           kind: "admission" as const,
@@ -50,15 +68,34 @@ export default async function AddChildPage() {
       />
       <h1 className="mt-4 text-page-title">Add Child</h1>
       <p className="mt-4 max-w-prose text-body">
-        {result.kind === "admission"
-          ? "Save your child’s details for an assigned admission review. Access stays pending until authorized."
-          : "Save a fictional child profile for local testing. This does not verify real consent, age or guardian identity."}
+        {result.kind === "parent"
+          ? "Create a private profile for your child. Confirm your guardian authority and consent, then save to start arranging tutoring."
+          : result.kind === "admission"
+            ? "Save your child’s details for an assigned admission review. Access stays pending until authorized."
+            : "Save a fictional child profile for local testing. This does not verify real consent, age or guardian identity."}
       </p>
       <p className="mt-3 max-w-prose text-small text-muted-foreground">
         Grade is optional; choose the broad education level separately. Only
         provide information needed to arrange tutoring.
       </p>
-      {result.kind === "admission" ? (
+      {result.kind === "parent" ? (
+        result.intake.enabled ? (
+          <ParentChildForm
+            requestId={randomUUID()}
+            policyVersion={result.intake.policyVersion}
+            policyDigest={result.intake.policyDigest}
+            noticeVersion={result.intake.noticeVersion}
+            timezone={result.intake.timezone}
+            zones={listTimeZoneOptions(new Date(), [result.intake.timezone])}
+            next={next}
+          />
+        ) : (
+          <p className="mt-8 text-body">
+            Adding children is temporarily unavailable. Your existing profiles
+            are unchanged; return to My Children or try again later.
+          </p>
+        )
+      ) : result.kind === "admission" ? (
         result.intake.enabled ? (
           <div className="mt-8 max-w-xl rounded-surface border border-border bg-surface p-6 sm:p-8">
             <AdmissionForm

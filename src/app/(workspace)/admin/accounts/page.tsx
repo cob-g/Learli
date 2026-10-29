@@ -8,7 +8,7 @@ import {
   TargetRows,
 } from "@/features/account-restrictions/presentation";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
-import { AdminShell } from "@/features/admin/admin-shell";
+import "@/features/admin/admin-accounts.css";
 import { safePage } from "@/features/support/input";
 import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { getPrivateWorkflow } from "@/features/private-workflow/runtime";
@@ -51,26 +51,37 @@ export default async function Page({
         message="We cannot open local account restrictions on this account. Return to your account or try again later."
       />
     );
+  const reloadHref = result.query
+    ? accountListHref(result.query)
+    : "/admin/accounts";
+  const empty = result.targets.length === 0;
   return (
-    <AdminShell current="accounts">
-      <h1 className="text-page-title">
-        {result.localWorkflow
-          ? "Authorized accounts"
-          : result.privateWorkflow
-            ? "Authorized fictional accounts"
-            : "Authorized local accounts"}
-      </h1>
-      <LocalRestrictionNotice
-        privateWorkflow={result.privateWorkflow}
-        localWorkflow={result.localWorkflow}
-      />
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">Operations</p>
+          <h1>
+            {result.localWorkflow
+              ? "Authorized accounts"
+              : result.privateWorkflow
+                ? "Authorized fictional accounts"
+                : "Authorized local accounts"}
+          </h1>
+          <LocalRestrictionNotice
+            privateWorkflow={result.privateWorkflow}
+            localWorkflow={result.localWorkflow}
+            className=""
+          />
+        </div>
+      </header>
       {result.query && <AccountFilters query={result.query} />}
       <TargetRows
         targets={result.targets}
         query={result.query}
         localWorkflow={result.localWorkflow}
+        reloadHref={empty ? reloadHref : undefined}
       />
-      <nav className="mt-8 flex flex-wrap gap-4" aria-label="Account pages">
+      <nav className="account-pages" aria-label="Account pages">
         {result.page > 1 && (
           <AccountReadLink
             className="action action-outline"
@@ -95,15 +106,12 @@ export default async function Page({
             More accounts
           </AccountReadLink>
         )}
-        <AccountReadLink
-          className="action action-outline"
-          href={
-            result.query ? accountListHref(result.query) : "/admin/accounts"
-          }
-        >
-          Reload accounts
-        </AccountReadLink>
+        {!empty && (
+          <AccountReadLink className="action action-outline" href={reloadHref}>
+            Reload accounts
+          </AccountReadLink>
+        )}
       </nav>
-    </AdminShell>
+    </div>
   );
 }

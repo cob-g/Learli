@@ -65,6 +65,22 @@ const dashboard: DashboardData = {
 };
 
 describe("explicit private workflow presentation", () => {
+  it("guides an ordinary Student without a learner to self-service and removes superseded review navigation", () => {
+    render(
+      <FamilyDashboard
+        data={{ ...dashboard, workspace: "student", learners: [], active: [] }}
+        privateWorkflow
+        ordinaryStudent
+      />,
+    );
+    expect(
+      screen.getByRole("link", { name: "Set up your Student profile" }),
+    ).toHaveAttribute("href", "/student/onboarding");
+    expect(document.querySelector('a[href^="/learner-admission"]')).toBeNull();
+    expect(document.body).not.toHaveTextContent(
+      /reviewer|review|Admission requests/i,
+    );
+  });
   it("makes fictional-only scope and disabled payments visible without an action", () => {
     render(<PrivateWorkflowNotice />);
     const notice = screen.getByRole("complementary", {
@@ -319,6 +335,23 @@ describe("explicit private workflow presentation", () => {
     expect(
       screen.queryByRole("button", { name: /Save|Replace/ }),
     ).not.toBeInTheDocument();
+  });
+
+  it("explains that a provisional booking awaits confirmation without exposing a link", () => {
+    render(
+      <BookingMeetingSection
+        bookingId={row.id}
+        initial={{ state: "awaiting_confirmation" }}
+        privateWorkflow
+      />,
+    );
+    expect(
+      screen.getByText(/awaiting confirmation.*available after confirmation/i),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("link", { name: /meeting|zoom|google/i }),
+    ).toBeNull();
+    expect(screen.queryByRole("textbox")).toBeNull();
   });
 
   it("saves a Tutor-provided link without a meeting-arranged or attendance claim", async () => {

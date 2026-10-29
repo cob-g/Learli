@@ -28,6 +28,65 @@ export type PublicBookingSelection = z.infer<
 >;
 export type SearchValues = Record<string, string | string[] | undefined>;
 
+const privateBookingScopeInput = z.enum(["student", "guardian"]);
+export type PrivateBookingScope = z.infer<typeof privateBookingScopeInput>;
+
+/** Presentation intent only. Authorization still comes from the selected learner. */
+export function parsePrivateBookingScope(
+  value: unknown,
+): PrivateBookingScope | null {
+  const parsed = privateBookingScopeInput.safeParse(value);
+  return parsed.success ? parsed.data : null;
+}
+
+function bookingReturnUrl(next: unknown) {
+  const path = safeReturnPath(typeof next === "string" ? next : undefined);
+  const url = new URL(path, "http://learli.invalid");
+  return { path, url };
+}
+
+function publicReturnParams(url: URL): SearchValues | null {
+  if (
+    !["/bookings/demo", "/bookings/new"].includes(url.pathname) ||
+    url.search.length > 2048 ||
+    url.hash
+  )
+    return null;
+  const params = new URLSearchParams(url.searchParams);
+  // Scope is private presentation metadata. It is never part of the strict
+  // public tutor/subject/time contract, and is never accepted on the demo URL.
+  if (url.pathname === "/bookings/new") params.delete("scope");
+  if ([...params.keys()].some((key) => params.getAll(key).length !== 1))
+    return null;
+  return Object.fromEntries(params);
+}
+
+export function privateBookingScopeFromReturnPath(
+  next: unknown,
+): PrivateBookingScope | null {
+  const { url } = bookingReturnUrl(next);
+  if (
+    url.pathname !== "/bookings/new" ||
+    url.search.length > 2048 ||
+    url.hash ||
+    url.searchParams.getAll("scope").length !== 1
+  )
+    return null;
+  return parsePrivateBookingScope(url.searchParams.get("scope"));
+}
+
+/** Add only validated presentation scope to an already canonical private URL. */
+export function withPrivateBookingScope(
+  path: string,
+  scope: PrivateBookingScope | null,
+) {
+  if (!scope) return path;
+  const url = new URL(path, "http://learli.invalid");
+  if (url.pathname !== "/bookings/new" || url.hash) return path;
+  url.searchParams.set("scope", scope);
+  return `${url.pathname}${url.search}`;
+}
+
 /** Public discovery handoff before the learner's current policy/slot is known.
  * Exact two-field shape; never downgrade a malformed time tuple to discovery. */
 const publicBookingDiscoveryInput = z.strictObject({
@@ -53,18 +112,9 @@ export function bookingDiscoveryHref(
 export function discoveryFromReturnPath(
   next: unknown,
 ): PublicBookingDiscovery | null {
-  const path = safeReturnPath(typeof next === "string" ? next : undefined);
-  const url = new URL(path, "http://learli.invalid");
-  if (
-    !["/bookings/demo", "/bookings/new"].includes(url.pathname) ||
-    url.search.length > 2048 ||
-    url.hash ||
-    [...url.searchParams.keys()].some(
-      (key) => url.searchParams.getAll(key).length !== 1,
-    )
-  )
-    return null;
-  return parsePublicBookingDiscovery(Object.fromEntries(url.searchParams));
+  const { url } = bookingReturnUrl(next);
+  const params = publicReturnParams(url);
+  return params ? parsePublicBookingDiscovery(params) : null;
 }
 
 export function parsePublicBookingSelection(
@@ -97,34 +147,30 @@ export function bookingSelectionHref(
 export function selectionFromReturnPath(
   next: unknown,
 ): PublicBookingSelection | null {
-  const path = safeReturnPath(typeof next === "string" ? next : undefined);
-  const url = new URL(path, "http://learli.invalid");
-  if (
-    !["/bookings/demo", "/bookings/new"].includes(url.pathname) ||
-    url.search.length > 2048 ||
-    url.hash ||
-    [...url.searchParams.keys()].some(
-      (key) => url.searchParams.getAll(key).length !== 1,
-    )
-  )
-    return null;
-  return parsePublicBookingSelection(Object.fromEntries(url.searchParams));
+  const { url } = bookingReturnUrl(next);
+  const params = publicReturnParams(url);
+  return params ? parsePublicBookingSelection(params) : null;
 }
 
 /** Preserve existing safe returns; strip malformed/private fields on this flow. */
 export function safeBookingReturnPath(next: unknown) {
-  const path = safeReturnPath(typeof next === "string" ? next : undefined);
-  const url = new URL(path, "http://learli.invalid");
+  const { path, url } = bookingReturnUrl(next);
   if (!["/bookings/demo", "/bookings/new"].includes(url.pathname)) return path;
   const privateWorkflow = url.pathname === "/bookings/new";
+  const scope = privateBookingScopeFromReturnPath(path);
   const choice = selectionFromReturnPath(path);
-  if (choice) return bookingSelectionHref(choice, privateWorkflow);
+  if (choice)
+    return withPrivateBookingScope(
+      bookingSelectionHref(choice, privateWorkflow),
+      scope,
+    );
   const discovery = discoveryFromReturnPath(path);
-  return discovery
+  const canonical = discovery
     ? bookingDiscoveryHref(discovery, privateWorkflow)
     : privateWorkflow
       ? "/bookings/new"
       : "/bookings/demo";
+  return withPrivateBookingScope(canonical, scope);
 }
 
 /** Presentation conversion only; validators still canonicalize the public fields. */

@@ -199,6 +199,7 @@ test("normal private build connects actual Admin reviews, scoped accounts, booki
       admin.page.getByRole("heading", { name: "Admin workspace", exact: true }),
     ).toBeVisible();
     await admin.page
+      .locator(".workspace-sidebar")
       .getByRole("link", { name: "Subjects", exact: true })
       .click();
     await expect(
@@ -561,6 +562,7 @@ test("normal private build connects actual Admin reviews, scoped accounts, booki
     expect(family.learnerLevel).toBe("high_school");
     await admin.page.goto("/admin");
     await admin.page
+      .locator(".workspace-sidebar")
       .getByRole("link", { name: "Assigned bookings", exact: true })
       .click();
     await expect(
@@ -911,6 +913,7 @@ test("normal private build connects actual Admin reviews, scoped accounts, booki
     ).toBe(404);
     await admin.page.goto("/admin");
     await admin.page
+      .locator(".workspace-sidebar")
       .getByRole("link", { name: "Accounts", exact: true })
       .click();
     await expect(

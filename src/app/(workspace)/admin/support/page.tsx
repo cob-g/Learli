@@ -5,9 +5,8 @@ import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { listDispatchCases } from "@/features/support/dispatch-service";
 import { listCases } from "@/features/support/service";
-import { DemoNotice, CaseRows } from "@/features/support/presentation";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
-import { AdminShell } from "@/features/admin/admin-shell";
+import { AdminSupportCases } from "@/features/admin/admin-support-cases";
 import { safePage } from "@/features/support/input";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -50,28 +49,10 @@ export default async function Page({
       />
     );
   return (
-    <AdminShell current="support">
-      <h1 className="text-page-title">Assigned support cases</h1>
-      <DemoNotice
-        privateWorkflow={result.privateWorkflow}
-        localWorkflow={result.localWorkflow}
-      />
-      {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Native cross-permission navigation replaces the private document. */}
-      <a
-        className="mt-4 inline-flex min-h-11 items-center"
-        href={
-          result.localWorkflow ? "/admin/requests" : "/admin/support/dispatch"
-        }
-      >
-        {result.localWorkflow
-          ? "Unassigned reviews"
-          : "Manage local assignments"}
-      </a>
-      <CaseRows
-        result={result.cases}
-        reviewer={true}
-        localWorkflow={result.localWorkflow}
-      />
-    </AdminShell>
+    <AdminSupportCases
+      cases={result.cases}
+      privateWorkflow={result.privateWorkflow}
+      localWorkflow={result.localWorkflow}
+    />
   );
 }

@@ -3,13 +3,20 @@ import {
   type BookingState,
 } from "@/features/bookings/lifecycle-model";
 import Link from "next/link";
-import { Check, Hourglass, TimerOff } from "lucide-react";
-import { EmptyState } from "@/components/shared/empty-state";
+import {
+  CalendarClock,
+  CalendarDays,
+  Check,
+  History,
+  Hourglass,
+  TimerOff,
+} from "lucide-react";
 import { bookingStatusLabel } from "@/features/private-workflow/notice";
 import {
   LessonTime,
   type LessonTimeValue,
 } from "@/features/bookings/lesson-time";
+import "./tutor-bookings.css";
 
 /** Presentation only. Participant authorization and effective TTL state belong to the booking provider. */
 export type TutorAgendaBooking = {
@@ -57,8 +64,11 @@ function SimulationStatus({
     privateWorkflow && (state === "confirmed" || state === "completed");
   const Icon = success ? Check : expired ? TimerOff : Hourglass;
   return (
-    <span className="inline-flex min-h-7 max-w-full items-center gap-1 rounded-tag border border-control bg-subtle px-2 text-label">
-      <Icon size={16} aria-hidden="true" className="shrink-0 text-primary" />
+    <span
+      className="workspace-pill"
+      data-tone={success ? "success" : expired ? undefined : "waiting"}
+    >
+      <Icon size={14} aria-hidden="true" className="shrink-0" />
       <span className="min-w-0 wrap-anywhere">
         {bookingStatusLabel(state, privateWorkflow)}
       </span>
@@ -81,7 +91,7 @@ function BookingIdentity({ booking }: { booking: TutorAgendaBooking }) {
 function ViewBooking({ booking }: { booking: TutorAgendaBooking }) {
   return (
     <Link
-      className="inline-flex min-h-11 items-center text-action"
+      className="tutor-view-booking"
       href={booking.detailHref}
       aria-label={`View booking for ${booking.learnerLabel}`}
     >
@@ -131,6 +141,7 @@ export function TutorBookingAgenda({
   hasMoreActive,
   hasMoreHistory,
   privateWorkflow = false,
+  emptyAction = { href: "/tutor/availability", label: "Set availability" },
 }: {
   active: readonly TutorAgendaBooking[];
   history: readonly TutorAgendaBooking[];
@@ -138,87 +149,112 @@ export function TutorBookingAgenda({
   hasMoreActive: boolean;
   hasMoreHistory: boolean;
   privateWorkflow?: boolean;
+  /** null when the page already shows the setup action elsewhere. */
+  emptyAction?: { href: string; label: string } | null;
 }) {
   const next = nextTutorSimulation(active, evaluatedAt);
   const agenda = active.filter((booking) => booking.id !== next?.id);
   return (
-    <div className="max-w-5xl space-y-12">
+    <div className="tutor-sessions">
       {next ? (
-        <section
-          aria-labelledby="next-simulation-title"
-          className="rounded-surface border border-border bg-surface p-6 md:p-8"
-        >
-          <h2 id="next-simulation-title" className="text-section-title">
-            {privateWorkflow ? "Next session" : "Next future simulation"}
-          </h2>
-          <div className="mt-6 grid min-w-0 gap-6 md:grid-cols-2">
-            <LessonTime value={next.time} variant="prominent" />
-            <BookingIdentity booking={next} />
-          </div>
-          <div className="mt-4">
-            <SimulationStatus
-              state={next.state}
-              privateWorkflow={privateWorkflow}
-            />
-          </div>
-          <p className="mt-6 max-w-prose border-t border-border pt-6 text-small text-muted-foreground">
-            {privateWorkflow
-              ? next.state === "confirmed"
-                ? "This booking is confirmed. Open its details to manage the private meeting link and session status."
-                : next.state === "provisional"
-                  ? "This provisional hold awaits an assigned review before confirmation."
-                  : "This is a local simulation, not a confirmed lesson."
-              : "This is a local simulation, not a confirmed lesson."}
-          </p>
-          <Expiry booking={next} privateWorkflow={privateWorkflow} />
-          <div className="mt-4">
-            <ViewBooking booking={next} />
+        <section aria-labelledby="next-simulation-title" className="tutor-next">
+          <span className="tutor-next-tile" aria-hidden="true">
+            <CalendarDays size={34} />
+          </span>
+          <div className="min-w-0">
+            <h2 id="next-simulation-title" className="tutor-next-label">
+              {privateWorkflow ? "Next session" : "Next future simulation"}
+            </h2>
+            <div className="mt-4 grid min-w-0 gap-6 md:grid-cols-2">
+              <LessonTime value={next.time} variant="prominent" />
+              <BookingIdentity booking={next} />
+            </div>
+            <div className="mt-4">
+              <SimulationStatus
+                state={next.state}
+                privateWorkflow={privateWorkflow}
+              />
+            </div>
+            <p className="mt-6 max-w-prose border-t border-border pt-6 text-small text-muted-foreground">
+              {privateWorkflow
+                ? next.state === "confirmed"
+                  ? "This booking is confirmed. Open its details to manage the private meeting link and session status."
+                  : next.state === "provisional"
+                    ? "This provisional hold awaits an assigned review before confirmation."
+                    : "This is a local simulation, not a confirmed lesson."
+                : "This is a local simulation, not a confirmed lesson."}
+            </p>
+            <Expiry booking={next} privateWorkflow={privateWorkflow} />
+            <div className="mt-4">
+              <ViewBooking booking={next} />
+            </div>
           </div>
         </section>
       ) : (
-        <EmptyState
-          title={
-            privateWorkflow ? "No upcoming sessions" : "No future simulations"
-          }
-          href="/tutor/availability"
-          action="Set availability"
+        <section
+          aria-labelledby="next-simulation-title"
+          className="tutor-next"
+          data-empty
         >
-          <p>
-            {privateWorkflow
-              ? "Bookings assigned to you will appear here with their current status."
-              : "Your assigned simulated bookings will appear here. A simulation does not confirm a lesson."}
-          </p>
-        </EmptyState>
+          <span className="tutor-next-tile" aria-hidden="true">
+            <CalendarDays size={34} />
+          </span>
+          <div className="min-w-0">
+            <p className="tutor-next-label" aria-hidden="true">
+              {privateWorkflow ? "Next session" : "Next future simulation"}
+            </p>
+            <h2 id="next-simulation-title">
+              {privateWorkflow
+                ? "No upcoming sessions"
+                : "No future simulations"}
+            </h2>
+            <p>
+              {privateWorkflow
+                ? "Bookings assigned to you will appear here with their current status."
+                : "Your assigned simulated bookings will appear here. A simulation does not confirm a lesson."}
+            </p>
+            {emptyAction && (
+              <Link
+                className="action action-outline mt-4"
+                href={emptyAction.href}
+              >
+                {emptyAction.label}
+              </Link>
+            )}
+          </div>
+        </section>
       )}
       <BookingRows
         title={privateWorkflow ? "Upcoming sessions" : "Simulation agenda"}
         bookings={agenda}
         privateWorkflow={privateWorkflow}
+        more={
+          hasMoreActive
+            ? {
+                href: "/bookings?scope=tutor&filter=active",
+                label: privateWorkflow
+                  ? "View all upcoming sessions"
+                  : "View all active simulations",
+              }
+            : undefined
+        }
       />
-      {hasMoreActive && (
-        <Link
-          className="inline-flex min-h-11 items-center text-action"
-          href="/bookings?scope=tutor&filter=active"
-        >
-          {privateWorkflow
-            ? "View all upcoming sessions"
-            : "View all active simulations"}
-        </Link>
-      )}
       <BookingRows
         title={privateWorkflow ? "History" : "Simulation history"}
         bookings={history}
         privateWorkflow={privateWorkflow}
         history
+        more={
+          hasMoreHistory
+            ? {
+                href: "/bookings?scope=tutor&filter=history",
+                label: privateWorkflow
+                  ? "View all history"
+                  : "View all simulation history",
+              }
+            : undefined
+        }
       />
-      {hasMoreHistory && (
-        <Link
-          className="inline-flex min-h-11 items-center text-action"
-          href="/bookings?scope=tutor&filter=history"
-        >
-          {privateWorkflow ? "View all history" : "View all simulation history"}
-        </Link>
-      )}
     </div>
   );
 }
@@ -228,12 +264,15 @@ function BookingRows({
   bookings,
   privateWorkflow = false,
   history = false,
+  more,
 }: {
   title: string;
   bookings: readonly TutorAgendaBooking[];
   privateWorkflow?: boolean;
   history?: boolean;
+  more?: { href: string; label: string };
 }) {
+  const Icon = history ? History : CalendarClock;
   const groups = new Map<string, TutorAgendaBooking[]>();
   for (const booking of bookings) {
     const key = `${booking.time.date}\u0000${booking.time.zone}`;
@@ -242,31 +281,31 @@ function BookingRows({
     groups.set(key, group);
   }
   return (
-    <section aria-label={title}>
-      <h2 className="text-section-title">{title}</h2>
+    <section aria-label={title} className="tutor-panel">
+      <div className="tutor-panel-heading">
+        <span className="tutor-panel-icon" aria-hidden="true">
+          <Icon size={18} />
+        </span>
+        <h2>{title}</h2>
+      </div>
       {bookings.length ? (
-        <div className="mt-6 space-y-8">
+        <div className="tutor-days">
           {[...groups.entries()].map(([key, group]) => (
             <div key={key}>
-              <h3 className="text-item-title text-primary">
-                {group[0].time.date}
-              </h3>
-              <p className="mt-1 text-small text-muted-foreground">
+              <h3 className="tutor-day">{group[0].time.date}</h3>
+              <p className="tutor-day-zone">
                 Times shown in {group[0].time.zone}
               </p>
-              <ul className="mt-4 divide-y divide-border border-y border-border">
+              <ul className="tutor-rows">
                 {group.map((booking) => (
-                  <li
-                    key={booking.id}
-                    className="grid min-w-0 gap-6 py-6 md:flex"
-                  >
-                    <div className="min-w-0 md:w-44 md:shrink-0">
+                  <li key={booking.id}>
+                    <div className="tutor-row-time">
                       <LessonTime value={booking.time} variant="time-only" />
                     </div>
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0">
                       <BookingIdentity booking={booking} />
                     </div>
-                    <div className="min-w-0 flex-1 md:text-right">
+                    <div className="tutor-row-status">
                       <SimulationStatus
                         state={booking.state}
                         privateWorkflow={privateWorkflow}
@@ -284,7 +323,7 @@ function BookingRows({
           ))}
         </div>
       ) : (
-        <p className="mt-4 max-w-prose text-body text-muted-foreground">
+        <p className="tutor-void">
           {privateWorkflow
             ? history
               ? "No booking history on this account."
@@ -293,6 +332,11 @@ function BookingRows({
               ? "No simulation history on this account."
               : "No other active simulations assigned to you."}
         </p>
+      )}
+      {more && (
+        <Link className="tutor-more" href={more.href}>
+          {more.label}
+        </Link>
       )}
     </section>
   );

@@ -19,6 +19,21 @@ test.use({ trace: "off", screenshot: "off", video: "off" });
 test.describe.configure({ mode: "serial" });
 test.beforeAll(ensureOwner);
 test.afterAll(closeOwner);
+
+function localPickerValue(instant: string | Date) {
+  const date = new Date(instant);
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function screeningCheckLabel(code: string) {
+  if (code === "identity") return "Identity check";
+  if (code === "eligibility") return "Eligibility check";
+  return code
+    .replaceAll("_", " ")
+    .replace(/^./, (letter) => letter.toUpperCase());
+}
+
 test("ordinary shipped screening and intake remain disabled without synthetic composition", async ({
   browser,
 }) => {
@@ -165,25 +180,33 @@ test("application, missing-check denial, page evidence, current discovery, amend
   ).toBeFocused();
   await accessible(reviewer.page, info, "screening");
   await noJs(browser, reviewer.context, "/admin/tutors/" + profile.id);
+  await expect(reviewer.page.getByLabel("Evidence reference")).toHaveCount(0);
+  const reviewerTimeZone = await reviewer.page.evaluate(
+    () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+  );
+  await expect(reviewer.page.getByText(/Times entered here use/)).toContainText(
+    reviewerTimeZone,
+  );
   for (const code of ["synthetic_check_a", "synthetic_check_b"]) {
     await reviewer.page.getByLabel("Required check").selectOption(code);
     await reviewer.page
-      .getByLabel("Evidence reference")
-      .fill("screening:" + randomUUID());
+      .getByLabel("Checked at")
+      .fill(localPickerValue(new Date(Date.now() - 1000)));
     await reviewer.page
-      .getByLabel("Checked at (UTC ISO date)")
-      .fill(new Date(Date.now() - 1000).toISOString());
-    await reviewer.page
-      .getByLabel("Expires at (UTC ISO date)")
-      .fill(f.screening.validUntil);
+      .getByLabel("Expires at")
+      .fill(localPickerValue(f.screening.validUntil));
     await reviewer.page
       .getByRole("button", { name: "Record check", exact: true })
       .click();
+    const checkCard = reviewer.page
+      .getByRole("listitem")
+      .filter({ hasText: screeningCheckLabel(code) });
     await expect(
-      reviewer.page.getByText(code + ": Current passed evidence", {
-        exact: true,
-      }),
+      checkCard.getByText("Passed and current", { exact: true }),
     ).toBeVisible();
+    await expect(checkCard.locator("code")).toHaveText(
+      /^screening:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    );
   }
   const approvalTrigger = reviewer.page.getByRole("button", {
     name: "Approve synthetic screening",
@@ -288,17 +311,17 @@ test("application, missing-check denial, page evidence, current discovery, amend
     .selectOption("synthetic_check_a");
   await reviewer.page.getByLabel("Check result").selectOption("revoked");
   await reviewer.page
-    .getByLabel("Evidence reference")
-    .fill("screening:" + randomUUID());
+    .getByLabel("Checked at")
+    .fill(localPickerValue(new Date(Date.now() - 1000)));
   await reviewer.page
-    .getByLabel("Checked at (UTC ISO date)")
-    .fill(new Date(Date.now() - 1000).toISOString());
-  await reviewer.page
-    .getByLabel("Expires at (UTC ISO date)")
-    .fill(f.screening.validUntil);
+    .getByLabel("Expires at")
+    .fill(localPickerValue(f.screening.validUntil));
   await reviewer.page.getByRole("button", { name: "Record check" }).click();
+  const revokedCheck = reviewer.page
+    .getByRole("listitem")
+    .filter({ hasText: screeningCheckLabel("synthetic_check_a") });
   await expect(
-    reviewer.page.getByText("synthetic_check_a: revoked", { exact: true }),
+    revokedCheck.getByText("Revoked", { exact: true }),
   ).toBeVisible();
   await decision(reviewer.page, "Reinstate synthetic screening");
   await expect(

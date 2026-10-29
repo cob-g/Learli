@@ -344,6 +344,12 @@ describe("hosted callbacks", () => {
         hostedTestOrigin,
       ),
     ).toBe(true);
+    expect(
+      safeHostedCallback(
+        "/sign-in?verified=1&next=%2Fbookings%2Fnew%3Fscope%3Dstudent",
+        hostedTestOrigin,
+      ),
+    ).toBe(true);
     expect(safeHostedCallback("/reset-password", hostedTestOrigin, true)).toBe(
       true,
     );

@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  bookingDiscoveryHref,
   safeBookingReturnPath,
   privateBookingHref,
   bookingSelectionHref,
+  privateBookingScopeFromReturnPath,
+  selectionFromReturnPath,
 } from "@/features/bookings/selection";
 import { canonicalAdmissionSelection } from "@/features/learner-admission/input";
 
@@ -48,6 +51,55 @@ describe("public tutor and subject survive authentication and admission", () => 
   it("retains the exact public pair without inventing a learner, level or time", () => {
     expect(safeBookingReturnPath(choice)).toBe(choice);
     expect(canonicalAdmissionSelection(choice)).toBe(choice);
+  });
+  it.each(["student", "guardian"] as const)(
+    "preserves validated private %s scope separately from public booking fields",
+    (scope) => {
+      const privateDiscovery = `${choice.replace("/demo?", "/new?")}&scope=${scope}`;
+      expect(safeBookingReturnPath(`/bookings/new?scope=${scope}`)).toBe(
+        `/bookings/new?scope=${scope}`,
+      );
+      expect(safeBookingReturnPath(privateDiscovery)).toBe(privateDiscovery);
+      expect(privateBookingScopeFromReturnPath(privateDiscovery)).toBe(scope);
+      expect(canonicalAdmissionSelection(privateDiscovery)).toBe(choice);
+
+      const publicSelection = bookingSelectionHref({
+        tutorSlug: "fictional-tutor",
+        subjectSlug: "math",
+        level: "middle_school",
+        displayTimezone: "Asia/Manila",
+        startAtUtc: "2026-10-20T00:00:00.000Z",
+        endAtUtc: "2026-10-20T01:00:00.000Z",
+      });
+      const privateSelection = `${publicSelection.replace("/demo?", "/new?")}&scope=${scope}`;
+      expect(safeBookingReturnPath(privateSelection)).toBe(privateSelection);
+      expect(selectionFromReturnPath(privateSelection)).not.toBeNull();
+      expect(canonicalAdmissionSelection(privateSelection)).toBe(
+        publicSelection,
+      );
+    },
+  );
+  it("strips invalid private scope and never carries private or authoritative fields", () => {
+    const privateChoice = bookingDiscoveryHref(
+      { tutorSlug: "fictional-tutor", subjectSlug: "math" },
+      true,
+    );
+    for (const suffix of ["&scope=tutor", "&scope=student&scope=guardian"]) {
+      expect(safeBookingReturnPath(privateChoice + suffix)).toBe(privateChoice);
+      expect(
+        privateBookingScopeFromReturnPath(privateChoice + suffix),
+      ).toBeNull();
+    }
+    for (const suffix of ["&learnerId=private", "&role=admin", "&paid=1"])
+      expect(
+        safeBookingReturnPath(`${privateChoice}&scope=student${suffix}`),
+      ).toBe("/bookings/new?scope=student");
+    expect(safeBookingReturnPath(`${choice}&scope=student`)).toBe(
+      "/bookings/demo",
+    );
+    expect(
+      privateBookingScopeFromReturnPath(`${choice}&scope=student`),
+    ).toBeNull();
   });
   it.each([
     choice + "&learnerId=private-record",

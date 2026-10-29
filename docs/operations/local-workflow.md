@@ -46,27 +46,42 @@ No request body can grant this access.
 
 ## Daily role flow
 
-1. Parent enrolls through account settings, then saves a minimal child request
-   under My Children. Independent eligible College learners use their own
-   admission request. Saved requests remain pending until assigned review.
-2. Tutor submits a profile, subjects/levels, time zone and hours, and requests
+1. A verified active Parent enrolls through account settings, then uses My
+   Children → Add Child. Minimal details, explicit guardian confirmation and
+   consent create a NEW private child profile ready for booking immediately.
+   Ordinary creation, additional children and grade edits require no Admin
+   approval. Email verification and the declaration are not proof of guardianship.
+   Existing-account claims are separate; never link by name/email. Earlier pending
+   requests remain intact.
+2. A verified active eligible independent adult uses College Student setup to
+   create one self-managed College Support profile with an explicit unchecked
+   adult/legal-eligibility declaration. This self-attestation is unverified;
+   College Support is an education level, not proof of adulthood. Successful
+   atomic setup grants Student access without routine Admin admission. New
+   ordinary independent requests do not enter the legacy review queue.
+3. Tutor submits a profile, subjects/levels, time zone and hours, and requests
    screening. Unapproved or currently ineligible Tutors are not discoverable.
-3. Current-MFA authorized Admin opens Unassigned reviews, claims an exact request,
+4. For tutor screening, historical v1 admissions and exceptional cases,
+   current-MFA authorized Admin opens Unassigned reviews, claims an exact request,
    records the checks actually performed and explicitly decides access. Claiming
    alone creates neither evidence nor approval. Own/conflicting requests and
    another reviewer's assignments remain inaccessible.
-4. Parent or authorized independent learner chooses an available60-minute slot
-   and requests a booking. The ten-minute provisional hold is explicit. Admin
-   claims that booking and reviews prerequisites before confirming it.
-5. The same saved booking is available to its authorized learner/guardian,
+5. Parent chooses their authorized child, or Student their authorized self
+   profile, and an eligible available60-minute tutor slot. Valid new Parent-v2
+   and Independent-v2 bookings confirm atomically under their exact terms without
+   routine Admin confirmation or a provisional deadline. Confirmed means no-money
+   coordination, never paid; payments remain disabled. Historical v1 bookings
+   retain their original ten-minute provisional hold and assigned prerequisite
+   review. No attendance is implied by confirmation.
+6. The same saved booking is available to its authorized learner/guardian,
    assigned Tutor and specifically assigned Admin. Admin sees minimum coordination
    details and never receives participant meeting-link access.
-6. Tutor supplies a validated private Zoom/Meet link. Learli does not create or
+7. Tutor supplies a validated private Zoom/Meet link. Learli does not create or
    host the meeting and does not verify attendance.
-7. Authorized changes require60-minute notice and recheck availability/ownership.
+8. Authorized changes require60-minute notice and recheck availability/ownership.
    Rescheduling preserves history and retires the old private link. Confirmed
-   bookings survive their original provisional deadline. Assigned Tutor records
-   completion only after saved scheduled end, independent of ending a video call.
+   legacy bookings survive their original provisional deadline. Assigned Tutor
+   records completion only after saved scheduled end, independent of ending a video call.
 
 Local operating settings retain30-minute start increments,60-minute advance
 notice and a14-day booking horizon. No customer commercial terms, trial, price,
@@ -100,3 +115,16 @@ Trusted Admin preparation locks both identity and account status, sharing the
 supported restriction path's serialization. Do not use ad hoc owner SQL to grant
 roles while account restrictions are in progress; the supported CLI and normal
 restricted application path are the tested boundary.
+
+The Oct18 automatic-parent-child decision adds guardian admission-v2 and Parent
+booking-v2 without replacing the original v1 heads or receipts. Owner policy
+preparation installs only exact additive receipts and refuses revoked or
+incompatible state; it does not elevate an account unless an exact Admin was
+explicitly selected. Newly attested children do not enter a routine Admin queue.
+The Oct18 independent-adult-self-service decision adds distinct immutable
+`local-independent-admission-v2` and `local-independent-booking-v2` receipts for
+the independent path above. Historical admissions, policy receipts, evidence,
+booking/history rows and audits remain unchanged and readable under their
+original contracts; pending/rejected/revoked records are not auto-approved.
+Independent minor access, existing-account linking, public-market eligibility
+and consent/legal rules, and staffed safeguarding remain separate gates.

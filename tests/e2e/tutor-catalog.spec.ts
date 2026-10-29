@@ -256,9 +256,10 @@ test("a tutor applies, an admin decides, and each sees the stored result", async
     new Date(Date.now() + 3600000),
   );
   await admin.goto("/admin");
-  await admin.getByRole("link", { name: "Tutor review queue" }).click();
+  const adminNav = admin.getByRole("navigation", { name: "Admin work areas" });
+  await adminNav.getByRole("link", { name: "Tutor review queue" }).click();
   await expect(
-    admin.getByRole("link", { name: "Tutor review queue" }),
+    adminNav.getByRole("link", { name: "Tutor review queue" }),
   ).toHaveAttribute("aria-current", "page");
   await expectAccessible(admin);
   await admin.setViewportSize({ width: 320, height: 720 });

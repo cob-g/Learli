@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import "@/components/workspace/workspace-shell.css";
+import "@/components/workspace/workspace-page.css";
 import { PrivateDocumentBoundary } from "@/features/auth/document-boundary";
 import { getDomainAuthRuntime } from "@/lib/auth";
 import { getScreeningContext } from "@/features/tutor-screening/composition";

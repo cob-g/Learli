@@ -9,6 +9,8 @@ const reads = vi.hoisted(() => ({
   intake: vi.fn(),
   list: vi.fn(),
   groups: vi.fn(),
+  local: vi.fn(),
+  independent: vi.fn(),
 }));
 vi.mock("@/features/learner-admission/context", () => ({
   admissionContext: reads.context,
@@ -19,6 +21,12 @@ vi.mock("@/features/learner-admission/service", () => ({
 }));
 vi.mock("@/features/learners/composition", () => ({
   listLearnerGroups: reads.groups,
+}));
+vi.mock("@/features/local-workflow/runtime", () => ({
+  getLocalWorkflow: reads.local,
+}));
+vi.mock("@/features/independent-learner/service", () => ({
+  readIndependentLearnerIntake: reads.independent,
 }));
 const runtime = {} as AuthRuntime,
   headers = new Headers();
@@ -31,6 +39,15 @@ beforeEach(() => {
   reads.intake.mockResolvedValue({ enabled: true });
   reads.list.mockResolvedValue({ items: [], nextCursor: null });
   reads.groups.mockResolvedValue({ demo: [], readiness: [] });
+  reads.local.mockReturnValue(null);
+  reads.independent.mockResolvedValue({
+    enabled: true,
+    existingLearnerId: null,
+    policyVersion: "local-independent-admission-v2",
+    policyDigest: "a".repeat(64),
+    noticeVersion: "local-independent-notice-v2",
+    timezone: "Asia/Manila",
+  });
 });
 describe("College Student setup authorized read composition", () => {
   it("keeps default admission disabled and asks the identity-checked intake service before continuing", async () => {
@@ -40,8 +57,10 @@ describe("College Student setup authorized read composition", () => {
     });
     reads.intake.mockResolvedValue({ enabled: false });
     expect(await readStudentOnboarding(runtime, headers)).toEqual({
+      kind: "legacy",
       enabled: false,
       admissionId: null,
+      existingLearnerId: null,
     });
     expect(reads.intake).toHaveBeenCalledWith(
       { runtime, admission: { authority: "disabled" } },
@@ -51,8 +70,10 @@ describe("College Student setup authorized read composition", () => {
   });
   it("offers intake to a fresh roleless account through existing reads only", async () => {
     expect(await readStudentOnboarding(runtime, headers)).toEqual({
+      kind: "legacy",
       enabled: true,
       admissionId: null,
+      existingLearnerId: null,
     });
     expect(reads.list).toHaveBeenCalledWith(
       reads.context.mock.results[0].value,
@@ -69,11 +90,35 @@ describe("College Student setup authorized read composition", () => {
         nextCursor: null,
       });
       expect(await readStudentOnboarding(runtime, headers)).toEqual({
+        kind: "legacy",
         enabled: false,
         admissionId: "own-self",
+        existingLearnerId: null,
       });
     },
   );
+  it("uses independent self-service locally while retaining historical v1 requests", async () => {
+    reads.local.mockReturnValue({ authority: "local_operation" });
+    expect(await readStudentOnboarding(runtime, headers)).toMatchObject({
+      kind: "independent",
+      enabled: true,
+      admissionId: null,
+      policyVersion: "local-independent-admission-v2",
+    });
+    expect(reads.independent).toHaveBeenCalledWith(runtime, headers);
+
+    reads.list.mockResolvedValue({
+      items: [{ id: "legacy-self", management: "self", state: "pending" }],
+      nextCursor: null,
+    });
+    expect(await readStudentOnboarding(runtime, headers)).toEqual({
+      kind: "legacy",
+      enabled: false,
+      admissionId: "legacy-self",
+      existingLearnerId: null,
+    });
+    expect(reads.independent).toHaveBeenCalledTimes(1);
+  });
   it("finds self admission behind the twenty retained guardian requests and fails closed on unexpected overflow", async () => {
     reads.list
       .mockResolvedValueOnce({

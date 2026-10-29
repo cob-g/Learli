@@ -43,7 +43,9 @@
     "delivery:drain": "node --conditions=react-server --import tsx scripts/transactional-delivery.ts",
     "neon:database": "tsx scripts/neon-database.ts",
     "test:e2e:private": "node scripts/with-test-env.mjs node_modules/.bin/playwright test --config playwright.private-workflow.config.ts",
-    "private-workflow:operator": "node --import tsx scripts/private-workflow.ts"
+    "private-workflow:operator": "node --import tsx scripts/private-workflow.ts",
+    "dev:meet": "node --import tsx scripts/run-with-meet.ts",
+    "meet:prepare-worker": "node --import tsx scripts/google-meet-worker-setup.ts --prepare-local"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.7",
@@ -55,16 +57,17 @@
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "drizzle-orm": "0.45.4",
+    "google-auth-library": "11.3.1",
     "lucide-react": "1.55.0",
-    "next": "16.4.0",
+    "next": "16.4.3",
     "pg": "8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "resend": "6.32.1",
     "server-only": "0.0.1",
     "tailwind-merge": "3.7.0",
-    "zod": "4.6.5",
-    "tsx": "4.23.15"
+    "tsx": "4.23.15",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
@@ -82,7 +85,7 @@
     "auth": "1.7.7",
     "drizzle-kit": "0.31.11",
     "eslint": "9.39.5",
-    "eslint-config-next": "16.4.0",
+    "eslint-config-next": "16.4.3",
     "eslint-config-prettier": "10.1.8",
     "jsdom": "30.1.2",
     "postcss": "8.5.29",

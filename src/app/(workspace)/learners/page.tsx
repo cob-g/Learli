@@ -1,3 +1,5 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
+import { requireIdentity } from "@/lib/permissions/access";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LearnerLink } from "@/features/learners/learner-link";
@@ -24,8 +26,14 @@ export default async function LearnersPage() {
             .then((context) => context.modes)
             .catch(() => [])
         : [];
+      const localWorkflow = getLocalWorkflow(runtime) !== null;
+      const ordinaryParent =
+        localWorkflow &&
+        (await requireIdentity(runtime, headers)).roles.includes("parent");
       return {
         ...base,
+        ordinaryParent,
+        localWorkflow,
         createModes,
         privateWorkflow: hasPersistentWorkflow(runtime),
       };
@@ -46,9 +54,13 @@ export default async function LearnersPage() {
     <div className="page-shell page-space">
       <h1 className="text-page-title">Your learners</h1>
       <p className="mt-4 max-w-prose text-body text-muted-foreground">
-        {privateWorkflow
-          ? "Only learners with current authorized access appear here. Check admission requests for pending reviews."
-          : "Local testing only. Use fictional learner details."}
+        {groups.ordinaryParent
+          ? "Your private child profiles are ready for tutoring when current guardian access is authorized."
+          : groups.localWorkflow
+            ? "Only learners with current authorized access appear here."
+            : privateWorkflow
+              ? "Only learners with current authorized access appear here. Check admission requests for pending reviews."
+              : "Local testing only. Use fictional learner details."}
       </p>
       {learners.length ? (
         <ul className="mt-8 max-w-5xl divide-y divide-border">
@@ -63,9 +75,11 @@ export default async function LearnersPage() {
                 </h2>
                 <p className="mt-2 text-caption">
                   {groups.readiness.some((row) => row.id === learner.id)
-                    ? privateWorkflow
-                      ? "Reviewed admission"
-                      : "Synthetic reviewed admission"
+                    ? groups.localWorkflow
+                      ? "Current authorized access"
+                      : privateWorkflow
+                        ? "Reviewed admission"
+                        : "Synthetic reviewed admission"
                     : "Local demonstration"}
                 </p>
                 <p className="mt-2 text-body">
@@ -86,9 +100,13 @@ export default async function LearnersPage() {
         <section className="mt-8 max-w-prose">
           <h2 className="text-item-title">No learner profiles available</h2>
           <p className="mt-2 text-body">
-            {privateWorkflow
-              ? "Request an admission review to add a learner. A pending request does not grant profile or booking access."
-              : "This account has no authorized local learner profiles. Create a fictional profile for the local demonstration."}
+            {groups.ordinaryParent
+              ? "Add your child and confirm your guardian authority and consent to start arranging tutoring."
+              : groups.localWorkflow
+                ? "Set up your Student profile and confirm your independent eligibility to start arranging tutoring."
+                : privateWorkflow
+                  ? "Request an admission review to add a learner. A pending request does not grant profile or booking access."
+                  : "This account has no authorized local learner profiles. Create a fictional profile for the local demonstration."}
           </p>
         </section>
       )}
@@ -101,16 +119,30 @@ export default async function LearnersPage() {
       )}
       {groups.admissionEnabled && (
         <LearnerLink
-          href="/learner-admission/new"
+          href={
+            groups.ordinaryParent
+              ? "/parent/children/new"
+              : groups.localWorkflow
+                ? "/student/onboarding"
+                : "/learner-admission/new"
+          }
           className={
             privateWorkflow
               ? "action action-primary mt-8"
               : "action action-outline ms-4 mt-8"
           }
-          label={privateWorkflow ? "Add a learner" : "Request admission review"}
+          label={
+            groups.ordinaryParent
+              ? "Add Child"
+              : groups.localWorkflow
+                ? "Set up your Student profile"
+                : privateWorkflow
+                  ? "Add a learner"
+                  : "Request admission review"
+          }
         />
       )}
-      {privateWorkflow && (
+      {privateWorkflow && !groups.localWorkflow && (
         <LearnerLink
           href="/learner-admission"
           className="ms-4 mt-8 inline-flex min-h-11 items-center"

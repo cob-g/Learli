@@ -51,6 +51,11 @@ export function BookingDetailView({
   reviewSection?: ReactNode;
   privateWorkflow?: boolean;
 }) {
+  const directConfirmation =
+    booking.source === "local_operation" &&
+    ["local-parent-booking-v2", "local-independent-booking-v2"].includes(
+      booking.policyVersion ?? "",
+    );
   return (
     <div className="page-shell page-space">
       <LifecycleHeading booking={booking} privateWorkflow={privateWorkflow} />
@@ -92,22 +97,24 @@ export function BookingDetailView({
             <dt className="text-label text-muted-foreground">Subject</dt>
             <dd className="mt-2 text-body">{booking.subject.name}</dd>
           </div>
-          <div>
-            <dt className="text-label text-muted-foreground">
-              {booking.source !== "local_simulation"
-                ? "Original provisional deadline"
-                : [
-                      "demo_cancelled",
-                      "demo_replaced",
-                      "demo_completed",
-                    ].includes(booking.state)
-                  ? "Original simulation deadline"
-                  : "Simulation expiry"}
-            </dt>
-            <dd className="mt-2">
-              <LessonTime value={booking.expires} />
-            </dd>
-          </div>
+          {!directConfirmation && (
+            <div>
+              <dt className="text-label text-muted-foreground">
+                {booking.source !== "local_simulation"
+                  ? "Original provisional deadline"
+                  : [
+                        "demo_cancelled",
+                        "demo_replaced",
+                        "demo_completed",
+                      ].includes(booking.state)
+                    ? "Original simulation deadline"
+                    : "Simulation expiry"}
+              </dt>
+              <dd className="mt-2">
+                <LessonTime value={booking.expires} />
+              </dd>
+            </div>
+          )}
         </dl>
         {meetingSection}
         {reviewSection}
@@ -125,8 +132,9 @@ export function BookingDetailView({
         <section className="mt-8 border-t border-border pt-8">
           <h2 className="text-section-title">Saved booking history</h2>
           <p className="mt-2 text-small text-muted-foreground">
-            Only saved events appear below. An elapsed deadline can display
-            expiry before an expiry event is saved.
+            {directConfirmation
+              ? "Only saved booking events appear below."
+              : "Only saved events appear below. An elapsed deadline can display expiry before an expiry event is saved."}
           </p>
           {booking.events.length ? (
             <ol className="mt-4 divide-y divide-border">

@@ -680,6 +680,7 @@ describe("admin review", () => {
         headline: "Synthetic algebra tutor",
         reviewStatus: "pending",
         createdAt: expect.any(Date),
+        screening: null,
       },
     ]);
     expect(

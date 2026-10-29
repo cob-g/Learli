@@ -48,19 +48,26 @@ export default async function Page({
       />
     );
   const { row, privateWorkflow } = result;
+  const parentDeclared =
+    row.policyVersion === "local-guardian-admission-v2" &&
+    row.management === "guardian";
   const next = incomingNext ?? row.next;
   return (
     <div className="page-shell page-space">
       <LearnerLink
-        href="/learner-admission"
+        href={parentDeclared ? "/parent/children" : "/learner-admission"}
         className="inline-flex min-h-11 items-center"
-        label="Admission requests"
+        label={parentDeclared ? "My Children" : "Admission requests"}
       />
-      <h1 className="mt-4 text-page-title">Admission request</h1>
+      <h1 className="mt-4 text-page-title">
+        {parentDeclared ? "Child profile consent record" : "Admission request"}
+      </h1>
       <p className="mt-4 max-w-prose text-body">
-        {privateWorkflow
-          ? "This request records the learner’s review status and current access."
-          : "Synthetic readiness only. This record establishes no real consent or eligibility."}
+        {parentDeclared
+          ? "This record contains your guardian declaration, consent and current access status for the new child profile. No routine Admin approval is required."
+          : privateWorkflow
+            ? "This request records the learner’s review status and current access."
+            : "Synthetic readiness only. This record establishes no real consent or eligibility."}
       </p>
       <section
         className="mt-6 max-w-prose rounded-surface border border-border bg-surface p-6 sm:p-8"
@@ -99,7 +106,9 @@ export default async function Page({
                 ? privateWorkflow
                   ? "Learner access is currently authorized."
                   : "Synthetic learner access is currently authorized."
-                : "An authorization decision is recorded, but current learner access is unavailable."
+                : parentDeclared
+                  ? "Your guardian declaration and consent are recorded, but current child profile access is unavailable."
+                  : "An authorization decision is recorded, but current learner access is unavailable."
               : "Current learner access is unavailable. The decision history is retained."}
         </p>
       </section>

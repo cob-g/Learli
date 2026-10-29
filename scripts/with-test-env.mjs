@@ -11,6 +11,11 @@ const env = {
   DATABASE_MODE: "local",
   NEON_DEVELOPMENT_CONFIG_FILE: "",
   LOCAL_WORKFLOW_MODE: "disabled",
+  GOOGLE_MEET_ENABLED: "false",
+  GOOGLE_MEET_CLIENT_ID: "",
+  GOOGLE_MEET_CLIENT_SECRET: "",
+  GOOGLE_MEET_WORKER_DATABASE_URL: "",
+  GOOGLE_MEET_KEYS: "",
   // Private workflow browser tests explicitly opt in through their own config.
   PRIVATE_WORKFLOW_CONFIG_FILE: "",
 };

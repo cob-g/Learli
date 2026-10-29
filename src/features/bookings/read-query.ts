@@ -69,7 +69,27 @@ export async function queryParticipantBookings(
           'subjectName', b.subject_name, 'subjectSlug', b.subject_slug,
           'learnerId', b.learner_id, 'learnerName', b.learner_name, 'learnerLevel', b.learner_level,
           'state', b.booking_state, 'start', b.start_at_utc, 'end', b.end_at_utc,
-          'expires', b.booking_expires_at, 'events', ${bookingId ? sql`COALESCE((SELECT jsonb_agg(jsonb_build_object('id', e.id, 'event', e.event, 'at', e.created_at) ORDER BY e.created_at ASC, CASE e.event WHEN 'demo_reserved' THEN 0 WHEN 'demo_confirmed' THEN 1 WHEN 'demo_completed' THEN 2 ELSE 3 END ASC, e.id ASC) FROM (SELECT e.id,e.event,e.created_at FROM booking_events e JOIN bookings eb ON eb.id=e.booking_id WHERE eb.logical_booking_id=b.logical_booking_id UNION ALL SELECT le.id,le.event,le.created_at FROM booking_lifecycle_events le WHERE le.logical_booking_id=b.logical_booking_id) e), '[]'::jsonb)` : sql`'[]'::jsonb`}
+          'expires', b.booking_expires_at, 'events', ${
+            bookingId
+              ? sql`COALESCE((SELECT jsonb_agg(jsonb_build_object('id', e.id, 'event', e.event, 'at', e.created_at) ORDER BY e.booking_revision ASC, e.transition_revision ASC, e.created_at ASC, e.event_phase ASC, e.id ASC) FROM (
+            SELECT e.id,e.event,e.created_at,eb.revision AS booking_revision,0 AS transition_revision,
+              CASE e.event WHEN 'demo_reserved' THEN 0 ELSE 90 END AS event_phase
+            FROM booking_events e JOIN bookings eb ON eb.id=e.booking_id
+            WHERE eb.logical_booking_id=b.logical_booking_id
+            UNION ALL
+            SELECT le.id,le.event,le.created_at,lb.revision AS booking_revision,coalesce(le.workflow_revision,0) AS transition_revision,
+              CASE le.event
+                WHEN 'demo_confirmed' THEN 10 WHEN 'workflow_provisional' THEN 10 WHEN 'workflow_confirmed' THEN 20
+                WHEN 'demo_rescheduled' THEN 30 WHEN 'workflow_rescheduled' THEN 30
+                WHEN 'demo_cancelled' THEN 40 WHEN 'workflow_cancelled' THEN 40
+                WHEN 'demo_completed' THEN 50 WHEN 'workflow_completed' THEN 50
+                WHEN 'workflow_no_show' THEN 60 WHEN 'workflow_expired' THEN 70 ELSE 80
+              END AS event_phase
+            FROM booking_lifecycle_events le JOIN bookings lb ON lb.id=le.booking_id
+            WHERE le.logical_booking_id=b.logical_booking_id
+          ) e), '[]'::jsonb)`
+              : sql`'[]'::jsonb`
+          }
         )`;
   const result = await db.execute<ReadSnapshot>(sql`
     WITH actor AS (

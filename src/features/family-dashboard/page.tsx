@@ -1,3 +1,4 @@
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { FamilyDashboard } from "./dashboard";
 import { DashboardUnavailable } from "./states";
@@ -18,12 +19,18 @@ export async function FamilyDashboardPage({
     async (runtime, headers) => ({
       data: await readFamilyDashboard(runtime, headers, workspace, query),
       privateWorkflow: hasPersistentWorkflow(runtime),
+      ordinaryParent:
+        workspace === "parent" && getLocalWorkflow(runtime) !== null,
+      ordinaryStudent:
+        workspace === "student" && getLocalWorkflow(runtime) !== null,
     }),
   );
   return result ? (
     <FamilyDashboard
       data={result.data}
       privateWorkflow={result.privateWorkflow}
+      ordinaryParent={result.ordinaryParent}
+      ordinaryStudent={result.ordinaryStudent}
     />
   ) : (
     <DashboardUnavailable workspace={workspace} />

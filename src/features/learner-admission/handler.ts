@@ -5,6 +5,9 @@ import { handleJsonMutation } from "@/lib/mutation-handler";
 import { AccessError } from "@/lib/permissions/access";
 import { describeLearnerIssues } from "@/features/learners/input";
 import { admissionContext } from "./context";
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
+import { RuleError } from "@/lib/rule-error";
+import { admissionInput } from "./input";
 import {
   createAdmission,
   listMyAdmissions,
@@ -47,10 +50,25 @@ export async function handleAdmissionRequest(
       runtime,
       request,
       { method: "POST", invalid: describeLearnerIssues },
-      (_runtime, input) =>
-        review && id && review !== "read"
-          ? mutateAdmissionReview(active, request.headers, id, review, input)
-          : createAdmission(active, request.headers, input),
+      (_runtime, input) => {
+        if (review && id && review !== "read")
+          return mutateAdmissionReview(
+            active,
+            request.headers,
+            id,
+            review,
+            input,
+          );
+        const value = admissionInput.parse(input);
+        if (getLocalWorkflow(runtime))
+          throw new RuleError(
+            409,
+            value.management === "guardian"
+              ? "Use Add Child to create a new private child profile with your guardian confirmation and consent."
+              : "Set up your Student profile at /student/onboarding to confirm your independent eligibility and continue.",
+          );
+        return createAdmission(active, request.headers, value);
+      },
     );
   }
   if (request.method !== "GET")

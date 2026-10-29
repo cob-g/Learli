@@ -82,6 +82,23 @@ describe("tutor simulation presentation", () => {
     ).toBeVisible();
     expect(screen.queryByText("View booking")).not.toBeInTheDocument();
   });
+  it("uses the server-composed first unmet readiness action", () => {
+    render(
+      <TutorBookingAgenda
+        active={[]}
+        history={[]}
+        hasMoreActive={false}
+        hasMoreHistory={false}
+        emptyAction={{ href: "/tutor/screening", label: "Continue screening" }}
+      />,
+    );
+    expect(
+      screen.getByRole("link", { name: "Continue screening" }),
+    ).toHaveAttribute("href", "/tutor/screening");
+    expect(
+      screen.queryByRole("link", { name: "Set availability" }),
+    ).not.toBeInTheDocument();
+  });
   it("keeps active, expired and repeated DST-hour records distinct without forbidden actions", () => {
     agenda(
       [booking("next"), booking("second", "2026-11-01T06:00:00Z")],

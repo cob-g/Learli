@@ -69,6 +69,17 @@ beforeAll(async () => {
     )
   )[20];
   if (!move) throw new Error("Required replacement fixture slot unavailable.");
+  // The receipt must use the account behind the authenticated requester headers.
+  const requesterAccount = (
+    await f.world.owner.pool.query<{ id: string; timezone: string }>(
+      'SELECT id,timezone FROM "user" WHERE id=$1',
+      [f.fixture.requester.id],
+    )
+  ).rows[0];
+  expect(requesterAccount).toMatchObject({
+    id: f.fixture.requester.id,
+    timezone: expect.any(String),
+  });
   current = await changePolicyBooking(
     f.fixture.context,
     f.fixture.requester.headers,
@@ -80,7 +91,7 @@ beforeAll(async () => {
       reasonCode: "synthetic_participant_change",
       startAtUtc: move.startAtUtc,
       endAtUtc: move.endAtUtc,
-      displayTimezone: "Asia/Manila",
+      displayTimezone: requesterAccount.timezone,
     },
   );
   current = await changePolicyBooking(

@@ -91,8 +91,8 @@ export function LearnerForm({
     >
       <noscript>
         <p className="text-body">
-          JavaScript is required to edit a local demonstration profile. You can
-          still view your learners.
+          JavaScript is required to edit this profile. You can still view your
+          learners.
         </p>
       </noscript>
       <p className="text-small text-muted-foreground">

@@ -55,6 +55,29 @@ const data: DashboardData = {
 };
 
 describe("family dashboard UI states", () => {
+  it("ordinary Parent with no bookings can add a child without an admission task", () => {
+    render(
+      <FamilyDashboard
+        privateWorkflow
+        ordinaryParent
+        data={{ ...data, learners: [], active: [], history: [] }}
+      />,
+    );
+    expect(
+      screen.getByText(
+        /Add your child and confirm your guardian authority and consent/,
+      ),
+    ).toBeVisible();
+    expect(
+      screen.queryByText(/assigned reviewer|await.*review|pending request/i),
+    ).toBeNull();
+    expect(
+      screen
+        .getAllByRole("link", { name: "Add Child" })
+        .every((link) => link.getAttribute("href") === "/parent/children/new"),
+    ).toBe(true);
+  });
+
   it("defaults multiple authorized learners to All learners and works as a GET form", () => {
     render(<FamilyDashboard data={data} />);
     expect(screen.getByRole("radio", { name: "All learners" })).toBeChecked();

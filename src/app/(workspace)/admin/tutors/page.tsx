@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { reviewStatuses } from "@/lib/db/schema/app";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { readAccount } from "@/features/account/service";
-import { AdminShell } from "@/features/admin/admin-shell";
-import {
-  listTutorApplications,
-  reviewQueueLimit,
-} from "@/features/tutors/review";
-import { reviewStatusLabels } from "@/features/tutors/review-rules";
-import { ReviewStatusBadge } from "@/features/tutors/review-status";
+import { AdminTutorQueue } from "@/features/admin/admin-tutor-queue";
+import { listTutorApplications } from "@/features/tutors/review";
 import { safePage } from "@/features/support/input";
-import { EmptyState } from "@/components/shared/empty-state";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
+import { getPrivateWorkflow } from "@/features/private-workflow/runtime";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Tutor applications",
@@ -41,6 +36,8 @@ export default async function TutorReviewQueuePage({
         requestedPage,
       ),
       account: await readAccount(runtime, headers),
+      localWorkflow: getLocalWorkflow(runtime) !== null,
+      privateWorkflow: getPrivateWorkflow(runtime) !== null,
     }),
   );
   if (!data)
@@ -51,137 +48,21 @@ export default async function TutorReviewQueuePage({
       />
     );
   const { total, applications, page, hasMore } = data.queue;
-  const pageHref = (target: number) =>
-    `/admin/tutors?status=${status ?? "all"}&page=${target}`;
-  const date = new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeZone: data.account.timezone,
-  });
   return (
-    <AdminShell current="tutors">
-      <h1 className="text-page-title">Tutor review queue</h1>
-      <p className="mt-3 max-w-prose text-small text-muted-foreground">
-        Local test data only. The tutor screening process is not decided.
-        Approving an application lists the tutor publicly.
-      </p>
-      <form
-        method="get"
-        className="mt-6 flex flex-wrap items-end gap-4 rounded-surface border border-border bg-surface p-4 sm:p-6"
-      >
-        <div className="w-full min-w-0 space-y-2 sm:w-64">
-          <label htmlFor="status" className="block text-label">
-            Status
-          </label>
-          <select
-            className="field"
-            id="status"
-            name="status"
-            defaultValue={status ?? "all"}
-          >
-            {reviewStatuses.map((value) => (
-              <option key={value} value={value}>
-                {reviewStatusLabels[value]}
-              </option>
-            ))}
-            <option value="all">All statuses</option>
-          </select>
-        </div>
-        <button className="action action-outline" type="submit">
-          Apply filters
-        </button>
-      </form>
-      <div className="mt-8">
-        {applications.length === 0 && page === 1 ? (
-          <EmptyState
-            title={
-              status
-                ? `No ${reviewStatusLabels[status].toLowerCase()} applications`
-                : "No tutor applications"
-            }
-          >
-            <p>An application appears here after a tutor submits a profile.</p>
-          </EmptyState>
-        ) : (
-          <>
-            <p role="status" className="text-body">
-              {total === 1 ? "1 application" : `${total} applications`}
-              {total > reviewQueueLimit &&
-                `. Page ${page}, oldest first, ${reviewQueueLimit} per page.`}
-            </p>
-            <table className="mt-4 w-full table-fixed border-collapse bg-surface text-left text-small">
-              <caption className="sr-only">Tutor applications</caption>
-              <thead>
-                <tr className="border-y border-border bg-subtle">
-                  <th scope="col" className="w-1/2 px-3 py-4 text-label">
-                    Tutor
-                  </th>
-                  <th scope="col" className="px-3 py-4 text-label">
-                    Status
-                  </th>
-                  <th
-                    scope="col"
-                    className="hidden px-3 py-4 text-label md:table-cell"
-                  >
-                    Submitted
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {applications.map((application) => (
-                  <tr key={application.id} className="border-b border-border">
-                    <td className="px-3 py-4 wrap-anywhere">
-                      <Link
-                        className="inline-flex min-h-11 items-center"
-                        href={`/admin/tutors/${application.id}`}
-                      >
-                        {application.displayName}
-                      </Link>
-                      <p className="text-muted-foreground">
-                        {application.headline}
-                      </p>
-                      <p className="text-muted-foreground md:hidden">
-                        Submitted{" "}
-                        <time dateTime={application.createdAt.toISOString()}>
-                          {date.format(application.createdAt)}
-                        </time>
-                      </p>
-                    </td>
-                    <td className="px-3 py-4 align-top">
-                      <ReviewStatusBadge status={application.reviewStatus} />
-                    </td>
-                    <td className="hidden px-3 py-4 align-top md:table-cell">
-                      <time dateTime={application.createdAt.toISOString()}>
-                        {date.format(application.createdAt)}
-                      </time>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <nav
-              aria-label="Application pages"
-              className="mt-6 flex flex-wrap gap-3"
-            >
-              {page > 1 && (
-                <Link
-                  className="action action-outline"
-                  href={pageHref(page - 1)}
-                >
-                  Previous applications
-                </Link>
-              )}
-              {hasMore && (
-                <Link
-                  className="action action-outline"
-                  href={pageHref(page + 1)}
-                >
-                  More applications
-                </Link>
-              )}
-            </nav>
-          </>
-        )}
-      </div>
-    </AdminShell>
+    <AdminTutorQueue
+      intro={
+        data.localWorkflow
+          ? "Current Identity and Eligibility checks are required before approval and public eligibility. Real-launch criteria and any external screening provider remain unapproved."
+          : data.privateWorkflow
+            ? "Fictional test data only. Current required checks and the application decision both affect public eligibility."
+            : "Review assigned Tutor applications and their current screening state. Approval alone does not guarantee public eligibility."
+      }
+      status={status}
+      applications={applications}
+      total={total}
+      page={page}
+      hasMore={hasMore}
+      timezone={data.account.timezone}
+    />
   );
 }

@@ -270,6 +270,44 @@ beforeEach(() => {
   });
 });
 
+describe("ordinary direct booking confirmation details", () => {
+  it.each([
+    ["local-parent-booking-v2", false],
+    ["local-independent-booking-v2", false],
+    ["local-booking-v1", true],
+  ])(
+    "shows a provisional deadline only when %s originally used a hold",
+    (policyVersion, hasHold) => {
+      render(
+        <BookingDetailView
+          booking={{
+            ...bookingDetail,
+            source: "local_operation",
+            policyVersion: String(policyVersion),
+          }}
+          scope="guardian"
+          privateWorkflow
+        />,
+      );
+      if (hasHold)
+        expect(screen.getByText("Original provisional deadline")).toBeVisible();
+      else {
+        expect(screen.queryByText("Original provisional deadline")).toBeNull();
+        expect(screen.queryByText(/An elapsed deadline/)).toBeNull();
+        expect(
+          screen.getByText("Only saved booking events appear below."),
+        ).toBeVisible();
+        expect(document.body).not.toHaveTextContent(
+          /provisional|deadline|expiry/i,
+        );
+      }
+      expect(
+        screen.getByRole("heading", { name: "Confirmed", level: 1 }),
+      ).toBeVisible();
+    },
+  );
+});
+
 describe.each(modes)("$name Support copy", ({ privateWorkflow }) => {
   beforeEach(() => mocks.privateMode.mockReturnValue(privateWorkflow));
 

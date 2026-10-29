@@ -9,14 +9,7 @@ import {
   LessonTime,
   type LessonTimeValue,
 } from "@/features/bookings/lesson-time";
-
-function initials(name: string) {
-  const words = name.trim().split(/\s+/).filter(Boolean);
-  const letters = [words[0], words.length > 1 ? words.at(-1) : undefined]
-    .map((word) => (word ? [...word][0] : ""))
-    .join("");
-  return letters.toLocaleUpperCase("en");
-}
+import { nameInitials } from "@/lib/initials";
 
 /** Every avatar uses the same two tokens; no photo upload exists. */
 export function InitialsAvatar({
@@ -34,7 +27,7 @@ export function InitialsAvatar({
         large ? "size-20" : "size-12",
       )}
     >
-      {initials(name)}
+      {nameInitials(name)}
     </span>
   );
 }

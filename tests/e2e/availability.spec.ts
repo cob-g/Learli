@@ -75,8 +75,14 @@ test("weekly hours save, validate, survive reload and clear with accessible cont
   await monday.getByRole("button", { name: "Add time range" }).focus();
   await page.keyboard.press("Enter");
   await expect(monday.getByLabel("Start time", { exact: true })).toBeFocused();
-  await monday.getByLabel("Start time", { exact: true }).selectOption("1380");
-  await monday.getByLabel("End time", { exact: true }).selectOption("60");
+  await monday.getByLabel("Start time", { exact: true }).fill("23:00");
+  await monday.getByLabel("End time", { exact: true }).fill("");
+  await page
+    .getByRole("button", { name: "Save availability", exact: true })
+    .click();
+  await expect(monday.getByLabel("End time", { exact: true })).toBeFocused();
+  await expect(monday.getByText("Enter a valid end time.")).toBeVisible();
+  await monday.getByLabel("End time", { exact: true }).fill("01:00");
   await page
     .getByRole("button", { name: "Save availability", exact: true })
     .click();
@@ -120,10 +126,10 @@ test("weekly hours save, validate, survive reload and clear with accessible cont
   await expect(page.getByRole("status")).toBeFocused();
   await page.reload();
   await expect(monday.getByLabel("Start time", { exact: true })).toHaveValue(
-    "1380",
+    "23:00",
   );
   await expect(monday.getByLabel("End time", { exact: true })).toHaveValue(
-    "60",
+    "01:00",
   );
   await expect(monday.getByLabel("Ends next day")).toBeChecked();
   await expect(page.getByLabel("Teaching time zone")).toHaveValue(
@@ -163,7 +169,7 @@ test("stale tabs and network errors preserve edits; pending saves disable row ch
     "couldn't reach Learli",
   );
   await expect(monday.getByLabel("Start time", { exact: true })).toHaveValue(
-    "540",
+    "09:00",
   );
   await page.unroute("**/api/tutor/availability");
   let release: () => void = () => {};
@@ -192,11 +198,11 @@ test("stale tabs and network errors preserve edits; pending saves disable row ch
     "another tab",
   );
   await expect(tuesday.getByLabel("Start time", { exact: true })).toHaveValue(
-    "540",
+    "09:00",
   );
   await page.reload();
   await expect(monday.getByLabel("Start time", { exact: true })).toHaveValue(
-    "540",
+    "09:00",
   );
   await expect(
     page

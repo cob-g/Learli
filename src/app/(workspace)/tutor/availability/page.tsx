@@ -29,33 +29,36 @@ export default async function AvailabilityPage() {
     );
   const schedule = data.schedule;
   return (
-    <div className="page-shell page-space">
-      <h1 className="text-page-title">Weekly availability</h1>
-      <p className="mt-4 text-small text-muted-foreground">
-        <Link href="/tutor/time-off">Manage time off</Link> for dated periods
-        when you cannot teach.
-      </p>
-      <div className="mt-6">
-        {!schedule ? (
-          <p className="text-body">
-            Submit your <Link href="/tutor/profile">tutor profile</Link> before
-            setting weekly hours.
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">Tutor workspace</p>
+          <h1>Weekly availability</h1>
+          <p>
+            <Link href="/tutor/time-off">Manage time off</Link> for dated
+            periods when you cannot teach.
           </p>
-        ) : !schedule.editable ? (
-          <p className="text-body">
-            Your tutor profile is suspended. Availability cannot be changed.
-          </p>
-        ) : (
-          <AvailabilityForm
-            initial={schedule}
-            privateWorkflow={data.privateWorkflow}
-            timeZones={listTimeZoneOptions(
-              new Date(),
-              isValidTimeZone(schedule.timezone) ? [schedule.timezone] : [],
-            )}
-          />
-        )}
-      </div>
+        </div>
+      </header>
+      {!schedule ? (
+        <p className="workspace-page-note">
+          Submit your <Link href="/tutor/profile">tutor profile</Link> before
+          setting weekly hours.
+        </p>
+      ) : !schedule.editable ? (
+        <p className="workspace-page-note">
+          Your tutor profile is suspended. Availability cannot be changed.
+        </p>
+      ) : (
+        <AvailabilityForm
+          initial={schedule}
+          privateWorkflow={data.privateWorkflow}
+          timeZones={listTimeZoneOptions(
+            new Date(),
+            isValidTimeZone(schedule.timezone) ? [schedule.timezone] : [],
+          )}
+        />
+      )}
     </div>
   );
 }
