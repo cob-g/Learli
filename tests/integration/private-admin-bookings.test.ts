@@ -422,26 +422,19 @@ describe("private assigned staff booking lookup on actual PostgreSQL", () => {
       }
     },
   );
-  it.each(["booking", "screening", "admission"])(
+  it.each(["booking", "admission"])(
     "requires the current %s policy head",
     async (kind) => {
       const statement =
         kind === "booking"
           ? "UPDATE booking_workflow_policy_head SET enabled=$1 WHERE policy_id=$2"
-          : kind === "screening"
-            ? "UPDATE tutor_screening_policy_heads SET status=$1 WHERE version=$2"
-            : "UPDATE learner_admission_policy_state SET enabled=$1 WHERE current_policy_id=$2";
+          : "UPDATE learner_admission_policy_state SET enabled=$1 WHERE current_policy_id=$2";
       const id =
         kind === "booking"
           ? f.fixture.booking.policyId
-          : kind === "screening"
-            ? f.fixture.policy.version
-            : f.fixture.admission.policyId;
+          : f.fixture.admission.policyId;
       try {
-        await f.world.owner.pool.query(statement, [
-          kind === "screening" ? "revoked" : false,
-          id,
-        ]);
+        await f.world.owner.pool.query(statement, [false, id]);
         expect(
           (
             await listStaffBookings(context(), f.reviewer.headers, {
@@ -453,13 +446,59 @@ describe("private assigned staff booking lookup on actual PostgreSQL", () => {
           readPrivateStaffBooking(context(), f.reviewer.headers, current.id),
         ).rejects.toMatchObject({ status: 404 });
       } finally {
-        await f.world.owner.pool.query(statement, [
-          kind === "screening" ? "enabled" : true,
-          id,
-        ]);
+        await f.world.owner.pool.query(statement, [true, id]);
       }
     },
   );
+  it("surfaces an assigned confirmed booking for support when screening is revoked", async () => {
+    const snapshot = async () =>
+      (
+        await f.world.owner.pool.query(
+          "SELECT row_to_json(b) booking,(SELECT jsonb_agg(e ORDER BY e.created_at,e.id) FROM booking_lifecycle_events e WHERE e.logical_booking_id=b.logical_booking_id) events FROM bookings b WHERE b.id=$1",
+          [current.id],
+        )
+      ).rows;
+    const before = await snapshot();
+    try {
+      await f.world.owner.pool.query(
+        "UPDATE tutor_screening_policy_heads SET status='revoked' WHERE version=$1",
+        [f.fixture.policy.version],
+      );
+      const result = await listStaffBookings(context(), f.reviewer.headers, {
+        q: current.id,
+      });
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0]).toMatchObject({
+        id: current.id,
+        state: "confirmed",
+        screeningSupportRequired: true,
+        actions: [],
+      });
+      expect(
+        await readPrivateStaffBooking(
+          context(),
+          f.reviewer.headers,
+          current.id,
+        ),
+      ).toMatchObject({ screeningSupportRequired: true, actions: [] });
+      expect(
+        (
+          await listStaffBookings(context(), f.unassigned.headers, {
+            q: current.id,
+          })
+        ).items,
+      ).toEqual([]);
+      await expect(
+        readPrivateStaffBooking(context(), f.unassigned.headers, current.id),
+      ).rejects.toMatchObject({ status: 404 });
+      expect(await snapshot()).toEqual(before);
+    } finally {
+      await f.world.owner.pool.query(
+        "UPDATE tutor_screening_policy_heads SET status='enabled' WHERE version=$1",
+        [f.fixture.policy.version],
+      );
+    }
+  });
   it("retains assigned historical reads but offers controls only in their allowed state and time", async () => {
     for (const receipt of [replaced, current, cancelled, expired])
       expect(

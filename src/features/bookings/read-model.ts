@@ -14,6 +14,16 @@ export type BookingLearnerSummary = {
 export function bookingDetailPath(id: string, scope: BookingReadScope) {
   return `/bookings/${encodeURIComponent(id)}?scope=${scope}`;
 }
+/** Explicitly inspect a superseded participant record instead of following its head. */
+export function historicalBookingDetailPath(
+  id: string,
+  scope: BookingReadScope,
+) {
+  return `${bookingDetailPath(id, scope)}&history=1`;
+}
+export function tutorHistoricalBookingDetailPath(id: string) {
+  return historicalBookingDetailPath(id, "tutor");
+}
 export type BookingSummary = {
   id: string;
   source: "local_simulation" | "synthetic_readiness" | "local_operation";

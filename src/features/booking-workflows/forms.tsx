@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, type FormEvent } from "react";
+import "@/features/parent-children/parent-pages.css";
 import { useHydrated } from "@/hooks/use-hydrated";
 import type { LessonTimeValue } from "@/features/bookings/lesson-time";
 import { LessonTime } from "@/features/bookings/lesson-time";
@@ -122,17 +123,12 @@ export function WorkflowRequestForm({
     );
   }
   return (
-    <form
-      method="post"
-      action={endpoint}
-      onSubmit={submit}
-      className="mt-8 space-y-4"
-    >
+    <form method="post" action={endpoint} onSubmit={submit} className="pp-form">
       <fieldset>
         <legend className="text-section-title">
           {privateWorkflow ? "Choose a time" : "Choose a synthetic time"}
         </legend>
-        <div className="mt-4 space-y-2">
+        <div className="pp-times mt-4">
           {orderedTimes.slice(0, 24).map((t) => (
             <label
               key={t.startAtUtc}
@@ -173,7 +169,7 @@ export function WorkflowRequestForm({
       </p>
       <button
         type="submit"
-        className="action action-primary transition-none"
+        className="action action-primary pp-submit transition-none"
         disabled={!m.ready || m.pending || m.uncertain}
       >
         {m.pending

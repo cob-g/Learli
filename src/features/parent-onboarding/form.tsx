@@ -51,7 +51,7 @@ export function ParentOnboardingForm({ next }: { next?: string }) {
       action="/api/account/parent-onboarding"
       onSubmit={submit}
       aria-busy={pending}
-      className="mt-8 space-y-6"
+      className="mt-6 space-y-5"
     >
       {!ready && (
         <p className="text-body">
@@ -71,7 +71,7 @@ export function ParentOnboardingForm({ next }: { next?: string }) {
       )}
       <button
         type="submit"
-        className="action action-primary transition-none"
+        className="action action-primary pp-submit transition-none"
         disabled={!ready || pending}
       >
         {pending ? "Setting up parent workspace…" : "Continue as parent"}

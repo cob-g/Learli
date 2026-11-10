@@ -8,6 +8,7 @@ import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { AccessError, requireIdentity } from "@/lib/permissions/access";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { listTimeZoneOptions } from "@/lib/time/zones";
+import "@/features/parent-children/parent-pages.css";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -45,32 +46,36 @@ export default async function ChildProfilePage({
     );
   const { profile, reviewed, privateWorkflow, ordinaryParent } = result;
   return (
-    <div className="page-shell page-space">
-      <LearnerLink
-        href="/parent/children"
-        label="My Children"
-        className="inline-flex min-h-11 items-center"
-      />
-      <h1 className="mt-4 text-page-title">Edit child profile</h1>
-      <p className="mt-4 max-w-prose text-body wrap-anywhere">
-        Profile for {profile.displayName}
-      </p>
-      <p className="mt-2 max-w-prose text-small text-muted-foreground">
-        {ordinaryParent
-          ? "Your child’s private profile. Save permitted details and grade changes here."
-          : reviewed
-            ? "Authorized — current reviewed access. The reviewed education level cannot be changed here."
-            : "Saved for local testing. Use fictional child details."}
-      </p>
-      {privateWorkflow && !ordinaryParent && (
-        <p className="mt-2 max-w-prose text-small text-muted-foreground">
-          This staging profile does not establish real consent or guardian
-          identity.
-        </p>
-      )}
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">Parent workspace</p>
+          <h1>Edit child profile</h1>
+          <p className="wrap-anywhere">Profile for {profile.displayName}</p>
+          <p className="mt-2 text-small text-muted-foreground">
+            {ordinaryParent
+              ? "Your child’s private profile. Save permitted details and grade changes here."
+              : reviewed
+                ? "Authorized — current reviewed access. The reviewed education level cannot be changed here."
+                : "Saved for local testing. Use fictional child details."}
+          </p>
+          {privateWorkflow && !ordinaryParent && (
+            <p className="mt-2 text-small text-muted-foreground">
+              This staging profile does not establish real consent or guardian
+              identity.
+            </p>
+          )}
+        </div>
+        <LearnerLink
+          href="/parent/children"
+          label="My Children"
+          className="pp-link"
+        />
+      </header>
       <LearnerForm
         profile={profile}
         reviewed={reviewed}
+        editableLevel={ordinaryParent && profile.management === "guardian"}
         zones={listTimeZoneOptions(new Date(), [profile.timezone])}
       />
     </div>

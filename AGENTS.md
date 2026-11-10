@@ -12,12 +12,13 @@ skills are relative to the repository root unless explicitly stated otherwise.
 - **remember** — Save or restore a concise session handoff. Read [SKILL.md](skills/remember/SKILL.md).
 - **review** — Review implementation against its approved blueprint. Read [SKILL.md](skills/review/SKILL.md).
 - **blast-radius** — Assess what a change could break beyond its diff and prove critical safety assumptions. Read [SKILL.md](skills/blast-radius/SKILL.md). Preserve Learli's separate planning, review, and verification boundaries.
+- **performance** — Measure and improve native macOS app performance. Read [SKILL.md](skills/performance/SKILL.md).
 
 In Codex, invoke these with `$build-feature <feature>`, `$architect`, `$recover`, `$remember save`,
-`$remember restore`, `$review`, or `$blast-radius <change>`. Slash-command examples inside the skill
+`$remember restore`, `$review`, `$blast-radius <change>`, or `$performance`. Slash-command examples inside the skill
 instructions express the same intent; use `$name` for Codex skill mentions.
 In Claude Code, invoke them as `/build-feature <feature>`, `/architect`, `/recover`, `/remember save`,
-`/remember restore`, `/review`, or `/blast-radius <change>`.
+`/remember restore`, `/review`, `/blast-radius <change>`, or `/performance`.
 Other agents can read the linked files directly. Load the applicable skill
 before using it and preserve its scope. Standalone skills do not automatically
 chain. When the user requests the complete `build-feature` workflow, its

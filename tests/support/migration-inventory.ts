@@ -8,10 +8,15 @@ import {
 import { expectedProtections } from "../../scripts/staging-migrations/protections";
 import { runtimeGrantsSql } from "../../scripts/runtime-grants";
 
-/** Historical prefixes must never grant functions introduced by Meet. */
+/** Historical prefixes must never grant functions introduced by Meet or later. */
 export const runtimeGrantsBeforeMeet = runtimeGrantsSql
   .split("\n")
-  .filter((line) => !line.includes("public.google_meet_"))
+  .filter(
+    (line) =>
+      !line.includes("public.google_meet_") &&
+      !line.includes("public.tutor_screening_valid_through(") &&
+      !line.includes("public.update_parent_learner_level("),
+  )
   .join("\n");
 
 /** Original current chain before additive guardian creation. */
@@ -95,6 +100,7 @@ export function expectLocalOperationRowPreservation(
     "learner_independent_attestations",
     "local_workflow_claims",
     "local_workflow_staff",
+    "parent_learner_level_events",
   ];
   expect(Object.keys(after).sort()).toEqual(
     [...Object.keys(before), ...added].sort(),

@@ -6,6 +6,8 @@ import { LearnerForm } from "@/features/learners/learner-form";
 import { listTimeZoneOptions } from "@/lib/time/zones";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
+import "@/features/parent-children/parent-pages.css";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Edit learner profile",
@@ -22,6 +24,7 @@ export default async function LearnerPage({
     async (runtime, headers) => ({
       ...(await readComposedLearner(runtime, headers, learnerId)),
       privateWorkflow: hasPersistentWorkflow(runtime),
+      localWorkflow: getLocalWorkflow(runtime) !== null,
     }),
   );
   if (!context)
@@ -33,24 +36,30 @@ export default async function LearnerPage({
     );
   const { profile, reviewed } = context;
   return (
-    <div className="page-shell page-space">
-      <LearnerLink
-        className="inline-flex min-h-11 items-center"
-        href="/learners"
-        label="Your learners"
-      />
-      <h1 className="mt-4 text-page-title">Edit learner profile</h1>
-      <p className="mt-4 max-w-prose text-body wrap-anywhere">
-        Profile for {profile.displayName}
-      </p>
-      {!context.privateWorkflow && (
-        <p className="mt-2 max-w-prose text-body text-muted-foreground">
-          Local testing only. Use fictional learner details.
-        </p>
-      )}
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">Student workspace</p>
+          <h1>Edit learner profile</h1>
+          <p className="wrap-anywhere">Profile for {profile.displayName}</p>
+          {!context.privateWorkflow && (
+            <p className="mt-2 text-small text-muted-foreground">
+              Local testing only. Use fictional learner details.
+            </p>
+          )}
+        </div>
+        <LearnerLink
+          className="pp-link"
+          href="/learners"
+          label="Your learners"
+        />
+      </header>
       <LearnerForm
         profile={profile}
         reviewed={reviewed}
+        editableLevel={
+          context.localWorkflow && profile.management === "guardian"
+        }
         zones={listTimeZoneOptions(new Date(), [profile.timezone])}
       />
     </div>

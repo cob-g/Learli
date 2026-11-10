@@ -2,15 +2,22 @@ import { WorkflowActionForm } from "@/features/booking-workflows/forms";
 import { bookingWorkflowContext } from "@/features/booking-workflows/composition";
 import { readWorkflowMoveCandidates } from "@/features/booking-workflows/service";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { AccessError } from "@/lib/permissions/access";
 import { readParticipantBooking } from "@/features/bookings/read-service";
 import { bookingReadScope } from "@/features/bookings/read-input";
+import { bookingDetailPath } from "@/features/bookings/read-model";
 import { readDemoRescheduleCandidates } from "@/features/bookings/lifecycle-service";
 import { DemoRescheduleForm } from "@/features/bookings/lifecycle-controls";
-import { BookingUnavailable } from "@/features/bookings/read-presentation";
+import "@/features/bookings/booking-pages.css";
+import { CalendarDays } from "lucide-react";
+import {
+  BookingUnavailable,
+  bookingWorkspaceLabel,
+} from "@/features/bookings/read-presentation";
 import { LessonTime } from "@/features/bookings/lesson-time";
-import { formatLessonTime } from "@/features/bookings/format-time";
+import { createLessonTimeFormatter } from "@/features/bookings/format-time";
 import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -50,15 +57,12 @@ export default async function Page({
               bookingId,
             )
           : await readDemoRescheduleCandidates(runtime, headers, bookingId);
+      const formatTime = createLessonTimeFormatter(booking.viewerTimezone);
       return {
         booking,
         privateWorkflow: hasPersistentWorkflow(runtime),
         times: times.map((t) =>
-          formatLessonTime(
-            new Date(t.startAtUtc),
-            new Date(t.endAtUtc),
-            booking.viewerTimezone,
-          ),
+          formatTime(new Date(t.startAtUtc), new Date(t.endAtUtc)),
         ),
       };
     },
@@ -68,31 +72,62 @@ export default async function Page({
       <BookingUnavailable scope={scope.success ? scope.data : undefined} />
     );
   return (
-    <div className="page-shell page-space">
-      <h1 className="text-page-title">
-        {data.privateWorkflow ? "Reschedule booking" : "Reschedule simulation"}
-      </h1>
-      <p className="mt-4 max-w-prose text-body">
-        For {data.booking.learner.displayName} with{" "}
-        {data.booking.tutor.displayName}.
-        {!data.privateWorkflow &&
-          " Local synthetic testing only; no lesson, payment or attendance is recorded."}
-      </p>
-      <section className="mt-6">
-        <h2 className="text-item-title">Original scheduled time</h2>
-        <LessonTime value={data.booking.time} />
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">
+            {bookingWorkspaceLabel(scope.data)}
+          </p>
+          <h1>
+            {data.privateWorkflow
+              ? "Reschedule booking"
+              : "Reschedule simulation"}
+          </h1>
+          <p>
+            For {data.booking.learner.displayName} with{" "}
+            {data.booking.tutor.displayName}.
+            {!data.privateWorkflow &&
+              " Local synthetic testing only; no lesson, payment or attendance is recorded."}
+          </p>
+        </div>
+      </header>
+      <section className="booking-panel">
+        <h2>Original scheduled time</h2>
+        <div className="booking-when-row">
+          <span className="booking-when-tile" aria-hidden="true">
+            <CalendarDays size={30} />
+          </span>
+          <LessonTime value={data.booking.time} />
+        </div>
       </section>
-      {data.booking.source !== "local_simulation" ? (
-        <WorkflowActionForm
-          bookingId={bookingId}
-          revision={data.booking.workflowRevision ?? 0}
-          action="reschedule"
-          scope={scope.data}
-          times={data.times}
-          displayTimezone={data.booking.viewerTimezone}
-          privateWorkflow={data.privateWorkflow}
-          source={data.booking.source}
-        />
+      {!data.times.length ? (
+        <section className="workspace-blank">
+          <h2>No other times available</h2>
+          <p>
+            Your current booking is unchanged. The tutor may have no open times
+            or may not cover the learner&apos;s current level. Check again later
+            or contact support.
+          </p>
+          <Link
+            className="mt-2 inline-flex min-h-11 items-center"
+            href={bookingDetailPath(bookingId, scope.data)}
+          >
+            Return to booking
+          </Link>
+        </section>
+      ) : data.booking.source !== "local_simulation" ? (
+        <section className="booking-panel">
+          <WorkflowActionForm
+            bookingId={bookingId}
+            revision={data.booking.workflowRevision ?? 0}
+            action="reschedule"
+            scope={scope.data}
+            times={data.times}
+            displayTimezone={data.booking.viewerTimezone}
+            privateWorkflow={data.privateWorkflow}
+            source={data.booking.source}
+          />
+        </section>
       ) : (
         <DemoRescheduleForm
           booking={data.booking}

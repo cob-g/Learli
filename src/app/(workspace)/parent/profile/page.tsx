@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { UserRound } from "lucide-react";
 import { AccountForm } from "@/features/account/account-form";
 import { readAccount } from "@/features/account/service";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { AccessError } from "@/lib/permissions/access";
 import { loadPrivateAccountPage } from "@/lib/permissions/workspace";
 import { listTimeZoneOptions } from "@/lib/time/zones";
+import "@/features/account/account-settings-cards.css";
+import "@/features/parent-children/parent-pages.css";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -30,40 +33,45 @@ export default async function ParentProfilePage() {
       />
     );
   return (
-    <div className="page-shell page-space">
-      <div className="max-w-3xl">
-        <h1 className="text-page-title">Parent Profile</h1>
-        <p className="mt-4 text-body wrap-anywhere">
-          Registered email: {account.email}
-        </p>
-        <p className="mt-2 text-small text-muted-foreground">
-          Parent or guardian workspace. Update your display name and time zone
-          below.
-        </p>
-        <section
-          className="mt-8 rounded-surface border border-border bg-surface p-6 sm:p-8"
-          aria-labelledby="parent-profile-settings"
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">Parent workspace</p>
+          <h1>Parent Profile</h1>
+          <p className="wrap-anywhere">Registered email: {account.email}</p>
+          <p className="mt-2 text-small text-muted-foreground">
+            Parent or guardian workspace. Update your display name and time zone
+            below.
+          </p>
+        </div>
+      </header>
+      <section
+        className="account-panel max-w-3xl"
+        aria-labelledby="parent-profile-settings"
+      >
+        <div className="account-panel-head">
+          <span className="account-panel-icon" aria-hidden="true">
+            <UserRound size={20} />
+          </span>
+          <h2 id="parent-profile-settings">Profile details</h2>
+        </div>
+        <AccountForm
+          account={account}
+          timeZones={listTimeZoneOptions(new Date(), [account.timezone])}
+          panel
+        />
+      </section>
+      <nav aria-label="Parent profile actions" className="pp-actions">
+        <Link
+          className="action action-primary pp-submit"
+          href="/parent/children"
         >
-          <h2 id="parent-profile-settings" className="text-section-title">
-            Profile details
-          </h2>
-          <AccountForm
-            account={account}
-            timeZones={listTimeZoneOptions(new Date(), [account.timezone])}
-          />
-        </section>
-        <nav
-          aria-label="Parent profile actions"
-          className="mt-8 flex flex-wrap items-center gap-6"
-        >
-          <Link className="action action-primary" href="/parent/children">
-            My Children
-          </Link>
-          <Link className="inline-flex min-h-11 items-center" href="/account">
-            Account settings and security
-          </Link>
-        </nav>
-      </div>
+          My Children
+        </Link>
+        <Link className="pp-link" href="/account">
+          Account settings and security
+        </Link>
+      </nav>
     </div>
   );
 }

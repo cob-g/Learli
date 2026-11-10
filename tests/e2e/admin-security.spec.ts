@@ -7,6 +7,7 @@ import {
   type Page,
 } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import jsQR from "jsqr";
 import { createDatabase } from "../../src/lib/db/connection";
 import { totpCode } from "../support/admin-mfa";
 const origin = process.env.APP_URL!;
@@ -72,6 +73,41 @@ async function enable(page: Page) {
     .locator("[data-mfa-secret]")
     .first()
     .textContent())!;
+  const canvas = page.getByRole("img", { name: "Authenticator setup QR code" });
+  await expect(canvas).toBeVisible();
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await accessible(page);
+  }
+  await expect
+    .poll(async () => {
+      const data = await canvas.evaluate((node: HTMLCanvasElement) => {
+        const pixels = node
+          .getContext("2d")
+          ?.getImageData(0, 0, node.width, node.height);
+        return pixels
+          ? {
+              width: node.width,
+              height: node.height,
+              pixels: Array.from(pixels.data),
+            }
+          : null;
+      });
+      if (!data) return false;
+      const decoded = jsQR(
+        new Uint8ClampedArray(data.pixels),
+        data.width,
+        data.height,
+      );
+      if (!decoded) return false;
+      const uri = new URL(decoded.data);
+      return (
+        uri.protocol === "otpauth:" &&
+        uri.hostname === "totp" &&
+        uri.searchParams.get("secret") === secret
+      );
+    })
+    .toBe(true);
   const codes = await page.locator("[data-mfa-secret] li").allTextContents();
   const factorField = page.getByLabel("Authenticator code", { exact: true });
   await factorField.focus();

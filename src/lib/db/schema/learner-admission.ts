@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  bigint,
   check,
   foreignKey,
   index,
@@ -21,6 +22,31 @@ const source = () =>
     .$type<"synthetic_readiness" | "local_operation">()
     .notNull()
     .default("synthetic_readiness");
+
+/** Minimal protected receipt for an authorized local guardian level change. */
+export const parentLearnerLevelEvents = pgTable(
+  "parent_learner_level_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    learnerId: uuid("learner_id")
+      .notNull()
+      .references(() => learnerProfiles.id, { onDelete: "restrict" }),
+    actorUserId: text("actor_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "restrict" }),
+    oldLevel: text("old_level").notNull(),
+    newLevel: text("new_level").notNull(),
+    transactionId: bigint("transaction_id", { mode: "bigint" }).notNull(),
+    createdAt: time("created_at"),
+  },
+  (t) => [
+    check(
+      "parent_level_event_levels",
+      sql`${t.oldLevel} IN ('elementary','middle_school','high_school','college_support') AND ${t.newLevel} IN ('elementary','middle_school','high_school','college_support') AND ${t.oldLevel} <> ${t.newLevel}`,
+    ),
+    index("parent_level_event_learner_idx").on(t.learnerId, t.createdAt),
+  ],
+);
 export const learnerAdmissionPolicies = pgTable(
   "learner_admission_policies",
   {

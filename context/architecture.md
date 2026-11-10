@@ -1,5 +1,94 @@
 # Learli — System Architecture
 
+### Booking performance implementation — 2026-11-10
+
+Confirmed workflow replacements preserve the original finite hold deadline even
+when created after that deadline, as required by existing confirmed-booking
+semantics. Forward 0047 aligns the row check for those replacements and their
+non-provisional terminal descendants; original rows, provisional/expired states
+and legacy simulations keep strict expiry-after-creation. Existing protected
+writes, receipts and audit events retain authority and no hold is renewed.
+
+
+Booking candidate/reschedule formatting reuses native formatters within each
+operation. Availability blocking reads intersect the candidate horizon through
+the final lesson end; the existing database clock, source-aware blocking rules,
+locks and final guarded writes remain authoritative. Student/Parent stream
+rechecks use one current session/account/role and learner-authority projection,
+sharing the exact actor/learner SQL with participant reads. They return IDs only
+internally and retain generic browser invalidations, packet continuity and
+existing stream/fallback timing. No authority or booking result is cached across
+requests. See `prompts/features/m8-09-booking-performance.md`; verification and
+measured effects are recorded separately in progress-tracker.
+
+
+### Local Parent learner level updates — 2026-11-10
+
+The owner requested currently authorized Parents be able to update a locally
+managed child's tutoring level. The guarded update retains admission/consent
+receipts and booking records, records a minimal immutable level-change event,
+and rechecks current guardian authority. Existing booking views show current
+profile metadata, not a historical level snapshot. New and rescheduled bookings
+must match the current learner level; a locked recheck protects concurrent level
+changes. College Support cannot retain a school grade. This local slice does
+not authorize child-account linking or public-minor launch. See
+`prompts/features/m4-04-parent-child-level-update.md` and the progress tracker.
+
+### Parent booking live updates — 2026-11-10
+
+The requested M5.4 extension uses the existing shared PostgreSQL notification
+listener and generic SSE invalidations for guardian-managed learners. A separate
+Parent stream derives its learner set from current authorized guardian reads,
+rechecks identity and authority, and never exposes learner IDs in browser event
+payloads. Parent dashboard, list and details reread their protected projections;
+explicit history retains prior versions. See
+`prompts/features/m5-04-parent-booking-live.md` and the progress tracker for
+implementation and verification status. Production rollout remains gated.
+
+### Student–Tutor coordination — approved 2026-11-10
+
+The owner approved the local M5.3 coordination blueprint, including Student
+booking/meeting invalidations and a future-slot screening-coverage requirement.
+New and replacement slots must end strictly before current required Tutor
+screening evidence expires, both in advisory availability and at the guarded
+write. Existing booking records and current eligibility safeguards remain. A
+confirmed booking with insufficient screening remains visible for coordination
+to a currently MFA-assured Admin with an exact booking assignment; no booking
+is silently cancelled and no participant meeting access is expanded. A separate
+Admin re-review is required for the existing test Tutor. Implementation
+and executed evidence are recorded in the progress tracker; hosted rollout
+and real screening duration/provider policy remain separately gated. See
+`prompts/features/m5-03-student-tutor-coordination.md`.
+
+### Tutor booking updates — 2026-11-10
+
+The owner requested event-driven updates for Student cancellation and
+rescheduling on the open Tutor page. The M5.5 design uses transaction-committed
+PostgreSQL notifications and an authenticated SSE stream carrying generic
+invalidations; the existing participant-authorized page remains authoritative.
+Each active app instance shares one verified database listener; browsers reread
+on connect, event and a slower fallback, with manual and no-JavaScript access.
+The authorized Tutor booking detail page uses the same subscription to reread
+its guarded server projection after events and reconnects. A superseded Tutor
+detail follows its authorized current replacement, so the displayed time and
+status stay current; an explicit history link retains the old snapshot. Both
+the original and replacement require participant authorization.
+Live connections may keep Neon compute active. Hosted stream compatibility,
+load and cost require separate staging evaluation, and production migration and
+deployment remain gated. No booking authority or shared cache changes. See
+`prompts/features/m5-05-tutor-booking-push.md`; actual review and verification
+are recorded in the progress tracker.
+
+### Local tutor review and authenticator setup — 2026-11-10
+
+The owner requested all active verified MFA-assured Admins have local tutor
+screening access, subject to explicit revocations, exact assignment and all
+existing review safeguards. Other task capabilities stay scoped. Authenticator
+enrollment adds a client-generated QR and retains manual entry. This is an
+ordinary local workflow decision, not a production activation. See
+`docs/decisions/2026-11-10-local-admin-screening-and-qr.md`; verification is
+recorded separately in the progress tracker.
+
 ### Approved optional Google Meet integration — 2026-10-26
 
 Owner-approved blueprint: `prompts/features/m5-01-google-meet-provisioning.md`

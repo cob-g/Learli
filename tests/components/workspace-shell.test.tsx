@@ -542,6 +542,8 @@ it("marks parent dashboard and guardian bookings as separate destinations with e
       expect(isCurrentLink(path, link, scope)).toBe(true);
     expect(isCurrentLink("/bookings/opaque-id", link, "guardian")).toBe(false);
   }
+  // Book a session is its own sidebar destination, so Bookings stays unmarked.
+  expect(isCurrentLink("/bookings/new", student, "student")).toBe(false);
 });
 
 it("closes the native workspace chooser on role selection without losing keyboard focus", async () => {

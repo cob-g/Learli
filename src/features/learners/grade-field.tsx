@@ -5,10 +5,14 @@ export function GradeField({
   grade,
   disabled,
   error,
+  levelEditable = true,
+  college = false,
 }: {
   grade?: number | null;
   disabled?: boolean;
   error?: string;
+  levelEditable?: boolean;
+  college?: boolean;
 }) {
   const options: ReactNode[] = [
     <option key="none" value="">
@@ -37,7 +41,11 @@ export function GradeField({
         {options}
       </select>
       <p id="grade-help" className="text-small text-muted-foreground">
-        School year only. Select the education level separately.
+        {college
+          ? "College Support does not use a school grade. Select Not specified to clear a saved grade."
+          : levelEditable
+            ? "School year only. Choose the education level separately."
+            : "School year only. The education level is fixed for this profile."}
       </p>
       {error && (
         <p id="grade-error" className="text-small text-error">

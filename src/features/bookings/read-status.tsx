@@ -66,9 +66,16 @@ export function BookingReadStatus({
   return (
     <div aria-live="polite" className="space-y-2">
       <span
-        className={`inline-flex min-h-7 max-w-full items-center gap-1 rounded-tag border px-2 text-label ${booking.state === "confirmed" ? "border-success bg-success-soft text-success" : terminal ? "border-control bg-subtle text-muted-foreground" : "border-warning bg-warning-soft text-warning"}`}
+        className="workspace-pill"
+        data-tone={
+          booking.state === "confirmed"
+            ? "success"
+            : terminal
+              ? "neutral"
+              : "waiting"
+        }
       >
-        <Icon aria-hidden="true" size={16} className="shrink-0" />
+        <Icon aria-hidden="true" size={14} className="shrink-0" />
         <span className="min-w-0 wrap-anywhere">
           {expired
             ? privateWorkflow
@@ -79,7 +86,7 @@ export function BookingReadStatus({
             : bookingStatusLabel(booking.state, privateWorkflow)}
         </span>
       </span>
-      <p className="text-small text-muted-foreground">
+      <p className="max-w-prose text-small text-muted-foreground">
         {privateWorkflow
           ? expired
             ? "The provisional deadline elapsed. This record remains in your history."

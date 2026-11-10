@@ -17,6 +17,8 @@ import { canonicalAdmissionSelection } from "@/features/learner-admission/input"
 import { getDomainAuthRuntime } from "@/lib/auth";
 import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { redirect } from "next/navigation";
+import { UsersRound } from "lucide-react";
+import "@/features/parent-children/parent-pages.css";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Create a local learner",
@@ -78,17 +80,22 @@ export default async function CreateLearnerPage({
       />
     );
   return (
-    <div className="page-shell page-space">
-      <LearnerLink
-        className="inline-flex min-h-11 items-center"
-        href="/learners"
-        label="Your learners"
-      />
-      <h1 className="mt-4 text-page-title">Create a local learner</h1>
-      <p className="mt-4 max-w-prose text-body">
-        Local demonstration only: use fictional learner details. This flow does
-        not verify real consent, age or guardian identity.
-      </p>
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">Student workspace</p>
+          <h1>Create a local learner</h1>
+          <p>
+            Local demonstration only: use fictional learner details. This flow
+            does not verify real consent, age or guardian identity.
+          </p>
+        </div>
+        <LearnerLink
+          className="pp-link"
+          href="/learners"
+          label="Your learners"
+        />
+      </header>
       {context.admissionEnabled && (
         <LearnerLink
           href={
@@ -96,7 +103,7 @@ export default async function CreateLearnerPage({
               ? `/learner-admission/new?next=${encodeURIComponent(returnToBooking)}`
               : "/learner-admission/new"
           }
-          className="action action-outline mt-8"
+          className="action action-outline pp-submit"
           label="Request separate admission review"
         />
       )}
@@ -109,13 +116,16 @@ export default async function CreateLearnerPage({
           returnToBooking={returnToBooking}
         />
       ) : (
-        <section className="mt-8 max-w-prose">
-          <h2 className="text-item-title">
+        <section className="workspace-blank">
+          <span className="pp-icon" aria-hidden="true">
+            <UsersRound size={20} />
+          </span>
+          <h2>
             {context.demoUnavailable
               ? "A local demonstration role is required"
               : "Your local profile already exists"}
           </h2>
-          <p className="mt-2 text-body">
+          <p>
             {context.demoUnavailable
               ? "Use the separate admission review to request a synthetic learner relationship."
               : "Return to your learners to edit your existing profile."}

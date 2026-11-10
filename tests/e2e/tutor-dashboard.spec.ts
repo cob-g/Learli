@@ -120,6 +120,31 @@ async function accessible(page: Page) {
 test.beforeEach(() => owner.pool.query("UPDATE rate_limit SET count=0"));
 test.afterAll(() => owner.pool.end());
 
+test("open tutor dashboard picks up assigned booking changes without a manual refresh", async ({
+  browser,
+}) => {
+  const actor = await fixture(browser);
+  const unrelated = await fixture(browser);
+  const foreignId = await reservation(unrelated);
+  await actor.page.goto("/tutor");
+  await expect(
+    actor.page.getByText("Live booking updates are connected."),
+  ).toBeVisible();
+  await expect(
+    actor.page.getByRole("heading", { name: "No future simulations" }),
+  ).toBeVisible();
+  const id = await reservation(actor, { ttlSeconds: 30 });
+  await expect(
+    actor.page.locator(`a[href="/bookings/${id}?scope=tutor"]`),
+  ).toBeVisible({ timeout: 20_000 });
+  await expect(
+    actor.page.getByRole("heading", { name: "Next future simulation" }),
+  ).toBeVisible();
+  await expect(actor.page.locator(`a[href*="${foreignId}"]`)).toHaveCount(0);
+  await actor.context.close();
+  await unrelated.context.close();
+});
+
 test("assigned tutor sees truthful next simulation, agenda/history and private accessible layout", async ({
   browser,
 }, info) => {
@@ -199,6 +224,7 @@ test("empty tutor dashboard and navigation work without JavaScript", async ({
 }, info) => {
   const actor = await fixture(browser, false);
   await actor.page.goto("/tutor");
+  await expect(actor.page.getByText(/Live booking updates/)).toHaveCount(0);
   await expect(
     actor.page.getByRole("heading", { name: "No future simulations" }),
   ).toBeVisible();
@@ -370,6 +396,12 @@ test("refresh loading is announced while a real private read waits and clears wh
   await expect(
     actor.page.getByRole("heading", { name: "Next future simulation" }),
   ).toBeVisible();
+  await expect(
+    actor.page.getByText("Live booking updates are connected."),
+  ).toBeVisible();
+  await expect(
+    actor.page.getByRole("button", { name: "Refresh bookings" }),
+  ).toBeEnabled();
   const lock = await owner.pool.connect();
   try {
     await lock.query("BEGIN");

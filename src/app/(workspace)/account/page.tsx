@@ -51,8 +51,8 @@ export default async function AccountPage() {
   const workspaceRoles = account.roles.filter(
     (role) => role !== "student" || studentReady,
   );
-  // Roles moved to the redesigned workspaces so far get the card layout.
-  if (account.roles.includes("admin") || account.roles.includes("tutor"))
+  // Accounts with any workspace role get the card layout.
+  if (account.roles.length > 0)
     return (
       <AccountSettingsCards
         account={account}

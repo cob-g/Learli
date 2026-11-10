@@ -146,7 +146,7 @@ export async function workflowFixture(
       management,
       historicalBeforeGrade,
     ),
-    screen = await screeningFixture(w, reviewer),
+    screen = await screeningFixture(w, reviewer, true, 15 * 86400000),
     now = Date.now();
   for (const [revision, code] of [
     "synthetic_check_a",
@@ -163,7 +163,7 @@ export async function workflowFixture(
         outcome: "passed",
         reference: `screening:${randomUUID()}`,
         checkedAt: new Date(now - 60000).toISOString(),
-        expiresAt: new Date(now + 7200000).toISOString(),
+        expiresAt: new Date(now + 15 * 86400000).toISOString(),
       },
     );
   await decideScreening(screen.context, reviewer.headers, screen.profile.id, {
@@ -189,6 +189,7 @@ export async function workflowFixture(
   return {
     ...family,
     ...screen,
+    screeningContext: screen.context,
     context,
     booking,
     choice: {

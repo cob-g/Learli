@@ -1,5 +1,13 @@
 import { refreshTestAdmin } from "../support/admin-mfa";
-import { beforeAll, beforeEach, afterAll, describe, it, expect } from "vitest";
+import {
+  beforeAll,
+  beforeEach,
+  afterAll,
+  describe,
+  it,
+  expect,
+  vi,
+} from "vitest";
 import { randomUUID } from "node:crypto";
 import {
   mutateAdmissionReview,
@@ -27,6 +35,13 @@ import {
   changePolicyBooking,
 } from "@/features/booking-workflows/service";
 import { formatLessonTime } from "@/features/bookings/format-time";
+import * as lessonFormatting from "@/features/bookings/format-time";
+import * as bookingClock from "@/features/bookings/service";
+import { readPublicCandidates } from "@/features/public-availability/service";
+import {
+  recordScreeningCheck,
+  decideScreening,
+} from "@/features/tutor-screening/service";
 import {
   readParticipantBooking,
   listParticipantBookingOverview,
@@ -107,6 +122,416 @@ async function confirmed() {
   return { ...r, receipt: await change(r.receipt, "confirm") };
 }
 describe("policy booking actual PostgreSQL authority and integrity", () => {
+  it("reschedules and cancels a confirmed booking after its original hold without renewing expiry", async () => {
+    const slots = await readWorkflowCandidates(
+      f.context,
+      f.requester.headers,
+      f.choice,
+    );
+    const originalTime = slots[6];
+    const now = Date.now();
+    const originalExpiry = new Date(now - 110 * 60000);
+    const original = await historicalWorkflowBooking(w, f, reviewer, {
+      state: "confirmed",
+      start: new Date(originalTime.startAtUtc),
+      end: new Date(originalTime.endAtUtc),
+      created: new Date(now - 120 * 60000),
+      expires: originalExpiry,
+    });
+    const moves = await readWorkflowMoveCandidates(
+      f.context,
+      f.requester.headers,
+      original.id,
+    );
+    const input = {
+      requestId: randomUUID(),
+      expectedRevision: 0,
+      reasonCode: "synthetic_participant_change",
+      startAtUtc: moves[0].startAtUtc,
+      endAtUtc: moves[0].endAtUtc,
+      displayTimezone: "UTC",
+    };
+    const moved = await changePolicyBooking(
+      f.context,
+      f.requester.headers,
+      original.id,
+      "reschedule",
+      input,
+    );
+    expect(moved.state).toBe("confirmed");
+    expect(
+      await changePolicyBooking(
+        f.context,
+        f.requester.headers,
+        original.id,
+        "reschedule",
+        input,
+      ),
+    ).toMatchObject({ id: moved.id, eventId: moved.eventId });
+    const stored = (
+      await w.owner.pool.query(
+        "SELECT created_at,expires_at FROM bookings WHERE id=$1",
+        [moved.id],
+      )
+    ).rows[0];
+    expect(stored.expires_at).toEqual(originalExpiry);
+    expect(stored.created_at.getTime()).toBeGreaterThan(
+      originalExpiry.getTime(),
+    );
+    expect(
+      await changePolicyBooking(
+        f.context,
+        f.requester.headers,
+        moved.id,
+        "cancel",
+        {
+          requestId: randomUUID(),
+          expectedRevision: moved.workflowRevision,
+          reasonCode: "synthetic_participant_change",
+        },
+      ),
+    ).toMatchObject({ state: "cancelled" });
+    // Provisional and root rows still require a valid creation/expiry interval.
+    for (const state of ["provisional", "confirmed"])
+      await expect(
+        w.owner.pool.query(
+          "INSERT INTO bookings(source,tutor_id,learner_id,booked_by_user_id,subject_id,start_at_utc,end_at_utc,display_timezone,idempotency_key,request_fingerprint,state,created_at,expires_at,workflow_policy_id,admission_policy_id) SELECT source,tutor_id,learner_id,booked_by_user_id,subject_id,start_at_utc+interval '2 days',end_at_utc+interval '2 days','UTC',gen_random_uuid(),repeat('a',64),$2,clock_timestamp(),clock_timestamp()-interval '1 minute',workflow_policy_id,admission_policy_id FROM bookings WHERE id=$1",
+          [moved.id, state],
+        ),
+      ).rejects.toMatchObject({
+        code: "23514",
+        constraint: "bookings_expiry_valid",
+      });
+  });
+
+  it("reuses one viewer formatter for each candidate and reschedule operation with identical output", async () => {
+    const factory = vi.spyOn(lessonFormatting, "createLessonTimeFormatter");
+    try {
+      const slots = await readWorkflowCandidates(
+        f.context,
+        f.requester.headers,
+        { ...f.choice, displayTimezone: "America/New_York" },
+      );
+      expect(slots.length).toBeGreaterThan(42);
+      expect(factory).toHaveBeenCalledExactlyOnceWith("America/New_York");
+      for (const slot of slots)
+        expect(slot).toEqual(
+          formatLessonTime(
+            new Date(slot.startAtUtc),
+            new Date(slot.endAtUtc),
+            "America/New_York",
+          ),
+        );
+      factory.mockClear();
+      const { receipt } = await request();
+      factory.mockClear();
+      const moves = await readWorkflowMoveCandidates(
+        f.context,
+        f.requester.headers,
+        receipt.id,
+      );
+      expect(moves.length).toBeGreaterThan(42);
+      expect(factory).toHaveBeenCalledTimes(1);
+      const timezone = factory.mock.calls[0][0];
+      for (const slot of moves)
+        expect(slot).toEqual(
+          formatLessonTime(
+            new Date(slot.startAtUtc),
+            new Date(slot.endAtUtc),
+            timezone,
+          ),
+        );
+    } finally {
+      factory.mockRestore();
+    }
+  });
+
+  it("includes blockers after the last candidate start and ignores bookings outside the complete horizon", async () => {
+    const now = new Date(Math.ceil(Date.now() / 1800000) * 1800000);
+    const clock = vi.spyOn(bookingClock, "databaseNow").mockResolvedValue(now);
+    try {
+      const slots = await readWorkflowCandidates(
+        f.context,
+        f.requester.headers,
+        f.choice,
+      );
+      const last = slots.at(-1);
+      if (!last) throw new Error("Missing final candidate");
+      const horizon = now.getTime() + 14 * 86400000;
+      expect(new Date(last.endAtUtc).getTime()).toBeGreaterThan(horizon);
+      const blockerStart = new Date(horizon + 15 * 60000);
+      await historicalWorkflowBooking(w, f, reviewer, {
+        state: "confirmed",
+        start: blockerStart,
+        end: new Date(blockerStart.getTime() + 3600000),
+        expires: new Date(now.getTime() + 600000),
+        created: new Date(now.getTime() - 60000),
+      });
+      await historicalWorkflowBooking(w, f, reviewer, {
+        state: "confirmed",
+        start: new Date(now.getTime() - 2 * 86400000),
+        end: new Date(now.getTime() - 2 * 86400000 + 3600000),
+        expires: new Date(now.getTime() + 600000),
+        created: new Date(now.getTime() - 60000),
+      });
+      const remaining = await readWorkflowCandidates(
+        f.context,
+        f.requester.headers,
+        f.choice,
+      );
+      expect(remaining).toEqual(
+        slots.filter((slot) => new Date(slot.endAtUtc) <= blockerStart),
+      );
+    } finally {
+      clock.mockRestore();
+    }
+  });
+
+  it("excludes the current reschedule time and enforces screening through the replacement end", async () => {
+    const initialSlots = await readWorkflowCandidates(
+      f.context,
+      f.requester.headers,
+      f.choice,
+    );
+    const initial = initialSlots[0];
+    const boundary = initialSlots[8];
+    if (!initial || !boundary)
+      throw new Error("Required future slots unavailable");
+    const booking = await createPolicyReservation(
+      f.context,
+      f.requester.headers,
+      {
+        ...f.choice,
+        startAtUtc: initial.startAtUtc,
+        endAtUtc: initial.endAtUtc,
+        idempotencyKey: randomUUID(),
+      },
+    );
+    const moves = await readWorkflowMoveCandidates(
+      f.context,
+      f.requester.headers,
+      booking.id,
+    );
+    expect(moves.some((slot) => slot.startAtUtc === initial.startAtUtc)).toBe(
+      false,
+    );
+    expect(moves.some((slot) => slot.startAtUtc === boundary.startAtUtc)).toBe(
+      true,
+    );
+    let revision = 3;
+    for (const code of ["synthetic_check_a", "synthetic_check_b"]) {
+      const saved = await recordScreeningCheck(
+        f.screeningContext,
+        reviewer.headers,
+        f.profile.id,
+        {
+          revision,
+          code,
+          requestKey: randomUUID(),
+          outcome: "passed",
+          reference: `screening:${randomUUID()}`,
+          checkedAt: new Date(Date.now() - 60000).toISOString(),
+          expiresAt: boundary.endAtUtc,
+        },
+      );
+      revision = saved.revision;
+    }
+    await decideScreening(f.screeningContext, reviewer.headers, f.profile.id, {
+      revision,
+      action: "approve",
+      requestKey: randomUUID(),
+    });
+    const filtered = await readWorkflowMoveCandidates(
+      f.context,
+      f.requester.headers,
+      booking.id,
+    );
+    expect(
+      filtered.every(
+        (slot) => Date.parse(slot.endAtUtc) < Date.parse(boundary.endAtUtc),
+      ),
+    ).toBe(true);
+    expect(
+      filtered.some((slot) => slot.startAtUtc === boundary.startAtUtc),
+    ).toBe(false);
+    const available = await readWorkflowCandidates(
+      f.context,
+      f.requester.headers,
+      f.choice,
+    );
+    expect(
+      available.some((slot) => slot.startAtUtc === boundary.startAtUtc),
+    ).toBe(false);
+    const publicTimes = await readPublicCandidates(
+      w.runtime,
+      {
+        tutorSlugs: [f.profile.slug],
+        subjectSlug: "math",
+        level: "high_school",
+        displayTimezone: "Asia/Manila",
+      },
+      "synthetic_readiness",
+    );
+    expect(
+      publicTimes.tutors[0].times.every(
+        (slot) => Date.parse(slot.endAtUtc) < Date.parse(boundary.endAtUtc),
+      ),
+    ).toBe(true);
+    expect(
+      publicTimes.tutors[0].times.some(
+        (slot) => slot.startAtUtc === boundary.startAtUtc,
+      ),
+    ).toBe(false);
+    await expect(
+      createPolicyReservation(f.context, f.requester.headers, {
+        ...f.choice,
+        startAtUtc: boundary.startAtUtc,
+        endAtUtc: boundary.endAtUtc,
+        idempotencyKey: randomUUID(),
+      }),
+    ).rejects.toMatchObject({ status: 409 });
+    await expect(
+      w.owner.pool.query(
+        "INSERT INTO bookings(source,tutor_id,learner_id,booked_by_user_id,subject_id,start_at_utc,end_at_utc,display_timezone,idempotency_key,request_fingerprint,state,created_at,expires_at,workflow_policy_id,admission_policy_id) SELECT 'synthetic_readiness',$1,$2,$3,s.id,$4,$5,'Asia/Manila',$6,$7,'provisional',clock_timestamp(),clock_timestamp()+interval '10 minutes',$8,$9 FROM subjects s WHERE s.slug='math'",
+        [
+          f.profile.id,
+          f.learner.id,
+          f.requester.id,
+          boundary.startAtUtc,
+          boundary.endAtUtc,
+          randomUUID(),
+          "a".repeat(64),
+          f.booking.policyId,
+          f.admission.policyId,
+        ],
+      ),
+    ).rejects.toMatchObject({ code: "P4090" });
+    await expect(
+      changePolicyBooking(
+        f.context,
+        f.requester.headers,
+        booking.id,
+        "reschedule",
+        {
+          requestId: randomUUID(),
+          expectedRevision: booking.workflowRevision,
+          reasonCode: "synthetic_participant_change",
+          startAtUtc: boundary.startAtUtc,
+          endAtUtc: boundary.endAtUtc,
+          displayTimezone: f.choice.displayTimezone,
+        },
+      ),
+    ).rejects.toMatchObject({ status: 409 });
+    const unchanged = await readParticipantBooking(
+      w.runtime,
+      f.requester.headers,
+      booking.id,
+      "guardian",
+    );
+    expect(unchanged.time.startAtUtc).toBe(initial.startAtUtc);
+  });
+  it("returns no alternatives when screening covers only the existing slot", async () => {
+    const slots = await readWorkflowCandidates(
+      f.context,
+      f.requester.headers,
+      f.choice,
+    );
+    const initial = slots[0];
+    const boundary = slots[1];
+    if (!initial || !boundary)
+      throw new Error("Required future slots unavailable");
+    const booking = await createPolicyReservation(
+      f.context,
+      f.requester.headers,
+      {
+        ...f.choice,
+        startAtUtc: initial.startAtUtc,
+        endAtUtc: initial.endAtUtc,
+        idempotencyKey: randomUUID(),
+      },
+    );
+    let revision = 3;
+    for (const code of ["synthetic_check_a", "synthetic_check_b"]) {
+      const saved = await recordScreeningCheck(
+        f.screeningContext,
+        reviewer.headers,
+        f.profile.id,
+        {
+          revision,
+          code,
+          requestKey: randomUUID(),
+          outcome: "passed",
+          checkedAt: new Date(Date.now() - 60000).toISOString(),
+          expiresAt: boundary.endAtUtc,
+        },
+      );
+      revision = saved.revision;
+    }
+    await decideScreening(f.screeningContext, reviewer.headers, f.profile.id, {
+      revision,
+      action: "approve",
+      requestKey: randomUUID(),
+    });
+    expect(
+      await readWorkflowMoveCandidates(
+        f.context,
+        f.requester.headers,
+        booking.id,
+      ),
+    ).toEqual([]);
+    expect(
+      (
+        await readParticipantBooking(
+          w.runtime,
+          f.requester.headers,
+          booking.id,
+          "guardian",
+        )
+      ).time.startAtUtc,
+    ).toBe(initial.startAtUtc);
+  });
+  it("rechecks a policy revoked while a booking transaction is waiting", async () => {
+    const slot = (
+      await readWorkflowCandidates(f.context, f.requester.headers, f.choice)
+    )[8];
+    if (!slot) throw new Error("Required future slot unavailable");
+    const key = randomUUID();
+    const client = await w.owner.pool.connect();
+    let pending: Promise<unknown> | undefined;
+    try {
+      await client.query("BEGIN");
+      await client.query(
+        "UPDATE tutor_screening_policy_heads SET status='revoked' WHERE provenance='synthetic_readiness'",
+      );
+      pending = createPolicyReservation(f.context, f.requester.headers, {
+        ...f.choice,
+        startAtUtc: slot.startAtUtc,
+        endAtUtc: slot.endAtUtc,
+        idempotencyKey: key,
+      });
+      // Attach a handler immediately while we observe the lock.
+      const failed = expect(pending).rejects.toMatchObject({
+        status: expect.any(Number),
+      });
+      await observedLock(w, "create_policy_booking");
+      await client.query("COMMIT");
+      await failed;
+      expect(
+        (
+          await w.owner.pool.query(
+            "SELECT count(*)::int AS n FROM bookings WHERE idempotency_key=$1",
+            [key],
+          )
+        ).rows[0].n,
+      ).toBe(0);
+    } finally {
+      await client.query("ROLLBACK");
+      await w.owner.pool.query(
+        "UPDATE tutor_screening_policy_heads SET status='enabled' WHERE provenance='synthetic_readiness'",
+      );
+      client.release();
+    }
+  });
   it("requires policy and exact authorized admission instead of an existing demo role", async () => {
     await expect(
       createPolicyReservation(

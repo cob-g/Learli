@@ -58,6 +58,21 @@ export const admittedLearnerInput = learnerFields.pick({
   timezone: true,
   grade: true,
 });
+export const localParentLearnerInput = admittedLearnerInput
+  .extend({
+    level: learnerFields.shape.level.optional(),
+    expectedLevel: learnerFields.shape.level.optional(),
+  })
+  .superRefine((value, context) => {
+    if ((value.level === undefined) !== (value.expectedLevel === undefined))
+      context.addIssue({
+        code: "custom",
+        path: ["level"],
+        message: "Reload the profile and try again.",
+      });
+    if (value.level)
+      validateLearnerGrade({ level: value.level, grade: value.grade }, context);
+  });
 
 /** Cursor contains only an opaque private request ID; authorization is checked again in SQL. */
 export function admissionListCursor(input: unknown): string | null {

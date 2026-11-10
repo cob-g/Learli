@@ -1,3 +1,4 @@
+import { StudentBookingLive } from "@/features/tutors/booking-refresh";
 import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import type { Metadata } from "next";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
@@ -45,12 +46,17 @@ export default async function Page({
       <BookingUnavailable scope={scope.success ? scope.data : undefined} />
     );
   return (
-    <BookingHistoryView
-      result={result}
-      privateWorkflow={loaded?.privateWorkflow}
-      learnerId={
-        typeof params.learnerId === "string" ? params.learnerId : undefined
-      }
-    />
+    <>
+      {result.scope === "guardian" && result.learners.length > 0 && (
+        <StudentBookingLive audience="parent" />
+      )}
+      <BookingHistoryView
+        result={result}
+        privateWorkflow={loaded?.privateWorkflow}
+        learnerId={
+          typeof params.learnerId === "string" ? params.learnerId : undefined
+        }
+      />
+    </>
   );
 }

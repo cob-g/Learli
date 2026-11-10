@@ -401,6 +401,34 @@ describe("parent profile and children boundaries", () => {
     });
     expect(payload).not.toHaveProperty("level");
   });
+  it("allows an ordinary Parent to change level without silently discarding grade", async () => {
+    state.ordinaryParent = true;
+    state.profile.mockResolvedValue({ profile: child, reviewed: true });
+    const fetch = vi.fn().mockResolvedValue(Response.json({ id: child.id }));
+    vi.stubGlobal("fetch", fetch);
+    render(
+      await ChildProfilePage({
+        params: Promise.resolve({ learnerId: child.id }),
+      }),
+    );
+    const level = screen.getByLabelText("Level");
+    expect(level).toBeEnabled();
+    fireEvent.change(level, { target: { value: "college_support" } });
+    expect(
+      screen.getByText(/College Support does not use a school grade/),
+    ).toBeVisible();
+    expect(screen.getByLabelText("Grade (optional)")).toHaveValue("8");
+    fireEvent.change(screen.getByLabelText("Grade (optional)"), {
+      target: { value: "" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toMatchObject({
+      expectedLevel: "middle_school",
+      level: "college_support",
+      grade: null,
+    });
+  });
   it("denies foreign, unavailable and self-managed records at the parent child boundary", async () => {
     state.profile.mockRejectedValueOnce(new AccessError(404));
     const denied = render(

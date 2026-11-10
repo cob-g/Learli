@@ -12,6 +12,7 @@ import { LearnerLink } from "@/features/learners/learner-link";
 import { levelNames } from "@/features/subjects/catalog";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
+import "@/features/parent-children/parent-pages.css";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Admission request",
@@ -53,24 +54,33 @@ export default async function Page({
     row.management === "guardian";
   const next = incomingNext ?? row.next;
   return (
-    <div className="page-shell page-space">
-      <LearnerLink
-        href={parentDeclared ? "/parent/children" : "/learner-admission"}
-        className="inline-flex min-h-11 items-center"
-        label={parentDeclared ? "My Children" : "Admission requests"}
-      />
-      <h1 className="mt-4 text-page-title">
-        {parentDeclared ? "Child profile consent record" : "Admission request"}
-      </h1>
-      <p className="mt-4 max-w-prose text-body">
-        {parentDeclared
-          ? "This record contains your guardian declaration, consent and current access status for the new child profile. No routine Admin approval is required."
-          : privateWorkflow
-            ? "This request records the learner’s review status and current access."
-            : "Synthetic readiness only. This record establishes no real consent or eligibility."}
-      </p>
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">
+            {parentDeclared ? "Parent workspace" : "Learner requests"}
+          </p>
+          <h1>
+            {parentDeclared
+              ? "Child profile consent record"
+              : "Admission request"}
+          </h1>
+          <p>
+            {parentDeclared
+              ? "This record contains your guardian declaration, consent and current access status for the new child profile. No routine Admin approval is required."
+              : privateWorkflow
+                ? "This request records the learner’s review status and current access."
+                : "Synthetic readiness only. This record establishes no real consent or eligibility."}
+          </p>
+        </div>
+        <LearnerLink
+          href={parentDeclared ? "/parent/children" : "/learner-admission"}
+          className="pp-link"
+          label={parentDeclared ? "My Children" : "Admission requests"}
+        />
+      </header>
       <section
-        className="mt-6 max-w-prose rounded-surface border border-border bg-surface p-6 sm:p-8"
+        className="pp-card max-w-prose p-6 sm:p-8"
         aria-labelledby="admission-learner-heading"
       >
         <h2
@@ -114,31 +124,31 @@ export default async function Page({
       </section>
       <>
         {row.state === "authorized" && row.currentAccess && (
-          <div className="mt-8 flex flex-wrap items-center gap-6">
+          <div className="pp-actions">
             {row.management === "self" && (
               <LearnerLink
                 href="/student"
-                className="action action-primary"
+                className="action action-primary pp-submit"
                 label="Student workspace"
               />
             )}
             <LearnerLink
               href="/learners"
-              className="action action-primary"
+              className="action action-primary pp-submit"
               label="Your authorized learners"
             />
             {privateWorkflow && (
               <LearnerLink
                 href="/tutors"
-                className="inline-flex min-h-11 items-center"
+                className="pp-link"
                 label="Find a tutor"
               />
             )}
           </div>
         )}
         {next && (
-          <section className="mt-8 max-w-prose">
-            <h2 className="text-section-title">
+          <section className="pp-section max-w-prose">
+            <h2 className="pp-section-title">
               {selectionFromReturnPath(next)
                 ? "Your selected tutor and time"
                 : "Your selected tutor and subject"}
@@ -151,7 +161,7 @@ export default async function Page({
               time is reserved by admission.
             </p>
             <LearnerLink
-              className="mt-2 inline-flex min-h-11 items-center"
+              className="pp-link self-start"
               href={privateWorkflow ? privateBookingHref(next) : next}
               label={
                 selectionFromReturnPath(next)

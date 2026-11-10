@@ -1,8 +1,4 @@
-import {
-  privateActorPredicate,
-  privateBookingPredicate,
-} from "@/features/private-workflow/query";
-import type { PrivateWorkflowPacket } from "@/features/private-workflow/config";
+import { privateBookingPredicate } from "@/features/private-workflow/query";
 // Node-only, internal query. Never import from browser code or consumer features.
 import { sql } from "drizzle-orm";
 import type { Database } from "@/lib/db/connection";
@@ -10,13 +6,11 @@ import type { BookingListInput } from "./read-input";
 import type { StoredBookingRead } from "./read-projection";
 import type { BookingLearnerSummary } from "./read-model";
 
-type ReadActor = {
-  userId: string;
-  sessionId: string;
-  privateWorkflow?: boolean;
-  localWorkflow?: boolean;
-  privatePacket?: PrivateWorkflowPacket;
-};
+import {
+  participantReadActor,
+  participantLearnerAuthority,
+  type BookingReadActor,
+} from "./read-authority";
 export type ReadSnapshot = {
   timezone: string;
   snapshot: string;
@@ -35,12 +29,11 @@ export type ReadSnapshot = {
  */
 export async function queryParticipantBookings(
   db: Database,
-  actor: ReadActor,
+  actor: BookingReadActor,
   input: BookingListInput,
   bookingId?: string,
   overview = false,
 ): Promise<ReadSnapshot | undefined> {
-  const role = input.scope === "guardian" ? "parent" : input.scope;
   const relation =
     input.scope === "tutor"
       ? sql`tp.user_id = a.id AND tp.review_status <> 'suspended'`
@@ -93,15 +86,7 @@ export async function queryParticipantBookings(
         )`;
   const result = await db.execute<ReadSnapshot>(sql`
     WITH actor AS (
-      SELECT u.id, u.timezone, statement_timestamp() AS now
-      FROM "user" u
-      JOIN user_access ua ON ua.user_id = u.id AND ua.status = 'active'
-      JOIN session s ON s.user_id = u.id AND s.id = ${actor.sessionId}
-        AND s.expires_at > statement_timestamp()
-      WHERE ${privateActorPredicate(actor.privatePacket, sql`u.id`)} AND u.id = ${actor.userId} AND u.email_verified = true
-        AND (${actor.localWorkflow === true} OR u.email ~* '^[^[:space:]@]+@([a-z0-9-]+[.])+test$')
-        AND EXISTS (SELECT 1 FROM user_roles r WHERE r.user_id = u.id AND r.role = ${role})
-        ${input.scope === "tutor" ? sql`AND EXISTS (SELECT 1 FROM tutor_profiles own WHERE own.user_id = u.id AND own.review_status <> 'suspended')` : sql``}
+      ${participantReadActor(actor, input.scope)}
     ), permitted AS (
       SELECT b.id, b.start_at_utc, ${active} AS active, b.state AS booking_state, b.expires_at AS booking_expires_at,
         b.source, b.workflow_revision, b.workflow_policy_id, b.logical_booking_id, b.revision,
@@ -136,7 +121,7 @@ export async function queryParticipantBookings(
           ? sql`'[]'::jsonb`
           : sql`COALESCE((
         SELECT jsonb_agg(jsonb_build_object('id', lp.id, 'displayName', lp.display_name, 'level', lp.level) ORDER BY lp.created_at ASC, lp.id ASC)
-        FROM learner_profiles lp WHERE lp.status = 'active' AND ((lp.source=${actor.localWorkflow === true ? "local_operation" : "synthetic_readiness"} AND ${input.scope === "student" ? sql`lp.management='self' AND lp.user_id=a.id AND lp.level='college_support'` : sql`lp.management='guardian' AND lp.user_id IS NULL`} AND EXISTS(SELECT 1 FROM learner_admissions la WHERE la.learner_id=lp.id AND public.has_current_learner_authority(a.id,${actor.sessionId},lp.id,la.policy_id))) OR (${actor.privateWorkflow || actor.localWorkflow ? sql`false` : sql`true`} AND lp.source = 'local_fixture' AND ${input.scope === "student" ? sql`lp.management = 'self' AND lp.user_id = a.id AND lp.level = 'college_support'` : sql`lp.management = 'guardian' AND lp.user_id IS NULL AND EXISTS (SELECT 1 FROM guardian_learner_links gl WHERE gl.learner_id = lp.id AND gl.guardian_user_id = a.id AND gl.status = 'authorized' AND gl.source = 'local_fixture')`}))
+        FROM learner_profiles lp WHERE ${participantLearnerAuthority(actor, input.scope)}
       ), '[]'::jsonb)`
       } AS learners
     FROM actor a

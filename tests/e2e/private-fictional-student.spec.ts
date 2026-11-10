@@ -313,7 +313,10 @@ async function participantSnapshot(
   expect(detail.viewerTimezone).toBe(expectedTimezone);
   actualDateLocalTime(detail.time, expectedTimezone, saved);
 
-  await freshPage(actor.page, `/bookings/${id}?scope=${scope}`);
+  await freshPage(
+    actor.page,
+    `/bookings/${id}?scope=${scope}${state === "replaced" ? "&history=1" : ""}`,
+  );
   await expect(
     actor.page.getByRole("heading", {
       name: bookingStatusLabel(state, true),
@@ -1319,7 +1322,27 @@ test("normal private build connects independent College Students, Science bookin
     expect(await activeHeadCount(initial.logical_booking_id)).toBe(1);
   });
 
+  const liveStudentDetail = await student.context.newPage();
+  const studentStream = liveStudentDetail.waitForResponse(
+    (response) =>
+      response.url().endsWith("/api/student/bookings/events") &&
+      response.status() === 200,
+  );
+  await liveStudentDetail.goto(`/bookings/${bookingId}?scope=student`);
+  await studentStream;
+  await expect(
+    liveStudentDetail.getByText(
+      "The tutor has not provided a meeting link yet.",
+    ),
+  ).toBeVisible();
+  await liveStudentDetail.bringToFront();
   await saveMeeting(tutor, bookingId, meeting);
+  await expect(
+    liveStudentDetail.getByRole("link", {
+      name: "Open meeting on Google Meet (new tab)",
+    }),
+  ).toBeVisible({ timeout: 20_000 });
+  await liveStudentDetail.close();
   await openMeeting(student, bookingId, meeting);
   await openMeeting(tutor, bookingId, meeting);
   await test.step("fresh Student, Tutor and assigned Admin reads preserve one booking after a private meeting update", async () => {
@@ -1480,7 +1503,75 @@ test("normal private build connects independent College Students, Science bookin
   });
 
   let replacementId = "";
+  let newDetailForCancelled!: BookingDetail["time"];
+  const tutorDetail = await tutor.context.newPage();
+  const studentDetail = await student.context.newPage();
+  const studentDashboard = await student.context.newPage();
   await test.step("Student reschedules the confirmed booking and refreshes its private link", async () => {
+    await tutor.page.goto("/tutor");
+    await expect(
+      tutor.page.getByText("Live booking updates are connected."),
+    ).toBeVisible();
+    await expect(
+      tutor.page
+        .locator(`a[href="/bookings/${bookingId}?scope=tutor"]`)
+        .first(),
+    ).toBeVisible();
+    for (const width of [1440, 390]) {
+      await tutor.page.setViewportSize({ width, height: 900 });
+      const card = tutor.page.locator(".tutor-next");
+      const box = await card.boundingBox();
+      expect(box).not.toBeNull();
+      await card.click({ position: { x: box!.width - 15, y: 15 } });
+      await expect(tutor.page).toHaveURL(
+        new RegExp(`/bookings/${bookingId}\\?scope=tutor$`),
+      );
+      await tutor.page.goto("/tutor");
+    }
+    const nextLink = tutor.page.locator(".tutor-next a.tutor-next-link");
+    await nextLink.focus();
+    await expect(nextLink).toBeFocused();
+    await tutor.page.keyboard.press("Enter");
+    await expect(tutor.page).toHaveURL(
+      new RegExp(`/bookings/${bookingId}\\?scope=tutor$`),
+    );
+    await tutor.page.goto("/tutor");
+    await tutor.page.setViewportSize({ width: 1440, height: 900 });
+    const detailStream = tutorDetail.waitForResponse(
+      (response) =>
+        response.url().endsWith("/api/tutor/bookings/events") &&
+        response.status() === 200,
+    );
+    const initialDetailRefresh = tutorDetail.waitForResponse((response) => {
+      const url = new URL(response.url());
+      return (
+        url.pathname === `/bookings/${bookingId}` &&
+        url.searchParams.has("_rsc")
+      );
+    });
+    await tutorDetail.goto(`/bookings/${bookingId}?scope=tutor`);
+    await detailStream;
+    await initialDetailRefresh;
+    await expect(
+      tutorDetail.getByRole("heading", { name: "Confirmed", exact: true }),
+    ).toBeVisible();
+    const unsavedLink = "https://meet.google.com/abc-defg-hij";
+    const linkInput = tutorDetail.getByLabel("Zoom or Google Meet link", {
+      exact: true,
+    });
+    await linkInput.fill(unsavedLink);
+    const unrelatedRefresh = tutorDetail.waitForResponse((response) => {
+      const url = new URL(response.url());
+      return (
+        url.pathname === `/bookings/${bookingId}` &&
+        url.searchParams.has("_rsc")
+      );
+    });
+    await h.owner.pool.query("SELECT pg_notify('learli_tutor_booking',$1)", [
+      profile.id,
+    ]);
+    await unrelatedRefresh;
+    await expect(linkInput).toHaveValue(unsavedLink);
     await student.page.goto(`/bookings/${bookingId}?scope=student`);
     await student.page
       .getByRole("link", { name: "Reschedule booking", exact: true })
@@ -1491,12 +1582,33 @@ test("normal private build connects independent College Students, Science bookin
         exact: true,
       }),
     ).toBeVisible();
+    await responsive(student.page);
+    await expect(
+      student.page.locator(`input[name="slot"][value="${chosen!.startAtUtc}"]`),
+    ).toHaveCount(0);
     const start = await chooseFutureTime(
       student.page,
       'input[name="slot"]',
       Math.max(Date.now() + 4 * 3600000, Date.parse(chosen!.endAtUtc)),
       chosen!.startAtUtc,
     );
+    const ownDetailStream = studentDetail.waitForResponse(
+      (response) =>
+        response.url().endsWith("/api/student/bookings/events") &&
+        response.status() === 200,
+    );
+    await studentDetail.goto(`/bookings/${bookingId}?scope=student`);
+    await ownDetailStream;
+    await studentDashboard.goto("/student");
+    await expect(
+      studentDashboard.getByText("Live booking updates are connected."),
+    ).toBeVisible();
+    await expect(
+      studentDashboard
+        .locator(`a[href="/bookings/${bookingId}?scope=student"]`)
+        .first(),
+    ).toBeVisible();
+    await tutorDetail.bringToFront();
     const move = await submit<ChangeInput>(
       student.page,
       `/api/bookings/${bookingId}/workflow/reschedule`,
@@ -1509,6 +1621,112 @@ test("normal private build connects independent College Students, Science bookin
     expect(replacementId === bookingId).toBe(false);
     expect(move.receipt.state).toBe("confirmed");
     expect(move.receipt.logicalBookingId).toBe(create.receipt.logicalBookingId);
+    await expect(tutorDetail).toHaveURL(
+      new RegExp(`/bookings/${replacementId}\\?scope=tutor$`),
+      { timeout: 20_000 },
+    );
+    await expect(
+      tutorDetail.getByRole("heading", { name: "Confirmed", exact: true }),
+    ).toBeVisible();
+    const newDetailResponse = await tutor.context.request.get(
+      `/api/bookings/${replacementId}?scope=tutor`,
+    );
+    expect(newDetailResponse.status()).toBe(200);
+    const newDetail = (await newDetailResponse.json()) as BookingDetail;
+    newDetailForCancelled = newDetail.time;
+    expect(newDetail.time.startAtUtc).toBe(start);
+    await renderedLessonTime(tutorDetail, newDetail.time);
+    await studentDetail.bringToFront();
+    await expect(studentDetail).toHaveURL(
+      new RegExp(`/bookings/${replacementId}\\?scope=student$`),
+      { timeout: 20_000 },
+    );
+    const studentNewDetail = await student.context.request.get(
+      `/api/bookings/${replacementId}?scope=student`,
+    );
+    expect(studentNewDetail.status()).toBe(200);
+    await renderedLessonTime(
+      studentDetail,
+      ((await studentNewDetail.json()) as BookingDetail).time,
+    );
+    const noScript = await browser.newContext({
+      baseURL: h.packet.origin,
+      javaScriptEnabled: false,
+      storageState: await student.context.storageState(),
+    });
+    try {
+      const page = await noScript.newPage();
+      await page.goto(`/bookings/${bookingId}?scope=student`);
+      await expect(page).toHaveURL(
+        new RegExp(`/bookings/${replacementId}\\?scope=student$`),
+      );
+      await page.goto(`/bookings/${bookingId}?scope=student&history=1`);
+      await expect(
+        page.getByRole("heading", { name: "Rescheduled", exact: true }),
+      ).toBeVisible();
+      const currentLink = page.getByRole("link", {
+        name: "View current booking",
+      });
+      await currentLink.focus();
+      await page.keyboard.press("Enter");
+      await expect(page).toHaveURL(
+        new RegExp(`/bookings/${replacementId}\\?scope=student$`),
+      );
+    } finally {
+      await noScript.close();
+    }
+    await studentDashboard.bringToFront();
+    await expect(
+      studentDashboard
+        .locator(`a[href="/bookings/${replacementId}?scope=student"]`)
+        .first(),
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(
+      studentDashboard
+        .locator(`a[href="/bookings/${bookingId}?scope=student&history=1"]`)
+        .first(),
+    ).toBeVisible();
+    await expect(
+      tutorDetail.getByText("The tutor has not provided a meeting link yet."),
+    ).toBeVisible();
+    const historicalPage = await tutor.context.newPage();
+    await historicalPage.goto(`/bookings/${bookingId}?scope=tutor`);
+    await expect(historicalPage).toHaveURL(
+      new RegExp(`/bookings/${replacementId}\\?scope=tutor$`),
+    );
+    await historicalPage.goto(`/bookings/${bookingId}?scope=tutor&history=1`);
+    await expect(
+      historicalPage.getByRole("heading", { name: "Rescheduled", exact: true }),
+    ).toBeVisible();
+    await expect(
+      historicalPage.getByText("This is a previous version of the booking."),
+    ).toBeVisible();
+    await expect(
+      historicalPage.getByRole("link", { name: "View current booking" }),
+    ).toHaveAttribute("href", `/bookings/${replacementId}?scope=tutor`);
+    await historicalPage.close();
+    const unauthorizedHistory = await other.context.newPage();
+    await unauthorizedHistory.goto(
+      `/bookings/${bookingId}?scope=tutor&history=1`,
+    );
+    await expect(
+      unauthorizedHistory.getByRole("heading", {
+        name: "We can't find that booking on this account",
+      }),
+    ).toBeVisible();
+    await unauthorizedHistory.close();
+    // The tutor keeps the dashboard open; no reload or refresh click is needed.
+    await tutor.page.bringToFront();
+    await expect(
+      tutor.page
+        .locator(`a[href="/bookings/${replacementId}?scope=tutor"]`)
+        .first(),
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(
+      tutor.page.locator(
+        `a[href="/bookings/${bookingId}?scope=tutor&history=1"]`,
+      ),
+    ).toBeVisible();
     await expect(student.page).toHaveURL(
       new RegExp(`/bookings/${replacementId}\\?scope=student$`),
     );
@@ -1592,17 +1810,70 @@ test("normal private build connects independent College Students, Science bookin
   });
 
   await test.step("Student cancellation is retry-safe and both audited versions remain history", async () => {
+    await tutor.page.goto("/tutor");
+    await expect(
+      tutor.page.getByText("Live booking updates are connected."),
+    ).toBeVisible();
+    const tutorActive = tutor.page.locator(
+      ".tutor-next, .tutor-sessions section[aria-label='Upcoming sessions']",
+    );
+    await expect(
+      tutorActive.locator(`a[href="/bookings/${replacementId}?scope=tutor"]`),
+    ).toBeVisible();
+    await expect(tutorDetail).toHaveURL(
+      new RegExp(`/bookings/${replacementId}\\?scope=tutor$`),
+    );
+    await expect(
+      tutorDetail.getByRole("heading", { name: "Confirmed", exact: true }),
+    ).toBeVisible();
     await student.page.goto(`/bookings/${replacementId}?scope=student`);
     await student.page
       .locator("summary")
       .filter({ hasText: /^Cancel booking$/ })
       .click();
+    await tutorDetail.bringToFront();
     const cancellation = await submit<ChangeInput>(
       student.page,
       `/api/bookings/${replacementId}/workflow/cancel`,
       student.page.getByRole("button", { name: "Cancel booking", exact: true }),
     );
     expect(cancellation.receipt.state).toBe("cancelled");
+    await expect(
+      tutorDetail.getByRole("heading", { name: "Cancelled", exact: true }),
+    ).toBeVisible({ timeout: 20_000 });
+    await renderedLessonTime(tutorDetail, newDetailForCancelled);
+    await studentDetail.bringToFront();
+    await expect(
+      studentDetail.getByRole("heading", { name: "Cancelled", exact: true }),
+    ).toBeVisible({ timeout: 20_000 });
+    await studentDashboard.bringToFront();
+    await expect(
+      studentDashboard
+        .locator("li")
+        .filter({
+          has: studentDashboard.locator(
+            `a[href="/bookings/${replacementId}?scope=student"]`,
+          ),
+        })
+        .getByText("Cancelled", { exact: true }),
+    ).toBeVisible({ timeout: 20_000 });
+    await expect(
+      tutorDetail.getByText(
+        "The meeting link is unavailable because this booking is no longer active.",
+      ),
+    ).toBeVisible();
+    await expect(
+      tutorDetail.getByLabel("Zoom or Google Meet link"),
+    ).toHaveCount(0);
+    await tutor.page.bringToFront();
+    await expect(
+      tutorActive.locator(`a[href="/bookings/${replacementId}?scope=tutor"]`),
+    ).toHaveCount(0, { timeout: 20_000 });
+    await expect(
+      tutor.page
+        .locator(`a[href="/bookings/${replacementId}?scope=tutor"]`)
+        .first(),
+    ).toBeVisible();
     await expect(
       student.page.getByRole("heading", { name: "Cancelled", exact: true }),
     ).toBeVisible();
@@ -1645,10 +1916,16 @@ test("normal private build connects independent College Students, Science bookin
       ).rows[0].n,
     ).toBe(8);
     await student.page.goto("/bookings?scope=student&filter=history");
-    for (const id of [bookingId, replacementId])
-      await expect(
-        student.page.locator(`a[href="/bookings/${id}?scope=student"]`),
-      ).toBeVisible();
+    await expect(
+      student.page.locator(
+        `a[href="/bookings/${bookingId}?scope=student&history=1"]`,
+      ),
+    ).toBeVisible();
+    await expect(
+      student.page.locator(
+        `a[href="/bookings/${replacementId}?scope=student"]`,
+      ),
+    ).toBeVisible();
     const response = await student.context.request.get(
       "/api/bookings?scope=student&filter=history",
     );
@@ -1667,6 +1944,9 @@ test("normal private build connects independent College Students, Science bookin
       "replaced",
     ]);
   });
+  await tutorDetail.close();
+  await studentDetail.close();
+  await studentDashboard.close();
 
   await test.step("separate historical fixture completes through assigned Tutor UI and Student history", async () => {
     // This separately inserted ended record is NOT the new booking above, a
@@ -1715,8 +1995,16 @@ test("normal private build connects independent College Students, Science bookin
         exact: true,
       }),
     ).toHaveCount(0);
+    const studentCompletionStream = student.page.waitForResponse(
+      (response) =>
+        response.url().endsWith("/api/student/bookings/events") &&
+        response.status() === 200,
+    );
+    await student.page.reload();
+    await studentCompletionStream;
     await tutor.page.goto(`/bookings/${historical.id}?scope=tutor`);
     expect((await savedBooking(historical.id)).state).toBe("confirmed");
+    await student.page.bringToFront();
     const completion = await submit<ChangeInput>(
       tutor.page,
       `/api/bookings/${historical.id}/workflow/complete`,
@@ -1726,6 +2014,9 @@ test("normal private build connects independent College Students, Science bookin
       }),
     );
     expect(completion.receipt.state).toBe("completed");
+    await expect(
+      student.page.getByRole("heading", { name: "Completed", exact: true }),
+    ).toBeVisible({ timeout: 20_000 });
     await expect(
       tutor.page.getByRole("heading", { name: "Completed", exact: true }),
     ).toBeVisible();

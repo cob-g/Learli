@@ -154,7 +154,7 @@ export function IndependentLearnerForm({
   return (
     <form
       ref={formRef}
-      className="mt-8 max-w-xl space-y-5"
+      className="pp-form"
       onSubmit={save}
       method="post"
       action="/api/student/profile"

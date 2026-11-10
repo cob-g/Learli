@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useHydrated } from "@/hooks/use-hydrated";
 import Link from "next/link";
 import { safeBookingReturnPath } from "@/features/bookings/selection";
+import QRCode from "qrcode";
 
 type Action =
   | "enable"
@@ -10,6 +11,20 @@ type Action =
   | "verify-backup-code"
   | "generate-backup-codes"
   | "disable";
+
+function validatedTotpURI(value: unknown, secret: string): string {
+  if (typeof value !== "string" || !secret) return "";
+  try {
+    const uri = new URL(value);
+    return uri.protocol === "otpauth:" &&
+      uri.hostname === "totp" &&
+      uri.searchParams.get("secret") === secret
+      ? value
+      : "";
+  } catch {
+    return "";
+  }
+}
 export function AdminSecurityForm({
   enrolled = false,
   challenge = false,
@@ -22,6 +37,9 @@ export function AdminSecurityForm({
   const ready = useHydrated();
   const [pending, setPending] = useState(false);
   const [secret, setSecret] = useState("");
+  const [totpURI, setTotpURI] = useState("");
+  const [qrFailed, setQrFailed] = useState(false);
+  const qrCanvas = useRef<HTMLCanvasElement>(null);
   const [codes, setCodes] = useState<string[]>([]);
   const [notice, setNotice] = useState("");
   const [backup, setBackup] = useState(false);
@@ -33,6 +51,7 @@ export function AdminSecurityForm({
   useEffect(() => {
     const clear = () => {
       setSecret("");
+      setTotpURI("");
       setCodes([]);
     };
     const restored = (event: PageTransitionEvent) => {
@@ -45,6 +64,21 @@ export function AdminSecurityForm({
       window.removeEventListener("pageshow", restored);
     };
   }, []);
+  useEffect(() => {
+    if (!totpURI || !qrCanvas.current) return;
+    let cancelled = false;
+    setQrFailed(false);
+    void QRCode.toCanvas(qrCanvas.current, totpURI, {
+      width: 220,
+      margin: 4,
+      errorCorrectionLevel: "M",
+    }).catch(() => {
+      if (!cancelled) setQrFailed(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [totpURI]);
   async function submit(event: FormEvent<HTMLFormElement>, action: Action) {
     event.preventDefault();
     if (!ready || pending) return;
@@ -79,10 +113,15 @@ export function AdminSecurityForm({
         );
         return;
       }
-      const result: { secret?: string; backupCodes?: string[] } =
-        await response.json();
+      const result: {
+        secret?: string;
+        totpURI?: string;
+        backupCodes?: string[];
+      } = await response.json();
       if (action === "enable") {
-        setSecret(result.secret ?? "");
+        const setupKey = result.secret ?? "";
+        setSecret(setupKey);
+        setTotpURI(validatedTotpURI(result.totpURI, setupKey));
         setCodes(result.backupCodes ?? []);
       } else if (action === "generate-backup-codes") {
         setCodes(result.backupCodes ?? []);
@@ -91,6 +130,7 @@ export function AdminSecurityForm({
         );
       } else {
         setSecret("");
+        setTotpURI("");
         setCodes([]);
         window.location.replace(
           action === "disable"
@@ -121,12 +161,25 @@ export function AdminSecurityForm({
       {secret && (
         <section aria-label="Authenticator setup" className="space-y-4">
           <p className="text-body">
-            Enter this setup key manually in your authenticator app for Learli.
-            This key is shown only in this document.
+            Scan the QR code with your authenticator app, or enter the setup key
+            manually. Keep both private; they are shown only on this page.
           </p>
           <p className="font-mono text-body break-all" data-mfa-secret>
             {secret}
           </p>
+          {totpURI && !qrFailed ? (
+            <canvas
+              ref={qrCanvas}
+              role="img"
+              aria-label="Authenticator setup QR code"
+              data-mfa-secret
+              className="max-w-full rounded-control bg-white"
+            />
+          ) : (
+            <p className="text-body">
+              QR code unavailable. Enter the setup key manually.
+            </p>
+          )}
         </section>
       )}
       {!!codes.length && (

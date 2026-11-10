@@ -16,6 +16,7 @@ import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { AccessError, requireIdentity } from "@/lib/permissions/access";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
 import { listTimeZoneOptions } from "@/lib/time/zones";
+import "@/features/parent-children/parent-pages.css";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -60,67 +61,74 @@ export default async function AddChildPage({
       />
     );
   return (
-    <div className="page-shell page-space">
-      <LearnerLink
-        href="/parent/children"
-        label="My Children"
-        className="inline-flex min-h-11 items-center"
-      />
-      <h1 className="mt-4 text-page-title">Add Child</h1>
-      <p className="mt-4 max-w-prose text-body">
-        {result.kind === "parent"
-          ? "Create a private profile for your child. Confirm your guardian authority and consent, then save to start arranging tutoring."
-          : result.kind === "admission"
-            ? "Save your child’s details for an assigned admission review. Access stays pending until authorized."
-            : "Save a fictional child profile for local testing. This does not verify real consent, age or guardian identity."}
-      </p>
-      <p className="mt-3 max-w-prose text-small text-muted-foreground">
-        Grade is optional; choose the broad education level separately. Only
-        provide information needed to arrange tutoring.
-      </p>
-      {result.kind === "parent" ? (
-        result.intake.enabled ? (
-          <ParentChildForm
-            requestId={randomUUID()}
-            policyVersion={result.intake.policyVersion}
-            policyDigest={result.intake.policyDigest}
-            noticeVersion={result.intake.noticeVersion}
-            timezone={result.intake.timezone}
-            zones={listTimeZoneOptions(new Date(), [result.intake.timezone])}
-            next={next}
-          />
-        ) : (
-          <p className="mt-8 text-body">
-            Adding children is temporarily unavailable. Your existing profiles
-            are unchanged; return to My Children or try again later.
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">Parent workspace</p>
+          <h1>Add Child</h1>
+          <p>
+            {result.kind === "parent"
+              ? "Create a private profile for your child. Confirm your guardian authority and consent, then save to start arranging tutoring."
+              : result.kind === "admission"
+                ? "Save your child’s details for an assigned admission review. Access stays pending until authorized."
+                : "Save a fictional child profile for local testing. This does not verify real consent, age or guardian identity."}
           </p>
-        )
-      ) : result.kind === "admission" ? (
-        result.intake.enabled ? (
-          <div className="mt-8 max-w-xl rounded-surface border border-border bg-surface p-6 sm:p-8">
-            <AdmissionForm
+          <p className="mt-2 text-small text-muted-foreground">
+            Grade is optional; choose the broad education level separately. Only
+            provide information needed to arrange tutoring.
+          </p>
+        </div>
+        <LearnerLink
+          href="/parent/children"
+          label="My Children"
+          className="pp-link"
+        />
+      </header>
+      <div>
+        {result.kind === "parent" ? (
+          result.intake.enabled ? (
+            <ParentChildForm
               requestId={randomUUID()}
               policyVersion={result.intake.policyVersion}
               policyDigest={result.intake.policyDigest}
-              zones={listTimeZoneOptions(new Date(), ["UTC"])}
-              privateWorkflow
-              parentChildFlow
+              noticeVersion={result.intake.noticeVersion}
+              timezone={result.intake.timezone}
+              zones={listTimeZoneOptions(new Date(), [result.intake.timezone])}
+              next={next}
             />
-          </div>
+          ) : (
+            <p className="workspace-page-note">
+              Adding children is temporarily unavailable. Your existing profiles
+              are unchanged; return to My Children or try again later.
+            </p>
+          )
+        ) : result.kind === "admission" ? (
+          result.intake.enabled ? (
+            <div className="pp-card max-w-xl p-6">
+              <AdmissionForm
+                requestId={randomUUID()}
+                policyVersion={result.intake.policyVersion}
+                policyDigest={result.intake.policyDigest}
+                zones={listTimeZoneOptions(new Date(), ["UTC"])}
+                privateWorkflow
+                parentChildFlow
+              />
+            </div>
+          ) : (
+            <p className="workspace-page-note">
+              Admission intake is unavailable. No child details are collected.
+            </p>
+          )
         ) : (
-          <p className="mt-8 text-body">
-            Admission intake is unavailable. No child details are collected.
-          </p>
-        )
-      ) : (
-        <CreateLearnerForm
-          requestId={randomUUID()}
-          modes={["guardian"]}
-          timezone={result.timezone}
-          zones={listTimeZoneOptions(new Date(), [result.timezone])}
-          parentChildFlow
-        />
-      )}
+          <CreateLearnerForm
+            requestId={randomUUID()}
+            modes={["guardian"]}
+            timezone={result.timezone}
+            zones={listTimeZoneOptions(new Date(), [result.timezone])}
+            parentChildFlow
+          />
+        )}
+      </div>
     </div>
   );
 }

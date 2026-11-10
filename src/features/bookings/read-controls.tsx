@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import Link, { useLinkStatus } from "next/link";
 import { useRouter } from "next/navigation";
+import "./booking-pages.css";
 import { levelNames } from "@/features/subjects/catalog";
 import type {
   BookingLearnerSummary,
@@ -40,7 +41,7 @@ export function BookingHistoryFilters({
           if (typeof value === "string") query.append(name, value);
         startTransition(() => router.push(`/bookings?${query}`));
       }}
-      className="mt-6 flex max-w-5xl flex-wrap items-end gap-4 rounded-surface border border-border bg-surface p-4 sm:p-6"
+      className="booking-filters"
     >
       <input type="hidden" name="scope" value={scope} />
       <input type="hidden" name="pageSize" value={pageSize} />
@@ -115,18 +116,24 @@ export function BookingReadLink({
   label,
   ariaLabel,
   pendingLabel = "Loading your bookings…",
+  variant = "button",
 }: {
   href: string;
   label: string;
   ariaLabel?: string;
   pendingLabel?: string;
+  variant?: "button" | "link";
 }) {
   return (
     <Link
       href={href}
       prefetch={false}
       aria-label={ariaLabel}
-      className="action action-outline max-w-full shrink-0 self-start"
+      className={
+        variant === "link"
+          ? "booking-view-link"
+          : "action action-outline max-w-full shrink-0 self-start"
+      }
     >
       <PendingLabel label={label} pendingLabel={pendingLabel} />
     </Link>

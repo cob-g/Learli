@@ -12,7 +12,7 @@ export function DashboardFilterForm({ children }: { children: ReactNode }) {
     <form
       action="/parent"
       method="get"
-      className="mt-8"
+      className="family-filter-form"
       aria-busy={pending}
       onSubmit={(event) => {
         event.preventDefault();

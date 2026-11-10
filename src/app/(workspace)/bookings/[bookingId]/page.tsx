@@ -4,7 +4,9 @@ import { bookingWorkflowContext } from "@/features/booking-workflows/composition
 import { readTutorCompletion } from "@/features/booking-workflows/service";
 import { publicationContext } from "@/features/review-publication/composition";
 import { readAuthorPublication } from "@/features/review-publication/service";
+import "@/features/bookings/booking-pages.css";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { readAuthorReview } from "@/features/private-reviews/service";
 import { BookingReadLink } from "@/features/bookings/read-controls";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
@@ -15,9 +17,17 @@ import {
   BookingUnavailable,
 } from "@/features/bookings/read-presentation";
 import { bookingReadScope } from "@/features/bookings/read-input";
+import {
+  bookingDetailPath,
+  historicalBookingDetailPath,
+} from "@/features/bookings/read-model";
 import { readPrivateMeetingLink } from "@/features/booking-meeting-links/service";
 import { BookingMeetingSection } from "@/features/booking-meeting-links/meeting-section";
 import type { MeetingSectionState } from "@/features/booking-meeting-links/model";
+import {
+  StudentBookingLive,
+  TutorBookingDetailLive,
+} from "@/features/tutors/booking-refresh";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Booking details",
@@ -33,9 +43,18 @@ export default async function Page({
   const { bookingId } = await params;
   const query = await searchParams;
   const scope = bookingReadScope.safeParse(query.scope ?? "student");
-  const path = `/bookings/${encodeURIComponent(bookingId)}?scope=${scope.success ? scope.data : "student"}`;
+  const historyScope =
+    scope.success && query.history === "1" ? scope.data : null;
+  const historical = historyScope !== null;
+  const path = historyScope
+    ? historicalBookingDetailPath(bookingId, historyScope)
+    : bookingDetailPath(bookingId, scope.success ? scope.data : "student");
   const loaded = await loadPrivatePage(path, async (runtime, headers) => {
-    if (!scope.success || Object.keys(query).some((key) => key !== "scope"))
+    if (
+      !scope.success ||
+      Object.keys(query).some((key) => key !== "scope" && key !== "history") ||
+      (query.history !== undefined && !historical)
+    )
       throw new AccessError(404);
     return {
       detail: await readParticipantBooking(
@@ -53,6 +72,8 @@ export default async function Page({
     return (
       <BookingUnavailable scope={scope.success ? scope.data : undefined} />
     );
+  if (!historical && detail.currentHeadId && detail.currentHeadId !== detail.id)
+    redirect(bookingDetailPath(detail.currentHeadId, scope.data));
   const meeting = await loadPrivatePage(
     path,
     async (runtime, headers): Promise<MeetingSectionState> => {
@@ -108,11 +129,12 @@ export default async function Page({
     <BookingDetailView
       booking={detail}
       privateWorkflow={privateWorkflow}
+      historical={historical}
       scope={scope.data}
       reviewSection={
         completion ? (
-          <section className="mt-8 border-t border-border pt-6">
-            <h2 className="text-section-title">Session completion</h2>
+          <section className="booking-panel">
+            <h2>Session completion</h2>
             <WorkflowActionForm
               bookingId={completion.id}
               revision={completion.workflowRevision}
@@ -125,18 +147,16 @@ export default async function Page({
         ) : !privateWorkflow &&
           detail.source === "synthetic_readiness" &&
           ["completed", "no_show", "cancelled"].includes(detail.state) ? (
-          <section className="mt-8 border-t border-border pt-6">
+          <section className="booking-panel">
             {publication && (
               <div className="mb-8">
-                <h2 className="text-section-title">
-                  Synthetic publication review
-                </h2>
+                <h2>Synthetic publication review</h2>
                 <p className="mt-2 max-w-prose text-small">
                   One immutable review for this administrative completion,
                   subject to assigned manual moderation and privacy review.
                 </p>
                 <a
-                  className="mt-4 inline-flex min-h-11 items-center"
+                  className="inline-flex min-h-11 items-center"
                   href={`/bookings/${bookingId}/publication-review?scope=${scope.data}`}
                 >
                   {publication.saved
@@ -145,9 +165,7 @@ export default async function Page({
                 </a>
               </div>
             )}
-            <h2 className="text-section-title">
-              Dispute this administrative record
-            </h2>
+            <h2>Dispute this administrative record</h2>
             <a
               className="mt-4 inline-flex min-h-11 items-center"
               href={`/bookings/${bookingId}/dispute`}
@@ -162,20 +180,20 @@ export default async function Page({
         ) : detail.source !== "local_simulation" &&
           scope.data !== "tutor" &&
           ["provisional", "confirmed"].includes(detail.state) ? (
-          <section className="mt-8 border-t border-border pt-6">
-            <h2 className="text-section-title">
+          <section className="booking-panel">
+            <h2>
               {privateWorkflow ? "Change booking" : "Change synthetic booking"}
             </h2>
             <a
-              className="mt-4 inline-flex min-h-11 items-center"
+              className="action action-outline w-fit"
               href={`/bookings/${bookingId}/reschedule?scope=${scope.data}`}
             >
               {privateWorkflow
                 ? "Reschedule booking"
                 : "Move synthetic booking"}
             </a>
-            <details className="mt-4">
-              <summary className="min-h-11 cursor-pointer py-2 text-action">
+            <details className="booking-disclosure">
+              <summary>
                 {privateWorkflow
                   ? "Cancel booking"
                   : "Cancel synthetic booking"}
@@ -192,8 +210,8 @@ export default async function Page({
           </section>
         ) : (
           review && (
-            <section className="mt-8 border-t border-border pt-6">
-              <h2 className="text-section-title">Private synthetic review</h2>
+            <section className="booking-panel">
+              <h2>Private synthetic review</h2>
               <p className="mt-2 max-w-prose text-small text-muted-foreground">
                 This completed local fixture can have one private review. It
                 stays private after moderation and does not prove attendance.
@@ -211,22 +229,29 @@ export default async function Page({
         )
       }
       meetingSection={
-        <BookingMeetingSection
-          key={`${bookingId}:${detail.state}:${meeting?.state}:${meeting?.state === "present" ? meeting.revision : 0}`}
-          bookingId={bookingId}
-          privateWorkflow={privateWorkflow}
-          inactive={[
-            "demo_cancelled",
-            "demo_replaced",
-            "demo_completed",
-            "cancelled",
-            "replaced",
-            "completed",
-            "no_show",
-            "expired",
-          ].includes(detail.state)}
-          initial={meeting ?? { state: "error" }}
-        />
+        <>
+          {scope.data === "tutor" && <TutorBookingDetailLive />}
+          {scope.data === "student" && <StudentBookingLive />}
+          {scope.data === "guardian" && (
+            <StudentBookingLive audience="parent" />
+          )}
+          <BookingMeetingSection
+            key={`${bookingId}:${detail.state}:${meeting?.state}:${meeting?.state === "present" ? meeting.revision : 0}`}
+            bookingId={bookingId}
+            privateWorkflow={privateWorkflow}
+            inactive={[
+              "demo_cancelled",
+              "demo_replaced",
+              "demo_completed",
+              "cancelled",
+              "replaced",
+              "completed",
+              "no_show",
+              "expired",
+            ].includes(detail.state)}
+            initial={meeting ?? { state: "error" }}
+          />
+        </>
       }
     />
   );

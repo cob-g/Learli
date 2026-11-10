@@ -163,10 +163,8 @@ export function isCurrentLink(
     bookingScope &&
     (pathname === "/bookings" || pathname.startsWith("/bookings/"))
   )
-    return (
-      scope === bookingScope &&
-      (bookingScope !== "guardian" || pathname !== "/bookings/new")
-    );
+    // Booking a new session is its own destination for every role.
+    return scope === bookingScope && pathname !== "/bookings/new";
   if (
     link.exclude &&
     (pathname === link.exclude || pathname.startsWith(`${link.exclude}/`))

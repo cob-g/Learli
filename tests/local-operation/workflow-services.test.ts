@@ -1,3 +1,4 @@
+import { readBookingUpdateAudience } from "@/features/bookings/update-audience";
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -82,11 +83,13 @@ import {
   readTarget,
 } from "@/features/account-restrictions/service";
 import { enrollParentWorkspace } from "@/features/parent-onboarding/service";
+import { requireIdentity } from "@/lib/permissions/access";
 import {
   prepareLocalPolicies,
   prepareLocalStaff,
 } from "../../scripts/local-workflow";
 import { enrollTestAdmin } from "../support/admin-mfa";
+import { listLocalReviews } from "@/features/local-workflow/review-service";
 import { openOperationFixture } from "./support";
 
 let world: ReturnType<typeof openOperationFixture>;
@@ -443,6 +446,14 @@ describe("ordinary persisted feature services on the explicit separate local fix
       verificationStatus: "self_attested_unverified",
       replayed: false,
     });
+    await expect(
+      updateAdmittedLearner(admission, adult.headers, independentLearner.id, {
+        displayName: "Independent learner",
+        timezone: "Asia/Manila",
+        expectedLevel: "college_support",
+        level: "elementary",
+      }),
+    ).rejects.toMatchObject({ name: "ZodError" });
     const independentLoser = independentAttempts.find(
       (value) => value.status === "rejected",
     );
@@ -683,6 +694,25 @@ describe("ordinary persisted feature services on the explicit separate local fix
       parent.headers,
     );
     expect(legacyLearner).toMatchObject({ id: pending.learner.id, grade: 8 });
+    const nextLegacyLevel =
+      legacyLearner.level === "high_school" ? "middle_school" : "high_school";
+    await updateAdmittedLearner(admission, parent.headers, legacyLearner.id, {
+      displayName: legacyLearner.displayName,
+      timezone: legacyLearner.timezone,
+      expectedLevel: legacyLearner.level,
+      level: nextLegacyLevel,
+      grade: 8,
+    });
+    expect(
+      await readAdmittedLearner(admission, parent.headers, legacyLearner.id),
+    ).toMatchObject({ level: nextLegacyLevel });
+    await updateAdmittedLearner(admission, parent.headers, legacyLearner.id, {
+      displayName: legacyLearner.displayName,
+      timezone: legacyLearner.timezone,
+      expectedLevel: nextLegacyLevel,
+      level: legacyLearner.level,
+      grade: 8,
+    });
     const intake = await readParentChildIntake(world.runtime, parent.headers);
     if (!intake.enabled) throw new Error("Current guardian intake required.");
     const childInput = {
@@ -760,6 +790,30 @@ describe("ordinary persisted feature services on the explicit separate local fix
       newChild.id,
     );
     expect(learner).toMatchObject({ grade: 8, management: "guardian" });
+    const streamParent = await requireIdentity(world.runtime, parent.headers);
+    expect(
+      await readBookingUpdateAudience(
+        world.runtime,
+        streamParent,
+        "parent",
+        null,
+      ),
+    ).toEqual(
+      (await listAdmittedLearners(admission, parent.headers))
+        .filter((entry) => entry.management === "guardian")
+        .map((entry) => entry.id)
+        .sort(),
+    );
+    const streamStudent = await requireIdentity(world.runtime, adult.headers);
+    expect(
+      await readBookingUpdateAudience(
+        world.runtime,
+        streamStudent,
+        "student",
+        null,
+      ),
+    ).toEqual([independentLearner.id]);
+
     const emptyDashboard = await readFamilyDashboard(
       world.runtime,
       parent.headers,
@@ -792,6 +846,187 @@ describe("ordinary persisted feature services on the explicit separate local fix
       timezone: learner.timezone,
       grade: 8,
     });
+    const levelEdit = {
+      displayName: learner.displayName,
+      timezone: learner.timezone,
+      grade: 8,
+      expectedLevel: "middle_school",
+      level: "high_school",
+    };
+    const forbidden = await world.runtime.pool.query(
+      "SELECT public.update_parent_learner_level($1,NULL,$2,$3,'middle_school','high_school',$4,$5,true,8) AS outcome",
+      [
+        parent.id,
+        newChild.id,
+        localGuardianAdmissionPolicy.policyId,
+        learner.displayName,
+        learner.timezone,
+      ],
+    );
+    expect(forbidden.rows[0].outcome).toBe("forbidden");
+    const activeIdentity = await requireIdentity(world.runtime, parent.headers);
+    await world.owner.pool.query(
+      "UPDATE user_access SET status='suspended' WHERE user_id=$1",
+      [parent.id],
+    );
+    try {
+      const suspended = await world.runtime.pool.query(
+        "SELECT public.update_parent_learner_level($1,$2,$3,$4,'middle_school','high_school',$5,$6,true,8) AS outcome",
+        [
+          parent.id,
+          activeIdentity.sessionId,
+          newChild.id,
+          localGuardianAdmissionPolicy.policyId,
+          learner.displayName,
+          learner.timezone,
+        ],
+      );
+      expect(suspended.rows[0].outcome).toBe("forbidden");
+    } finally {
+      await world.owner.pool.query(
+        "UPDATE user_access SET status='active' WHERE user_id=$1",
+        [parent.id],
+      );
+    }
+    await world.owner.pool.query(
+      "DELETE FROM user_roles WHERE user_id=$1 AND role='parent'",
+      [parent.id],
+    );
+    try {
+      const revoked = await world.runtime.pool.query(
+        "SELECT public.update_parent_learner_level($1,$2,$3,$4,'middle_school','high_school',$5,$6,true,8) AS outcome",
+        [
+          parent.id,
+          activeIdentity.sessionId,
+          newChild.id,
+          localGuardianAdmissionPolicy.policyId,
+          learner.displayName,
+          learner.timezone,
+        ],
+      );
+      expect(revoked.rows[0].outcome).toBe("forbidden");
+    } finally {
+      await world.owner.pool.query(
+        "INSERT INTO user_roles(user_id,role) VALUES($1,'parent') ON CONFLICT DO NOTHING",
+        [parent.id],
+      );
+    }
+    await expect(
+      updateAdmittedLearner(
+        admission,
+        unrelated.headers,
+        newChild.id,
+        levelEdit,
+      ),
+    ).rejects.toMatchObject({ status: 404 });
+    await updateAdmittedLearner(
+      admission,
+      parent.headers,
+      newChild.id,
+      levelEdit,
+    );
+    expect(
+      await readAdmittedLearner(admission, parent.headers, newChild.id),
+    ).toMatchObject({ level: "high_school", grade: 8 });
+    await expect(
+      updateAdmittedLearner(admission, parent.headers, newChild.id, levelEdit),
+    ).rejects.toMatchObject({ status: 409 });
+    await expect(
+      updateAdmittedLearner(admission, parent.headers, newChild.id, {
+        ...levelEdit,
+        expectedLevel: "high_school",
+        level: "college_support",
+      }),
+    ).rejects.toMatchObject({ name: "ZodError" });
+    await expect(
+      world.runtime.pool.query(
+        "UPDATE learner_profiles SET level='elementary' WHERE id=$1",
+        [newChild.id],
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+    await updateAdmittedLearner(admission, parent.headers, newChild.id, {
+      ...levelEdit,
+      expectedLevel: "high_school",
+      level: "middle_school",
+    });
+    const rollbackIdentity = await requireIdentity(
+      world.runtime,
+      parent.headers,
+    );
+    const rollbackClient = await world.owner.pool.connect();
+    try {
+      await rollbackClient.query("BEGIN");
+      expect(
+        (
+          await rollbackClient.query(
+            "SELECT public.update_parent_learner_level($1,$2,$3,$4,'middle_school','elementary',$5,$6,true,8) AS outcome",
+            [
+              parent.id,
+              rollbackIdentity.sessionId,
+              newChild.id,
+              localGuardianAdmissionPolicy.policyId,
+              learner.displayName,
+              learner.timezone,
+            ],
+          )
+        ).rows[0].outcome,
+      ).toBe("saved");
+      await rollbackClient.query("ROLLBACK");
+    } finally {
+      rollbackClient.release();
+    }
+    expect(
+      await readAdmittedLearner(admission, parent.headers, newChild.id),
+    ).toMatchObject({ level: "middle_school" });
+    expect(
+      (
+        await world.owner.pool.query(
+          "SELECT old_level,new_level FROM parent_learner_level_events WHERE learner_id=$1 ORDER BY created_at,id",
+          [newChild.id],
+        )
+      ).rows,
+    ).toEqual([
+      { old_level: "middle_school", new_level: "high_school" },
+      { old_level: "high_school", new_level: "middle_school" },
+    ]);
+    const concurrentLevels = await Promise.allSettled([
+      updateAdmittedLearner(admission, parent.headers, newChild.id, {
+        ...levelEdit,
+        level: "high_school",
+      }),
+      updateAdmittedLearner(admission, parent.headers, newChild.id, {
+        ...levelEdit,
+        level: "elementary",
+      }),
+    ]);
+    expect(
+      concurrentLevels.filter((result) => result.status === "fulfilled"),
+    ).toHaveLength(1);
+    expect(
+      concurrentLevels.filter((result) => result.status === "rejected"),
+    ).toHaveLength(1);
+    const current = await readAdmittedLearner(
+      admission,
+      parent.headers,
+      newChild.id,
+    );
+    await updateAdmittedLearner(admission, parent.headers, newChild.id, {
+      ...levelEdit,
+      expectedLevel: current.level,
+      level: "middle_school",
+    });
+    await expect(
+      world.owner.pool.query(
+        "DELETE FROM parent_learner_level_events WHERE learner_id=$1",
+        [newChild.id],
+      ),
+    ).rejects.toMatchObject({ code: "55000" });
+    await expect(
+      world.runtime.pool.query(
+        "INSERT INTO parent_learner_level_events(learner_id,actor_user_id,old_level,new_level,transaction_id) VALUES($1,$2,'middle_school','high_school',txid_current())",
+        [newChild.id, parent.id],
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
     await expect(
       readAdmittedLearner(admission, unrelated.headers, newChild.id),
     ).rejects.toMatchObject({ status: 404 });
@@ -817,16 +1052,74 @@ describe("ordinary persisted feature services on the explicit separate local fix
     await requestScreening(screening, tutor.headers, profile.id, {
       requestKey: randomUUID(),
     });
+    const reviewer = await registeredAccount("Admin without staff entitlement");
+    await world.owner.pool.query(
+      "INSERT INTO user_roles(user_id,role) VALUES($1,'admin')",
+      [reviewer.id],
+    );
+    await expect(
+      listLocalReviews(world.runtime, reviewer.headers),
+    ).rejects.toBeDefined();
+    reviewer.cookie = await enrollTestAdmin(
+      world.runtime,
+      reviewer.cookie,
+      password,
+    );
+    reviewer.headers = new Headers({ cookie: reviewer.cookie });
+    const reviewerSession = await world.runtime.auth.api.getSession({
+      headers: reviewer.headers,
+      query: { disableCookieCache: true },
+    });
+    if (!reviewerSession) throw new Error("Reviewer session missing");
+    const capability = async (name: string) =>
+      (
+        await world.owner.pool.query(
+          "SELECT public.has_local_workflow_staff($1,$2,$3) AS allowed",
+          [reviewer.id, reviewerSession.session.id, name],
+        )
+      ).rows[0].allowed;
+    expect(await capability("screening")).toBe(true);
+    expect(await capability("booking")).toBe(false);
+    await world.owner.pool.query(
+      "INSERT INTO tutor_screening_staff(user_id,provenance,status,valid_until) VALUES($1,'local_operation','revoked',NULL)",
+      [reviewer.id],
+    );
+    expect(await capability("screening")).toBe(false);
+    await world.owner.pool.query(
+      "DELETE FROM tutor_screening_staff WHERE user_id=$1 AND provenance='local_operation'",
+      [reviewer.id],
+    );
+    expect(await capability("screening")).toBe(true);
+    expect(
+      (await listLocalReviews(world.runtime, reviewer.headers)).items.some(
+        (item) => item.kind === "screening" && item.targetId === profile.id,
+      ),
+    ).toBe(true);
+    expect(
+      (
+        await world.owner.pool.query(
+          "SELECT count(*)::int AS count FROM local_workflow_staff WHERE user_id=$1",
+          [reviewer.id],
+        )
+      ).rows[0].count,
+    ).toBe(0);
     expect(
       (await listEligibleTutors(world.runtime.db, {}, "local_operation")).some(
         (t) => t.slug === profile.slug,
       ),
     ).toBe(false);
-    await claim(admin, "screening", profile.id);
+    await claim(reviewer, "screening", profile.id);
+    expect(
+      await readScreening(screening, admin.headers, profile.id),
+    ).toBeNull();
     for (const code of localScreeningPolicy.requiredCheckCodes) {
-      const current = await readScreening(screening, admin.headers, profile.id);
+      const current = await readScreening(
+        screening,
+        reviewer.headers,
+        profile.id,
+      );
       if (!current) throw new Error();
-      await recordScreeningCheck(screening, admin.headers, profile.id, {
+      await recordScreeningCheck(screening, reviewer.headers, profile.id, {
         revision: current.revision,
         requestKey: randomUUID(),
         code,
@@ -836,9 +1129,13 @@ describe("ordinary persisted feature services on the explicit separate local fix
         expiresAt: new Date(Date.now() + 86400000).toISOString(),
       });
     }
-    const screened = await readScreening(screening, admin.headers, profile.id);
+    const screened = await readScreening(
+      screening,
+      reviewer.headers,
+      profile.id,
+    );
     if (!screened) throw new Error();
-    await decideScreening(screening, admin.headers, profile.id, {
+    await decideScreening(screening, reviewer.headers, profile.id, {
       revision: screened.revision,
       requestKey: randomUUID(),
       action: "approve",
@@ -1329,6 +1626,115 @@ describe("ordinary persisted feature services on the explicit separate local fix
     expect(
       await readPrivateMeetingLink(world.runtime, parent.headers, booking.id),
     ).toMatchObject({ state: "present", canEdit: false });
+    const raceSlot = (
+      await readWorkflowMoveCandidates(context, parent.headers, booking.id)
+    )[0];
+    if (!raceSlot)
+      throw new Error("A replacement time is required for the level race.");
+    const parentIdentity = await requireIdentity(world.runtime, parent.headers);
+    const locker = await world.owner.pool.connect();
+    const listener = await world.owner.pool.connect();
+    const notifications: { channel: string; payload?: string }[] = [];
+    listener.on("notification", (message) =>
+      notifications.push({
+        channel: message.channel,
+        payload: message.payload,
+      }),
+    );
+    let racingMove: Promise<unknown> | undefined;
+    try {
+      await listener.query(
+        "LISTEN learli_student_booking; LISTEN learli_tutor_booking",
+      );
+      await locker.query("BEGIN");
+      const blockedBy = (await locker.query("SELECT pg_backend_pid() AS pid"))
+        .rows[0].pid;
+      expect(
+        (
+          await locker.query(
+            "SELECT public.update_parent_learner_level($1,$2,$3,$4,'middle_school','elementary',$5,$6,true,8) AS outcome",
+            [
+              parent.id,
+              parentIdentity.sessionId,
+              learner.id,
+              localGuardianAdmissionPolicy.policyId,
+              learner.displayName,
+              learner.timezone,
+            ],
+          )
+        ).rows[0].outcome,
+      ).toBe("saved");
+      racingMove = changePolicyBooking(
+        context,
+        tutor.headers,
+        booking.id,
+        "reschedule",
+        {
+          requestId: randomUUID(),
+          expectedRevision: booking.workflowRevision,
+          reasonCode: "local_participant_change",
+          startAtUtc: raceSlot.startAtUtc,
+          endAtUtc: raceSlot.endAtUtc,
+          displayTimezone: parentOptions.timezone,
+        },
+      ).then(
+        () => ({ status: "fulfilled" }),
+        (error: unknown) => ({ status: "rejected", error }),
+      );
+      let waiting = false;
+      for (let attempt = 0; attempt < 300; attempt++) {
+        waiting = (
+          await world.owner.pool.query(
+            "SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND $1=ANY(pg_blocking_pids(pid))) waiting",
+            [blockedBy],
+          )
+        ).rows[0].waiting;
+        if (waiting) break;
+        await new Promise((resolve) => setTimeout(resolve, 15));
+      }
+      expect(waiting).toBe(true);
+      expect(notifications).toEqual([]);
+      await locker.query("COMMIT");
+      await expect
+        .poll(() => notifications)
+        .toEqual(
+          expect.arrayContaining([
+            { channel: "learli_student_booking", payload: learner.id },
+            { channel: "learli_tutor_booking", payload: profile.id },
+          ]),
+        );
+      expect(await racingMove).toMatchObject({
+        status: "rejected",
+        error: { status: 409 },
+      });
+    } finally {
+      await locker.query("ROLLBACK").catch(() => undefined);
+      locker.release();
+      await listener.query("UNLISTEN *");
+      listener.release();
+      await racingMove;
+    }
+    expect(
+      await readParticipantBooking(
+        world.runtime,
+        parent.headers,
+        booking.id,
+        "guardian",
+      ),
+    ).toMatchObject({ state: "confirmed", learner: { level: "elementary" } });
+    expect(
+      await readPrivateMeetingLink(world.runtime, parent.headers, booking.id),
+    ).toMatchObject({ state: "present" });
+    expect(
+      await readWorkflowMoveCandidates(context, parent.headers, booking.id),
+    ).toEqual([]);
+    await updateAdmittedLearner(admission, parent.headers, learner.id, {
+      displayName: learner.displayName,
+      timezone: learner.timezone,
+      expectedLevel: "elementary",
+      level: "middle_school",
+      grade: 8,
+    });
     await expect(
       readPrivateMeetingLink(world.runtime, admin.headers, booking.id),
     ).rejects.toMatchObject({ status: 404 });

@@ -1,4 +1,5 @@
 "use client";
+import "./booking-pages.css";
 import { useEffect, useRef, useState } from "react";
 import { useHydrated } from "@/hooks/use-hydrated";
 import type { BookingDetail, BookingReadScope } from "./read-model";
@@ -64,22 +65,22 @@ export function DemoCancelControl({
     }
   }
   return (
-    <section className="mt-8 border-t border-border pt-6">
-      <h2 className="text-section-title">Change this simulation</h2>
-      <p className="mt-2 max-w-prose text-body">
+    <section className="booking-panel">
+      <h2>Change this simulation</h2>
+      <p className="max-w-prose text-body">
         Local testing only. Cancelling releases this temporary reservation and
         preserves its saved history.
       </p>
-      <a
-        className="mt-4 inline-flex min-h-11 items-center text-action"
-        href={`/bookings/${booking.id}/reschedule?scope=${scope}`}
-      >
-        Reschedule simulation
-      </a>
-      <details className="mt-4">
-        <summary className="min-h-11 cursor-pointer py-2 text-action">
-          Cancel simulation
-        </summary>
+      <div className="booking-actions">
+        <a
+          className="action action-outline"
+          href={`/bookings/${booking.id}/reschedule?scope=${scope}`}
+        >
+          Reschedule simulation
+        </a>
+      </div>
+      <details className="booking-disclosure">
+        <summary>Cancel simulation</summary>
         <p className="mt-2 max-w-prose text-body">
           Cancel this simulated reservation for {booking.learner.displayName}?
         </p>
@@ -191,9 +192,9 @@ export function DemoRescheduleForm({
   }
   const groups = Map.groupBy(times, (time) => `${time.date}\u0000${time.zone}`);
   return (
-    <form method="post" onSubmit={move} className="mt-8 max-w-5xl">
-      <h2 className="text-section-title">Choose a time</h2>
-      <p className="mt-2 max-w-prose text-body">
+    <form method="post" onSubmit={move} className="booking-panel">
+      <h2>Choose a time</h2>
+      <p className="max-w-prose text-body">
         Moving keeps the original simulation expiry. The original test meeting
         link is not carried to the replacement.
       </p>

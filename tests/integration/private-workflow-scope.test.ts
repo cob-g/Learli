@@ -1,3 +1,5 @@
+import { requireIdentity } from "@/lib/permissions/access";
+import { readBookingUpdateAudience } from "@/features/bookings/update-audience";
 import { randomInt, randomUUID } from "node:crypto";
 import {
   mkdirSync,
@@ -604,6 +606,18 @@ describe("private workflow finite audience and exact screening receipt on Postgr
         fixture.requester.headers,
         { scope: "guardian" },
       );
+    const streamIdentity = await requireIdentity(
+      world.runtime,
+      fixture.requester.headers,
+    );
+    expect(
+      await readBookingUpdateAudience(
+        world.runtime,
+        streamIdentity,
+        "parent",
+        getPrivateWorkflow(world.runtime),
+      ),
+    ).toEqual(overview.history.learners.map((learner) => learner.id).sort());
     for (const list of [page, overview.active, overview.history]) {
       expect(list.learners.map((l) => l.id)).toEqual([fixture.learner.id]);
       expect(list.items.map((b) => b.id)).not.toContain(localBookingId);

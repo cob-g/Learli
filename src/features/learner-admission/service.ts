@@ -23,6 +23,7 @@ import {
   admissionInput,
   admissionListCursor,
   admittedLearnerInput,
+  localParentLearnerInput,
   canonicalAdmissionSelection,
   evidenceInput,
   reviewInput,
@@ -404,8 +405,15 @@ export async function updateAdmittedLearner(
     id,
   );
   const identity = await requireIdentity(context.runtime, headers);
-  const value = admittedLearnerInput.parse(input);
-  if (profile.level === "college_support" && value.grade != null)
+  const localParent =
+    !!getLocalWorkflow(context.runtime) && profile.management === "guardian";
+  const value = localParent
+    ? localParentLearnerInput.parse(input)
+    : admittedLearnerInput.parse(input);
+  const level = "level" in value ? value.level : undefined;
+  const expectedLevel =
+    "expectedLevel" in value ? value.expectedLevel : undefined;
+  if ((level ?? profile.level) === "college_support" && value.grade != null)
     throw new RuleError(
       400,
       "College Support profiles do not use a school grade.",
@@ -413,6 +421,24 @@ export async function updateAdmittedLearner(
   return finalAuthority(
     context.runtime.db.transaction(
       async (tx) => {
+        if (level !== undefined && expectedLevel !== undefined) {
+          const changed = await tx.execute<{ outcome: string }>(
+            sql`SELECT public.update_parent_learner_level(${identity.userId},${identity.sessionId},${id}::uuid,${policyId}::uuid,${expectedLevel},${level},${value.displayName},${value.timezone},${value.grade !== undefined},${value.grade ?? null}::integer) AS outcome`,
+          );
+          const outcome = changed.rows[0]?.outcome;
+          if (outcome === "stale")
+            throw new RuleError(
+              409,
+              "This profile changed. Reload it before saving.",
+            );
+          if (outcome === "invalid")
+            throw new RuleError(
+              400,
+              "Check the level and grade and try again.",
+            );
+          if (outcome !== "saved") throw new AccessError(404);
+          return readCurrentAuthorizedLearner(tx, identity, id, policyId);
+        }
         const result = await tx.execute<{ updated: boolean }>(
           value.grade === undefined
             ? sql`SELECT public.update_admitted_learner(${identity.userId},${identity.sessionId},${id}::uuid,${policyId}::uuid,${value.displayName},${value.timezone}) AS updated`

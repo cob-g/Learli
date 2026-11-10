@@ -17,6 +17,7 @@ import {
   initialAdmissionManagement,
   studentOnboardingHref,
 } from "@/features/student-onboarding/continuation";
+import "@/features/parent-children/parent-pages.css";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Request learner admission",
@@ -73,23 +74,33 @@ export default async function Page({
       ? privateBookingHref(canonicalNext)
       : canonicalNext;
   return (
-    <div className="page-shell page-space">
-      <h1 className="text-page-title">Request learner admission</h1>
-      <p className="mt-4 max-w-prose text-body">
-        {privateWorkflow
-          ? "Add the learner details for an assigned review. The request stays pending until a reviewer authorizes access."
-          : "Real admission is disabled until current guardian and independent eligibility policies are approved."}
-      </p>
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">Learner requests</p>
+          <h1>Request learner admission</h1>
+          <p>
+            {privateWorkflow
+              ? "Add the learner details for an assigned review. The request stays pending until a reviewer authorizes access."
+              : "Real admission is disabled until current guardian and independent eligibility policies are approved."}
+          </p>
+        </div>
+        <LearnerLink
+          href="/learner-admission"
+          label="Your admission requests"
+          className="pp-link"
+        />
+      </header>
       {context.enabled ? (
         <>
-          <p className="mt-4 max-w-prose rounded-control border border-border bg-subtle p-4 text-small text-muted-foreground">
+          <p className="workspace-page-note max-w-prose text-small">
             {context.localWorkflow
               ? "Collect only the learner information needed to arrange tutoring. An assigned reviewer must check guardian authority or independent eligibility before access is granted."
               : privateWorkflow
                 ? "Use fictional learner details. This staging review does not establish real age, consent or guardian identity."
                 : "Synthetic readiness only. Use fictional details. A review does not establish real age, consent or guardian identity."}
           </p>
-          <div className="mt-6 max-w-xl rounded-surface border border-border bg-surface p-6 sm:p-8">
+          <div className="pp-card max-w-xl p-6">
             <AdmissionForm
               requestId={randomUUID()}
               policyVersion={context.policyVersion}
@@ -102,7 +113,7 @@ export default async function Page({
           </div>
         </>
       ) : (
-        <p className="mt-8 max-w-prose text-body">
+        <p className="workspace-page-note">
           Admission intake is unavailable. No learner details are collected.
         </p>
       )}
@@ -110,14 +121,9 @@ export default async function Page({
         <LearnerLink
           href={next}
           label="Return to selected tutor and time"
-          className="mt-8 inline-flex min-h-11 items-center"
+          className="pp-link self-start"
         />
       )}
-      <LearnerLink
-        href="/learner-admission"
-        label="Your admission requests"
-        className="me-6 mt-8 inline-flex min-h-11 items-center"
-      />
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   runtimeGrantsBeforeOperation,
   runtimeGrantsBeforeAutomaticChildren,
   runtimeGrantsBeforeIndependent,
+  currentMigrationFunctionCount,
 } from "../support/migration-inventory";
 import { runtimeGrantsSql } from "../../scripts/runtime-grants";
 import {
@@ -525,7 +526,9 @@ describe("0035–0039 ordinary operation forward migration preservation", () => 
               )
             ).rows[0].count,
           ).toBe(candidate.entries.length);
-          expect((await verifyRuntimeGrants(client)).functionChecks).toBe(100);
+          expect((await verifyRuntimeGrants(client)).functionChecks).toBe(
+            currentMigrationFunctionCount,
+          );
           await verifyProtections(client, candidate, candidate.entries.length);
           expect(
             (
