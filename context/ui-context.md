@@ -662,6 +662,17 @@ requests) use the same page pieces. Every workspace role now has the
 `data-styled` shell and every account with a role gets the card `/account`;
 only signed-out and role-less chrome keeps the base rules.
 
+### Account menu — 2026-11-10 (owner-requested)
+
+The signed-in account disclosure (public header and workspace topbar) opens a
+flat menu: an identity header with a 40px Mint initials avatar, the name and
+the user's own email (shown only while their menu is open), then iconed rows for
+Account settings and Sign out separated by hairlines. Rows are 44px tall with
+12px corners, Mist on hover and a Mint tint for the current page; the panel uses
+the overlay radius and a Stone border, no shadow. The trigger chevron flips when
+open. Initials stay the avatar because V1 has no photo uploads. Accessible names
+(Account <name>, Account settings, Sign out) and sign-out behaviour are unchanged.
+
 ### Parent Dashboard discovery — 2026-10-17
 
 The parent overview at `/parent` uses **Parent Dashboard** for its sidebar entry,

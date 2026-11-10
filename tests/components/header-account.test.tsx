@@ -129,6 +129,8 @@ describe("shared header account", () => {
     expect(screen.getAllByRole("button", { name: "Sign out" })).toHaveLength(1);
     const trigger = openAccount();
     expect(trigger).toHaveAttribute("aria-expanded", "true");
+    // The open menu names who is signed in; the address never leaves it.
+    expect(screen.getByText("private@learli.test")).toBeVisible();
     expect(
       screen.getByRole("link", { name: "Account settings" }),
     ).toHaveAttribute("href", "/account");
@@ -138,6 +140,7 @@ describe("shared header account", () => {
     expect(trigger).toHaveFocus();
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     expect(screen.getAllByRole("button", { name: "Sign out" })).toHaveLength(1);
+    expect(container.innerHTML).not.toContain("private@learli.test");
   });
 
   it("dismisses on outside pointer or keyboard focus departure", () => {
@@ -233,7 +236,10 @@ describe("shared header account", () => {
         "Sign-out could not be completed. Try again.",
       );
       expect(screen.getByRole("button", { name: "Sign out" })).toBeEnabled();
-      expect(screen.getByText("Alex Rivera")).toBeVisible();
+      // The chip keeps the name; the open menu repeats it in its header.
+      expect(
+        screen.getByRole("button", { name: "Account Alex Rivera" }),
+      ).toHaveTextContent("Alex Rivera");
     },
   );
 

@@ -1,5 +1,17 @@
 # Learli — Progress Tracker
 
+### 2026-11-10 — Account menu redesigned (Impeccable)
+
+- Owner asked for a more professional account menu. `header-account.tsx` now
+  opens an identity header (initials avatar, name, own email while open) and
+  iconed Account settings / Sign out rows; `SignOut` gained a `menu` variant with
+  identical behaviour; the workspace shell passes the settled session email.
+  Styles in `site-shell.css`; recorded in `context/ui-context.md`.
+- Verified: `npm run check` PASS (2,393 tests); production build PASS; Playwright
+  auth/shell/header and account projects 62/62 (`--no-deps`). Screenshots of the
+  open menu at 1440 and 390 in the workspace topbar and public header reviewed.
+  `header-account.test.tsx` now asserts the email appears only in the open menu.
+
 ### 2026-11-10 — Parent and Student workspace UI synced to the Tutor style
 
 Owner asked for the Parent pages to match the Tutor UI. Presentation only; no

@@ -120,6 +120,8 @@ export function WorkspaceShell({
   const chromeSession = userId
     ? session.data?.session.id
     : initialAccount?.sessionId;
+  // Shown only in this user's own account menu, from their settled session.
+  const email = userId ? session.data?.user.email : undefined;
   return (
     <div className="workspace-shell">
       {chromeUser ? (
@@ -128,6 +130,7 @@ export function WorkspaceShell({
           pathname={pathname}
           scope={scope}
           userId={chromeUser}
+          email={email}
           screeningEnabled={screeningEnabled}
           privateWorkflow={privateWorkflow}
           privateAccounts={privateAccounts}
@@ -172,6 +175,7 @@ export function WorkspaceShell({
 function AccountChrome({
   pathname,
   userId,
+  email,
   scope,
   refreshing,
   confirmed,
@@ -183,6 +187,7 @@ function AccountChrome({
 }: {
   pathname: string;
   userId: string;
+  email?: string;
   scope: string | null;
   refreshing: boolean;
   /** False while only the server's read vouches for this user and session. */
@@ -249,6 +254,7 @@ function AccountChrome({
       privateAccounts={privateAccounts}
       localWorkflow={localWorkflow}
       account={result?.account ?? null}
+      email={email}
       roles={result?.account?.roles ?? null}
       preserveContext={result === null}
       message={
@@ -269,6 +275,7 @@ function AccountChrome({
 function WorkspaceChrome({
   pathname,
   account,
+  email,
   roles,
   message,
   retry,
@@ -282,6 +289,7 @@ function WorkspaceChrome({
 }: {
   pathname: string;
   account: Account | null;
+  email?: string;
   roles: readonly Role[] | null;
   message?: string;
   retry?: () => void;
@@ -392,6 +400,7 @@ function WorkspaceChrome({
             <SignedInAccount
               key={`${pathname}:${account.id}:${account.name}`}
               name={account.name}
+              email={email}
               pathname={pathname}
             />
           ) : (
