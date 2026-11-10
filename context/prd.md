@@ -740,6 +740,8 @@ and `prompts/features/m4-04-parent-profile-children.md` for the bounded scope.
 
 Local implementation note (2026-10-11, delegated M3.6 extension): the three-question GET flow asks level, subject, and When, with explicit Any time, viewer IANA timezone, weekday choices and bounded local time bands. Results require an actual eligible subject+level offering and a shared date-specific open candidate; whole intervals must fit the chosen viewer days/band. Ordering is earliest matching time then name, with five per page and truthful zero/load-failure states. Demo scheduling inputs are explicit local simulation, not live lesson policy. See `prompts/features/m3-06-availability-matching.md`; verification status is recorded separately.
 
+Local implementation note (2026-11-10, owner request): when no tutor fits every answer, the empty result is followed by up to three **closest available tutors** (Journey E step 5, honest alternatives). Each is an eligible tutor listed with exactly what does not fit, closest first: open only at other times (with its next open time), no open time in the window, the subject at other levels, the level in other subjects, and an unrelated tutor only when nothing closer exists. They are not counted or described as matches, matching itself is unchanged, and no tutor is shown as teaching a subject or level they do not offer. See `src/features/matching/alternatives.ts`.
+
 #### MATCH-02 — Search and matching agreement `P0 [AGREED]`
 
 **As a user**, I should not see a tutor offered through matching when browsing would say they are ineligible.

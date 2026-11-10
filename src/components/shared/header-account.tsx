@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Settings, UserRound } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { SignOut } from "@/features/auth/sign-out";
 import { authClient } from "@/lib/auth-client";
@@ -90,6 +90,7 @@ export function HeaderAccount() {
     <SignedInAccount
       key={`${pathname}:${data.user.id}:${name}`}
       name={name}
+      email={data.user.email}
       pathname={pathname}
     />
   );
@@ -97,9 +98,12 @@ export function HeaderAccount() {
 
 export function SignedInAccount({
   name,
+  email,
   pathname,
 }: {
   name: string;
+  /** The signed-in user's own address, shown only inside their menu. */
+  email?: string | null;
   pathname: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -159,17 +163,33 @@ export function SignedInAccount({
         <ChevronDown size={16} aria-hidden="true" />
       </button>
       {open && (
-        <div id={panelId} className="header-account-panel">
+        <div id={panelId} className="header-account-panel account-menu">
+          <div className="account-menu-identity">
+            <span className="account-menu-avatar" aria-hidden="true">
+              {initials || <UserRound size={20} />}
+            </span>
+            <span className="account-menu-who">
+              <span className="account-menu-name" dir="auto">
+                {name}
+              </span>
+              {email && (
+                <span className="account-menu-email" dir="auto">
+                  {email}
+                </span>
+              )}
+            </span>
+          </div>
           {/* Clear the previous document before loading private account data. */}
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/account"
-            className="nav-link"
+            className="account-menu-item"
             aria-current={pathname === "/account" ? "page" : undefined}
           >
+            <Settings size={18} aria-hidden="true" />
             Account settings
           </a>
-          <SignOut className="header-account-signout" />
+          <SignOut variant="menu" className="account-menu-signout" />
         </div>
       )}
     </div>

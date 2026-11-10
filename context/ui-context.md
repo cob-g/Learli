@@ -344,7 +344,11 @@ own stroke.
   a new brand colour and is used for this stroke only.
 - Text never sits on the stroke: each step's words are below its tile.
 - Nothing is pinned and nothing follows the scroll position except the stop
-  and a few pixels of drift between tiles and line. On arrival the stroke
+  and a few pixels of drift between tiles and line. The owner has rejected
+  pinning here twice: the liquid tile, and on 2026-11-10 a pinned slide deck
+  (steps travelling along the stroke as the page scrolled), which was removed
+  the same day. Do not propose a pinned or scroll-held version of this
+  section again without a new request. On arrival the stroke
   is drawn from its low end at the right up to the left, and each glyph
   assembles from the step before it as the stroke reaches its tile, once.
   Stacked steps draw their own strokes left to right.
@@ -661,6 +665,19 @@ then Account) and its pages (dashboard, Learners, Student onboarding, learner
 requests) use the same page pieces. Every workspace role now has the
 `data-styled` shell and every account with a role gets the card `/account`;
 only signed-out and role-less chrome keeps the base rules.
+
+### Account menu — 2026-11-10 (owner-requested)
+
+The signed-in account disclosure (public header and workspace topbar) opens a
+flat menu: an identity header with a 40px Mint initials avatar, the name and
+the user's own email (shown only while their menu is open), then iconed rows for
+Account settings and Sign out separated by hairlines. Rows are 44px tall with
+12px corners, Mist on hover and a Mint tint for the current page; the panel uses
+the overlay radius and a Stone border, no shadow. The trigger chevron flips when
+open. In the workspace topbar the closed chip fits its content (avatar, name,
+chevron) at the bar's end, without the visible "Account" label, matching the
+public header. Initials stay the avatar because V1 has no photo uploads. Accessible names
+(Account <name>, Account settings, Sign out) and sign-out behaviour are unchanged.
 
 ### Parent Dashboard discovery — 2026-10-17
 

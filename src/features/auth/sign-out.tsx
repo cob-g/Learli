@@ -1,7 +1,15 @@
 "use client";
 import { useState } from "react";
+import { LogOut } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-export function SignOut({ className = "mt-8" }: { className?: string }) {
+export function SignOut({
+  className = "mt-8",
+  variant = "button",
+}: {
+  className?: string;
+  /** "menu" renders a row for the account menu; behaviour is identical. */
+  variant?: "button" | "menu";
+}) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
   async function signOut() {
@@ -24,15 +32,25 @@ export function SignOut({ className = "mt-8" }: { className?: string }) {
   return (
     <div className={className}>
       <button
-        className="action action-outline"
+        className={
+          variant === "menu" ? "account-menu-item" : "action action-outline"
+        }
         type="button"
         disabled={pending}
         onClick={signOut}
       >
+        {variant === "menu" && <LogOut size={18} aria-hidden="true" />}
         {pending ? "Signing out…" : "Sign out"}
       </button>
       {error && (
-        <p className="mt-2 text-body text-error" role="alert">
+        <p
+          className={
+            variant === "menu"
+              ? "account-menu-error"
+              : "mt-2 text-body text-error"
+          }
+          role="alert"
+        >
           Sign-out could not be completed. Try again.
         </p>
       )}
