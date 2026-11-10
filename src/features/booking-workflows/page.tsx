@@ -14,6 +14,7 @@ import { AccessError } from "@/lib/permissions/access";
 import { listTimeZoneOptions } from "@/lib/time/zones";
 import { isValidTimeZone } from "@/lib/time/time-zone";
 import { BookingChoiceForm } from "./choice-form";
+import "@/features/parent-children/parent-pages.css";
 import { bookingHistoryScope } from "./choice-options";
 export async function WorkflowBookingPage({
   runtime,
@@ -80,21 +81,32 @@ export async function WorkflowBookingPage({
     scopeHint ?? (ordinaryParent ? "guardian" : "student"),
   );
   return (
-    <div className="page-shell page-space">
-      <h1 className="text-page-title">
-        {immediateConfirmation
-          ? "Book a session"
-          : privateWorkflow
-            ? "Request a booking"
-            : "Synthetic booking request"}
-      </h1>
-      <p className="mt-4 max-w-prose text-body">
-        {immediateConfirmation
-          ? `Choose ${selectedLearner?.management === "self" ? "an eligible tutor" : "your child, an eligible tutor"} and an available time. A valid no-money booking is confirmed when you save it.`
-          : privateWorkflow
-            ? "Choose an authorized learner, tutor and available time. Your request remains provisional until an assigned reviewer confirms it."
-            : "Fictional readiness only. Choose an admitted learner and screened tutor; an assigned synthetic prerequisite review is required for confirmation. Real booking policies remain unavailable."}
-      </p>
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">
+            {historyScope === "guardian"
+              ? "Parent workspace"
+              : "Student workspace"}
+          </p>
+          <h1>
+            {immediateConfirmation
+              ? "Book a session"
+              : privateWorkflow
+                ? "Request a booking"
+                : "Synthetic booking request"}
+          </h1>
+          <p>
+            {!selectedLearner
+              ? "Choose an authorized learner, tutor and available time. Booking terms appear after you select a learner."
+              : immediateConfirmation
+                ? `Choose ${selectedLearner?.management === "self" ? "an eligible tutor" : "your child, an eligible tutor"} and an available time. A valid no-money booking is confirmed when you save it.`
+                : privateWorkflow
+                  ? "Choose an authorized learner, tutor and available time. Your request remains provisional until an assigned reviewer confirms it."
+                  : "Fictional readiness only. Choose an admitted learner and screened tutor; an assigned synthetic prerequisite review is required for confirmation. Real booking policies remain unavailable."}
+          </p>
+        </div>
+      </header>
       {!options.learners.length ? (
         <AdmissionDetour
           choice={selected}
@@ -128,13 +140,13 @@ export async function WorkflowBookingPage({
             t.startAtUtc === selected.startAtUtc &&
             t.endAtUtc === selected.endAtUtc,
         ) && (
-          <p className="mt-4 text-body">
+          <p className="workspace-page-note">
             The selected time is no longer available for these choices. Choose a
             current time; nothing has been reserved.
           </p>
         )}
       {message && (
-        <p role="alert" className="mt-4 text-body">
+        <p role="alert" className="workspace-page-note">
           {message}
         </p>
       )}
@@ -157,14 +169,14 @@ export async function WorkflowBookingPage({
             }
           />
         ) : (
-          <p className="mt-4 text-body">
+          <p className="workspace-page-note">
             {privateWorkflow
               ? "No available times match these choices."
               : "No current synthetic times match these choices."}
           </p>
         ))}
       <a
-        className="mt-8 inline-flex min-h-11 items-center"
+        className="pp-link self-start"
         href={`/bookings?scope=${historyScope}`}
       >
         Your booking history

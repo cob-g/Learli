@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useHydrated } from "@/hooks/use-hydrated";
 import Link from "next/link";
+import "@/features/parent-children/parent-pages.css";
 import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
 import type { TimeZoneOption } from "@/lib/time/zones";
@@ -121,7 +122,7 @@ export function CreateLearnerForm({
   return (
     <form
       ref={formRef}
-      className="mt-8 max-w-xl space-y-4"
+      className="pp-form"
       onSubmit={create}
       action="/api/learners"
       method="post"

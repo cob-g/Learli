@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import "@/features/parent-children/parent-pages.css";
 import { useHydrated } from "@/hooks/use-hydrated";
 import type { TimeZoneOption } from "@/lib/time/zones";
 import {
@@ -98,7 +99,7 @@ export function BookingChoiceForm({
     <form
       method="get"
       action={privateWorkflow ? "/bookings/new" : undefined}
-      className="mt-6 max-w-xl space-y-4"
+      className="pp-form"
     >
       {scopeHint && <input type="hidden" name="scope" value={scopeHint} />}
       {keepRequestedTime && requestedTime && (
@@ -249,7 +250,7 @@ export function BookingChoiceForm({
           ))}
         </select>
       </div>
-      <button className="action action-outline" type="submit">
+      <button className="action action-outline pp-submit" type="submit">
         {privateWorkflow ? "Show available times" : "Load synthetic times"}
       </button>
     </form>

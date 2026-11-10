@@ -1,6 +1,8 @@
 "use client";
 
+import "@/features/bookings/booking-pages.css";
 import Link from "next/link";
+import { ExternalLink, Video } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";
 import { useHydrated } from "@/hooks/use-hydrated";
 import type { MeetingSectionState, PrivateMeetingState } from "./model";
@@ -128,22 +130,27 @@ export function BookingMeetingSection({
 
   return (
     <section
-      className="mt-8 border-t border-border pt-6"
+      className="booking-panel"
       aria-labelledby="meeting-heading"
       aria-busy={pending}
     >
-      <h2 id="meeting-heading" className="text-section-title">
-        {privateWorkflow ? "Private meeting link" : "Test meeting link"}
-      </h2>
-      <p className="mt-2 max-w-prose text-small text-muted-foreground">
+      <div className="booking-panel-heading">
+        <span className="booking-panel-icon" aria-hidden="true">
+          <Video size={18} />
+        </span>
+        <h2 id="meeting-heading">
+          {privateWorkflow ? "Private meeting link" : "Test meeting link"}
+        </h2>
+      </div>
+      <p className="max-w-prose text-small text-muted-foreground">
         {privateWorkflow
           ? "The private Zoom or Google Meet link is arranged by your tutor or through their connected Google account. It opens externally; Learli does not host calls, check meeting settings or verify attendance."
           : "Local simulation only. A tutor-supplied test link opens externally on Zoom or Google Meet. Learli does not host calls, arrange a lesson, check meeting settings or verify attendance."}
       </p>
       {meeting.state === "present" && (
-        <div className="mt-4">
+        <div>
           <a
-            className="inline-flex min-h-11 items-center"
+            className="action workspace-action"
             href={`${endpoint}?open=1`}
             target="_blank"
             rel="noopener noreferrer"
@@ -151,6 +158,9 @@ export function BookingMeetingSection({
           >
             {privateWorkflow ? "Open meeting on " : "Open test link on "}
             {meeting.provider === "zoom" ? "Zoom" : "Google Meet"} (new tab)
+            <span className="workspace-action-icon" aria-hidden="true">
+              <ExternalLink size={14} />
+            </span>
           </a>
           <p className="mt-2 text-small text-muted-foreground">
             Access is rechecked when opened. A link already shared outside

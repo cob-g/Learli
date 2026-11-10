@@ -33,7 +33,14 @@ import {
   expireTutorReservations,
   reservationTransaction,
 } from "@/features/bookings/service";
-import { formatLessonTime } from "@/features/bookings/format-time";
+import {
+  createLessonTimeFormatter,
+  formatLessonTime,
+} from "@/features/bookings/format-time";
+import {
+  screeningCoversLesson,
+  screeningValidityMillis,
+} from "@/features/tutor-screening/coverage";
 import {
   validateBookingCapability,
   supportsTutorCompletion,
@@ -220,7 +227,9 @@ async function candidateIntervals(
 ) {
   const now = await databaseNow(tx),
     from = new Date(now.getTime() + p.noticeMinutes * 60000),
-    to = new Date(now.getTime() + p.horizonDays * 86400000);
+    to = new Date(now.getTime() + p.horizonDays * 86400000),
+    // A final candidate can finish after the last permitted start.
+    busyUntil = new Date(to.getTime() + p.durationMinutes * 60000);
   const windows = await tx
     .select({
       isoWeekday: tutorAvailability.isoWeekday,
@@ -230,15 +239,15 @@ async function candidateIntervals(
     .from(tutorAvailability)
     .where(eq(tutorAvailability.tutorId, tutor.id));
   const occupied = await tx.execute<{ start: string; end: string }>(
-    sql`SELECT b.start_at_utc AS start,b.end_at_utc AS "end" FROM public.bookings b WHERE b.tutor_id=${tutor.id}::uuid AND (${exclude ?? null}::uuid IS NULL OR b.id<>${exclude ?? null}::uuid) AND ${blockingBookingPredicate(sql`b`, now)}`,
+    sql`SELECT b.start_at_utc AS start,b.end_at_utc AS "end" FROM public.bookings b WHERE b.tutor_id=${tutor.id}::uuid AND b.end_at_utc>${from.toISOString()}::timestamptz AND b.start_at_utc<${busyUntil.toISOString()}::timestamptz AND (${exclude ?? null}::uuid IS NULL OR b.id<>${exclude ?? null}::uuid) AND ${blockingBookingPredicate(sql`b`, now)}`,
   );
   const exceptions = await readTutorTimeOffIntervals(
     tx,
     tutor.id,
     from,
-    new Date(to.getTime() + p.durationMinutes * 60000),
+    busyUntil,
   );
-  return generateSlots({
+  const slots = generateSlots({
     timeZone: tutor.timezone,
     windows,
     busy: [
@@ -253,6 +262,13 @@ async function candidateIntervals(
     slotMinutes: p.durationMinutes,
     stepMinutes: p.stepMinutes,
   });
+  const coverage = await tx.execute<{ validUntil: string | null }>(
+    sql`SELECT public.tutor_screening_valid_through(${tutor.id}::uuid,${p.source})::text AS "validUntil"`,
+  );
+  const validUntil = screeningValidityMillis(
+    coverage.rows[0]?.validUntil ?? null,
+  );
+  return slots.filter((slot) => screeningCoversLesson(validUntil, slot.end));
 }
 
 async function currentActorTimezone(
@@ -358,9 +374,8 @@ export async function readWorkflowCandidates(
     );
     const slots = await candidateIntervals(tx, tutor, p);
     await currentChoice(tx, id, p, v, getPrivateWorkflow(c.runtime));
-    return slots.map((t) =>
-      formatLessonTime(t.start, t.end, v.displayTimezone),
-    );
+    const formatTime = createLessonTimeFormatter(v.displayTimezone);
+    return slots.map((t) => formatTime(t.start, t.end));
   });
 }
 export async function createPolicyReservation(
@@ -593,17 +608,32 @@ export async function readWorkflowMoveCandidates(
     await tx.execute(
       sql`SELECT t.id FROM public.tutor_profiles t JOIN public.bookings b ON b.tutor_id=t.id WHERE b.id=${bookingId}::uuid FOR UPDATE OF t`,
     );
-    const result = await tx.execute<{ id: string; timezone: string }>(
-      sql`SELECT t.id,t.timezone FROM public.bookings b JOIN public.tutor_profiles t ON t.id=b.tutor_id WHERE ${privateBookingPredicate(getPrivateWorkflow(c.runtime), sql`b.id`)} AND ${privateActorPredicate(getPrivateWorkflow(c.runtime), sql`${id.userId}`)} AND b.id=${bookingId}::uuid AND b.source=${p.source} AND b.state IN('provisional','confirmed') AND (b.state='confirmed' OR b.expires_at>clock_timestamp()) AND b.start_at_utc>clock_timestamp()+interval '60 minutes' AND b.workflow_policy_id=${p.policyId}::uuid AND public.booking_workflow_policy_current(b.workflow_policy_id) AND public.has_current_learner_authority(${id.userId},${id.sessionId},b.learner_id,b.admission_policy_id) AND public.has_current_tutor_screening(t.id,${p.source})`,
+    const result = await tx.execute<{
+      id: string;
+      timezone: string;
+      originalStart: string;
+      levelSupported: boolean;
+    }>(
+      sql`SELECT t.id,t.timezone,b.start_at_utc AS "originalStart",EXISTS(SELECT 1 FROM public.learner_profiles lp JOIN public.tutor_subjects ts ON ts.tutor_id=b.tutor_id AND ts.subject_id=b.subject_id JOIN public.subjects s ON s.id=ts.subject_id AND s.is_active WHERE lp.id=b.learner_id AND lp.level=ANY(ts.levels)) AS "levelSupported" FROM public.bookings b JOIN public.tutor_profiles t ON t.id=b.tutor_id WHERE ${privateBookingPredicate(getPrivateWorkflow(c.runtime), sql`b.id`)} AND ${privateActorPredicate(getPrivateWorkflow(c.runtime), sql`${id.userId}`)} AND b.id=${bookingId}::uuid AND b.source=${p.source} AND b.state IN('provisional','confirmed') AND (b.state='confirmed' OR b.expires_at>clock_timestamp()) AND b.start_at_utc>clock_timestamp()+interval '60 minutes' AND b.workflow_policy_id=${p.policyId}::uuid AND public.booking_workflow_policy_current(b.workflow_policy_id) AND public.has_current_learner_authority(${id.userId},${id.sessionId},b.learner_id,b.admission_policy_id) AND public.has_current_tutor_screening(t.id,${p.source})`,
     );
     if (!result.rows[0]) throw new AccessError(404);
     const slots = await candidateIntervals(tx, result.rows[0], p, bookingId);
-    const fresh = await tx.execute<{ id: string; timezone: string }>(
-      sql`SELECT t.id,t.timezone FROM public.bookings b JOIN public.tutor_profiles t ON t.id=b.tutor_id WHERE ${privateBookingPredicate(getPrivateWorkflow(c.runtime), sql`b.id`)} AND ${privateActorPredicate(getPrivateWorkflow(c.runtime), sql`${id.userId}`)} AND b.id=${bookingId}::uuid AND b.source=${p.source} AND b.state IN('provisional','confirmed') AND (b.state='confirmed' OR b.expires_at>clock_timestamp()) AND b.start_at_utc>clock_timestamp()+interval '60 minutes' AND b.workflow_policy_id=${p.policyId}::uuid AND public.booking_workflow_policy_current(b.workflow_policy_id) AND public.has_current_learner_authority(${id.userId},${id.sessionId},b.learner_id,b.admission_policy_id) AND public.has_current_tutor_screening(t.id,${p.source})`,
+    const fresh = await tx.execute<{
+      id: string;
+      timezone: string;
+      levelSupported: boolean;
+    }>(
+      sql`SELECT t.id,t.timezone,EXISTS(SELECT 1 FROM public.learner_profiles lp JOIN public.tutor_subjects ts ON ts.tutor_id=b.tutor_id AND ts.subject_id=b.subject_id JOIN public.subjects s ON s.id=ts.subject_id AND s.is_active WHERE lp.id=b.learner_id AND lp.level=ANY(ts.levels)) AS "levelSupported" FROM public.bookings b JOIN public.tutor_profiles t ON t.id=b.tutor_id WHERE ${privateBookingPredicate(getPrivateWorkflow(c.runtime), sql`b.id`)} AND ${privateActorPredicate(getPrivateWorkflow(c.runtime), sql`${id.userId}`)} AND b.id=${bookingId}::uuid AND b.source=${p.source} AND b.state IN('provisional','confirmed') AND (b.state='confirmed' OR b.expires_at>clock_timestamp()) AND b.start_at_utc>clock_timestamp()+interval '60 minutes' AND b.workflow_policy_id=${p.policyId}::uuid AND public.booking_workflow_policy_current(b.workflow_policy_id) AND public.has_current_learner_authority(${id.userId},${id.sessionId},b.learner_id,b.admission_policy_id) AND public.has_current_tutor_screening(t.id,${p.source})`,
     );
     if (!fresh.rows[0]) throw new AccessError(404);
+    if (!result.rows[0].levelSupported || !fresh.rows[0].levelSupported)
+      return [];
     const displayTimezone = await currentActorTimezone(tx, id);
-    return slots.map((t) => formatLessonTime(t.start, t.end, displayTimezone));
+    const originalStart = new Date(result.rows[0].originalStart).getTime();
+    const formatTime = createLessonTimeFormatter(displayTimezone);
+    return slots
+      .filter((t) => t.start.getTime() !== originalStart)
+      .map((t) => formatTime(t.start, t.end));
   });
 }
 
@@ -624,7 +654,7 @@ async function workflowTransaction<T>(
   } catch (e) {
     const code = pgErrorCode(e);
     if (code === "42501") throw new AccessError(404);
-    if (code === "P4090")
+    if (code === "P4090" || code === "P4091")
       throw new RuleError(
         409,
         "The booking window changed. Reload current details.",

@@ -16,6 +16,10 @@ import {
 } from "@/lib/db/schema";
 import { isLoopbackOrigin } from "@/lib/local-mode";
 import type { ScreeningScope } from "@/features/tutor-screening/policy";
+import {
+  screeningCoversLesson,
+  screeningValidityMillis,
+} from "@/features/tutor-screening/coverage";
 import { listEligibleTutorsBySlugs } from "@/features/tutors/eligibility";
 import { demoBookingPolicy } from "@/features/bookings/demo-policy";
 import {
@@ -184,6 +188,9 @@ async function readCandidates(
           id: tutorProfiles.id,
           slug: tutorProfiles.slug,
           timezone: tutorProfiles.timezone,
+          screeningValidUntil: sql<
+            string | null
+          >`public.tutor_screening_valid_through(${tutorProfiles.id},${scope})::text`,
         })
         .from(tutorProfiles)
         .where(inArray(tutorProfiles.slug, eligibleSlugs))
@@ -265,10 +272,17 @@ async function readCandidates(
           });
           if (intervals.length > PUBLIC_CANDIDATE_LIMITS.timesPerTutor)
             throw overload();
-          const times = intervals.map(({ start, end }) => ({
-            ...formatTime(start, end, query.displayTimezone),
-            tutorTime: formatTime(start, end, profile.timezone),
-          }));
+          const times = intervals
+            .filter(({ end }) =>
+              screeningCoversLesson(
+                screeningValidityMillis(profile.screeningValidUntil),
+                end,
+              ),
+            )
+            .map(({ start, end }) => ({
+              ...formatTime(start, end, query.displayTimezone),
+              tutorTime: formatTime(start, end, profile.timezone),
+            }));
           return {
             tutorSlug,
             state: times.length ? "available" : "empty",

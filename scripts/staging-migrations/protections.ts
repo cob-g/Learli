@@ -159,13 +159,24 @@ export async function verifyProtections(
   const hasLocalOperation = candidate.entries
     .slice(0, applied)
     .some((entry) => entry.tag === "0035_local_operational_workflow");
-  const expectedBookingDefinitions = hasLocalOperation
+  const baselineBookingDefinitions = hasLocalOperation
     ? localOperationBookingDefinitions
     : hasWorkflow
       ? workflowBookingDefinitions
       : hasLifecycle
         ? lifecycleBookingDefinitions
         : bookingDefinitions;
+  const hasConfirmedReplacementExpiry = candidate.entries
+    .slice(0, applied)
+    .some((entry) => entry.tag === "0047_confirmed_replacement_expiry");
+  const expectedBookingDefinitions = hasConfirmedReplacementExpiry
+    ? {
+        ...baselineBookingDefinitions,
+        bookings_expiry_valid:
+          "CHECK ((isfinite(created_at) AND isfinite(expires_at) AND ((expires_at > created_at) OR ((source = ANY (ARRAY['synthetic_readiness'::text, 'local_operation'::text])) AND (revision > 0) AND (replaces_booking_id IS NOT NULL) AND (state = ANY (ARRAY['confirmed'::text, 'completed'::text, 'no_show'::text, 'cancelled'::text, 'replaced'::text]))))))",
+      }
+    : baselineBookingDefinitions;
+
   const actual = await client.query<{
     name: string;
     body: string;

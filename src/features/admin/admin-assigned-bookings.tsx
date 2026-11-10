@@ -31,6 +31,7 @@ export function AdminAssignedBookings({
     | "requesterName"
     | "relationship"
     | "time"
+    | "screeningSupportRequired"
   >[];
   page: number;
   hasMore: boolean;
@@ -156,6 +157,12 @@ export function AdminAssignedBookings({
                     {bookingStatusLabel(item.state, true)}
                   </span>
                 </h2>
+                {item.screeningSupportRequired && (
+                  <p role="status">
+                    Tutor screening does not cover this lesson. Coordinate with
+                    support.
+                  </p>
+                )}
                 <dl>
                   <div>
                     <dt>Tutor</dt>

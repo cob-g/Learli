@@ -9,6 +9,9 @@ import { listLearnerGroups } from "@/features/learners/composition";
 import { levelNames } from "@/features/subjects/catalog";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
+import { Plus, UsersRound } from "lucide-react";
+import { nameInitials } from "@/lib/initials";
+import "@/features/parent-children/parent-pages.css";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Your learners",
@@ -51,40 +54,101 @@ export default async function LearnersPage() {
   const canCreate =
     !privateWorkflow && groups.demoAllowed && groups.createModes.length > 0;
   return (
-    <div className="page-shell page-space">
-      <h1 className="text-page-title">Your learners</h1>
-      <p className="mt-4 max-w-prose text-body text-muted-foreground">
-        {groups.ordinaryParent
-          ? "Your private child profiles are ready for tutoring when current guardian access is authorized."
-          : groups.localWorkflow
-            ? "Only learners with current authorized access appear here."
-            : privateWorkflow
-              ? "Only learners with current authorized access appear here. Check admission requests for pending reviews."
-              : "Local testing only. Use fictional learner details."}
-      </p>
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">
+            {groups.ordinaryParent ? "Parent workspace" : "Student workspace"}
+          </p>
+          <h1>Your learners</h1>
+          <p>
+            {groups.ordinaryParent
+              ? "Your private child profiles are ready for tutoring when current guardian access is authorized."
+              : groups.localWorkflow
+                ? "Only learners with current authorized access appear here."
+                : privateWorkflow
+                  ? "Only learners with current authorized access appear here. Check admission requests for pending reviews."
+                  : "Local testing only. Use fictional learner details."}
+          </p>
+        </div>
+        <div className="pp-actions">
+          {canCreate && (
+            <LearnerLink
+              className="action action-primary pp-submit"
+              href="/learners/new"
+              label="Create a local learner"
+            />
+          )}
+          {groups.admissionEnabled && (
+            <LearnerLink
+              href={
+                groups.ordinaryParent
+                  ? "/parent/children/new"
+                  : groups.localWorkflow
+                    ? "/student/onboarding"
+                    : "/learner-admission/new"
+              }
+              className={
+                privateWorkflow
+                  ? "action action-primary pp-submit"
+                  : "action action-outline pp-submit"
+              }
+              leading={
+                groups.ordinaryParent || privateWorkflow ? (
+                  <Plus className="size-4" aria-hidden="true" />
+                ) : undefined
+              }
+              label={
+                groups.ordinaryParent
+                  ? "Add Child"
+                  : groups.localWorkflow
+                    ? "Set up your Student profile"
+                    : privateWorkflow
+                      ? "Add a learner"
+                      : "Request admission review"
+              }
+            />
+          )}
+          {privateWorkflow && !groups.localWorkflow && (
+            <LearnerLink
+              href="/learner-admission"
+              className="pp-link"
+              label="Admission requests"
+            />
+          )}
+        </div>
+      </header>
       {learners.length ? (
-        <ul className="mt-8 max-w-5xl divide-y divide-border">
+        <ul className="pp-children">
           {learners.map((learner) => (
-            <li
-              key={learner.id}
-              className="flex min-w-0 flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div className="min-w-0">
-                <h2 className="text-item-title wrap-anywhere">
-                  {learner.displayName}
-                </h2>
-                <p className="mt-2 text-caption">
-                  {groups.readiness.some((row) => row.id === learner.id)
-                    ? groups.localWorkflow
-                      ? "Current authorized access"
-                      : privateWorkflow
-                        ? "Reviewed admission"
-                        : "Synthetic reviewed admission"
-                    : "Local demonstration"}
-                </p>
-                <p className="mt-2 text-body">
+            <li key={learner.id} className="pp-child">
+              <span className="pp-avatar" aria-hidden="true">
+                {nameInitials(learner.displayName) || <UsersRound size={20} />}
+              </span>
+              <div className="pp-child-main">
+                <h2 className="wrap-anywhere">{learner.displayName}</h2>
+                <p>
                   {levelNames([learner.level]).join()}
                   {learner.grade != null ? ` · Grade ${learner.grade}` : ""}
+                </p>
+                <p className="mt-2">
+                  <span
+                    className="workspace-pill"
+                    data-dot
+                    data-tone={
+                      groups.readiness.some((row) => row.id === learner.id)
+                        ? "success"
+                        : undefined
+                    }
+                  >
+                    {groups.readiness.some((row) => row.id === learner.id)
+                      ? groups.localWorkflow
+                        ? "Current authorized access"
+                        : privateWorkflow
+                          ? "Reviewed admission"
+                          : "Synthetic reviewed admission"
+                      : "Local demonstration"}
+                  </span>
                 </p>
               </div>
               <LearnerLink
@@ -97,9 +161,12 @@ export default async function LearnersPage() {
           ))}
         </ul>
       ) : (
-        <section className="mt-8 max-w-prose">
-          <h2 className="text-item-title">No learner profiles available</h2>
-          <p className="mt-2 text-body">
+        <section className="workspace-blank">
+          <span className="pp-icon" aria-hidden="true">
+            <UsersRound size={20} />
+          </span>
+          <h2>No learner profiles available</h2>
+          <p>
             {groups.ordinaryParent
               ? "Add your child and confirm your guardian authority and consent to start arranging tutoring."
               : groups.localWorkflow
@@ -110,49 +177,7 @@ export default async function LearnersPage() {
           </p>
         </section>
       )}
-      {canCreate && (
-        <LearnerLink
-          className="action action-primary mt-8"
-          href="/learners/new"
-          label="Create a local learner"
-        />
-      )}
-      {groups.admissionEnabled && (
-        <LearnerLink
-          href={
-            groups.ordinaryParent
-              ? "/parent/children/new"
-              : groups.localWorkflow
-                ? "/student/onboarding"
-                : "/learner-admission/new"
-          }
-          className={
-            privateWorkflow
-              ? "action action-primary mt-8"
-              : "action action-outline ms-4 mt-8"
-          }
-          label={
-            groups.ordinaryParent
-              ? "Add Child"
-              : groups.localWorkflow
-                ? "Set up your Student profile"
-                : privateWorkflow
-                  ? "Add a learner"
-                  : "Request admission review"
-          }
-        />
-      )}
-      {privateWorkflow && !groups.localWorkflow && (
-        <LearnerLink
-          href="/learner-admission"
-          className="ms-4 mt-8 inline-flex min-h-11 items-center"
-          label="Admission requests"
-        />
-      )}
-      <Link
-        className="ms-4 mt-8 inline-flex min-h-11 items-center"
-        href="/account"
-      >
+      <Link href="/account" className="pp-link self-start">
         Account settings
       </Link>
     </div>

@@ -7,6 +7,8 @@ import { listMyAdmissions } from "@/features/learner-admission/service";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { getLocalWorkflow } from "@/features/local-workflow/runtime";
+import "@/features/parent-children/parent-pages.css";
+import { UsersRound } from "lucide-react";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Your learner review records",
@@ -46,24 +48,36 @@ export default async function Page({
     );
   const { items: rows, nextCursor, privateWorkflow, localWorkflow } = result;
   return (
-    <div className="page-shell page-space">
-      <h1 className="text-page-title">
-        {localWorkflow
-          ? "Earlier learner review records"
-          : "Your admission requests"}
-      </h1>
-      <p className="mt-4 max-w-prose text-body">
-        {localWorkflow
-          ? "These retained records cover earlier or exceptional learner reviews. New child profiles and eligible independent College Support learners use self-service setup."
-          : privateWorkflow
-            ? "Check each request’s current review status. Pending requests grant no learner or booking access."
-            : "Synthetic readiness only. No real guardian consent, age or eligibility is established."}
-      </p>
-      <div className="mt-6 max-w-5xl rounded-surface border border-border bg-surface p-6 sm:p-8">
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">Learner requests</p>
+          <h1>
+            {localWorkflow
+              ? "Earlier learner review records"
+              : "Your admission requests"}
+          </h1>
+          <p>
+            {localWorkflow
+              ? "These retained records cover earlier or exceptional learner reviews. New child profiles and eligible independent College Support learners use self-service setup."
+              : privateWorkflow
+                ? "Check each request’s current review status. Pending requests grant no learner or booking access."
+                : "Synthetic readiness only. No real guardian consent, age or eligibility is established."}
+          </p>
+        </div>
+        {!result.localWorkflow && (
+          <LearnerLink
+            href="/learner-admission/new"
+            className="action action-primary pp-submit"
+            label="Request admission review"
+          />
+        )}
+      </header>
+      <div>
         {rows.length ? (
-          <ul className="divide-y divide-border">
+          <ul className="pp-request-list">
             {rows.map((row) => (
-              <li key={row.id} className="min-w-0 py-4 first:pt-0 last:pb-0">
+              <li key={row.id} className="min-w-0">
                 <p className="text-body">
                   {row.management === "self"
                     ? localWorkflow
@@ -96,44 +110,42 @@ export default async function Page({
             ))}
           </ul>
         ) : (
-          <p className="text-body">
-            {localWorkflow
-              ? "No earlier learner review records are available."
-              : "No admission requests are available."}
-          </p>
+          <div className="workspace-blank">
+            <span className="pp-icon" aria-hidden="true">
+              <UsersRound size={20} />
+            </span>
+            <p>
+              {localWorkflow
+                ? "No earlier learner review records are available."
+                : "No admission requests are available."}
+            </p>
+          </div>
         )}
       </div>
-      {!result.localWorkflow && (
-        <LearnerLink
-          href="/learner-admission/new"
-          className="action action-primary mt-6 w-full sm:w-auto"
-          label="Request admission review"
-        />
-      )}
       <nav
         aria-label={
           localWorkflow ? "Learner review record pages" : "Admission list pages"
         }
-        className="mt-8 flex gap-6"
+        className="flex gap-6"
       >
         {cursor && (
           <LearnerLink
             href="/learner-admission"
             label="First page"
-            className="inline-flex min-h-11 items-center"
+            className="pp-link"
           />
         )}
         {nextCursor && (
           <LearnerLink
             href={`/learner-admission?after=${nextCursor}`}
             label="Next page"
-            className="inline-flex min-h-11 items-center"
+            className="pp-link"
           />
         )}
       </nav>
       <LearnerLink
         href="/account"
-        className="me-6 mt-8 inline-flex min-h-11 items-center"
+        className="pp-link self-start"
         label="Your account"
       />
     </div>

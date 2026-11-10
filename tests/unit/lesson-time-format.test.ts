@@ -264,6 +264,7 @@ describe("lesson time formatting", () => {
         id: String(index),
         slug: `tutor-${index}`,
         timezone,
+        screeningValidUntil: "infinity",
       }),
     );
     vi.spyOn(eligibility, "listEligibleTutorsBySlugs").mockResolvedValue(

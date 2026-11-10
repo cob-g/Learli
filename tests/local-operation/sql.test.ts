@@ -28,6 +28,7 @@ import {
 import { verifyRuntimeGrants } from "../../scripts/staging-migrations/privileges";
 import { enrollTestAdmin } from "../support/admin-mfa";
 import type { LocalMessage } from "@/lib/email/local-mail";
+import { currentMigrationFunctionCount } from "../support/migration-inventory";
 
 type Actor = { id: string; sessionId: string; cookie: string };
 let runtime: LocalAuthRuntime;
@@ -310,7 +311,9 @@ describe("ordinary source SQL authority and durable workflow", () => {
   it("preserves exact restricted grants and the old synthetic identity boundary", async () => {
     const client = await owner.pool.connect();
     try {
-      expect((await verifyRuntimeGrants(client)).functionChecks).toBe(100);
+      expect((await verifyRuntimeGrants(client)).functionChecks).toBe(
+        currentMigrationFunctionCount,
+      );
     } finally {
       client.release();
     }

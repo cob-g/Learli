@@ -288,6 +288,55 @@
       "when": 1793019666857,
       "tag": "0040_google_meet_provisioning",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1794276000000,
+      "tag": "0041_local_admin_tutor_screening",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1794279600000,
+      "tag": "0042_tutor_booking_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1794286268706,
+      "tag": "0043_student_booking_coordination",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1794295000000,
+      "tag": "0044_parent_booking_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1794296590063,
+      "tag": "0045_parent_learner_level_update",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1794297600000,
+      "tag": "0046_parent_level_null_guards",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1794300144694,
+      "tag": "0047_confirmed_replacement_expiry",
+      "breakpoints": true
     }
   ]
 }

@@ -109,7 +109,9 @@ export const bookings = pgTable(
     ),
     check(
       "bookings_expiry_valid",
-      sql`isfinite(${table.createdAt}) AND isfinite(${table.expiresAt}) AND ${table.expiresAt} > ${table.createdAt}`,
+      // Confirmed replacements retain their original hold deadline. Their
+      // creation and later terminal states may legitimately follow that hold.
+      sql`isfinite(${table.createdAt}) AND isfinite(${table.expiresAt}) AND (${table.expiresAt} > ${table.createdAt} OR (${table.source} IN ('synthetic_readiness','local_operation') AND ${table.revision} > 0 AND ${table.replacesBookingId} IS NOT NULL AND ${table.state} IN ('confirmed','completed','no_show','cancelled','replaced')))`,
     ),
     check(
       "bookings_fingerprint_valid",

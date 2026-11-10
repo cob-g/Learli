@@ -88,10 +88,18 @@ function BookingIdentity({ booking }: { booking: TutorAgendaBooking }) {
   );
 }
 
-function ViewBooking({ booking }: { booking: TutorAgendaBooking }) {
+function ViewBooking({
+  booking,
+  expandCard = false,
+}: {
+  booking: TutorAgendaBooking;
+  expandCard?: boolean;
+}) {
   return (
     <Link
-      className="tutor-view-booking"
+      className={
+        expandCard ? "tutor-view-booking tutor-next-link" : "tutor-view-booking"
+      }
       href={booking.detailHref}
       aria-label={`View booking for ${booking.learnerLabel}`}
     >
@@ -186,7 +194,7 @@ export function TutorBookingAgenda({
             </p>
             <Expiry booking={next} privateWorkflow={privateWorkflow} />
             <div className="mt-4">
-              <ViewBooking booking={next} />
+              <ViewBooking booking={next} expandCard />
             </div>
           </div>
         </section>

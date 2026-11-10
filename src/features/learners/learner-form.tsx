@@ -7,15 +7,18 @@ import { learnerLevelOptions } from "@/features/subjects/catalog";
 import type { TimeZoneOption } from "@/lib/time/zones";
 import type { PrivateLearner } from "./service";
 import { GradeField, formGrade } from "./grade-field";
+import "@/features/parent-children/parent-pages.css";
 
 export function LearnerForm({
   profile,
   zones,
   reviewed = false,
+  editableLevel = false,
 }: {
   profile: PrivateLearner;
   zones: TimeZoneOption[];
   reviewed?: boolean;
+  editableLevel?: boolean;
 }) {
   const router = useRouter();
   const ready = useHydrated();
@@ -24,6 +27,8 @@ export function LearnerForm({
   const [failed, setFailed] = useState(false);
   const [fields, setFields] = useState<Record<string, string>>({});
   const [level, setLevel] = useState(profile.level);
+  const [expectedLevel, setExpectedLevel] = useState(profile.level);
+  const canEditLevel = !reviewed || editableLevel;
   const noticeRef = useRef<HTMLParagraphElement>(null);
 
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -40,9 +45,15 @@ export function LearnerForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           displayName: data.get("displayName"),
-          ...(!reviewed ? { level: data.get("level") } : {}),
+          ...(canEditLevel
+            ? {
+                level: data.get("level"),
+                ...(reviewed ? { expectedLevel } : {}),
+              }
+            : {}),
           grade:
-            profile.management === "guardian" && level !== "college_support"
+            profile.management === "guardian" &&
+            (level !== "college_support" || editableLevel)
               ? formGrade(data.get("grade"))
               : null,
           timezone: data.get("timezone"),
@@ -50,6 +61,7 @@ export function LearnerForm({
       });
       setFailed(!response.ok);
       if (response.ok) {
+        setExpectedLevel(level);
         setNotice("Profile saved");
         router.refresh();
       } else {
@@ -61,7 +73,9 @@ export function LearnerForm({
         }
         setFields(errors);
         setNotice(
-          "Profile could not be saved. Check the fields and your account access, then try again.",
+          response.status === 409
+            ? "This profile changed. Reload it before saving."
+            : "Profile could not be saved. Check the fields and your account access, then try again.",
         );
       }
     } catch {
@@ -82,7 +96,7 @@ export function LearnerForm({
 
   return (
     <form
-      className="mt-8 max-w-xl space-y-4"
+      className="pp-form"
       onSubmit={save}
       method="post"
       action={`/api/learners/${profile.id}`}
@@ -131,7 +145,7 @@ export function LearnerForm({
           className="field"
           id="level"
           name="level"
-          disabled={!ready || reviewed}
+          disabled={!ready || !canEditLevel}
           defaultValue={profile.level}
           onChange={(event) =>
             setLevel(event.target.value as PrivateLearner["level"])
@@ -156,13 +170,22 @@ export function LearnerForm({
           </p>
         )}
       </div>
-      {profile.management === "guardian" && level !== "college_support" && (
-        <GradeField
-          grade={profile.grade}
-          disabled={!ready || pending}
-          error={fields.grade}
-        />
+      {editableLevel && (
+        <p className="text-small text-muted-foreground">
+          New booking choices use this level. Existing bookings remain
+          unchanged; a new time requires a tutor who supports the current level.
+        </p>
       )}
+      {profile.management === "guardian" &&
+        (level !== "college_support" || editableLevel) && (
+          <GradeField
+            grade={profile.grade}
+            disabled={!ready || pending}
+            error={fields.grade}
+            levelEditable={canEditLevel}
+            college={level === "college_support"}
+          />
+        )}
       <div className="space-y-2">
         <label className="block text-label" htmlFor="timezone">
           Time zone
@@ -205,7 +228,7 @@ export function LearnerForm({
       )}
       <button
         type="submit"
-        className="action action-primary"
+        className="action action-primary pp-submit"
         disabled={!ready || pending}
       >
         {pending && (

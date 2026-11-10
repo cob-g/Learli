@@ -1,0 +1,237 @@
+@layer components {
+  /* Parent and shared booking pages in the Tutor workspace style. */
+
+  .pp-card {
+    min-width: 0;
+    border: 1px solid var(--border-default);
+    border-radius: 1.25rem;
+    background: var(--bg-surface);
+  }
+  .pp-card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-default);
+  }
+  .pp-card-head h2 {
+    color: var(--brand-navy);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .pp-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, var(--brand-mint) 30%, var(--bg-surface));
+    color: var(--accent-strong);
+  }
+  .pp-card-body {
+    padding: 1.25rem 1.5rem 1.5rem;
+  }
+
+  /* Form rendered as one card; children are stacked fields. */
+  .pp-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: 100%;
+    max-width: 40rem;
+    min-width: 0;
+    padding: 1.5rem;
+    border: 1px solid var(--border-default);
+    border-radius: 1.25rem;
+    background: var(--bg-surface);
+  }
+  .page-shell > .pp-form {
+    margin-top: 2rem;
+  }
+  .pp-form-wide {
+    max-width: none;
+  }
+  .pp-form > * {
+    margin: 0;
+  }
+  .pp-form :is(.field, .action) {
+    border-radius: 0.75rem;
+  }
+  .pp-form fieldset {
+    min-width: 0;
+  }
+  .pp-form a:not(.action) {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .pp-help {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    text-wrap: pretty;
+  }
+  .pp-help .pp-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.625rem;
+  }
+  .pp-help > span:last-child {
+    min-width: 0;
+    padding-top: 0.375rem;
+  }
+  .pp-submit {
+    align-self: flex-start;
+    border-radius: 0.75rem;
+  }
+  .pp-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+  }
+  .pp-link {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  /* My Children list. */
+  .pp-children {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .pp-child {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    min-width: 0;
+    padding: 1.125rem 1.25rem;
+    border: 1px solid var(--border-default);
+    border-radius: 1.25rem;
+    background: var(--bg-surface);
+  }
+  .pp-avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: var(--brand-mint);
+    color: var(--brand-navy);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .pp-child-main {
+    flex: 1 1 14rem;
+    min-width: 0;
+  }
+  .pp-child-main h3 {
+    color: var(--brand-navy);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .pp-child-main p {
+    margin-top: 0.25rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+  .pp-child .action {
+    border-radius: 0.75rem;
+  }
+  .pp-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--brand-navy);
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .pp-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .pp-section > p {
+    max-width: 64ch;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+  .pp-request-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .pp-request-list li {
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--border-default);
+    border-radius: 1.25rem;
+    background: var(--bg-surface);
+  }
+  .pp-request-list a,
+  .pp-section a:not(.action) {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  /* Booking: stepped cards and chip-style times. */
+  .pp-booking-form {
+    max-width: 40rem;
+  }
+  .pp-times {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .pp-times label,
+  .pp-form details label {
+    border-radius: 0.75rem;
+    transition:
+      border-color 150ms,
+      background-color 150ms;
+  }
+  .pp-times label:has(input:checked),
+  .pp-form details label:has(input:checked) {
+    border-color: var(--accent-strong);
+    background: color-mix(in srgb, var(--brand-mint) 30%, var(--bg-surface));
+  }
+  .pp-times label:has(input:focus-visible),
+  .pp-form details label:has(input:focus-visible) {
+    outline: 2px solid var(--focus-ring, var(--accent-strong));
+    outline-offset: 2px;
+  }
+
+  @media (min-width: 40rem) {
+    .pp-form {
+      padding: 1.75rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pp-times label,
+    .pp-form details label {
+      transition: none;
+    }
+  }
+  @media (forced-colors: active) {
+    .pp-times label:has(input:checked),
+    .pp-form details label:has(input:checked) {
+      border-color: Highlight;
+    }
+  }
+}

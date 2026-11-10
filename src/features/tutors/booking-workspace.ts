@@ -3,6 +3,7 @@ import type { AuthRuntime } from "@/lib/auth-factory";
 import { listParticipantBookingOverview } from "@/features/bookings/read-service";
 import {
   bookingDetailPath,
+  tutorHistoricalBookingDetailPath,
   type BookingSummary,
 } from "@/features/bookings/read-model";
 import { levelNames } from "@/features/subjects/catalog";
@@ -80,7 +81,10 @@ export function tutorAgendaBooking(
 ): TutorAgendaBooking {
   return {
     id: booking.id,
-    detailHref: bookingDetailPath(booking.id, "tutor"),
+    detailHref:
+      booking.currentHeadId && booking.currentHeadId !== booking.id
+        ? tutorHistoricalBookingDetailPath(booking.id)
+        : bookingDetailPath(booking.id, "tutor"),
     state: booking.state,
     learnerLabel: booking.learner.displayName,
     learnerLevel: levelNames([booking.learner.level]).join(),

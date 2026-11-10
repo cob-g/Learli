@@ -30,6 +30,7 @@ export async function screeningFixture(
   world: World,
   reviewer: TestAccount,
   enrolled = true,
+  policyValidityMs = 7200000,
 ) {
   const suffix = randomUUID(),
     now = Date.now(),
@@ -41,7 +42,7 @@ export async function screeningFixture(
         reference: `policy:${randomUUID()}`,
         authorityReference: `synthetic:${randomUUID()}`,
         validFrom: new Date(now - 60000).toISOString(),
-        validUntil: new Date(now + 7200000).toISOString(),
+        validUntil: new Date(now + policyValidityMs).toISOString(),
         requiredCheckCodes: ["synthetic_check_a", "synthetic_check_b"],
         allowedActions: [...screeningActions],
         expiryRule: "all_checks_current",

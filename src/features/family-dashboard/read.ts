@@ -15,6 +15,7 @@ import {
 function view(row: BookingSummary): ReservationView {
   return {
     id: row.id,
+    currentHeadId: row.currentHeadId,
     learner: row.learner,
     tutorName: row.tutor.displayName,
     subjectName: row.subject.name,

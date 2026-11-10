@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { UsersRound } from "lucide-react";
 import { redirect } from "next/navigation";
 import { loadPrivateAccountPage } from "@/lib/permissions/workspace";
 import { requireIdentity } from "@/lib/permissions/access";
@@ -9,6 +10,7 @@ import {
   parentContinuation,
   parentOnboardingHref,
 } from "@/features/parent-onboarding/continuation";
+import "@/features/parent-children/parent-pages.css";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -36,24 +38,34 @@ export default async function ParentOnboardingPage({
     );
   if (identity.roles.includes("parent")) redirect(next);
   return (
-    <div className="page-shell page-space">
-      <div className="max-w-xl">
-        <h1 className="text-page-title">Set up your parent workspace</h1>
-        <p className="mt-4 text-body">
-          Organize tutoring for the children you are authorized to manage.
-        </p>
-        <p className="mt-4 text-small text-muted-foreground">
-          This adds Parent to your account. Each child still needs an authorized
-          guardian relationship before you can manage their profile or bookings.
-        </p>
-        <ParentOnboardingForm next={next} />
-        <Link
-          href="/account"
-          className="mt-6 inline-flex min-h-11 items-center"
-        >
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">Parent workspace</p>
+          <h1>Set up your parent workspace</h1>
+          <p>
+            Organize tutoring for the children you are authorized to manage.
+          </p>
+        </div>
+        <Link href="/account" className="pp-link">
           Back to account settings
         </Link>
-      </div>
+      </header>
+      <section className="pp-card max-w-xl">
+        <div className="pp-card-body">
+          <p className="pp-help">
+            <span className="pp-icon" aria-hidden="true">
+              <UsersRound size={18} />
+            </span>
+            <span>
+              This adds Parent to your account. Each child still needs an
+              authorized guardian relationship before you can manage their
+              profile or bookings.
+            </span>
+          </p>
+          <ParentOnboardingForm next={next} />
+        </div>
+      </section>
     </div>
   );
 }

@@ -1,5 +1,46 @@
 # Learli — Build Plan
 
+### M8.9 booking performance slice — 2026-11-10
+
+Owner-requested measured slot formatting, lightweight stream authorization and
+bounded blocking reads are scoped by `prompts/features/m8-09-booking-performance.md`.
+Verification also corrects the inherited confirmed replacement expiry check
+under existing BKG-03/05 semantics, preserving original holds and history. Actual
+checks and measurements are in progress-tracker and the dated operations report;
+this does not complete M8.9 or authorize hosted rollout. Discovery pagination,
+additional indexes and frontend effects remain tied to measured need.
+
+
+### M4.4 Parent learner level update — 2026-11-10
+
+The requested local slice permits a currently authorized Parent to update an
+owned guardian-managed child's level, retaining receipts and bookings while
+rechecking tutor fit for new and rescheduled lessons. See
+`prompts/features/m4-04-parent-child-level-update.md`; executed evidence is
+recorded in the progress tracker. It does not complete M4.4 or the launch gates.
+
+### M5.4 Parent booking coordination — 2026-11-10
+
+The requested local slice extends scoped booking invalidations to Parent views
+and corrects pre-selection booking copy. See
+`prompts/features/m5-04-parent-booking-live.md` for scope and verification plan;
+implementation evidence is recorded in the progress tracker. It does not
+complete M5.4 or authorize production deployment.
+
+### M5.3 Student–Tutor coordination — approved 2026-11-10
+
+The owner approved `prompts/features/m5-03-student-tutor-coordination.md` for
+reschedule candidate correctness, scoped Student live updates, and future-slot
+screening coverage. This local slice does not complete M5.3/M4.10/M8.10 or
+authorize production activation. Verification remains in the progress tracker.
+
+### M8.10 / M2.9 local admin screening and QR — 2026-11-10
+
+Owner-requested local screening permission and authenticator QR are scoped in
+`prompts/features/m8-10-admin-screening-and-authenticator-qr.md`. This does not
+complete either milestone or authorize production activation. Check the progress
+tracker for current implementation and verification evidence.
+
 ### Approved optional Google Meet integration — 2026-10-26
 
 Owner-approved blueprint: `prompts/features/m5-01-google-meet-provisioning.md`

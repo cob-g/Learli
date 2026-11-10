@@ -169,6 +169,7 @@ export async function verifyRuntimeGrants(client: PoolClient) {
     "booking_workflow_participant(text,text,uuid)",
     "create_booking_workflow_dispute(text,text,uuid,uuid,text,text,text,text)",
     "has_current_tutor_screening(uuid,text)",
+    "tutor_screening_valid_through(uuid,text)",
     "has_tutor_screening_authority(text,text,uuid,text)",
     "request_tutor_screening(text,text,uuid,uuid,text)",
     "record_tutor_screening_check(text,text,uuid,integer,uuid,text,text,text,timestamp with time zone,timestamp with time zone)",
@@ -184,6 +185,7 @@ export async function verifyRuntimeGrants(client: PoolClient) {
     "create_local_learner_with_grade(text,text,uuid,text,text,text,text,integer)",
     "create_learner_admission_with_grade(text,text,uuid,uuid,text,text,text,text,text,integer)",
     "update_admitted_learner_with_grade(text,text,uuid,uuid,text,text,integer)",
+    "update_parent_learner_level(text,text,uuid,uuid,text,text,text,text,boolean,integer)",
     "create_learner_admission(text,text,uuid,uuid,text,text,text,text,text)",
     "record_learner_admission_evidence(text,text,uuid,integer,uuid,text,text)",
     "decide_learner_admission(text,text,uuid,integer,uuid,text)",
@@ -200,7 +202,7 @@ export async function verifyRuntimeGrants(client: PoolClient) {
     "change_local_support_assignment(text,text,uuid,integer,text,text,uuid)",
   ]);
   if (
-    functions.rows.length !== 116 ||
+    functions.rows.length !== 123 ||
     functions.rows.some(
       (row) =>
         !row.safe ||

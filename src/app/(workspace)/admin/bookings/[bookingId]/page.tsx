@@ -95,6 +95,13 @@ export default async function Page({
           <div className="mt-4">
             <LessonTime value={task.time} />
           </div>
+          {"screeningSupportRequired" in task &&
+            task.screeningSupportRequired && (
+              <p role="status" className="mt-4 text-body">
+                Tutor screening does not cover this lesson. Coordinate with
+                support; the booking has not been cancelled automatically.
+              </p>
+            )}
           {"learnerName" in task && (
             <section
               className="mt-8 max-w-prose"

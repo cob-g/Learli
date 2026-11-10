@@ -1,0 +1,2 @@
+ALTER TABLE "bookings" DROP CONSTRAINT "bookings_expiry_valid";--> statement-breakpoint
+ALTER TABLE "bookings" ADD CONSTRAINT "bookings_expiry_valid" CHECK (isfinite("bookings"."created_at") AND isfinite("bookings"."expires_at") AND ("bookings"."expires_at" > "bookings"."created_at" OR ("bookings"."source" IN ('synthetic_readiness','local_operation') AND "bookings"."revision" > 0 AND "bookings"."replaces_booking_id" IS NOT NULL AND "bookings"."state" IN ('confirmed','completed','no_show','cancelled','replaced'))));

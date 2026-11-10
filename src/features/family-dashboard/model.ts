@@ -14,6 +14,7 @@ export type DashboardLearner = {
 // never queries records or decides who may read them.
 export type ReservationInput = {
   id: string;
+  currentHeadId?: string;
   learner: DashboardLearner;
   tutorName: string;
   subjectName: string;

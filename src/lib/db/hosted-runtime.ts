@@ -3,6 +3,7 @@ import { EventEmitter } from "node:events";
 import {
   Pool,
   type PoolClient,
+  type Notification,
   type QueryArrayConfig,
   type QueryArrayResult,
   type QueryConfig,
@@ -51,6 +52,11 @@ export interface HostedRuntimeClient {
   readonly query: HostedRuntimeQuery;
   release(error?: Error | boolean): void;
   on(event: "error", listener: (error: Error) => void): this;
+  on(event: "notification", listener: (message: Notification) => void): this;
+  removeListener(
+    event: "notification",
+    listener: (message: Notification) => void,
+  ): this;
 }
 export interface HostedRuntimePool {
   readonly query: HostedRuntimeQuery;
@@ -156,6 +162,7 @@ class RuntimeLease extends EventEmitter implements HostedRuntimeClient {
   #client: PoolClient;
   #release: PoolClient["release"];
   #onError: (error: Error) => void;
+  #onNotification: (message: Notification) => void;
   #cleanup: Promise<void> | undefined;
 
   constructor(client: PoolClient) {
@@ -169,6 +176,25 @@ class RuntimeLease extends EventEmitter implements HostedRuntimeClient {
       this.emit("error", safeFailure(error));
     };
     client.on("error", this.#onError);
+    // Forward only the bounded, opaque invalidation channel. Raw PostgreSQL
+    // notifications remain confined to the verified native lease.
+    this.#onNotification = (message) => {
+      if (
+        this.#active &&
+        (message.channel === "learli_tutor_booking" ||
+          message.channel === "learli_student_booking") &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          message.payload ?? "",
+        )
+      ) {
+        this.emit("notification", {
+          channel: message.channel,
+          payload: message.payload,
+          processId: 0,
+        });
+      }
+    };
+    client.on("notification", this.#onNotification);
     this.query = queryMethod(async (config) => {
       assertStagingTlsEnvironment();
       if (!this.#active) throw new StagingDatabaseError("connection_failed");
@@ -187,6 +213,7 @@ class RuntimeLease extends EventEmitter implements HostedRuntimeClient {
   release(error?: Error | boolean): void {
     if (!this.#active) throw new StagingDatabaseError("cleanup_failed");
     this.#active = false;
+    this.#client.removeListener("notification", this.#onNotification);
     if (error) {
       this.#client.removeListener("error", this.#onError);
       this.#release(true);

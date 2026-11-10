@@ -9,6 +9,7 @@ import { formatLessonTime } from "@/features/bookings/format-time";
 import {
   privateActorPredicate,
   privateBookingPredicate,
+  privateConfirmedSupportBookingPredicate,
 } from "@/features/private-workflow/query";
 import {
   getPrivateWorkflow,
@@ -42,6 +43,7 @@ type StoredStaffBooking = {
   requesterName: string;
   relationship: "self" | "guardian";
   actions: WorkflowAction[];
+  screeningSupportRequired: boolean;
 };
 export type StaffBooking = StoredStaffBooking & {
   time: ReturnType<typeof formatLessonTime>;
@@ -81,10 +83,12 @@ async function queryStaffBookings(
       ${effectiveState} AS state,b.start_at_utc::text AS start,b.end_at_utc::text AS "end",
       viewer.timezone,s.name AS subject,tu.name AS "tutorName",l.display_name AS "learnerName",
       l.level AS "learnerLevel",requester.name AS "requesterName",l.management AS relationship,
+      (b.state='confirmed' AND NOT COALESCE(public.tutor_screening_valid_through(t.id,b.source)>b.end_at_utc,false)) AS "screeningSupportRequired",
       ARRAY(SELECT g.action FROM public.booking_workflow_grants g
         WHERE g.logical_booking_id=b.logical_booking_id AND g.actor_user_id=${actor.userId}
           AND public.has_booking_workflow_task(${actor.userId},${actor.sessionId},b.id,g.action)
           AND ${currentTutor}
+          AND public.has_current_tutor_screening(t.id,b.source)
           AND ((g.action='confirm' AND b.state='provisional' AND b.expires_at>statement_timestamp()
             AND b.start_at_utc>statement_timestamp() AND s.is_active
             AND EXISTS(SELECT 1 FROM public.tutor_subjects offering WHERE offering.tutor_id=t.id AND offering.subject_id=s.id AND l.level=ANY(offering.levels)))
@@ -95,13 +99,14 @@ async function queryStaffBookings(
       JOIN public.tutor_profiles t ON t.id=b.tutor_id JOIN public."user" tu ON tu.id=t.user_id
       JOIN public."user" requester ON requester.id=b.booked_by_user_id
       JOIN public."user" viewer ON viewer.id=${actor.userId}
-    WHERE ${privateActorPredicate(packet, sql`${actor.userId}`)} AND ${privateBookingPredicate(packet, sql`b.id`)}
+    WHERE ${privateActorPredicate(packet, sql`${actor.userId}`)}
+      AND (${privateBookingPredicate(packet, sql`b.id`)} OR (b.state='confirmed' AND ${privateConfirmedSupportBookingPredicate(packet, sql`b.id`)}))
       AND public.has_admin_assurance(${actor.userId},${actor.sessionId},28800)
       AND b.booked_by_user_id<>${actor.userId} AND t.user_id<>${actor.userId}
       AND b.source=${policy.source} AND ${acceptedPolicy}
       AND public.booking_workflow_policy_current(b.workflow_policy_id)
       AND public.has_current_booking_beneficiary(b.booked_by_user_id,l.id,b.admission_policy_id)
-      AND public.has_current_tutor_screening(t.id,b.source)
+      AND (public.has_current_tutor_screening(t.id,b.source) OR b.state='confirmed')
       AND EXISTS(SELECT 1 FROM public.booking_workflow_grants g
         WHERE g.logical_booking_id=b.logical_booking_id AND g.actor_user_id=${actor.userId}
           AND public.has_booking_workflow_task(${actor.userId},${actor.sessionId},b.id,g.action))

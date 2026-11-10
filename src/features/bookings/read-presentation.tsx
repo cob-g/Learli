@@ -1,3 +1,5 @@
+import "./booking-pages.css";
+import { CalendarDays } from "lucide-react";
 import { LifecycleHeading } from "./lifecycle-heading";
 import { bookingEventLabels } from "./lifecycle-model";
 import { DemoCancelControl } from "./lifecycle-controls";
@@ -12,8 +14,16 @@ import type {
   BookingPage,
   BookingReadScope,
 } from "./read-model";
-import { bookingDetailPath } from "./read-model";
+import { bookingDetailPath, historicalBookingDetailPath } from "./read-model";
 import { BookingHistoryFilters, BookingReadLink } from "./read-controls";
+
+export function bookingWorkspaceLabel(scope: BookingReadScope) {
+  return scope === "guardian"
+    ? "Parent workspace"
+    : scope === "tutor"
+      ? "Tutor workspace"
+      : "Student workspace";
+}
 
 export function BookingUnavailable({
   scope = "student",
@@ -21,19 +31,24 @@ export function BookingUnavailable({
   scope?: BookingReadScope;
 }) {
   return (
-    <div className="page-shell page-space">
-      <h1 className="text-page-title">
-        We can&apos;t find that booking on this account
-      </h1>
-      <Link
-        className="mt-6 inline-flex min-h-11 items-center"
-        href={`/bookings?scope=${scope}`}
-      >
-        Go to your bookings
-      </Link>
-      <Link className="ml-6 inline-flex min-h-11 items-center" href="/contact">
-        Contact support
-      </Link>
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">{bookingWorkspaceLabel(scope)}</p>
+          <h1>We can&apos;t find that booking on this account</h1>
+        </div>
+      </header>
+      <div className="booking-actions">
+        <Link
+          className="inline-flex min-h-11 items-center"
+          href={`/bookings?scope=${scope}`}
+        >
+          Go to your bookings
+        </Link>
+        <Link className="inline-flex min-h-11 items-center" href="/contact">
+          Contact support
+        </Link>
+      </div>
     </div>
   );
 }
@@ -44,12 +59,14 @@ export function BookingDetailView({
   meetingSection,
   reviewSection,
   privateWorkflow = false,
+  historical = false,
 }: {
   booking: BookingDetail;
   scope: BookingReadScope;
   meetingSection?: ReactNode;
   reviewSection?: ReactNode;
   privateWorkflow?: boolean;
+  historical?: boolean;
 }) {
   const directConfirmation =
     booking.source === "local_operation" &&
@@ -57,49 +74,65 @@ export function BookingDetailView({
       booking.policyVersion ?? "",
     );
   return (
-    <div className="page-shell page-space">
-      <LifecycleHeading booking={booking} privateWorkflow={privateWorkflow} />
-      <p className="mt-3 max-w-prose text-small text-muted-foreground">
-        {privateWorkflow
-          ? "Review your saved lesson details and booking status. Payments are disabled."
-          : booking.source === "synthetic_readiness"
-            ? "Synthetic readiness booking. Confirmation and outcomes exercise software only; no payment or attendance is established."
-            : "Local simulated booking. No payment or meeting is arranged."}
-      </p>
-      <div className="mt-8 max-w-5xl rounded-surface border border-border bg-surface p-6 sm:p-8">
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">{bookingWorkspaceLabel(scope)}</p>
+          <LifecycleHeading
+            booking={booking}
+            privateWorkflow={privateWorkflow}
+          />
+          <p>
+            {privateWorkflow
+              ? "Review your saved lesson details and booking status. Payments are disabled."
+              : booking.source === "synthetic_readiness"
+                ? "Synthetic readiness booking. Confirmation and outcomes exercise software only; no payment or attendance is established."
+                : "Local simulated booking. No payment or meeting is arranged."}
+          </p>
+          {historical &&
+            booking.currentHeadId &&
+            booking.currentHeadId !== booking.id && (
+              <p className="workspace-page-small text-muted-foreground">
+                This is a previous version of the booking.
+              </p>
+            )}
+        </div>
+      </header>
+      <div className="booking-card">
         <BookingReadStatus
           booking={booking}
           privateWorkflow={privateWorkflow}
         />
-        <dl className="mt-6 grid min-w-0 gap-8 md:grid-cols-2">
-          <div className="min-w-0 border-b border-border pb-6 md:col-span-2">
-            <dt className="text-label text-muted-foreground">
-              Lesson time in your time zone
-            </dt>
-            <dd className="mt-3">
+        <dl className="booking-facts">
+          <div className="booking-when booking-facts-wide">
+            <dt>Lesson time in your time zone</dt>
+            <dd>
+              <span className="booking-when-tile" aria-hidden="true">
+                <CalendarDays size={30} />
+              </span>
               <LessonTime value={booking.time} variant="prominent" />
             </dd>
           </div>
           <div>
-            <dt className="text-label text-muted-foreground">Tutor</dt>
-            <dd className="mt-2 text-item-title wrap-anywhere text-primary">
+            <dt>Tutor</dt>
+            <dd className="booking-fact-strong wrap-anywhere">
               {booking.tutor.displayName}
             </dd>
           </div>
           <div>
-            <dt className="text-label text-muted-foreground">Learner</dt>
-            <dd className="mt-2 text-body wrap-anywhere">
+            <dt>Learner</dt>
+            <dd className="wrap-anywhere">
               {booking.learner.displayName} ·{" "}
               {levelNames([booking.learner.level]).join()}
             </dd>
           </div>
           <div>
-            <dt className="text-label text-muted-foreground">Subject</dt>
-            <dd className="mt-2 text-body">{booking.subject.name}</dd>
+            <dt>Subject</dt>
+            <dd>{booking.subject.name}</dd>
           </div>
           {!directConfirmation && (
             <div>
-              <dt className="text-label text-muted-foreground">
+              <dt>
                 {booking.source !== "local_simulation"
                   ? "Original provisional deadline"
                   : [
@@ -110,62 +143,49 @@ export function BookingDetailView({
                     ? "Original simulation deadline"
                     : "Simulation expiry"}
               </dt>
-              <dd className="mt-2">
+              <dd>
                 <LessonTime value={booking.expires} />
               </dd>
             </div>
           )}
         </dl>
-        {meetingSection}
-        {reviewSection}
-        <DemoCancelControl booking={booking} scope={scope} />
-        {booking.currentHeadId && booking.currentHeadId !== booking.id && (
-          <a
-            className="mt-4 inline-flex min-h-11 items-center text-action"
-            href={bookingDetailPath(booking.currentHeadId, scope)}
-          >
-            {privateWorkflow
-              ? "View current booking"
-              : "View current simulation"}
-          </a>
-        )}
-        <section className="mt-8 border-t border-border pt-8">
-          <h2 className="text-section-title">Saved booking history</h2>
-          <p className="mt-2 text-small text-muted-foreground">
-            {directConfirmation
-              ? "Only saved booking events appear below."
-              : "Only saved events appear below. An elapsed deadline can display expiry before an expiry event is saved."}
-          </p>
-          {booking.events.length ? (
-            <ol className="mt-4 divide-y divide-border">
-              {booking.events.map((event) => (
-                <li
-                  key={event.id}
-                  className="grid min-w-0 gap-3 py-6 sm:grid-cols-2"
-                >
-                  <h3 className="mb-2 text-item-title">
-                    {privateWorkflow
-                      ? bookingEventLabels[event.event].replace(
-                          /^Synthetic /,
-                          "",
-                        )
-                      : bookingEventLabels[event.event]}
-                  </h3>
-                  <LessonTime value={event.time} />
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <p className="mt-4 text-body">
-              No saved booking events are available.
-            </p>
-          )}
-        </section>
       </div>
-      <nav
-        aria-label="Booking navigation"
-        className="mt-6 flex flex-wrap gap-x-6 gap-y-2 border-t border-border pt-4"
-      >
+      {meetingSection}
+      {reviewSection}
+      <DemoCancelControl booking={booking} scope={scope} />
+      {booking.currentHeadId && booking.currentHeadId !== booking.id && (
+        <a
+          className="inline-flex min-h-11 items-center text-action"
+          href={bookingDetailPath(booking.currentHeadId, scope)}
+        >
+          {privateWorkflow ? "View current booking" : "View current simulation"}
+        </a>
+      )}
+      <section className="booking-panel">
+        <h2>Saved booking history</h2>
+        <p className="text-small text-muted-foreground">
+          {directConfirmation
+            ? "Only saved booking events appear below."
+            : "Only saved events appear below. An elapsed deadline can display expiry before an expiry event is saved."}
+        </p>
+        {booking.events.length ? (
+          <ol className="booking-events">
+            {booking.events.map((event) => (
+              <li key={event.id}>
+                <h3 className="text-item-title">
+                  {privateWorkflow
+                    ? bookingEventLabels[event.event].replace(/^Synthetic /, "")
+                    : bookingEventLabels[event.event]}
+                </h3>
+                <LessonTime value={event.time} />
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="text-body">No saved booking events are available.</p>
+        )}
+      </section>
+      <nav aria-label="Booking navigation" className="booking-nav">
         <Link
           className="inline-flex min-h-11 items-center"
           href={`/bookings?scope=${scope}`}
@@ -196,20 +216,36 @@ export function BookingHistoryView({
   const selected = result.learners.find((learner) => learner.id === learnerId);
   const query = (page: number) =>
     `/bookings?${new URLSearchParams({ scope: result.scope, filter: result.filter, page: String(page), pageSize: String(result.pageSize), ...(learnerId ? { learnerId } : {}) })}`;
+  const groups = new Map<string, typeof result.items>();
+  for (const booking of result.items) {
+    const key = `${booking.time.date}\u0000${booking.time.zone}`;
+    groups.set(key, [...(groups.get(key) ?? []), booking]);
+  }
   return (
-    <div className="page-shell page-space">
-      <h1 className="text-page-title">
-        {selected ? `Bookings for ${selected.displayName}` : "Your bookings"}
-      </h1>
-      <p className="mt-3 max-w-prose text-small text-muted-foreground">
-        {privateWorkflow ? "Bookings for " : "Local simulated bookings for "}
-        {result.scope === "tutor"
-          ? "your assigned learners"
-          : result.scope === "guardian"
-            ? "your currently authorized learners"
-            : "you"}
-        . Times use your current account time zone.
-      </p>
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">
+            {bookingWorkspaceLabel(result.scope)}
+          </p>
+          <h1>
+            {selected
+              ? `Bookings for ${selected.displayName}`
+              : "Your bookings"}
+          </h1>
+          <p>
+            {privateWorkflow
+              ? "Bookings for "
+              : "Local simulated bookings for "}
+            {result.scope === "tutor"
+              ? "your assigned learners"
+              : result.scope === "guardian"
+                ? "your currently authorized learners"
+                : "you"}
+            . Times use your current account time zone.
+          </p>
+        </div>
+      </header>
       <BookingHistoryFilters
         scope={result.scope}
         filter={result.filter}
@@ -219,65 +255,80 @@ export function BookingHistoryView({
         privateWorkflow={privateWorkflow}
       />
       {result.items.length ? (
-        <ul className="mt-8 max-w-5xl divide-y divide-border rounded-surface border border-border bg-surface px-6 sm:px-8">
-          {result.items.map((booking) => (
-            <li
-              key={booking.id}
-              className="flex min-w-0 flex-col gap-6 py-6 md:flex-row"
-            >
-              <div className="shrink-0 md:w-44">
-                <LessonTime value={booking.time} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-item-title wrap-anywhere text-primary">
-                  {booking.tutor.displayName}
-                </h2>
-                <p className="mt-2 text-body wrap-anywhere">
-                  {booking.subject.name} · {booking.learner.displayName} ·{" "}
-                  {levelNames([booking.learner.level]).join()}
+        <div className="booking-panel">
+          <div className="booking-days">
+            {[...groups.entries()].map(([key, group]) => (
+              <div key={key}>
+                <p className="booking-day">{group[0].time.date}</p>
+                <p className="booking-day-zone">
+                  Times shown in {group[0].time.zone}
                 </p>
-                <div className="mt-3">
-                  <BookingReadStatus
-                    booking={booking}
-                    privateWorkflow={privateWorkflow}
-                  />
-                </div>
+                <ul className="booking-rows">
+                  {group.map((booking) => (
+                    <li key={booking.id}>
+                      <div className="booking-row-time">
+                        <LessonTime value={booking.time} variant="time-only" />
+                      </div>
+                      <div className="booking-row-main min-w-0">
+                        <h2 className="wrap-anywhere">
+                          {booking.tutor.displayName}
+                        </h2>
+                        <p className="wrap-anywhere">
+                          {booking.subject.name} · {booking.learner.displayName}{" "}
+                          · {levelNames([booking.learner.level]).join()}
+                        </p>
+                        <div className="mt-3">
+                          <BookingReadStatus
+                            booking={booking}
+                            privateWorkflow={privateWorkflow}
+                          />
+                        </div>
+                      </div>
+                      <BookingReadLink
+                        variant="link"
+                        href={
+                          booking.currentHeadId &&
+                          booking.currentHeadId !== booking.id
+                            ? historicalBookingDetailPath(
+                                booking.id,
+                                result.scope,
+                              )
+                            : bookingDetailPath(booking.id, result.scope)
+                        }
+                        ariaLabel={`View booking for ${booking.learner.displayName} with ${booking.tutor.displayName}`}
+                        label="View booking"
+                        pendingLabel="Loading booking details…"
+                      />
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <BookingReadLink
-                href={bookingDetailPath(booking.id, result.scope)}
-                ariaLabel={`View booking for ${booking.learner.displayName} with ${booking.tutor.displayName}`}
-                label="View booking"
-                pendingLabel="Loading booking details…"
-              />
-            </li>
-          ))}
-        </ul>
+            ))}
+          </div>
+        </div>
       ) : (
-        <section className="mt-8 max-w-prose rounded-surface border border-border bg-surface p-6 sm:p-8">
-          <h2 className="text-item-title">No bookings in this view</h2>
-          <p className="mt-2 text-body">
+        <section className="workspace-blank">
+          <h2>No bookings in this view</h2>
+          <p>
             Only bookings you can currently access appear here. Choose another
             view or browse tutors.
           </p>
           <Link
-            className="mt-4 inline-flex min-h-11 items-center"
+            className="mt-2 inline-flex min-h-11 items-center"
             href="/tutors"
           >
             Browse all tutors
           </Link>
         </section>
       )}
-      <nav
-        aria-label="Booking pages"
-        className="mt-6 flex flex-wrap items-center gap-6"
-      >
+      <nav aria-label="Booking pages" className="booking-pages">
         {result.page > 1 && (
           <BookingReadLink
             href={query(result.page - 1)}
             label="Previous bookings"
           />
         )}
-        <p className="text-small">Page {result.page}</p>
+        <p>Page {result.page}</p>
         {result.hasNext && (
           <BookingReadLink
             href={query(result.page + 1)}
@@ -285,7 +336,7 @@ export function BookingHistoryView({
           />
         )}
       </nav>
-      <Link className="mt-6 inline-flex min-h-11 items-center" href="/account">
+      <Link className="inline-flex min-h-11 items-center" href="/account">
         Account settings
       </Link>
     </div>

@@ -1,5 +1,12 @@
 # Learli — UI Context
 
+### Authenticator setup QR — 2026-11-10
+
+The existing Admin security flow offers a locally generated scannable QR and the
+manual setup key together, with clear private-handling guidance. Keep the key
+fallback, verification step, recovery codes and keyboard-accessible controls.
+No external QR service receives the enrollment URI.
+
 ### Approved optional Google Meet integration — 2026-10-26
 
 Owner-approved blueprint: `prompts/features/m5-01-google-meet-provisioning.md`
@@ -635,6 +642,25 @@ only (the `data-styled` shell and the `/account` card layout for those roles):
   link, chips) switch instantly, so no intermediate low-contrast frame exists;
   reduced-motion and forced-colour behaviour are respected; Parent and
   Student workspaces and public pages keep the base rules until redesigned.
+
+### Parent workspace style — 2026-11-10 (owner-requested)
+
+The owner asked for the Parent workspace to match the Tutor UI. The same style
+rules above now also apply to the Parent workspace: the `data-styled` shell
+(Parent pill; sidebar groups Bookings and Your family, then Account; iconed
+links including Find a tutor), the card-based `/account` layout for accounts
+with the Parent role, and the Parent pages (dashboard, bookings list and detail,
+reschedule, Book a session, Parent Profile, My Children, onboarding), which use
+the shared page header, cards, pills and empty states. Booking pages and the
+family dashboard are shared, so Student and Tutor booking pages render the
+same page style.
+
+The owner then asked for the Student workspace to match as well (same day).
+Student uses the same shell (Student pill; groups Bookings and Your learning,
+then Account) and its pages (dashboard, Learners, Student onboarding, learner
+requests) use the same page pieces. Every workspace role now has the
+`data-styled` shell and every account with a role gets the card `/account`;
+only signed-out and role-less chrome keeps the base rules.
 
 ### Parent Dashboard discovery — 2026-10-17
 

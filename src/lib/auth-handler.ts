@@ -298,7 +298,11 @@ export async function handleAuthRequest(
         "backupCodes" in result
       ) {
         const secret = new URL(result.totpURI).searchParams.get("secret");
-        value = { secret, backupCodes: result.backupCodes };
+        value = {
+          secret,
+          totpURI: result.totpURI,
+          backupCodes: result.backupCodes,
+        };
       } else if (
         route === "two-factor/generate-backup-codes" &&
         result &&

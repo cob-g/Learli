@@ -195,6 +195,22 @@
   .tutor-next > * {
     position: relative;
   }
+  .tutor-next:has(.tutor-next-link) > div {
+    position: static;
+  }
+  .tutor-next-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+  .tutor-next:has(.tutor-next-link:hover) {
+    border-color: var(--accent-strong);
+  }
+  .tutor-next:has(.tutor-next-link:focus-visible) {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
   .tutor-next-tile {
     display: grid;
     place-items: center;

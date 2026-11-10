@@ -27,11 +27,7 @@ export function LifecycleHeading({
     if (changed) heading.current?.focus();
   }, [changed]);
   return (
-    <h1
-      ref={heading}
-      tabIndex={changed ? -1 : undefined}
-      className="text-page-title"
-    >
+    <h1 ref={heading} tabIndex={changed ? -1 : undefined}>
       {label}
     </h1>
   );

@@ -2,6 +2,7 @@ import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { readParentChildIntake } from "@/features/parent-children/service";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Plus, UsersRound } from "lucide-react";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { listLearnerGroups } from "@/features/learners/composition";
 import { LearnerLink } from "@/features/learners/learner-link";
@@ -12,6 +13,8 @@ import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
 import { levelNames } from "@/features/subjects/catalog";
 import { AccessError, requireIdentity } from "@/lib/permissions/access";
 import { loadPrivatePage } from "@/lib/permissions/workspace";
+import { nameInitials } from "@/lib/initials";
+import "@/features/parent-children/parent-pages.css";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -79,50 +82,68 @@ export default async function ParentChildrenPage() {
     ? !!childIntake?.enabled
     : canCreateLocal || groups.admissionEnabled;
   return (
-    <div className="page-shell page-space">
-      <div className="max-w-5xl">
-        <h1 className="text-page-title">My Children</h1>
-        <p className="mt-4 max-w-prose text-body text-muted-foreground">
-          {ordinaryParent
-            ? "Manage your private child profiles and arrange tutoring. Add another child whenever you need to."
-            : privateWorkflow
-              ? "Manage children with current authorized access and check saved admission requests below."
-              : "Manage fictional child profiles for local testing. These profiles do not establish real consent or guardian identity."}
-        </p>
+    <div className="workspace-page">
+      <header className="workspace-page-header">
+        <div className="min-w-0">
+          <p className="workspace-eyebrow">Parent workspace</p>
+          <h1>My Children</h1>
+          <p>
+            {ordinaryParent
+              ? "Manage your private child profiles and arrange tutoring. Add another child whenever you need to."
+              : privateWorkflow
+                ? "Manage children with current authorized access and check saved admission requests below."
+                : "Manage fictional child profiles for local testing. These profiles do not establish real consent or guardian identity."}
+          </p>
+        </div>
         {canAdd && (
           <LearnerLink
             href="/parent/children/new"
             label="Add Child"
-            className="action action-primary mt-6"
+            className="action action-primary pp-submit"
+            leading={<Plus className="size-4" aria-hidden="true" />}
           />
         )}
-        <section className="mt-8" aria-labelledby="saved-children">
-          <h2 id="saved-children" className="text-section-title">
+      </header>
+      <div className="flex flex-col gap-10">
+        <section className="pp-section" aria-labelledby="saved-children">
+          <h2 id="saved-children" className="pp-section-title">
             Your child profiles
           </h2>
           {children.length ? (
-            <ul className="mt-4 divide-y divide-border">
+            <ul className="pp-children">
               {children.map((child) => (
-                <li
-                  key={child.id}
-                  className="flex min-w-0 flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="min-w-0">
-                    <h3 className="text-item-title wrap-anywhere">
-                      {child.displayName}
-                    </h3>
-                    <p className="mt-2 text-body">
+                <li key={child.id} className="pp-child">
+                  <span className="pp-avatar" aria-hidden="true">
+                    {nameInitials(child.displayName) || (
+                      <UsersRound size={20} />
+                    )}
+                  </span>
+                  <div className="pp-child-main">
+                    <h3 className="wrap-anywhere">{child.displayName}</h3>
+                    <p>
                       {levelNames([child.level]).join()}
                       {child.grade != null ? ` · Grade ${child.grade}` : ""}
                     </p>
-                    <p className="mt-2 text-small text-muted-foreground">
-                      {groups.readiness.some(
-                        (profile) => profile.id === child.id,
-                      )
-                        ? ordinaryParent
-                          ? "Ready for booking — current authorized access"
-                          : "Authorized — current reviewed access"
-                        : "Saved for local testing"}
+                    <p className="mt-2">
+                      <span
+                        className="workspace-pill"
+                        data-dot
+                        data-tone={
+                          groups.readiness.some(
+                            (profile) => profile.id === child.id,
+                          )
+                            ? "success"
+                            : undefined
+                        }
+                      >
+                        {groups.readiness.some(
+                          (profile) => profile.id === child.id,
+                        )
+                          ? ordinaryParent
+                            ? "Ready for booking — current authorized access"
+                            : "Authorized — current reviewed access"
+                          : "Saved for local testing"}
+                      </span>
                     </p>
                   </div>
                   <LearnerLink
@@ -135,34 +156,39 @@ export default async function ParentChildrenPage() {
               ))}
             </ul>
           ) : (
-            <p className="mt-4 max-w-prose text-body">
-              {ordinaryParent
-                ? "No child profiles yet. Add your child and confirm your guardian authority and consent to get started."
-                : privateWorkflow
-                  ? "No currently authorized child profiles. Add a child to save a request for review; pending requests appear below."
-                  : "No saved child profiles yet. Add a fictional child to get started."}
-            </p>
+            <div className="workspace-blank">
+              <span className="pp-icon" aria-hidden="true">
+                <UsersRound size={20} />
+              </span>
+              <p>
+                {ordinaryParent
+                  ? "No child profiles yet. Add your child and confirm your guardian authority and consent to get started."
+                  : privateWorkflow
+                    ? "No currently authorized child profiles. Add a child to save a request for review; pending requests appear below."
+                    : "No saved child profiles yet. Add a fictional child to get started."}
+              </p>
+            </div>
           )}
         </section>
         {groups.admissionEnabled &&
           (!ordinaryParent ||
             childRequests.length > 0 ||
             requests.nextCursor) && (
-            <section className="mt-12" aria-labelledby="child-requests">
-              <h2 id="child-requests" className="text-section-title">
+            <section className="pp-section" aria-labelledby="child-requests">
+              <h2 id="child-requests" className="pp-section-title">
                 {ordinaryParent
                   ? "Earlier child review records"
                   : "Child requests"}
               </h2>
-              <p className="mt-3 max-w-prose text-body text-muted-foreground">
+              <p>
                 {ordinaryParent
                   ? "These retained records cover child reviews created under an earlier workflow or for an exceptional case. New child profiles use self-service setup."
                   : "A saved request is not approval. Pending requests grant no profile or booking access. Review status does not replace current authorization."}
               </p>
               {childRequests.length ? (
-                <ul className="mt-4 divide-y divide-border">
+                <ul className="pp-request-list">
                   {childRequests.map((request) => (
-                    <li key={request.id} className="py-5">
+                    <li key={request.id}>
                       <p className="text-item-title">
                         {request.state === "pending"
                           ? "Saved — pending review"
@@ -191,7 +217,7 @@ export default async function ParentChildrenPage() {
                   ))}
                 </ul>
               ) : (
-                <p className="mt-4 text-body">
+                <p>
                   {ordinaryParent && requests.nextCursor
                     ? "Earlier child review records continue on an older page."
                     : "No child requests on this page."}
@@ -208,14 +234,11 @@ export default async function ParentChildrenPage() {
                       ? "View all learner review records"
                       : "View all admission requests"
                 }
-                className="mt-4 inline-flex min-h-11 items-center"
+                className="pp-link self-start"
               />
             </section>
           )}
-        <Link
-          href="/parent/profile"
-          className="mt-8 inline-flex min-h-11 items-center"
-        >
+        <Link href="/parent/profile" className="pp-link self-start">
           Parent Profile
         </Link>
       </div>

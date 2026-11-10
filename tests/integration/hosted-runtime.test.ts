@@ -137,6 +137,37 @@ afterEach(async () => {
 afterAll(() => harness?.stop());
 
 describe("W2 actual TLS PostgreSQL pooled application runtime", () => {
+  it("forwards only sanitized booking notifications and clears LISTEN on release", async () => {
+    const { pool } = await open();
+    const client = await borrow(pool);
+    const received: unknown[] = [];
+    client.on("notification", (message) => received.push(message));
+    await client.query("LISTEN learli_tutor_booking");
+    await client.query("LISTEN learli_student_booking");
+    await client.query("LISTEN unrelated_secret_channel");
+    await targetSql(
+      "SELECT pg_notify('unrelated_secret_channel','private'); SELECT pg_notify('learli_tutor_booking','not-a-uuid'); SELECT pg_notify('learli_student_booking','not-a-uuid'); SELECT pg_notify('learli_tutor_booking','11111111-1111-4111-8111-111111111111'); SELECT pg_notify('learli_student_booking','22222222-2222-4222-8222-222222222222')",
+    );
+    await expect.poll(() => received.length).toBe(2);
+    expect(received).toEqual([
+      {
+        channel: "learli_tutor_booking",
+        payload: "11111111-1111-4111-8111-111111111111",
+        processId: 0,
+      },
+      {
+        channel: "learli_student_booking",
+        payload: "22222222-2222-4222-8222-222222222222",
+        processId: 0,
+      },
+    ]);
+    client.release();
+    await expect.poll(() => pool.idleCount).toBe(1);
+    const after = await pool.query<{ channel: string }>(
+      "SELECT pg_listening_channels() AS channel",
+    );
+    expect(after.rows).toEqual([]);
+  });
   it("reuses a fully reset connection for consecutive pool queries without opening another", async () => {
     const { pool } = await open();
     const firstPid = await pid(pool);

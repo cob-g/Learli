@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { CircleAlert, CircleCheck, LoaderCircle } from "lucide-react";
+import {
+  CircleAlert,
+  CircleCheck,
+  LoaderCircle,
+  ShieldCheck,
+} from "lucide-react";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { learnerLevelOptions } from "@/features/subjects/catalog";
 import { GradeField, formGrade } from "@/features/learners/grade-field";
@@ -14,6 +19,7 @@ import {
   reusableRequestId,
 } from "@/features/learners/pending-request";
 import type { TimeZoneOption } from "@/lib/time/zones";
+import "./parent-pages.css";
 
 const pendingScope = "parent-child";
 const fieldNames = [
@@ -153,7 +159,7 @@ export function ParentChildForm({
   return (
     <form
       ref={formRef}
-      className="mt-8 max-w-xl space-y-5"
+      className="pp-form"
       onSubmit={save}
       method="post"
       action="/api/parent/children"
@@ -168,10 +174,15 @@ export function ParentChildForm({
       </noscript>
       {!created && (
         <>
-          <p className="text-small text-muted-foreground">
-            Display name, education level and time zone are required. Grade is
-            optional. Do not enter a school, address or other unnecessary
-            personal information.
+          <p className="pp-help">
+            <span className="pp-icon" aria-hidden="true">
+              <ShieldCheck size={16} />
+            </span>
+            <span>
+              Display name, education level and time zone are required. Grade is
+              optional. Do not enter a school, address or other unnecessary
+              personal information.
+            </span>
           </p>
           <div className="space-y-2">
             <label className="block text-label" htmlFor="displayName">
@@ -339,7 +350,7 @@ export function ParentChildForm({
             Parent Dashboard
           </Link>
           <Link
-            className="inline-flex min-h-11 items-center"
+            className="pp-link"
             href={`/parent/children/${created}`}
             prefetch={false}
             onClick={nativeNavigation}
@@ -350,7 +361,7 @@ export function ParentChildForm({
       ) : (
         <>
           <button
-            className="action action-primary"
+            className="action action-primary pp-submit"
             type="submit"
             disabled={!ready || pending}
           >
@@ -368,7 +379,7 @@ export function ParentChildForm({
           </button>
           {notice && (
             <Link
-              className="ms-4 inline-flex min-h-11 items-center"
+              className="pp-link"
               href="/parent/children"
               prefetch={false}
               onClick={nativeNavigation}

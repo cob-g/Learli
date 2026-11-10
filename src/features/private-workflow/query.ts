@@ -46,3 +46,31 @@ export function privateBookingPredicate(
       AND ${privateActorPredicate(packet, sql`private_booking.booked_by_user_id`)}
       AND ${privateTutorPredicate(packet, sql`private_booking.tutor_id`)})`;
 }
+
+/** Read-only support for an already confirmed booking, even when screening is
+ * no longer current. Preserve the full fictional packet and participant binding;
+ * callers must still enforce current MFA and an exact booking assignment. */
+export function privateConfirmedSupportBookingPredicate(
+  packet: PrivateWorkflowPacket | null | undefined,
+  bookingId: SQL,
+) {
+  if (!packet) return sql`true`;
+  return sql`EXISTS(SELECT 1 FROM public.bookings private_booking
+    JOIN public.tutor_profiles private_tutor ON private_tutor.id=private_booking.tutor_id
+    JOIN public."user" private_user ON private_user.id=private_tutor.user_id
+    JOIN public.tutor_screening_cases private_case ON private_case.tutor_id=private_tutor.id
+    JOIN public.tutor_screening_policies private_policy ON private_policy.provenance=private_case.provenance AND private_policy.version=private_case.policy_version
+    WHERE private_booking.id=${bookingId} AND private_booking.state='confirmed' AND private_booking.source='synthetic_readiness'
+      AND private_booking.workflow_policy_id=${packet.booking.policyId}::uuid
+      AND private_booking.admission_policy_id=${packet.admission.policyId}::uuid
+      AND ${privateActorPredicate(packet, sql`private_booking.booked_by_user_id`)}
+      AND private_user.email IN(SELECT jsonb_array_elements_text(${JSON.stringify(packet.accountEmails)}::jsonb))
+      AND private_case.provenance='synthetic_readiness' AND private_case.policy_version=${packet.screening.version}
+      AND private_policy.reference=${packet.screening.reference}
+      AND private_policy.authority_reference=${packet.screening.authorityReference}
+      AND private_policy.required_check_codes=ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(packet.screening.requiredCheckCodes)}::jsonb))
+      AND private_policy.allowed_actions=ARRAY(SELECT jsonb_array_elements_text(${JSON.stringify(packet.screening.allowedActions)}::jsonb))
+      AND private_policy.expiry_rule=${packet.screening.expiryRule}
+      AND private_policy.valid_from=${packet.screening.validFrom}::timestamptz
+      AND private_policy.valid_until=${packet.screening.validUntil}::timestamptz)`;
+}

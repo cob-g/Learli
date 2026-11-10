@@ -1,5 +1,361 @@
 # Learli — Progress Tracker
 
+### 2026-11-10 — Parent and Student workspace UI synced to the Tutor style
+
+Owner asked for the Parent pages to match the Tutor UI. Presentation only; no
+data, guard, route, field, copy or heading changes. Recorded in
+`context/ui-context.md` ("Parent workspace style — 2026-11-10").
+
+- Shell: Parent uses the `data-styled` sidebar/topbar (Parent pill, groups
+  Bookings / Your family / Account, icons incl. Find a tutor, breadcrumb);
+  `groupParentLinks` in `src/features/family-dashboard/parent-navigation.ts` with
+  `tests/unit/parent-navigation.test.ts`. Parent accounts get the card `/account`.
+- Pages: family dashboard (`family-dashboard.css`), shared bookings list/detail/
+  reschedule and meeting section (`booking-pages.css`), Parent Profile, My
+  Children (list/new/edit), onboarding and Book a session (`parent-pages.css`).
+  Shared pages also restyle for Student and Tutor scopes.
+- Student (owner follow-up): same shell (Student pill; Bookings / Your learning /
+  Account) via `student-navigation.ts` + `tests/unit/student-navigation.test.ts`;
+  every account with a role now gets the card `/account`; Learners, Student
+  onboarding and learner-request pages restyled with the `pp-*` classes.
+- Diff audit: UI work changes only markup, classes, icons, eyebrows, pill tones
+  and date grouping of the list; every logic change in shared files traces to the
+  pending M4.04/M5.3/M5.4/M5.5/M8.09 work.
+- Verified: `npm run check` PASS (2,393 tests); production build PASS; default
+  Playwright with `--no-deps --workers=1`: 207 passed, 8 failed, 7 did not run
+  (same 8 before and after the Student pass); private suite 3/4. Screenshots
+  reviewed at 1440/390 (dashboard, booking detail, Add Child).
+- None of the failures trace to this UI change: `bookings.spec.ts:353` and
+  `private-fictional-workflow.spec.ts:860` expect old Parent detail URLs to stay,
+  but the pending M5.4/M5.3 work redirects them to the current head (tests not yet
+  updated); `booking-history.spec.ts:154/421` use a fixed 2026-11-01 date that is
+  now past; policy-booking, review-publication, transactional-delivery and
+  hosted-workflows show "No current synthetic times" (screening coverage / fixture
+  dates from pending M5.3 work); tutor-screening readiness link likewise.
+- Note: `.local` was moved to `~/learli-local-recovery-te2y3dk9` at 17:53 (not by
+  this session); the owner restored the original cluster before browser runs.
+  At the owner's request everything in the tree (this UI work plus the pending
+  M4.04/M5.x/M8.09/M8.10 work and migrations 0041–0047) is committed together.
+
+### 2026-11-10 — Booking performance verified locally
+
+Owner requested the measured performance sequence under
+`prompts/features/m8-09-booking-performance.md` (AUTHORIZED — build-feature
+delegation). Same-agent read-only Review/re-review: READY FOR VERIFICATION;
+separate executed verification passed. No independent review or hosted release.
+Full methods, results, failures and limits:
+`docs/operations/booking-performance-2026-11-10.md`.
+
+- Reuse one operation-local formatter in booking/reschedule services and the
+  reschedule page display pass. Share actor/learner predicates between booking
+  reads and a single ID-only Student/Parent stream query; preserve current session,
+  role, account, exact learner authority, packet continuity and generic payloads.
+  Bound blocking reads through the final lesson end. Keep all heartbeat, lifetime,
+  reconnect/fallback timings, locks, expiry rules and screening/write guards.
+- Owned production-build/synthetic baseline on separate ports 55435/3410; no
+  walkthrough data used for benchmarks. Twenty alternating identical-output
+  service pairs (233 slots): candidates median 29.84 → 9.56ms, reschedule 30.91 →
+  11.07ms; observed Tutor held-lock intervals 27.43 → 7.08ms and 26.78 → 6.63ms.
+  Six warm page samples per route: booking response median 58.1 → 36.7ms,
+  reschedule 73.3 → 26.6ms. Unchanged route movements are noisy; Parent dashboard
+  median rose 13.6 → 15.6ms. No universal speedup claim.
+- Same 65-second six-tab idle sample: queries/checkouts 147 → 99, full overviews
+  15 → 7 with 8 focused authority checks. Checkout latency did not improve; max
+  observed queue depth remained 2. Browser get-session was 52 × 200 in both
+  phases, no 429; no auth throttle changed. At 10,000 irrelevant history rows,
+  returned blocking rows 10,002 → 2 and median query/decoding 6.065 → 0.923ms;
+  actual sequential scans remain, so no constant-scan claim or new index.
+- Development inventory is five Tutor profiles/nine offerings/one eligible Tutor.
+  Separate catalog read median 0.83ms; all-slot versus first-slot formatting on
+  237 public intervals 3.099 → 0.198ms. No measured scaling case yet warrants
+  discovery pagination/DTO changes. 390px headless scroll/pointer samples showed
+  no >50ms frame/long task; effects and assets remain unchanged. Physical device
+  and hosted performance remain unverified.
+- Final format/lint/typecheck, Drizzle check, **2,385 unit/component tests** and
+  production build PASS. Focused real PostgreSQL suites **77/77 + 21/21 PASS**,
+  including output/DST foundations, final horizon tail conflict, ownership,
+  revocation/session expiry and heartbeat without provider refetch, source-mode
+  learner-set equivalence, notifications, concurrency and history. Explicit
+  ordinary-operation case PASS (one unrelated case name-filtered); fresh/populated
+  migration/protection checks 4/4 PASS. Current browser Parent reschedule/cancel
+  and Student cancel update open participant pages within 10s, with new times;
+  reschedule layout PASS at 390px/1440px. Hidden/offline/reconnect covered by
+  component checks. This is local Chromium, not hosted capacity evidence.
+- Browser verification exposed an inherited 503 after the confirmed booking's
+  original hold elapsed, reproduced by manifest-identical pre-performance code.
+  Forward 0047 and matching schema/protection checks align confirmed replacement
+  expiry with established semantics; exact hold/history and root/provisional
+  strict checks remain. Real regression covers post-hold reschedule/retry/cancel.
+  See `prompts/recovery/2026-11-10-confirmed-reschedule-expiry.md`. Reviewed 0047
+  was applied to local development after a private backup; ten domain-table
+  counts/digests and reviewed protections/runtime grants matched afterward.
+- Initial harness setup/path/owner-credential/timezone/type/port rejections were
+  corrected safely; the unrelated 3310 listener was untouched. Subsequent browser
+  response-capture/navigation and collapsed cancellation-disclosure harness
+  errors were corrected, and the flow passed. Failed artifacts are retained.
+  Isolated fixtures were stopped with data retained; normal local server health
+  returned 200 and user sessions were preserved. No production/cloud action,
+  payment, external email or support change. Next: separately evaluate hosted
+  streaming/network/load and representative inventory when that work is selected.
+
+### 2026-11-10 — Parent child level correction
+
+The owner requested and authorized the local Parent education-level fix under
+`prompts/features/m4-04-parent-child-level-update.md` (AUTHORIZED — build-feature
+delegation). Current guardian authority now permits ordinary local Parent level
+changes via a locked, audited database function; historical reviewed staging and
+independent Student level restrictions remain. Grade is retained unless explicitly
+cleared, with College Support requiring no grade. Existing booking state and time
+are preserved; current profile level is displayed and new/rescheduled selections
+recheck tutor fit. Changes send generic Parent and Tutor invalidations.
+
+Same-agent read-only Review and targeted re-review: READY FOR VERIFICATION; no
+independent review. Separate checks: typecheck/lint PASS, 2,385 unit/component
+tests PASS, focused PostgreSQL booking/read/notification/onboarding 79/79 PASS,
+isolated local ordinary-workflow acceptance PASS including v1/v2 guardians,
+revoked/suspended/session and foreign denial, stale/concurrent updates, rollback,
+immutable audit, concurrent level change versus tutor reschedule, booking/meeting
+preservation and commit-only Parent/Tutor notifications. Fresh/populated migration
+preservation and privilege checks PASS 4/4; their first runs exposed an inherited
+function-count mismatch from migration 0044 and then stale test constants. Both
+were corrected and the suite passed. Initial format check found the generated
+snapshot needed formatting; after correction the full format check passed. Production build PASS with
+`NODE_OPTIONS=--max-old-space-size=8192 npm run build`.
+
+Reviewed migrations 0045/0046 were applied to the isolated test databases and
+owned local development database after a private development backup. The owned
+local-operation fixture was stopped with data retained. Chrome Guest verification
+changed the synthetic child from Elementary to Middle School, confirmed that the
+ineligible test Tutor/subject was no longer offered, then restored Elementary
+and confirmed Science was offered again. The original test child was preserved.
+Mobile, independent browser review, hosted load and production deployment were
+not tested or authorized in this slice. No support workflow changes.
+
+### 2026-11-10 — Local Parent workflow browser walkthrough
+
+- A separate local Parent test account was registered and verified through the
+  site, and its new synthetic Elementary child was immediately bookable. In
+  Chrome Guest, the Parent confirmed a no-money Science booking, rescheduled it
+  from 10:00–11:00 to 11:00–12:00 UTC, and cancelled the replacement. The
+  details and history showed the saved transitions and disabled the meeting
+  link after cancellation. No actual lesson or payment was involved.
+- The Parent could not open another test account's child profile; the other
+  account could not open the Parent's booking under Student or guardian scope.
+  These are targeted browser checks, not an exhaustive authorization audit.
+- The Parent dashboard left open in another tab still showed the cancelled
+  booking as confirmed until Refresh bookings was clicked. The initial booking
+  page also said an assigned reviewer would confirm a provisional request;
+  after the child was selected, the page correctly described immediate
+  confirmation. Both are observed Parent workflow issues, not fixed here.
+- The test-only Tutor profile was expanded to Elementary Science and Wednesday
+  09:00–12:00 UTC to supply slots while retaining the earlier booking. An
+  earlier attempt also added a Parent role and separate test child to the
+  Student test account; those records were preserved. No Tutor-side browser
+  check was performed in Chrome because no Tutor session was open there. The
+  local web server was restarted; the reason it stopped is unknown.
+
+### 2026-11-10 — Student–Tutor coordination (verified locally)
+
+Owner approved `prompts/features/m5-03-student-tutor-coordination.md`: remove
+the current time from reschedule candidates, add authorized Student live booking
+and meeting-link invalidations, and require screening coverage through future
+sessions. The implementation includes the authorized assigned-admin support
+notice for affected confirmed bookings, without cancelling or granting access.
+- Same-agent read-only Review and targeted re-review: ready for verification,
+  not independent review. Isolated `npm run check` passed with 2,383
+  unit/component tests; production build passed. Targeted real-PostgreSQL suites
+  passed 106/106, then policy booking 28/28 including the zero-alternative and
+  direct database screening-boundary checks. Fresh and populated forward
+  migration/protection tests passed 4/4; `drizzle-kit check` passed.
+- Final isolated private Chromium Student/Tutor browser flow passed 1/1,
+  including different viewer time zones, live meeting-link changes, reschedule
+  and cancellation, dashboard/detail refresh, history and synthetic completion.
+  Reschedule and history pages passed 390px/1440px overflow and automated axe
+  checks; an old Student URL and history navigation also worked with JavaScript
+  disabled and keyboard Enter. The rapid run recorded 13 HTTP 429 session
+  lookups alongside 27 HTTP 200s; the flow completed, but this is not a hosted
+  load or capacity result.
+- Read-only follow-up in that isolated test database found one `/get-session`
+  rate-limit bucket at its configured maximum of 100. Local requests use the
+  same loopback address, so the several test browser contexts share that bucket.
+  Hosted ingress derives a trusted client IP, but users behind one shared public
+  address may still share a bucket; normal-use and hosted effects need measurement.
+  No authentication rate limit was weakened.
+- After a private custom-format backup was inventoried and restored into a
+  separate local cluster, migration 0043 was applied to owned `learli_dev` only.
+  All 44 journal hashes, 120 protected function grants and reviewed protections
+  matched; booking/tutor/learner counts remained 20/5/4. The user's Student
+  dashboard visibly reported its live connection. Production was untouched.
+- Earlier checks exposed a test helper error, an EventSource-unavailable
+  fallback, scoped Admin support visibility, time-zone-specific browser test
+  comparison, and migration function/grant inventory formatting; each was
+  repaired and the affected checks rerun. An initial separate migration test
+  lacked its explicit fixture; an owned isolated fixture was then used.
+- Separate staging migration/grade integration checks passed 42/42. The final
+  isolated format/lint/typecheck/unit run passed 2,383/2,383; Drizzle check
+  passed. In local workflow-service tests, the first run passed one case and
+  failed another because its fixture lacked policies; after fixture setup, the
+  failed case passed on a targeted rerun. These do not establish hosted streaming
+  or load behavior.
+- In the existing MFA-verified local reviewer session, both synthetic screening
+  checks were recorded and approved through the site. The saved approved
+  decision has two passed checks expiring November 12, 2026, 18:00 Asia/Manila,
+  as selected by the owner. A separate read verified that expiry and that the
+  existing booking remains confirmed. The Student browser showed the
+  no-alternative state and returned to the unchanged booking. This is not real
+  safety verification. Hosted SSE/load testing, production rollout, and actual
+  completion after the scheduled end remain unverified. Next: continue the local
+  walkthrough or test that actual completion only after the lesson end.
+
+### 2026-11-10 — Clickable Tutor next-session card (verified locally)
+
+The owner requested that the entire next-session card open the existing booking
+details. The existing native link now covers the occupied card with visible
+hover and keyboard-focus feedback; empty states and other booking rows retain
+their existing actions. Isolated Chromium PASS 1/1: clicks on the card's outer
+area at 1440px and 390px and keyboard Enter open the correct booking; the full
+Student reschedule/cancel journey also passed. Safari opened the actual local
+booking after a click on the card away from its text. Production build and
+targeted format/lint passed on the final code; full check passed with 2,381 tests
+before the final class-name fix. The first browser run failed because the
+formatter combined two CSS classes; the explicit class names corrected it and
+the browser and build were rerun. Design detector findings were pre-existing CSS
+advisories. Next: continue the local walkthrough; no production deployment.
+
+### 2026-11-10 — Tutor detail follows reschedules (verified locally)
+
+Owner reported that the open detail continued showing the old booking after a
+reschedule and subsequent cancellation. The scoped fix in
+`prompts/features/m5-05-tutor-follow-rescheduled-booking.md` follows the current
+Tutor booking on live refresh and direct access, with explicit history links to
+the prior snapshot. Authorization and existing booking transitions are retained.
+- Same-agent scoped read-only Review: READY FOR VERIFICATION; not an independent
+  review. Separate isolated `npm run check` PASS (format, lint, typecheck, 2,381
+  unit/component tests); `node scripts/with-test-env.mjs npm run build` PASS.
+- Isolated PostgreSQL and private Chromium cross-role flow PASS 1/1: an open
+  Tutor detail follows Student reschedule, shows the new time and new booking's
+  meeting state, then shows cancellation without manual navigation or refresh.
+  Direct old URLs follow the new head, history URLs retain the previous version,
+  unauthorized history is unavailable, and dashboard history links remain.
+  Safari local Tutor details displayed the current cancelled record. The isolated
+  test cluster was stopped with data preserved; the user's database was untouched.
+- Hosted streaming and load verification, production migration and deployment
+  remain separate gates. Next: continue the local Student/Tutor walkthrough.
+
+### 2026-11-10 — Live Tutor booking detail verified locally
+
+Owner reported that an open Tutor booking detail stayed confirmed after Student
+cancellation even though the dashboard updated. The scoped fix reuses the
+existing Tutor SSE client on authorized detail reads; see
+`prompts/features/m5-05-tutor-booking-detail-live.md`. Status, saved history,
+current-head navigation and inactive meeting state now reread from the existing
+guarded detail route on notifications and reconnects. No schema, booking
+authority or production deployment change.
+- Same-agent scoped read-only Review READY FOR VERIFICATION; no independent
+  review. Isolated `npm run check` PASS: format, lint, typecheck and 2,381 tests;
+  production build PASS. After a test-only reorder, scoped format/lint passed.
+- Isolated private Chromium cross-role flow PASS 1/1 with the Tutor detail open
+  before Student reschedule and cancellation; the detail updated without a
+  manual refresh, showed the current booking link and removed inactive meeting
+  controls. An unrelated notification retained an unsaved meeting-link input.
+  Local Safari showed a previously cancelled record and inactive meeting state.
+- The first full check reported an unhandled assertion in an existing async
+  transition test. Awaiting React's async `act` directly repaired the test;
+  focused and full checks then passed. Hosted load/streaming and production
+  deployment remain separately gated.
+
+
+### 2026-11-10 — Tutor booking event-driven updates verified locally
+
+Owner requested replacing five-second polling with the SSE + PostgreSQL
+notification recommendation. Scope and safety boundaries are in
+`prompts/features/m5-05-tutor-booking-push.md`. A PostgreSQL transaction emits
+an opaque Tutor invalidation on booking insertion/status/time changes. Each app
+instance shares an on-demand verified listener and streams authenticated,
+role-rechecked SSE notifications. The Tutor rereads on connection and change,
+with a 60-second fallback, manual refresh and visibility/offline handling.
+- Same-agent read-only Review and re-review READY FOR VERIFICATION; no
+  independent review. Repairs addressed listener error cleanup, stale browser
+  callbacks and an extra connection refresh. User data and booking authorization
+  remain in the existing server read path.
+- Isolated final `npm run check` PASS: formatting, lint, typecheck, 2,380 tests.
+  Production build PASS; actual PostgreSQL push tests PASS 3/3 (committed vs
+  rolled-back, separate pools, unrelated Tutor, revoked role, reconnect); TLS
+  hosted runtime suite PASS 42/42; populated/fresh migration preservation PASS
+  4/4; Drizzle check PASS; Chromium Student cross-role flow PASS 1/1 and Tutor
+  dashboard PASS 8/8, including no-JavaScript and accessibility paths.
+- First migration preservation run failed because the trigger format exceeded
+  the existing protection parser. Rewrote equivalent trigger conditions inside
+  its function and reran against fresh databases. A browser test initially
+  deadlocked its own locked test table while initial refresh was in flight;
+  removed duplicate refresh and synchronized the test, then reran successfully.
+  An isolated test cluster required a shorter owned Unix socket path.
+- Applied additive migration 0042 only to the owned local development database
+  after a private `pg_dump` backup and complete 42-entry hash check. Afterward,
+  43 migration records and unchanged counts (8 bookings, 5 tutors, 4 learners)
+  were observed; exact restricted grants and reviewed protections passed. Safari
+  displayed the live-connected indicator. Backup is private under `.local/backups/`.
+- PostgreSQL notifications are ephemeral; reconnect rereads current state and
+  the 60-second fallback bounds ordinary missed-event staleness when available.
+  Long-lived connections can affect Neon compute and app capacity. Hosted load
+  and streaming behavior, production migration and deployment remain NOT RUN.
+
+### 2026-11-10 — Tutor booking automatic refresh verified locally
+
+Owner requested automatic Tutor dashboard updates for Student booking changes.
+The authorized M5.5 slice is `prompts/features/m5-05-tutor-booking-auto-refresh.md`.
+Implementation uses five-second visible-tab polling through the existing
+participant-authorized page with manual and offline/visibility fallback. The
+same-agent scoped Review found misleading no-JavaScript status and overlapping
+manual refresh; both were repaired, re-reviewed and the final recommendation was
+READY FOR VERIFICATION. This is not an independent review.
+- Isolated checkout with its own loopback PostgreSQL test database: `npm run
+  check` PASS (format, lint, typecheck, 2,380 tests); the subsequent added
+  pending-transition regression passed with all four focused component tests.
+  The application code was unchanged after the full check. Production build
+  passed in the isolated checkout.
+- Private Chromium Student workflow PASS 1/1, including real Student UI
+  reschedule and cancellation while the Tutor dashboard updated without a
+  manual refresh. Tutor dashboard browser suite PASS 8/8, including assigned
+  versus unrelated data, no-JavaScript fallback, accessibility and role/session
+  restrictions. Suite used a one-server isolated configuration after the normal
+  multi-server runner's unrelated screening mirror failed to resolve Next.js.
+- Local Safari showed the automatic update indicator. Network/server errors can
+  delay refresh; every visible tab makes a full page request every five seconds.
+  No WebSocket, hosted capacity test, deployment or production claim.
+
+### 2026-11-10 — Local admin screening and authenticator QR verified
+
+- Owner requested local tutor-review access for all active verified Admins with
+  current MFA, plus a scannable authenticator setup QR. See
+  `prompts/features/m8-10-admin-screening-and-authenticator-qr.md` and
+  `docs/decisions/2026-11-10-local-admin-screening-and-qr.md`.
+- Implemented ordinary local screening access for active, verified, MFA-assured
+  Admins, preserving explicit revocations, exact assignment, self-review denial,
+  current evidence, and other scoped capabilities. Enrollment renders the provider
+  URI as a browser-generated QR and retains the manual setup key.
+- Same-agent scoped Review: plan alignment and unintended-change audit pass;
+  READY FOR VERIFICATION. This was not an independent review.
+- `npm run check` PASS: format, lint, typecheck and 2,377 unit/component tests.
+  Isolated local workflow PASS (new Admin with no pre-grant, claim, evidence and
+  decision), SQL authority 28/28, forward migration preservation 4/4, and admin
+  security integration 33/33. Isolated Chromium enrollment PASS: independently
+  decoded QR matches provider secret; actual TOTP verified; 390/1440 accessibility
+  and overflow checks passed. Isolated production build and `drizzle-kit check`
+  passed. Design detector reported no findings.
+- Initial assertion expected a thrown denial where the service returns null;
+  corrected to assert no data. A separate fixture lacked current runtime grants;
+  refreshed those grants. Historical grant-count assertions were updated from
+  100 to 116 after the Google Meet migration. Missing snapshot was added after
+  backup/restore unit tests exposed it. Initial isolated build and browser launch
+  used incompatible environment/mirror setup; corrected and rerun successfully.
+- Applied forward migration locally after a private backup; 42 migration stamps
+  and the same three pending local screening cases observed afterward. Production,
+  external provider actions, tutor screening approvals, and deployment not run.
+  The existing test tutor remains assigned and pending actual screening checks.
+- Dependency audit reports 19 findings (1 low, 12 moderate, 6 high); added QR
+  dependencies are not listed as direct vulnerable packages. No audit fix applied.
+
 ### 2026-10-29 — Manual Google Meet links chosen for now; M5.1 committed and merged to local main
 
 - Owner decision: use tutor-entered (manual) Google Meet links for now. Automatic
@@ -7593,3 +7949,36 @@ B returned heavy slot1 after scoped real PostgreSQL109/109, build, static checks
 ### 2026-10-13 W6 full component accepted; combined validation pending
 
 Root accepted the immutable 68-file W6 handoff after exact source/evidence review and independent core review (0 remaining findings). The component evidence comprises 64 core PostgreSQL cases, 236 affected PostgreSQL cases, 1160 unit/component checks, a production build, 52 selected Chromium cases plus 5 final Chromium journeys, and 4 each Firefox/WebKit journeys in distinct runs. Full booking presentation resolves the earlier partial-import type errors; root check now passes1243/74 with unchanged source during execution. Combined PostgreSQL/browser verification remains pending. Shared discovery and the four-factory synthetic mirror are reconciled over the accepted hosted-auth and owned-database placement guards. The root actual populated restore through 0025 passed with 73 tables (68 populated), 26 migrations and 11 immutable histories; source was preserved and the restore target stopped. W7 publication and W4b transactional delivery remain active. No full-wave, live policy, deployment or email-delivery claim; payments remain idle.
+### 2026-11-10 — Parent booking live update follow-up
+
+The user requested Parent live-update and initial booking-copy fixes, then a
+Chrome walkthrough. Implemented under `prompts/features/m5-04-parent-booking-live.md`
+(`AUTHORIZED — build-feature delegation`): Parent-only authorized live stream,
+commit-triggered guardian invalidations, dashboard/list/detail refresh, current
+replacement routing with explicit historical snapshots, and neutral pre-selection
+booking copy. Added migration 0044 without changing booking records; applied it
+to the owned local test and development databases. Existing dirty work preserved.
+
+Same-agent read-only review identified and corrected a trigger-readiness gap;
+re-review found no remaining source finding, recommendation READY FOR VERIFICATION.
+This was not an independent review. Separate verification: `npm run typecheck`
+and `npm run lint` passed; `npm test` passed 2,384 tests across 167 files;
+focused live-update component tests passed 6/6; real PostgreSQL live notifications
+passed 6/6 including guardian revocation and dual-role isolation; booking policy
+and lifecycle integration passed 51/51. Initial format check found an unformatted
+new snapshot; after formatting, `npm run format:check` passed. Default and 6 GB
+production builds exceeded the Node heap limit; the repository's previously
+documented 8 GB setting, `NODE_OPTIONS=--max-old-space-size=8192 npm run build`,
+passed. `git diff --check` passed before this factual tracker update.
+
+Chrome Guest walkthrough reused the separately created Parent account and its
+synthetic child. The child was bookable and the synthetic Tutor appeared in the
+directory. The initial booking text was neutral; after learner selection it
+correctly described immediate no-money confirmation. A booking was confirmed,
+rescheduled, then cancelled. On returning to another open detail tab, its time
+and cancellation status updated without a manual refresh; the Parent dashboard
+showed cancellation and the previous-version history showed its original time.
+The cancelled booking's meeting section was unavailable. The walkthrough did not
+re-register the account or directly test an active Tutor session, changing a
+meeting link, or mobile layout. Hosted load/cost, real screening and production
+deployment remain unverified and separately gated.

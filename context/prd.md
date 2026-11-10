@@ -1,5 +1,43 @@
 # Learli — Product Requirements Document (PRD)
 
+### Local Parent learner level update — 2026-11-10
+
+The owner requested that currently authorized Parents can correct or update
+their local child profile's tutoring level. Future booking choices and
+reschedules use the current level; existing booking states, times and history
+remain. School grade is separate and must be cleared explicitly before choosing
+College Support. Historical authorization receipts remain immutable, and real
+minor/guardian launch policy remains gated. See
+`prompts/features/m4-04-parent-child-level-update.md` and the progress tracker.
+
+### Parent booking coordination — 2026-11-10
+
+The owner requested Parent booking views update live after booking or meeting
+changes, scoped to currently authorized children, and that initial booking copy
+not imply all requests require reviewer confirmation. Existing policy-specific
+booking outcomes, guardian safeguards and production launch gates remain. See
+`prompts/features/m5-04-parent-booking-live.md` and the progress tracker.
+
+### Student–Tutor coordination — 2026-11-10
+
+The owner approved the local coordination plan: do not offer or accept new or
+rescheduled times that end at or after the expiration of required Tutor
+screening evidence. Existing bookings retain their records and current access
+guards; an exact-assigned, MFA-assured Admin can see a confirmed booking that
+needs screening support. Student booking and private meeting views receive scoped live updates.
+Real screening duration/provider policy and production activation remain open;
+implementation evidence belongs to the progress tracker. See
+`prompts/features/m5-03-student-tutor-coordination.md`.
+
+### Local admin tutor review and authenticator setup — 2026-11-10
+
+For the initial ordinary local workflow, the owner requested active verified
+MFA-assured Admins can claim and review tutor applications without separate
+screening pre-grants. Explicit revocations, exact assignment, self-review
+denial and required evidence remain. Authenticator enrollment offers a locally
+generated QR as well as the manual key. Real screening and launch remain gated.
+See `docs/decisions/2026-11-10-local-admin-screening-and-qr.md`.
+
 ### Approved optional Google Meet integration — 2026-10-26
 
 Owner-approved blueprint: `prompts/features/m5-01-google-meet-provisioning.md`
