@@ -670,7 +670,9 @@ the user's own email (shown only while their menu is open), then iconed rows for
 Account settings and Sign out separated by hairlines. Rows are 44px tall with
 12px corners, Mist on hover and a Mint tint for the current page; the panel uses
 the overlay radius and a Stone border, no shadow. The trigger chevron flips when
-open. Initials stay the avatar because V1 has no photo uploads. Accessible names
+open. In the workspace topbar the closed chip fits its content (avatar, name,
+chevron) at the bar's end, without the visible "Account" label, matching the
+public header. Initials stay the avatar because V1 has no photo uploads. Accessible names
 (Account <name>, Account settings, Sign out) and sign-out behaviour are unchanged.
 
 ### Parent Dashboard discovery — 2026-10-17
