@@ -344,7 +344,11 @@ own stroke.
   a new brand colour and is used for this stroke only.
 - Text never sits on the stroke: each step's words are below its tile.
 - Nothing is pinned and nothing follows the scroll position except the stop
-  and a few pixels of drift between tiles and line. On arrival the stroke
+  and a few pixels of drift between tiles and line. The owner has rejected
+  pinning here twice: the liquid tile, and on 2026-11-10 a pinned slide deck
+  (steps travelling along the stroke as the page scrolled), which was removed
+  the same day. Do not propose a pinned or scroll-held version of this
+  section again without a new request. On arrival the stroke
   is drawn from its low end at the right up to the left, and each glyph
   assembles from the step before it as the stroke reaches its tile, once.
   Stacked steps draw their own strokes left to right.
