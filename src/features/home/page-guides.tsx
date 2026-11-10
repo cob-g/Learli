@@ -126,7 +126,7 @@ export function GetMatchedGuide() {
           "Every tutor shown teaches that subject at that level",
           "Each one has an open time that fits your answer",
           "The list runs from the earliest matching time, then by tutor name",
-          "If nobody fits, the page says so and you can change an answer",
+          "If nobody fits, the page says so, shows the closest tutors with what is different, and you can change an answer",
         ]}
       />
       <TwoDoors

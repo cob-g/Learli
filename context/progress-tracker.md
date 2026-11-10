@@ -1,5 +1,20 @@
 # Learli — Progress Tracker
 
+### 2026-11-10 — Get matched shows honest closest alternatives
+
+- Owner request (option 2 of 3; the owner is adding subjects to the existing
+  tutor for option 1). With zero matches, `/get-matched` now lists up to three
+  closest eligible tutors, each saying what does not fit (other times with the
+  next open time, no open time, other levels, other subjects, unrelated last).
+  Matching rules and the "No tutors match your answers" state are unchanged;
+  `closestAlternatives` is pure (`src/features/matching/alternatives.ts`), the
+  any-time read is best-effort. Recorded in `context/prd.md` (MATCH-01 note).
+- Verified: `npm run check` PASS (2,398 tests, incl. 5 new unit cases); build
+  PASS; Playwright matching + catalog 9/9 (`--no-deps`) incl. Axe at 390 and a
+  new assertion that every alternative states its difference.
+- Later (option 3, needs a decision): rank by the existing offering `specialty`
+  once there are several tutors.
+
 ### 2026-11-10 — Account menu redesigned (Impeccable)
 
 - Owner asked for a more professional account menu. `header-account.tsx` now

@@ -233,6 +233,20 @@ test("invalid preferences retain safe answers, expose helpful errors and focus",
   await expect(
     page.getByRole("heading", { name: "No tutors match your answers" }),
   ).toBeVisible();
+  // The nearest tutors follow, each saying what is different; none is
+  // presented as teaching Science at College Support.
+  const nearest = page.getByRole("region", {
+    name: "Closest available tutors",
+  });
+  await expect(nearest).toBeVisible();
+  await expect(nearest.getByRole("listitem")).not.toHaveCount(0);
+  for (const item of await nearest.getByRole("listitem").all())
+    await expect(item).toContainText(
+      /, not (Science|College Support)\.|no open time|Does not teach/,
+    );
+  await expect(nearest).not.toContainText(
+    "Teaches Science at College Support.",
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await accessible(page);
   await page.screenshot({

@@ -12,9 +12,12 @@ import {
   type MatchParams,
 } from "@/features/matching/preferences";
 import {
+  MatchAlternatives,
   MatchResultList,
   preferenceDescription,
 } from "@/features/matching/results";
+import { closestAlternatives } from "@/features/matching/alternatives";
+import type { AvailableMatch } from "@/features/matching/match";
 import {
   readMatchingAvailability,
   type MatchingAvailability,
@@ -124,6 +127,31 @@ async function Matching({ searchParams }: MatchingProps) {
   const summary = `${level} · ${match.subject.name} · ${preferenceDescription(match.preferences)}`;
   const change = matchingHref(answers, "when");
   const total = availability.matches.length;
+  // No tutor fits every answer: look for the nearest honest alternatives. A
+  // tutor open only at other times needs one more read; if it fails, the
+  // alternatives that need no times are still shown.
+  let anyTime: AvailableMatch[] | null = [];
+  if (total === 0 && match.preferences.when !== "any")
+    try {
+      anyTime = (
+        await readMatchingAvailability(runtime!, catalog.tutors, {
+          subjectSlug: match.subject.slug,
+          level: match.level,
+          preferences: { timezone: match.preferences.timezone, when: "any" },
+        })
+      ).matches;
+    } catch {
+      anyTime = null;
+    }
+  const alternatives =
+    total === 0
+      ? closestAlternatives(
+          catalog.tutors,
+          match.subject.slug,
+          match.level,
+          anyTime,
+        )
+      : [];
   const pages = Math.max(1, Math.ceil(total / matchLimit));
   const requestedPage =
     typeof safe.params.page === "string" ? Number(safe.params.page) : 1;
@@ -164,6 +192,17 @@ async function Matching({ searchParams }: MatchingProps) {
                   : "No eligible tutor has an open demo time that fits these answers."}
               </p>
             </EmptyState>
+          ) : null}
+          {total === 0 ? (
+            <MatchAlternatives
+              alternatives={alternatives}
+              subject={match.subject.slug}
+              subjectName={match.subject.name}
+              level={match.level}
+              levelName={level ?? match.level}
+              timezone={match.preferences.timezone}
+              privateWorkflow={privateWorkflow}
+            />
           ) : (
             <>
               <p role="status" className="text-body">
