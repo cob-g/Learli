@@ -674,7 +674,26 @@ async function noMeeting(
   ).toBe(404);
 }
 
+// Every supported width must fit without sideways scrolling; Axe runs at the
+// widths it always has.
+const fitWidths = [
+  320, 360, 375, 390, 414, 430, 640, 768, 820, 1024, 1280, 1440, 1920,
+];
+async function fits(page: Page, restore: number) {
+  for (const width of fitWidths) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      `fits at ${width}px`,
+    ).toBe(true);
+  }
+  await page.setViewportSize({ width: restore, height: 900 });
+}
+
 async function responsive(page: Page) {
+  await fits(page, 1440);
   for (const width of [390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     expect(

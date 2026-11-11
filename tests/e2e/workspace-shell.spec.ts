@@ -392,7 +392,9 @@ test("tutor sidebar link content stays stable through held requests, shared page
   for (const width of [320, 390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/tutor/availability");
-    await expect(page.locator(".workspace-account bdi")).toBeVisible();
+    await expect(
+      page.locator(".workspace-account .header-account-trigger"),
+    ).toBeVisible();
     await expect(
       page
         .getByRole("main")
@@ -466,7 +468,9 @@ test("tutor sidebar link content stays stable through held requests, shared page
               .click();
           }
           await expect(page).toHaveURL(target);
-          await expect(page.locator(".workspace-account bdi")).toBeVisible();
+          await expect(
+            page.locator(".workspace-account .header-account-trigger"),
+          ).toBeVisible();
           await expect(links).toHaveText(labels);
           await expect(page.locator(".workspace-current")).toHaveText(
             "Tutor workspace",
@@ -476,7 +480,9 @@ test("tutor sidebar link content stays stable through held requests, shared page
               page.getByRole("button", { name: "Workspace menu" }),
             ).toHaveAttribute("aria-expanded", "false");
           releaseAccount();
-          await expect(page.locator(".workspace-account bdi")).toBeVisible();
+          await expect(
+            page.locator(".workspace-account .header-account-trigger"),
+          ).toBeVisible();
           await expect(links).toHaveText(labels);
           await expect(page.locator(".workspace-current")).toHaveText(
             "Tutor workspace",
@@ -569,7 +575,9 @@ test("multi-role switching preserves chosen shared context and successful provid
 }) => {
   await signIn(page, ["tutor", "parent", "student"]);
   await page.goto("/account");
-  await expect(page.locator(".workspace-account bdi")).toBeVisible();
+  await expect(
+    page.locator(".workspace-account .header-account-trigger"),
+  ).toBeVisible();
   await expect(page.locator(".workspace-current")).toHaveText("Your account");
   for (const role of ["tutor", "parent", "student"]) {
     const title = `${role[0].toUpperCase() + role.slice(1)} workspace`;
@@ -579,7 +587,9 @@ test("multi-role switching preserves chosen shared context and successful provid
     await chooser.getByRole("link", { name: title, exact: true }).click();
     await expect(page).toHaveURL(`/${role}`);
     await expect(chooser).not.toHaveAttribute("open");
-    await expect(page.locator(".workspace-account bdi")).toBeVisible();
+    await expect(
+      page.locator(".workspace-account .header-account-trigger"),
+    ).toBeVisible();
     await chooser.locator("summary").click();
     await chooser.getByRole("link", { name: title, exact: true }).click();
     await expect(chooser).not.toHaveAttribute("open");
@@ -597,7 +607,9 @@ test("multi-role switching preserves chosen shared context and successful provid
         .getByRole("link", { name: label, exact: true })
         .click();
       await expect(page).toHaveURL(target);
-      await expect(page.locator(".workspace-account bdi")).toBeVisible();
+      await expect(
+        page.locator(".workspace-account .header-account-trigger"),
+      ).toBeVisible();
       await expect(page.locator(".workspace-current")).toHaveText(title);
     }
     let release!: () => void;
@@ -613,13 +625,17 @@ test("multi-role switching preserves chosen shared context and successful provid
       window.dispatchEvent(new Event("learli:account-updated")),
     );
     // The same user/session keeps its name and links during the refresh.
-    await expect(page.locator(".workspace-account bdi")).toBeVisible();
+    await expect(
+      page.locator(".workspace-account .header-account-trigger"),
+    ).toBeVisible();
     await expect(
       page.locator('.workspace-sidebar nav[aria-label$="work areas"]'),
     ).toHaveCount(1);
     await expect(page.locator(".workspace-current")).toHaveText(title);
     release();
-    await expect(page.locator(".workspace-account bdi")).toBeVisible();
+    await expect(
+      page.locator(".workspace-account .header-account-trigger"),
+    ).toBeVisible();
     await expect(page.locator(".workspace-current")).toHaveText(title);
     await page.unroute("**/api/auth/get-session**", hold);
   }
@@ -630,7 +646,9 @@ test("native account entry with one grant and current revocation remain safe", a
 }) => {
   const actor = await signIn(page, ["tutor"]);
   await page.goto("/tutor");
-  await expect(page.locator(".workspace-account bdi")).toBeVisible();
+  await expect(
+    page.locator(".workspace-account .header-account-trigger"),
+  ).toBeVisible();
   await page
     .getByRole("button", { name: "Account Workspace test account" })
     .click();
@@ -639,7 +657,9 @@ test("native account entry with one grant and current revocation remain safe", a
     .getByRole("link", { name: "Account settings" })
     .click();
   await expect(page).toHaveURL("/account");
-  await expect(page.locator(".workspace-account bdi")).toBeVisible();
+  await expect(
+    page.locator(".workspace-account .header-account-trigger"),
+  ).toBeVisible();
   await expect(page.locator(".workspace-current")).toHaveText(
     "Tutor workspace",
   );
@@ -649,7 +669,9 @@ test("native account entry with one grant and current revocation remain safe", a
     .getByRole("link", { name: "Support requests" })
     .click();
   await expect(page).toHaveURL("/support");
-  await expect(page.locator(".workspace-account bdi")).toBeVisible();
+  await expect(
+    page.locator(".workspace-account .header-account-trigger"),
+  ).toBeVisible();
   await expect(page.getByText("No workspace assigned.")).toBeVisible();
   await expect(
     page.locator('.workspace-sidebar nav[aria-label$="work areas"]'),
@@ -665,7 +687,9 @@ test("cross-tab signout clears shell identity and grants, and a changed account 
 }) => {
   const actor = await signIn(page, ["tutor"]);
   await page.goto("/tutor");
-  await expect(page.locator(".workspace-account bdi")).toBeVisible();
+  await expect(
+    page.locator(".workspace-account .header-account-trigger"),
+  ).toBeVisible();
   const other = await context.newPage();
   await other.goto("/account");
   await other
@@ -717,7 +741,9 @@ for (const [role, scope] of [
   }) => {
     await signIn(page, [role]);
     await page.goto(`/bookings/${randomUUID()}?scope=${scope}`);
-    await expect(page.locator(".workspace-account bdi")).toBeVisible();
+    await expect(
+      page.locator(".workspace-account .header-account-trigger"),
+    ).toBeVisible();
     const nav = page.locator(
       '.workspace-sidebar nav[aria-label$="work areas"]',
     );
@@ -733,7 +759,9 @@ for (const [role, scope] of [
       .getByRole("link", { name: "Go to your bookings", exact: true })
       .click();
     await expect(page).toHaveURL(`/bookings?scope=${scope}`);
-    await expect(page.locator(".workspace-account bdi")).toBeVisible();
+    await expect(
+      page.locator(".workspace-account .header-account-trigger"),
+    ).toBeVisible();
     await expect(
       nav.getByRole("link", { name: "Bookings", exact: true }),
     ).toHaveAttribute("aria-current", "page");

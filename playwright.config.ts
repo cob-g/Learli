@@ -515,6 +515,18 @@ export default defineConfig({
       },
     },
     {
+      // Every route at every supported width; also the responsive audit.
+      name: "responsive",
+      testMatch: "responsive.spec.ts",
+      workers: 1,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+        trace: "off",
+        screenshot: "off",
+      },
+    },
+    {
       name: "hosted-workflows-integration",
       testMatch: "hosted-workflows-integration.spec.ts",
       dependencies: ["transactional-delivery"],

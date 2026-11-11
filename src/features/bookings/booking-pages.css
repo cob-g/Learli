@@ -241,6 +241,22 @@
     }
   }
   @media (max-width: 40rem) {
+    /* Phones: one level of padding less around the lesson time, so its date
+       and time keep a readable line length inside the card. */
+    .booking-card,
+    .booking-panel,
+    .booking-when {
+      padding: 1rem;
+    }
+    .booking-when-tile {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 0.875rem;
+    }
+    .booking-when .text-section-title {
+      font-size: 1.1875rem;
+      line-height: 1.625rem;
+    }
     .booking-facts .booking-when dd {
       grid-template-columns: minmax(0, 1fr);
     }

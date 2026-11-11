@@ -337,6 +337,66 @@
       grid-row: 1;
     }
   }
+  /* Below the desktop bar the signed-in account is a compact pill at the
+     bar's end: tablets show the avatar and name (the accessible name already
+     says Account), phones only the avatar. The open menu shows the full name
+     and email. These outrank the enlarged-text grid above, which narrow phone
+     widths would otherwise trigger. */
+  @media (max-width: 63.98rem) {
+    .site-header .header-account {
+      display: flex;
+      align-items: center;
+      width: fit-content;
+      max-width: 100%;
+      min-height: 4.375rem;
+      margin-inline-start: auto;
+    }
+    .site-header .header-account-trigger {
+      display: flex;
+      width: auto;
+      min-height: 2.75rem;
+      padding: 0.25rem 0.875rem 0.25rem 0.25rem;
+      border-color: color-mix(in srgb, var(--brand-navy) 18%, transparent);
+      border-radius: calc(infinity * 1px);
+      background: var(--bg-surface);
+    }
+    .site-header .header-account-label > .text-small {
+      display: none;
+    }
+    /* Every account state keeps the bar's height: Sign in, the checking slot
+       and the chip share one row, and checking floats below it as on desktop. */
+    .site-header .header-account-fallback,
+    .site-header .site-header-account > .nav-link {
+      min-height: 4.375rem;
+    }
+    .site-header .header-account-fallback {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .site-header[data-live]
+      .header-account-fallback
+      > [aria-live]:not(.header-account-panel) {
+      position: absolute;
+      z-index: 1;
+      top: calc(100% + 0.5rem);
+      inset-inline-end: 0;
+      width: min(18rem, calc(100vw - 2rem));
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-control);
+      border-radius: var(--radius-surface);
+      background: var(--bg-surface);
+    }
+  }
+  @media (max-width: 39.98rem) {
+    .site-header .header-account-trigger {
+      gap: 0.375rem;
+      padding: 0.25rem 0.625rem 0.25rem 0.25rem;
+    }
+    .site-header .header-account-label {
+      display: none;
+    }
+  }
   .header-account-panel {
     position: absolute;
     z-index: 1;
