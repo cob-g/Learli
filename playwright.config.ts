@@ -515,6 +515,19 @@ export default defineConfig({
       },
     },
     {
+      name: "tutor-photos",
+      testMatch: "tutor-photos.spec.ts",
+      // After the empty-inventory checks; it lists one tutor, then suspends it.
+      dependencies: ["catalog"],
+      workers: 1,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+        trace: "off",
+        screenshot: "off",
+      },
+    },
+    {
       // Every route at every supported width; also the responsive audit.
       name: "responsive",
       testMatch: "responsive.spec.ts",

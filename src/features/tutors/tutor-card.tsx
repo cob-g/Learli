@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { levelNames } from "@/features/subjects/catalog";
 import { learnerLevels } from "@/lib/db/schema/app";
@@ -10,24 +11,41 @@ import {
   type LessonTimeValue,
 } from "@/features/bookings/lesson-time";
 import { nameInitials } from "@/lib/initials";
+import { tutorPhotoUrl } from "@/features/tutor-photos/photo-url";
 
-/** Every avatar uses the same two tokens; no photo upload exists. */
-export function InitialsAvatar({
+/**
+ * The tutor's approved photo, or their initials when there is none. Decorative:
+ * the tutor's name is always written beside it.
+ */
+export function TutorAvatar({
   name,
+  photoId,
   large = false,
 }: {
   name: string;
+  photoId?: string | null;
   large?: boolean;
 }) {
   return (
     <span
       aria-hidden="true"
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full bg-mint text-label-strong text-foreground",
+        "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-mint text-label-strong text-foreground",
         large ? "size-20" : "size-12",
       )}
     >
-      {nameInitials(name)}
+      {photoId ? (
+        <Image
+          src={tutorPhotoUrl(photoId)}
+          alt=""
+          width={large ? 80 : 48}
+          height={large ? 80 : 48}
+          unoptimized
+          className="size-full object-cover"
+        />
+      ) : (
+        nameInitials(name)
+      )}
     </span>
   );
 }
@@ -105,7 +123,7 @@ export function TutorList({
             className="relative grid grid-cols-1 gap-6 py-6 @3xl:grid-cols-[minmax(0,1fr)_auto] @3xl:items-start"
           >
             <div className="flex min-w-0 gap-4">
-              <InitialsAvatar name={tutor.displayName} />
+              <TutorAvatar name={tutor.displayName} photoId={tutor.photoId} />
               <div className="min-w-0">
                 <Heading className="text-item-title wrap-anywhere">
                   {tutor.displayName}

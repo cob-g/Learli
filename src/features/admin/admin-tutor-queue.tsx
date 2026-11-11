@@ -25,6 +25,8 @@ export type TutorQueueApplication = {
   reviewStatus: ReviewStatus;
   createdAt: Date;
   screening: QueueScreeningSummary | null;
+  /** A profile photo is waiting for review; absent in older fixtures. */
+  photoPending?: boolean;
 };
 
 /** Presentation only; the page loads the queue through its Admin guard. */
@@ -39,7 +41,7 @@ export function AdminTutorQueue({
 }: {
   intro: string;
   /** The applied filter; undefined means all statuses. */
-  status: ReviewStatus | undefined;
+  status: ReviewStatus | "photo" | undefined;
   applications: TutorQueueApplication[];
   total: number;
   page: number;
@@ -82,6 +84,7 @@ export function AdminTutorQueue({
                 {reviewStatusLabels[value]}
               </option>
             ))}
+            <option value="photo">Photos to review</option>
             <option value="all">All statuses</option>
           </select>
           <button className="action action-primary" type="submit">
@@ -93,12 +96,18 @@ export function AdminTutorQueue({
         <div className="tutor-empty">
           <EmptyState
             title={
-              status
-                ? `No ${reviewStatusLabels[status].toLowerCase()} applications`
-                : "No tutor applications"
+              status === "photo"
+                ? "No photos to review"
+                : status
+                  ? `No ${reviewStatusLabels[status].toLowerCase()} applications`
+                  : "No tutor applications"
             }
           >
-            <p>An application appears here after a tutor submits a profile.</p>
+            <p>
+              {status === "photo"
+                ? "A tutor appears here after uploading a new profile photo."
+                : "An application appears here after a tutor submits a profile."}
+            </p>
           </EmptyState>
         </div>
       ) : (
@@ -147,6 +156,11 @@ export function AdminTutorQueue({
                         <StatusIcon size={12} aria-hidden="true" />
                         {reviewStatusLabels[application.reviewStatus]}
                       </span>
+                      {application.photoPending && (
+                        <span className="workspace-pill" data-tone="waiting">
+                          Photo to review
+                        </span>
+                      )}
                       <small>{summary}</small>
                     </div>
                     {application.screening && (

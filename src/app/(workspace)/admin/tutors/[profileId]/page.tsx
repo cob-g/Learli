@@ -8,6 +8,7 @@ import { readTutorApplication } from "@/features/tutors/review";
 import { ProfileSummary } from "@/features/tutors/profile-summary";
 import { ScreeningForm } from "@/features/tutor-screening/forms";
 import { ReviewActions } from "@/features/tutors/review-actions";
+import { PhotoReview } from "@/features/tutor-photos/photo-review";
 import { ReviewStatusBadge } from "@/features/tutors/review-status";
 import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
@@ -63,6 +64,22 @@ export default async function TutorApplicationPage({
           timeZone={timeZoneLabel(application.timezone)}
         />
       </div>
+      {(application.photo.pendingId || application.photo.approvedId) && (
+        <section
+          aria-labelledby="photo-title"
+          className="mt-12 max-w-3xl border-t border-border pt-8"
+        >
+          <h2 id="photo-title" className="text-section-title">
+            Profile photo
+          </h2>
+          <PhotoReview
+            profileId={application.id}
+            tutorName={application.displayName}
+            {...application.photo}
+            ownedByReviewer={application.ownedByReviewer}
+          />
+        </section>
+      )}
       <section
         aria-labelledby="review-title"
         className="mt-12 max-w-3xl border-t border-border pt-8"

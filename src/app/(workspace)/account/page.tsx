@@ -14,6 +14,11 @@ import { UnavailablePage } from "@/components/shared/unavailable-page";
 import { listTimeZoneOptions } from "@/lib/time/zones";
 import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { AccountSettingsCards } from "@/features/account/account-settings-cards";
+import {
+  readOwnTutorPhoto,
+  type OwnTutorPhoto,
+} from "@/features/tutor-photos/service";
+import { photoStorage } from "@/features/tutor-photos/configured";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Your account",
@@ -23,6 +28,7 @@ export default async function AccountPage() {
   let account;
   let studentReady = false;
   let localWorkflow = false;
+  let tutorPhoto: OwnTutorPhoto | null = null;
   try {
     const runtime = await getAccountAuthRuntime();
     if (!runtime) throw new AccessError(503);
@@ -36,6 +42,16 @@ export default async function AccountPage() {
           !!domain && (await canOpenStudentWorkspace(domain, requestHeaders));
       } catch {
         // Account settings remain available when learner authority cannot be proven.
+      }
+    }
+    if (account.roles.includes("tutor")) {
+      try {
+        const domain = await getDomainAuthRuntime();
+        tutorPhoto = domain
+          ? await readOwnTutorPhoto(domain, requestHeaders)
+          : null;
+      } catch {
+        // Account settings remain available without the photo control.
       }
     }
   } catch (error) {
@@ -59,6 +75,8 @@ export default async function AccountPage() {
         timeZones={listTimeZoneOptions(new Date(), [account.timezone])}
         workspaceRoles={workspaceRoles}
         localWorkflow={localWorkflow}
+        tutorPhoto={tutorPhoto}
+        photoUploads={photoStorage() !== null}
       />
     );
   return (

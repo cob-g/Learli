@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LessonTime } from "@/features/bookings/lesson-time";
 import { formatLessonTime } from "@/features/bookings/format-time";
-import { InitialsAvatar, tutorLevels } from "@/features/tutors/tutor-card";
+import { TutorAvatar, tutorLevels } from "@/features/tutors/tutor-card";
 import { levelNames } from "@/features/subjects/catalog";
 import { publicProfileHref } from "@/features/public-availability/links";
 import type { LearnerLevel } from "@/lib/db/schema";
@@ -42,7 +42,7 @@ export function MatchResultList({
           className="relative grid grid-cols-1 gap-6 py-6 @3xl:grid-cols-[minmax(0,1fr)_13rem_auto] @3xl:items-start"
         >
           <div className="flex min-w-0 gap-4">
-            <InitialsAvatar name={tutor.displayName} />
+            <TutorAvatar name={tutor.displayName} photoId={tutor.photoId} />
             <div className="min-w-0">
               <h2 className="text-item-title wrap-anywhere">
                 {tutor.displayName}
@@ -186,7 +186,10 @@ export function MatchAlternatives({
             className="relative grid grid-cols-1 gap-6 py-6 @3xl:grid-cols-[minmax(0,1fr)_13rem_auto] @3xl:items-start"
           >
             <div className="flex min-w-0 gap-4">
-              <InitialsAvatar name={item.tutor.displayName} />
+              <TutorAvatar
+                name={item.tutor.displayName}
+                photoId={item.tutor.photoId}
+              />
               <div className="min-w-0">
                 <h3 className="text-item-title wrap-anywhere">
                   {item.tutor.displayName}

@@ -188,6 +188,7 @@ beforeEach(() => {
       requiredCodes: [],
       checks: [],
     },
+    photo: { pendingId: null, approvedId: null },
   });
   reads.profile.mockResolvedValue({ id: "profile-id" });
   reads.screening.mockResolvedValue(null);

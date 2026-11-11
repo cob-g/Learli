@@ -44,6 +44,9 @@ const serverEnvSchema = z
     BETTER_AUTH_URL: optionalValue(httpUrl),
     RESEND_API_KEY: optionalValue(z.string().min(1)),
     EMAIL_FROM: optionalValue(z.email()),
+    // Tutor profile photos (decision D-15). "local" keeps them on this machine's
+    // disk for development and tests only; hosted storage comes later.
+    TUTOR_PHOTO_STORAGE: z.enum(["disabled", "local"]).default("disabled"),
   })
   .superRefine((env, ctx) => {
     if (env.LOCAL_WORKFLOW_MODE === "enabled") {
@@ -199,6 +202,16 @@ const serverEnvSchema = z
         }
     }
 
+    if (
+      env.TUTOR_PHOTO_STORAGE === "local" &&
+      (!["development", "test"].includes(env.APP_ENV) ||
+        !isLoopbackOrigin(env.APP_URL))
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["TUTOR_PHOTO_STORAGE"],
+        message: "Local disk storage is for loopback development and tests",
+      });
     if (["staging", "production"].includes(env.APP_ENV)) {
       for (const field of ["APP_URL", "BETTER_AUTH_URL"] as const) {
         if (

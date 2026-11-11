@@ -20,6 +20,8 @@ import type { TeachingLanguageCode } from "./teaching-languages";
 export type PublicTutor = {
   slug: string;
   displayName: string;
+  /** The tutor's approved photo; absent or null shows their initials. */
+  photoId?: string | null;
   headline: string;
   bio: string;
   teachingBackground: string;
@@ -54,6 +56,9 @@ async function eligibleTutors(
     .select({
       slug: tutorProfiles.slug,
       displayName: user.name,
+      photoId: sql<
+        string | null
+      >`(SELECT p.id::text FROM tutor_photos p WHERE p.tutor_id = ${tutorProfiles.id} AND p.status = 'approved')`,
       headline: tutorProfiles.headline,
       bio: tutorProfiles.bio,
       teachingBackground: tutorProfiles.teachingBackground,

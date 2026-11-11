@@ -739,6 +739,19 @@ Newsreader italic 400, 22px, letter-spacing -0.01em, line-height 1, #17695A,
 (`WorkspaceBrand`) takes the role; the phone menu sheet shows the same row. It
 is ordinary text (not aria-hidden), read with the wordmark.
 
+### Tutor profile photo (decision D-15, 2026-11-11)
+
+Tutor avatars show the tutor's approved photo, cropped to the same circle and
+size as the initials it replaces (48px cards, 80px profile, 72px Account
+settings); with no approved photo the mint initials avatar stays exactly as
+before. Avatars stay decorative (the name is always beside them). On Account
+settings, the Profile settings card opens with a Profile photo row: preview,
+"Pending review" pill while waiting, one-line status note (what families see
+now), Upload/Change and Remove outline buttons (44px), and a polite live status
+line. Admins see the waiting photo and the public one at 160px on the tutor's
+application page with Approve photo / Reject photo, and a "Photo to review"
+pill and "Photos to review" filter in the queue. Existing tokens only.
+
 ### Parent Dashboard discovery — 2026-10-17
 
 The parent overview at `/parent` uses **Parent Dashboard** for its sidebar entry,

@@ -169,7 +169,7 @@ Do **not** create any of the following without explicit approval:
 | Deployment | **Railway** | One Next.js Node web service initially. |
 | Email | **Resend**, start with free tier | Transactional email only; respect limits and verified sending-domain rules. |
 | Live lessons | **Zoom / Google Meet** | Tutors supply approved links; no embedded conferencing. |
-| Files | **None initially** | Branded static assets/initials avatars are sufficient. |
+| Files | **Tutor profile photos only** | Admin-approved headshots, local dev/test disk for now; initials remain the fallback. |
 | Payments | **`[OPEN]`** | Never pick a gateway or charge real money without approval. |
 
 **Use current mutually compatible stable package releases at implementation time**, verify installation commands against official documentation, pin runtime/dependencies, and commit the lockfile. Do not assume a command in a planning document will remain valid forever.
@@ -523,7 +523,7 @@ Once approved, use a provider-hosted secure checkout, verified signed webhooks, 
 
 ### File/object storage
 
-None for initial Learli. Use static branded files and initials avatars. Tutor photo uploads or private documents need a separately approved use case and storage/privacy design; Neon Object Storage is a **possible future option**, not a launch dependency.
+Static branded files and initials avatars by default. Tutor profile photos are approved only within `docs/decisions/2026-11-11-tutor-profile-photos.md` (2026-11-11): admin review before public display, re-encoded uploads, and local development/test disk storage behind `src/features/tutor-photos/storage.ts`. Hosted photo storage (Neon Object Storage is a **possible option**) and any other upload or private document still need a separately approved use case and storage/privacy design.
 
 ---
 

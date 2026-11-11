@@ -151,7 +151,7 @@ scope, additive migration, failure handling, UI and verification requirements.
 | App hosting | **Railway** |
 | Transactional email | **Resend**, initially using its available free tier |
 | Video lessons | **Zoom / Google Meet**, operated externally |
-| File/object storage | **None required for initial V1**; consider later only if a real approved need arises |
+| File/object storage | **Tutor profile photos only** (approved 2026-11-11, `docs/decisions/2026-11-11-tutor-profile-photos.md`): local dev/test disk now; hosted storage needs separate approval |
 | Domain | Railway-generated HTTPS URL for development; owned custom domain when ready, and a verified sending domain for production email |
 | Payment gateway | **[OPEN]** — do not assume Stripe, PayMongo, or another provider is approved |
 

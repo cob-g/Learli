@@ -18,6 +18,8 @@ const env = {
   GOOGLE_MEET_KEYS: "",
   // Private workflow browser tests explicitly opt in through their own config.
   PRIVATE_WORKFLOW_CONFIG_FILE: "",
+  // Tutor photos live on local disk under .local/tutor-photos/test.
+  TUTOR_PHOTO_STORAGE: "local",
 };
 if (env.APP_ENV !== "test" || env.AUTH_MODE !== "local")
   throw new Error("Dedicated local test configuration required.");

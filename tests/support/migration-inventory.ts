@@ -15,7 +15,8 @@ export const runtimeGrantsBeforeMeet = runtimeGrantsSql
     (line) =>
       !line.includes("public.google_meet_") &&
       !line.includes("public.tutor_screening_valid_through(") &&
-      !line.includes("public.update_parent_learner_level("),
+      !line.includes("public.update_parent_learner_level(") &&
+      !line.includes(" tutor_photos "),
   )
   .join("\n");
 
@@ -101,6 +102,7 @@ export function expectLocalOperationRowPreservation(
     "local_workflow_claims",
     "local_workflow_staff",
     "parent_learner_level_events",
+    "tutor_photos",
   ];
   expect(Object.keys(after).sort()).toEqual(
     [...Object.keys(before), ...added].sort(),

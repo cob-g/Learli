@@ -1,10 +1,24 @@
 import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { recheckAdminAssurance } from "@/features/admin-security/assurance";
-import { and, asc, eq, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, inArray, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import type { AuthRuntime } from "@/lib/auth-factory";
-import { tutorProfiles, user, type ReviewStatus } from "@/lib/db/schema";
-import { AccessError, requireRole } from "@/lib/permissions/access";
+import {
+  auditEvents,
+  tutorPhotos,
+  tutorProfiles,
+  user,
+  type ReviewStatus,
+} from "@/lib/db/schema";
+import {
+  AccessError,
+  requireRole,
+  type Identity,
+} from "@/lib/permissions/access";
+import {
+  discardPhotos,
+  type PhotoStorage,
+} from "@/features/tutor-photos/storage";
 import { RuleError } from "@/lib/rule-error";
 import { reviewActionNames } from "./review-rules";
 import { loadTutorProfile } from "./service";
@@ -101,7 +115,8 @@ function screeningQueueProjection(runtime: AuthRuntime) {
 export async function listTutorApplications(
   runtime: AuthRuntime,
   headers: Headers,
-  status?: ReviewStatus,
+  /** A review status, or "photo" for tutors with a photo waiting for review. */
+  status?: ReviewStatus | "photo",
   page = 1,
 ) {
   const packet = getPrivateWorkflow(runtime);
@@ -109,7 +124,11 @@ export async function listTutorApplications(
   const safe = Number.isInteger(page) && page >= 1 && page <= 1000 ? page : 1;
   const filter = and(
     assigned(runtime, identity.userId, identity.sessionId, undefined, packet),
-    status ? eq(tutorProfiles.reviewStatus, status) : undefined,
+    status === "photo"
+      ? sql`EXISTS (SELECT 1 FROM ${tutorPhotos} p WHERE p.tutor_id = ${tutorProfiles.id} AND p.status = 'pending')`
+      : status
+        ? eq(tutorProfiles.reviewStatus, status)
+        : undefined,
   );
   const [{ total }] = await runtime.db
     .select({ total: sql<number>`count(*)::int` })
@@ -123,6 +142,7 @@ export async function listTutorApplications(
       reviewStatus: tutorProfiles.reviewStatus,
       createdAt: tutorProfiles.createdAt,
       screening: screeningQueueProjection(runtime),
+      photoPending: sql<boolean>`EXISTS (SELECT 1 FROM ${tutorPhotos} p WHERE p.tutor_id = ${tutorProfiles.id} AND p.status = 'pending')`,
     })
     .from(tutorProfiles)
     .innerJoin(user, eq(user.id, tutorProfiles.userId))
@@ -187,12 +207,129 @@ export async function readTutorApplication(
     sql`SELECT ${assigned(runtime, identity.userId, identity.sessionId, undefined, packet)} AS allowed FROM ${tutorProfiles} WHERE ${tutorProfiles.id}=${profileId}::uuid`,
   );
   if (!fresh.rows[0]?.allowed) throw new RuleError(404, notFound);
+  const photos = await runtime.db
+    .select({ id: tutorPhotos.id, status: tutorPhotos.status })
+    .from(tutorPhotos)
+    .where(
+      and(
+        eq(tutorPhotos.tutorId, profileId),
+        inArray(tutorPhotos.status, ["pending", "approved"]),
+      ),
+    );
   assertPrivateWorkflowUnchanged(runtime, packet);
   return {
     ...application,
     ownedByReviewer: userId === identity.userId,
     screening,
+    photo: {
+      pendingId: photos.find((p) => p.status === "pending")?.id ?? null,
+      approvedId: photos.find((p) => p.status === "approved")?.id ?? null,
+    },
   };
+}
+
+/** Same authority as opening the application: a current, assigned admin. */
+export async function adminMayReviewTutor(
+  runtime: AuthRuntime,
+  identity: Pick<Identity, "userId" | "sessionId">,
+  tutorId: string,
+) {
+  if (!z.uuid().safeParse(tutorId).success) return false;
+  try {
+    await recheckAdminAssurance(runtime.db, identity);
+  } catch {
+    return false;
+  }
+  const result = await runtime.db.execute<{ allowed: boolean }>(
+    sql`SELECT ${assigned(runtime, identity.userId, identity.sessionId)} AS allowed FROM ${tutorProfiles} WHERE ${tutorProfiles.id}=${tutorId}::uuid`,
+  );
+  return result.rows[0]?.allowed === true;
+}
+
+export const photoReviewInput = z.strictObject({
+  photoId: z.uuid(),
+  action: z.enum(["approve", "reject"]),
+});
+
+/**
+ * Approves or rejects the photo a tutor is waiting on. Approval replaces the
+ * tutor's public photo. Conditional on the photo still waiting, so of two
+ * simultaneous reviews exactly one succeeds; a tutor's own photo needs another
+ * admin.
+ */
+export async function reviewTutorPhoto(
+  runtime: AuthRuntime,
+  headers: Headers,
+  profileId: string,
+  input: unknown,
+  storage: PhotoStorage | null,
+) {
+  const packet = getPrivateWorkflow(runtime);
+  const identity = await requireRole(runtime, headers, "admin");
+  const { photoId, action } = photoReviewInput.parse(input);
+  if (!z.uuid().safeParse(profileId).success)
+    throw new RuleError(404, notFound);
+  const approve = action === "approve";
+  const stale = await runtime.db.transaction(
+    async (tx) => {
+      const permission = await tx.execute<{
+        allowed: boolean;
+        owner: string;
+      }>(
+        sql`SELECT ${assigned(runtime, identity.userId, identity.sessionId, undefined, packet)} AS allowed, ${tutorProfiles.userId} AS owner FROM ${tutorProfiles} WHERE ${tutorProfiles.id}=${profileId}::uuid FOR UPDATE`,
+      );
+      const row = permission.rows[0];
+      if (!row?.allowed) throw new RuleError(404, notFound);
+      if (row.owner === identity.userId)
+        throw new RuleError(
+          403,
+          "You can't review your own photo. Another admin must review it.",
+        );
+      await recheckAdminAssurance(tx, identity);
+      const replaced = approve
+        ? await tx
+            .update(tutorPhotos)
+            .set({ status: "replaced" })
+            .where(
+              and(
+                eq(tutorPhotos.tutorId, profileId),
+                eq(tutorPhotos.status, "approved"),
+              ),
+            )
+            .returning({ key: tutorPhotos.objectKey })
+        : [];
+      const [photo] = await tx
+        .update(tutorPhotos)
+        .set({
+          status: approve ? "approved" : "rejected",
+          reviewedAt: sql`clock_timestamp()`,
+          reviewedByUserId: identity.userId,
+        })
+        .where(
+          and(
+            eq(tutorPhotos.id, photoId),
+            eq(tutorPhotos.tutorId, profileId),
+            eq(tutorPhotos.status, "pending"),
+          ),
+        )
+        .returning({ key: tutorPhotos.objectKey });
+      if (!photo)
+        throw new RuleError(
+          409,
+          "This photo changed. Reload the page and try again.",
+        );
+      await tx.insert(auditEvents).values({
+        actorUserId: identity.userId,
+        targetUserId: row.owner,
+        action: approve ? "tutor_photo.approved" : "tutor_photo.rejected",
+      });
+      assertPrivateWorkflowUnchanged(runtime, packet);
+      return approve ? replaced.map((r) => r.key) : [photo.key];
+    },
+    { isolationLevel: "read committed" },
+  );
+  await discardPhotos(storage, stale);
+  return { status: approve ? ("approved" as const) : ("rejected" as const) };
 }
 
 /**

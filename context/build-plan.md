@@ -210,7 +210,7 @@ Help **elementary, middle-school, high-school and eligible college learners**, o
 | Hosting | **Railway** | One Next.js Node service initially; generated HTTPS development URL is acceptable. |
 | Email | **Resend** | Transactional only; use a permitted test setup until a production sending domain is verified. |
 | Lesson delivery | **Tutor-supplied Zoom / Google Meet link** | Link accessible only to authorized booking participants. |
-| File uploads | **None in V1** | Static brand assets are okay; object storage is conditional on a future approved need. |
+| File uploads | **Tutor profile photos only** | Approved 2026-11-11 (`docs/decisions/2026-11-11-tutor-profile-photos.md`); local dev/test disk now, hosted object storage still conditional. |
 | Payments | **Undecided** | No real checkout, subscriptions, payouts, pricing or refund policy by default. |
 
 ### Mandatory cross-cutting rules
@@ -545,7 +545,7 @@ M6 is **blocked at baseline**, but founders can resolve decisions while engineer
 - [ ] **D-12:** Exact minimum tutor and learner fields and whether separate child logins are allowed.
 - [ ] **D-13:** Tutor-provided unique link for every session vs. approved reusable link.
 - [ ] **D-14:** Review eligibility/moderation and whether reviews ship in V1.
-- [ ] **D-15:** Tutor photo upload, automatic email reminders or other infrastructure additions justified by real user demand.
+- [x] **D-15 (photos):** Tutor photo upload approved 2026-11-11 with admin review and local dev/test storage (`docs/decisions/2026-11-11-tutor-profile-photos.md`). Hosted photo storage, automatic email reminders and other infrastructure additions remain open.
 
 ### M6 approval procedure
 
