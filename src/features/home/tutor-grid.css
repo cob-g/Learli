@@ -1,0 +1,436 @@
+@layer components {
+  /* Landing-page tutor photos (owner's "Tutor List" reference, 2026-11-11).
+     Colours are the reference's own values for this section. One variable,
+     --open (0 or 1), drives every part of a card's reveal. */
+  .tutor-grid {
+    --tile-navy: #1e2873;
+    --tile-mint: #a8ddcc;
+    --tile-mint-50: #e8f6f1;
+    --tile-teal: #36c9a6;
+    --tile-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --panel-min: 64%;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 22px;
+    padding-bottom: 40px;
+  }
+  .tutor-grid > li {
+    transition:
+      opacity 350ms,
+      filter 350ms;
+  }
+  .tutor-grid > li:nth-child(4n + 2),
+  .tutor-grid > li:nth-child(4n + 4) {
+    transform: translateY(40px);
+  }
+
+  .tutor-tile {
+    --open: 0;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    border-radius: 26px;
+    background: var(--tile-mint-50);
+    cursor: pointer;
+    outline: none;
+    transition: box-shadow 400ms var(--tile-ease);
+  }
+  /* Open: keyboard focus on the card or inside it, or a tap on a touch
+     screen. Escape closes it until focus or the pointer leaves. */
+  .tutor-tile:is(:focus-visible, :has(:focus-visible), [data-open]):not(
+      [data-dismissed]
+    ) {
+    --open: 1;
+    box-shadow: 0 30px 60px -30px rgb(30 40 115 / 0.55);
+  }
+  @media (hover: hover) {
+    .tutor-tile:hover:not([data-dismissed]) {
+      --open: 1;
+      box-shadow: 0 30px 60px -30px rgb(30 40 115 / 0.55);
+    }
+    .tutor-grid:has(.tutor-tile:hover) > li:not(:has(.tutor-tile:hover)) {
+      opacity: 0.55;
+      filter: saturate(0.5);
+    }
+  }
+
+  .tutor-tile-photo {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    transform: scale(calc(1 + 0.06 * var(--open)));
+    transition: transform 800ms var(--tile-ease);
+  }
+  .tutor-tile-photo img {
+    object-fit: cover;
+  }
+  .tutor-tile-initials {
+    color: var(--tile-navy);
+    font-size: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+
+  .tutor-tile-tag {
+    position: absolute;
+    z-index: 2;
+    top: 14px;
+    left: 14px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 30px;
+    padding: 0 12px 0 10px;
+    border-radius: 999px;
+    background: #fff;
+    color: var(--tile-navy);
+    font-size: 0.75rem;
+    font-weight: 500;
+    opacity: calc(1 - var(--open));
+    transform: translateY(calc(-6px * var(--open)));
+    transition:
+      opacity 250ms,
+      transform 350ms var(--tile-ease);
+  }
+  .tutor-tile-tag::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--tile-teal);
+  }
+  /* With a lesson-time preference: who fits, and who has other times. */
+  .tutor-tile-tag[data-tone="fit"] {
+    background: var(--tile-navy);
+    color: #fff;
+  }
+  .tutor-tile-tag[data-tone="other"] {
+    color: var(--text-muted);
+  }
+  .tutor-tile-tag[data-tone="other"]::before {
+    background: #a1a7ba;
+  }
+  .tutor-tile-times {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    margin-top: 10px;
+    color: var(--tile-mint);
+    font-size: 0.75rem;
+  }
+  .tutor-tile-times svg {
+    flex: none;
+  }
+  .tutor-tile-times time {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* The sliding sheet carries the band, the navy panel and the dot, so the
+     dot stays on the panel's corner however tall the panel grows. */
+  .tutor-tile-sheet {
+    position: absolute;
+    z-index: 1;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: var(--panel-min);
+    max-height: 88%;
+    transform: translateY(calc(102% * (1 - var(--open))));
+    transition: transform 550ms var(--tile-ease);
+  }
+  .tutor-tile-band {
+    position: absolute;
+    z-index: 0;
+    top: calc(7.5% - 21px);
+    right: -10%;
+    left: -10%;
+    height: 30px;
+    background: var(--tile-mint);
+    opacity: var(--open);
+    transform: translateY(calc(120% * (1 - var(--open)))) rotate(-9deg);
+    transition:
+      transform 550ms var(--tile-ease),
+      opacity 300ms;
+  }
+  .tutor-tile-panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    padding: 44px 22px 20px;
+    background: var(--tile-navy);
+    color: #fff;
+    clip-path: polygon(0 15%, 100% 0, 100% 100%, 0 100%);
+    /* The site's focus ring, in the reference teal so it shows on navy. */
+    --focus-ring: var(--tile-teal);
+  }
+  .tutor-tile-orb {
+    position: absolute;
+    z-index: 2;
+    top: -12px;
+    right: 22px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--tile-teal);
+    box-shadow: 0 0 0 5px var(--tile-navy);
+    transform: scale(var(--open));
+    transition: transform 450ms var(--tile-ease) 120ms;
+  }
+
+  /* Contents fade up 50ms apart when opening; they close together. */
+  .tutor-tile-panel > * {
+    opacity: var(--open);
+    transform: translateY(calc(10px * (1 - var(--open))));
+    transition:
+      opacity 300ms,
+      transform 450ms var(--tile-ease);
+    transition-delay: calc(var(--open) * (120ms + var(--step) * 50ms));
+  }
+  .tutor-tile-panel > :nth-child(1) {
+    --step: 0;
+  }
+  .tutor-tile-panel > :nth-child(2) {
+    --step: 1;
+  }
+  .tutor-tile-panel > :nth-child(3) {
+    --step: 2;
+  }
+  .tutor-tile-panel > :nth-child(4) {
+    --step: 3;
+  }
+  .tutor-tile-panel > :nth-child(5) {
+    --step: 4;
+  }
+  .tutor-tile-name {
+    /* Headings are navy site-wide; this one sits on the navy panel. */
+    color: #fff;
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+  .tutor-tile-sub {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    color: #c9cee8;
+    font-size: 0.75rem;
+  }
+  .tutor-tile-sub > span {
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--tile-mint);
+    color: var(--tile-navy);
+    font-weight: 500;
+  }
+  /* Never squeezed: the line clamp, not the panel, decides where it ends. */
+  .tutor-tile-summary {
+    display: -webkit-box;
+    flex-shrink: 0;
+    overflow: hidden;
+    margin-top: 12px;
+    color: #dde1f2;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    text-wrap: pretty;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+  .tutor-tile-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 12px;
+  }
+  .tutor-tile-languages {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    color: #aeb4d6;
+    font-size: 0.75rem;
+  }
+  .tutor-tile-languages svg {
+    flex: none;
+    color: var(--tile-mint);
+  }
+  .tutor-tile-languages span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tutor-tile-view {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 0 6px 0 14px;
+    border-radius: 11px;
+    background: #fff;
+    color: var(--tile-navy);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 150ms;
+  }
+  .tutor-tile-view:hover {
+    background: var(--tile-mint-50);
+    color: var(--tile-navy);
+  }
+  .tutor-tile-view > span {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    background: var(--tile-navy);
+    color: #fff;
+  }
+
+  /* "Hover a tutor…" where pointers hover; "Tap a tutor…" on touch screens. */
+  .tutor-grid-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+  }
+  .tutor-grid-hint::before {
+    content: "";
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #36c9a6;
+    box-shadow: 0 0 0 4px #e8f6f1;
+  }
+  .tutor-grid-hint [data-touch] {
+    display: none;
+  }
+  @media (hover: none) {
+    .tutor-grid-hint [data-hover] {
+      display: none;
+    }
+    .tutor-grid-hint [data-touch] {
+      display: inline;
+    }
+  }
+
+  @media (max-width: 1240px) {
+    .tutor-tile-summary {
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+    }
+  }
+  @media (max-width: 1100px) {
+    .tutor-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .tutor-grid > li:nth-child(n) {
+      transform: none;
+    }
+    .tutor-grid > li:nth-child(3n + 2) {
+      transform: translateY(40px);
+    }
+  }
+  @media (max-width: 760px) {
+    .tutor-grid {
+      --panel-min: 74%;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      padding-bottom: 28px;
+    }
+    .tutor-grid > li:nth-child(n) {
+      transform: none;
+    }
+    .tutor-grid > li:nth-child(2n) {
+      transform: translateY(28px);
+    }
+    .tutor-tile-panel {
+      padding: 38px 16px 16px;
+    }
+    .tutor-tile-orb {
+      top: -10px;
+      right: 16px;
+      width: 28px;
+      height: 28px;
+    }
+    .tutor-tile-languages {
+      display: none;
+    }
+  }
+  @media (max-width: 440px) {
+    .tutor-grid {
+      --panel-min: 56%;
+      grid-template-columns: minmax(0, 1fr);
+      padding-bottom: 0;
+    }
+    .tutor-grid > li:nth-child(n) {
+      transform: none;
+    }
+    .tutor-tile-languages {
+      display: flex;
+    }
+    .tutor-tile-summary {
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+    }
+  }
+  /* Cards fade up as they appear (Find a tutor results). */
+  @keyframes tutor-tile-enter {
+    from {
+      opacity: 0;
+      translate: 0 14px;
+    }
+  }
+  .tutor-grid[data-entrance] > li {
+    animation: tutor-tile-enter 500ms var(--tile-ease) both;
+    animation-delay: calc(min(var(--i, 0), 11) * 40ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tutor-grid[data-entrance] > li {
+      animation: none;
+    }
+    .tutor-grid > li,
+    .tutor-tile,
+    .tutor-tile-photo,
+    .tutor-tile-tag,
+    .tutor-tile-sheet,
+    .tutor-tile-band,
+    .tutor-tile-orb,
+    .tutor-tile-panel > *,
+    .tutor-tile-view {
+      transition: none;
+    }
+  }
+  /* Forced colours drop backgrounds; keep the card and panel outlined. */
+  @media (forced-colors: active) {
+    .tutor-tile,
+    .tutor-tile-panel {
+      border: 1px solid CanvasText;
+    }
+    .tutor-tile-band,
+    .tutor-tile-orb {
+      display: none;
+    }
+  }
+}

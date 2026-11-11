@@ -64,7 +64,7 @@ export function tutorLevels(tutor: PublicTutor) {
  * validates every value; anything it rejects falls back to the plain link so a
  * bad filter can never break the directory.
  */
-function profileHref(
+export function profileHref(
   slug: string,
   subject: string | undefined,
   level: string | undefined,

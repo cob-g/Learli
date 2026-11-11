@@ -1564,6 +1564,19 @@ within that capacity. Existing local_simulation gate and14-day/60-minute demo
 semantics remain advisory; no production booking or commercial policy approval.
 
 
+### PUB-03 directory lesson time reorders, never hides (owner, 2026-11-11)
+
+The owner's "Find a Tutor" reference replaces the directory filter box with a
+search sentence whose results update as values change. A lesson-time
+preference (viewer IANA zone, weekdays, one time band; whole lesson must fit)
+no longer removes tutors: tutors with a fitting actual open time in the next
+14 days come first, tagged "Fits your time" with that time; everyone else the
+subject/level/language filters allow follows, tagged "Other times". Order
+within each group stays name/slug; paging stays 20 per page over the whole
+list. Over the capacity limit, or if times cannot be read, the full filtered
+list shows in its usual order with a notice; there is still no partial count
+or false empty state. The existing query parameters are unchanged.
+
 ### Local completion-wave scope — 2026-10-12
 
 AUTHORIZED — build-feature delegation for the current local completion wave.

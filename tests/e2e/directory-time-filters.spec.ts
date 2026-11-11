@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { animationsSettled } from "../support/animations";
 import AxeBuilder from "@axe-core/playwright";
 import { randomUUID } from "node:crypto";
 import { createDatabase } from "../../src/lib/db/connection";
@@ -13,6 +14,7 @@ const name = (i: number) =>
 const plain = `/tutors?subject=${subject}&level=college_support&language=en`;
 const filtered = `${plain}&when=preferred&timezone=UTC&days=1&range=morning`;
 async function accessible(page: Page) {
+  await animationsSettled(page);
   expect(
     (
       await new AxeBuilder({ page })
@@ -72,53 +74,20 @@ test.afterAll(async () => {
   await owner.pool.end();
 });
 
-test("opt-in GET filters preserve complete counts, order, paging, Back, keyboard and accessible layouts", async ({
+test("live filters keep complete counts, fitting tutors first, paging, Back, keyboard and accessible layouts", async ({
   page,
 }) => {
   await page.goto(plain);
-  await expect(page.getByRole("status")).toHaveText("21 tutors");
-  await expect(page.getByText("Next time that fits")).toHaveCount(0);
-  await page.getByText("Lesson time (optional)", { exact: true }).click();
-  await page.getByLabel("Availability filter").selectOption("preferred");
-  await page.getByLabel("Your time zone").selectOption("UTC");
-  await page.getByLabel("Monday", { exact: true }).focus();
-  await page.keyboard.press("Space");
-  await page.getByLabel("Preferred time of day").selectOption("morning");
-  let observed:
-    { busy: string | null; action?: string; disabled?: boolean } | undefined;
-  await page.exposeFunction(
-    "recordDirectoryPending",
-    (value: typeof observed) => {
-      observed = value;
-    },
+  await expect(page.getByRole("status")).toHaveText("21 tutors match");
+  await expect(page.getByText("Fits your time")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Apply filters" })).toHaveCount(
+    0,
   );
-  await page.evaluate(() => {
-    const form = document.querySelector('form[role="search"]')!;
-    const record = (
-      window as typeof window & {
-        recordDirectoryPending: (value: {
-          busy: string | null;
-          action?: string;
-          disabled?: boolean;
-        }) => Promise<void>;
-      }
-    ).recordDirectoryPending;
-    new MutationObserver(() => {
-      const submit = form.querySelector<HTMLButtonElement>(
-        'button[type="submit"]',
-      );
-      void record({
-        busy: form.getAttribute("aria-busy"),
-        action: submit?.textContent?.trim(),
-        disabled: submit?.disabled,
-      });
-    }).observe(form, {
-      attributes: true,
-      childList: true,
-      characterData: true,
-      subtree: true,
-    });
-  });
+  const toggle = page.getByRole("button", { name: /Lesson time/ });
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await page.getByLabel("Times in").selectOption("UTC");
+  // Hold the update to observe the pending state, then let it through.
   let resume!: () => void;
   const gate = new Promise<void>((resolve) => {
     resume = resolve;
@@ -127,44 +96,43 @@ test("opt-in GET filters preserve complete counts, order, paging, Back, keyboard
     if (route.request().url().includes("when=preferred")) await gate;
     await route.continue();
   });
-  const submit = page.getByRole("button", { name: "Apply filters" }).click();
+  await page.getByLabel("Monday", { exact: true }).focus();
+  await page.keyboard.press("Space");
+  await expect(
+    page.getByText(
+      "Choose at least one day and a time of day to see who fits.",
+    ),
+  ).toBeVisible();
+  await page.getByLabel(/^Morning/).check();
   try {
-    await expect
-      .poll(() => observed)
-      .toEqual({ busy: "true", action: "Loading tutors…", disabled: true });
+    await expect(
+      page.getByRole("search", { name: "Filter tutors" }),
+    ).toHaveAttribute("aria-busy", "true");
   } finally {
     resume();
   }
-  await submit;
+  await expect(page).toHaveURL(
+    /when=preferred&timezone=UTC&days=1&range=morning/,
+  );
   await page.unroute("**/tutors?*");
-  await expect(page.getByRole("status")).toHaveText("21 tutors");
+  await expect(page.getByRole("status")).toHaveText("21 tutors match");
   await expect(
     page.getByRole("heading", { name: name(0), exact: true }),
   ).toBeVisible();
-  await expect(page.getByText("Next time that fits")).toHaveCount(20);
+  await expect(page.getByText("Fits your time")).toHaveCount(20);
+  await expect(page.getByText(/Next fit:/)).toHaveCount(20);
   await expect(page.getByText(/Local simulation: actual dated/)).toBeVisible();
-  await page.getByRole("button", { name: "Apply filters" }).click();
-  await expect(
-    page.getByRole("button", { name: "Apply filters" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Apply filters" }),
-  ).toBeEnabled();
   await page.getByRole("link", { name: "Next page", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: name(20), exact: true }),
   ).toBeVisible();
-  await expect(page.getByRole("status")).toHaveText("21 tutors");
+  await expect(page.getByRole("status")).toHaveText("21 tutors match");
   await expect(page).toHaveURL(/days=1.*range=morning.*page=2/);
   await page.goBack();
   await expect(page.getByLabel("Monday", { exact: true })).toBeChecked();
-  await expect(
-    page.getByRole("button", { name: "Apply filters" }),
-  ).toBeVisible();
+  await expect(page.getByLabel(/^Morning/)).toBeChecked();
   await page.reload();
-  await expect(
-    page.getByRole("button", { name: "Apply filters" }),
-  ).toBeEnabled();
+  await expect(page.getByLabel("Times in")).toHaveValue("UTC");
   for (const [width, height] of [
     [320, 720],
     [390, 844],
@@ -201,48 +169,46 @@ test("native no-JS form and page links retain the selected days, band and viewer
   });
   const page = await context.newPage();
   await page.goto(plain);
-  await page.getByText("Lesson time (optional)", { exact: true }).click();
-  await page.getByLabel("Availability filter").selectOption("preferred");
-  await page.getByLabel("Your time zone").selectOption("UTC");
+  await page
+    .getByLabel("Lesson time", { exact: true })
+    .selectOption("preferred");
+  await page.getByLabel("Times in").selectOption("UTC");
   await page.getByLabel("Monday", { exact: true }).check();
-  await page.getByLabel("Preferred time of day").selectOption("morning");
-  await page.getByRole("button", { name: "Apply filters" }).click();
-  await expect(page.getByRole("status")).toHaveText("21 tutors");
+  await page.getByLabel(/^Morning/).check();
+  await page.getByRole("button", { name: "Show tutors" }).click();
+  await expect(page.getByRole("status")).toHaveText("21 tutors match");
   await page.getByRole("link", { name: "Next page", exact: true }).click();
   await expect(page.getByLabel("Monday", { exact: true })).toBeChecked();
-  await expect(page.getByLabel("Your time zone")).toHaveValue("UTC");
-  await expect(page.getByLabel("Preferred time of day")).toHaveValue("morning");
+  await expect(page.getByLabel("Times in")).toHaveValue("UTC");
+  await expect(page.getByLabel(/^Morning/)).toBeChecked();
   await expect(
     page.getByRole("heading", { name: name(20), exact: true }),
   ).toBeVisible();
   await context.close();
 });
 
-test("malformed input is safe and focusable, and genuine empty times are separate from unavailable", async ({
+test("malformed input is safe and focusable, and a time nobody fits still lists everyone", async ({
   page,
 }) => {
   await page.goto(
     `${filtered.replace("range=morning", "range=bad")}&learnerId=PRIVATE_CANARY`,
   );
-  await expect(page.getByLabel("Preferred time of day")).toBeFocused();
+  await expect(page.getByLabel(/^Early morning/)).toBeFocused();
   await expect(
     page.getByText("Choose a time-of-day range", { exact: true }),
   ).toBeVisible();
-  await expect(page.getByRole("status")).toHaveCount(0);
   expect((await page.content()).includes("PRIVATE_CANARY")).toBe(false);
+  // Evening: the tutors teach 9:00-17:00, so nobody fits, and nobody is hidden.
   await page.goto(filtered.replace("range=morning", "range=evening"));
-  await expect(
-    page.getByRole("heading", { name: "No tutors match these filters" }),
-  ).toBeVisible();
+  await expect(page.getByRole("status")).toHaveText("21 tutors match");
+  await expect(page.getByText("0 tutors fit your time.")).toBeVisible();
+  await expect(page.getByText("Other times")).toHaveCount(20);
+  await expect(page.getByText("Fits your time")).toHaveCount(0);
   await page.setViewportSize({ width: 390, height: 844 });
   await accessible(page);
-  await page.screenshot({
-    path: ".local/next-wave/directory-empty.png",
-    fullPage: true,
-  });
 });
 
-test("over-cap results show no partial count or list while ordinary browse remains uncapped", async ({
+test("over-cap times fall back to the usual order with a notice; nothing is hidden", async ({
   page,
 }) => {
   const overflow = `${group}-overflow-`;
@@ -252,15 +218,11 @@ test("over-cap results show no partial count or list while ordinary browse remai
     await expect(page.getByRole("main").getByRole("alert")).toContainText(
       "temporarily unavailable",
     );
-    await expect(page.getByRole("status")).toHaveCount(0);
-    await expect(
-      page.getByRole("link", { name: /^View profile:/ }),
-    ).toHaveCount(0);
-    await expect(
-      page.getByRole("heading", { name: "No tutors match these filters" }),
-    ).toHaveCount(0);
-    await page.getByRole("link", { name: "Clear lesson time filter" }).click();
-    await expect(page.getByRole("status")).toHaveText("101 tutors");
+    await expect(page.getByRole("status")).toHaveText("101 tutors match");
+    await expect(page.getByText("Fits your time")).toHaveCount(0);
+    await expect(page.getByText("Other times")).toHaveCount(0);
+    await page.getByRole("link", { name: "Clear filters" }).click();
+    await expect(page).toHaveURL("/tutors");
   } finally {
     await owner.pool.query(
       "UPDATE tutor_profiles SET review_status='suspended' WHERE user_id LIKE $1",

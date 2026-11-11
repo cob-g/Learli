@@ -925,9 +925,9 @@ test("normal private build connects independent College Students, Science bookin
     await filters
       .getByLabel("Level", { exact: true })
       .selectOption("college_support");
-    await filters
-      .getByRole("button", { name: "Apply filters", exact: true })
-      .click();
+    await expect(student.page).toHaveURL(
+      /subject=science&level=college_support/,
+    );
     // The combined suite also reviews its own Science/College Tutor. Its exact
     // current-run fixture may be absent when this Student case runs alone.
     const opsEmail = h.packet.accountEmails.find((email) =>
@@ -944,7 +944,7 @@ test("normal private build connects independent College Students, Science bookin
       ...(opsTutor ? ["Fictional ops-tutor"] : []),
     ];
     await expect(student.page.getByRole("status")).toHaveText(
-      `${expectedProfiles.length} ${expectedProfiles.length === 1 ? "tutor" : "tutors"}`,
+      `${expectedProfiles.length} ${expectedProfiles.length === 1 ? "tutor" : "tutors"} match`,
     );
     await expect(
       student.page.getByRole("link", { name: /^View profile:/ }),
@@ -956,6 +956,9 @@ test("normal private build connects independent College Students, Science bookin
           exact: true,
         }),
       ).toBeVisible();
+    await student.page
+      .getByRole("article", { name: /^Fictional college-tutor, / })
+      .hover();
     await student.page
       .getByRole("link", {
         name: "View profile: Fictional college-tutor",

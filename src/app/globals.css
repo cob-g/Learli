@@ -24,6 +24,8 @@
   --accent-primary: #2eccb0;
   --brand-mint: #a7dccb;
   --accent-strong: #0a7566;
+  /* Teal ink for single italic words in owner references (2026-11-11). */
+  --brand-teal-ink: #17695a;
   --accent-soft: #e6ece8;
 
   /* Navy fields: the home first-viewport field and the footer */
@@ -194,6 +196,8 @@
   --radius-control: 0.625rem;
   --radius-surface: 1rem;
   --radius-overlay: 1.125rem;
+  /* Large feature cards, such as the Find a tutor search sentence. */
+  --radius-feature: 1.75rem;
   /* The kit's image frame: illustration now, consented photography later. */
   --radius-frame: 0.75rem;
   --shadow-float: none;

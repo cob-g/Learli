@@ -1,4 +1,5 @@
 import { enrollBrowserAdmin } from "../support/browser-admin-mfa";
+import { animationsSettled } from "../support/animations";
 import { randomUUID } from "node:crypto";
 import { mkdir, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
@@ -80,6 +81,7 @@ async function code(
   throw Error("Expected owned private proof capture.");
 }
 async function accessible(page: Page) {
+  await animationsSettled(page);
   expect(
     (
       await new AxeBuilder({ page })
@@ -147,8 +149,8 @@ test("renamed specialized labels preserve dated directory counts, pagination, ma
     await expect(editor.getByRole("status")).toHaveText("Subject name saved.");
     const filtered = `/tutors?subject=${subject.slug}&level=college_support&when=any&timezone=UTC`;
     await page.goto(filtered);
-    await expect(page.getByRole("status")).toHaveText("21 tutors");
-    await expect(page.getByText("Next time that fits")).toHaveCount(20);
+    await expect(page.getByRole("status")).toHaveText("21 tutors match");
+    await expect(page.getByText(/^Next fit:/)).toHaveCount(20);
     await expect(
       page.locator("li").filter({
         has: page.getByRole("heading", {
@@ -159,8 +161,8 @@ test("renamed specialized labels preserve dated directory counts, pagination, ma
     ).toContainText(corrected);
     await page.getByRole("link", { name: "Next page", exact: true }).click();
     await expect(page).toHaveURL(/(?:\?|&)page=2(?:&|$)/, { timeout: 15_000 });
-    await expect(page.getByText("Next time that fits")).toHaveCount(1);
-    await expect(page.getByRole("status")).toHaveText("21 tutors");
+    await expect(page.getByText(/^Next fit:/)).toHaveCount(1);
+    await expect(page.getByRole("status")).toHaveText("21 tutors match");
     for (const width of [320, 390, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await accessible(page);
@@ -185,9 +187,9 @@ test("renamed specialized labels preserve dated directory counts, pagination, ma
     try {
       const phone = await native.newPage();
       await phone.goto(filtered);
-      await expect(phone.getByRole("status")).toHaveText("21 tutors");
-      await phone.getByRole("button", { name: "Apply filters" }).click();
-      await expect(phone.getByRole("status")).toHaveText("21 tutors");
+      await expect(phone.getByRole("status")).toHaveText("21 tutors match");
+      await phone.getByRole("button", { name: "Show tutors" }).click();
+      await expect(phone.getByRole("status")).toHaveText("21 tutors match");
       await phone.screenshot({
         path: ".local/next-wave/screenshots/combined-directory-nojs-390.png",
         fullPage: true,
@@ -204,7 +206,10 @@ test("renamed specialized labels preserve dated directory counts, pagination, ma
     await expect(
       page.getByRole("link", { name: /^View profile:/ }),
     ).toHaveCount(0);
-    await expect(page.getByRole("status")).toHaveCount(0);
+    await expect(page.getByRole("status")).toHaveText("0 tutors match");
+    await expect(
+      page.getByRole("heading", { name: "No tutors match these filters" }),
+    ).toBeVisible();
     await page.goto(
       `/get-matched?level=college_support&subject=${subject.slug}&when=any&timezone=UTC`,
     );

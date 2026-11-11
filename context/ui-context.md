@@ -262,8 +262,9 @@ the app after build. No browser font-CDN stylesheet. Lexend is the interface fac
 headings, names, times, labels, controls and body. Literata is explicit
 `font-reading`, used for longer explanations/biographies, never booking data or
 form controls. Literata normal/italic are available; no arbitrary third family.
-Owner-approved exception (2026-11-11): Newsreader italic, loaded only by the
-workspace layout, for the sidebar workspace label (see below).
+Owner-approved exception (2026-11-11): Newsreader italic (root layout,
+`--font-newsreader`, downloaded only where used) for single words in owner
+references: the sidebar workspace label and "Learli" in "Tutors on Learli".
 
 | Role | Size/line | Weight |
 | --- | --- | --- |
@@ -751,6 +752,50 @@ now), Upload/Change and Remove outline buttons (44px), and a polite live status
 line. Admins see the waiting photo and the public one at 160px on the tutor's
 application page with Approve photo / Reject photo, and a "Photo to review"
 pill and "Photos to review" filter in the queue. Existing tokens only.
+
+### Tutors on Learli — photo grid (owner reference, 2026-11-11)
+
+The landing page's tutor section follows the owner's "Tutor List" reference:
+"Tutors on *Learli*" (Newsreader italic, #17695A), a hint ("Hover a tutor to
+see their summary"; "Tap a tutor…" on touch screens) beside "Browse all tutors
+→", a ruled line, then up to eight 4:5 photo cards (26px corners): 4 columns,
+22px gap, 2nd and 4th lowered 40px; 3 columns below 1100px (middle lowered);
+2 below 760px (2nd lowered 28px, 14px gap); 1 below 440px. At rest each card
+shows the approved photo, or the initials on mint #E8F6F1, and a white subject
+tag with a teal dot. Hover, keyboard focus or a tap (hover: none) slides up a
+navy #1E2873 panel (64–88% of the card, diagonal top) with a mint #A8DDCC band
+at −9° and a 34px teal #36C9A6 dot ringed in navy; name (Lexend 600, 19px,
+white), subject pill and levels, summary (bio; 3 whole lines, 2 below 1240px,
+never squeezed), teaching languages and a white View profile button fade up
+50ms apart; the photo zooms to 1.06 and the tag fades. Other cards fade to 55%
+and half saturation on hover only. Motion: cubic-bezier(.2,.8,.2,1), 0.55s
+panel; none under reduced motion. Each card is a tab stop named "Name,
+Subject"; Enter moves to View profile, Escape closes the card and keeps focus
+on it; touch taps open one card at a time. Focus uses the site's teal ring;
+inside the navy panel the ring is the reference teal. These colours are the
+reference's own values for this section.
+
+### Find a tutor — search sentence (owner reference, 2026-11-11)
+
+`/tutors` keeps the site header, "Find a tutor" and its intro, then one white
+search card (`--radius-feature` 28px, thin border, soft shadow, a faint mint
+band at −8° and a teal dot top right) holding the sentence "I'm looking for a
+tutor in [any subject] at [any level], who teaches in [any language]."
+(22–34px). Each bracket is a real select set as inline text: Lexend 600 navy,
+2.5px mint underline that turns teal once set, teal-ink chevron, width of the
+chosen label (a hidden copy sizes it). Results follow each change through the
+address (short debounce); no Apply button. The card foot has a dashed
+"Lesson time (optional)" button (clock, + turning ×) opening Days (Mon–Sun)
+and Time of day (our four windows, one at a time) as toggle buttons that turn
+navy, plus "Times in" (zone), and "Clear filters" at the right while anything
+is set. Without JavaScript the time choices stay open and a "Show tutors"
+button submits the same GET form. Below: "N tutors *on Learli*" or "N tutors
+*match*" (Newsreader italic, `--brand-teal-ink`, a polite live region) with the
+hover/tap hint, then the shared tutor photo grid (cards fade up as they
+appear) or a dashed empty card "No tutors match these filters". With a lesson
+time, fitting tutors come first ("Fits your time", navy tag, "Next fit: …" in
+the panel); others read "Other times". The header is unchanged: it already
+moves to the bottom dock on small screens.
 
 ### Parent Dashboard discovery — 2026-10-17
 

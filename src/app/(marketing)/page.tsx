@@ -10,7 +10,8 @@ import {
   learnerLevelOptions,
 } from "@/features/subjects/catalog";
 import { readPublicCatalog, tutorsHref } from "@/features/tutors/public";
-import { TutorList } from "@/features/tutors/tutor-card";
+import { TutorGrid, TutorGridHint } from "@/features/home/tutor-grid";
+import { tutorGridCards } from "@/features/home/tutor-grid-cards";
 import { TutorFilterForm } from "@/features/tutors/tutor-filter-form";
 import { JsonLd } from "@/components/shared/json-ld";
 import { websiteStructuredData } from "@/lib/seo/crawling";
@@ -120,15 +121,20 @@ export default async function Home() {
       </section>
       {tutors.length > 0 && (
         <section className="page-shell pb-16 md:pb-24">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="text-headline">Tutors on Learli</h2>
-            <Link className="home-cue" href="/tutors">
-              Browse all tutors
-              <ArrowRight size={20} aria-hidden="true" />
-            </Link>
+          <div className="flex flex-wrap items-end justify-between gap-x-7 gap-y-4 border-b border-border pb-7">
+            <h2 className="text-headline">
+              Tutors on <em className="home-italic">Learli</em>
+            </h2>
+            <div className="flex flex-wrap items-center gap-x-7 gap-y-2">
+              <TutorGridHint />
+              <Link className="home-cue" href="/tutors">
+                Browse all tutors
+                <ArrowRight size={20} aria-hidden="true" />
+              </Link>
+            </div>
           </div>
-          <div className="mt-6">
-            <TutorList tutors={tutors.slice(0, 3)} heading="h3" />
+          <div className="mt-10">
+            <TutorGrid cards={tutorGridCards(tutors.slice(0, 8))} />
           </div>
         </section>
       )}
