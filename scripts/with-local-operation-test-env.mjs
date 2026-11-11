@@ -53,6 +53,8 @@ const env = {
   RESEND_API_KEY: "",
   EMAIL_FROM: "",
   ...configured,
+  LOCAL_VERIFICATION_RESEND_KEY: "",
+  LOCAL_VERIFICATION_RECIPIENT: "",
   LOCAL_OPERATION_FIXTURE_ROOT: selected,
 };
 const child = spawn(command, args, { stdio: "inherit", env });

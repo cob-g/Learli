@@ -1,5 +1,19 @@
 # Learli — UI Context
 
+### Verification email presentation — 2026-11-11
+
+The optional owner-only local verification email uses the supplied Learli
+wordmark, navy primary action, paper background and flat white bordered body.
+Use a readable single-column email table, inline styles and native email font
+fallbacks. The primary link says “Verify email address”; retain a copyable
+fallback link, equivalent plain text, private-link advice and ignored-request
+guidance. Do not invent an expiry duration. Attach the original wordmark's PNG
+as a CID image with useful alt text; no remote image, tracking pixel or web-font
+request is needed. The local sender display name is Learli; its test mailbox is
+still `onboarding@resend.dev`. Gmail's sender avatar is outside the HTML template
+and is not configured for this shared address. This does not activate any other
+email path or authorize a domain, BIMI certificate or production change.
+
 ### Authenticator setup QR — 2026-11-10
 
 The existing Admin security flow offers a locally generated scannable QR and the
@@ -76,6 +90,12 @@ navigation. A declaration is not identity verification or proof of guardianship.
 No visual redesign or public-launch claim is authorized.
 
 ### Ordinary local workflow presentation — 2026-10-18
+
+**2026-11-11 scoped exception:** optional owner-only Resend verification uses
+verification-request and inbox instructions without claiming acceptance or
+delivery. Only this explicitly configured path replaces the verification capture
+instructions; reset and email-change instructions continue to describe local
+capture. See `docs/decisions/2026-11-11-local-verification-email.md`.
 
 In explicitly admitted ordinary local operation, use normal account, request,
 booking, confirmation, completion and history language. Do not show private-preview

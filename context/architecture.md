@@ -148,6 +148,15 @@ records actual implementation and verification separately.
 
 ### Ordinary local operation — 2026-10-18
 
+**2026-11-11 scoped exception:** the owner authorized optional email verification
+through Resend Free to one privately configured account-owner mailbox only.
+`LOCAL_VERIFICATION_RESEND_KEY` and `LOCAL_VERIFICATION_RECIPIENT` opt an ordinary
+loopback development runtime into this path; other account and booking mail
+retains capture. No shared hosted HTTPS/sender rule is relaxed. See
+`docs/decisions/2026-11-11-local-verification-email.md` and
+`prompts/features/m5-07-resend-email-verification.md`. Provider activation and
+inbox receipt are not established by local tests.
+
 The owner superseded the separate private manual preview with one ordinary local
 application in the primary checkout on local `main`. Explicit `LOCAL_WORKFLOW_MODE`
 selects development/local auth on owned loopback `learli_dev`, restricted runtime

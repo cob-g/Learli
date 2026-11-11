@@ -116,7 +116,7 @@ export function DraftPolicyPage({
           </h2>
           <p className="mt-4 max-w-prose text-prose">
             {localWorkflow
-              ? "The local app saves accounts, reviewed learner and tutor access, and booking records. Authorized participants can open their saved meeting details. Local timing rules apply to booking changes; commercial terms and payments remain unavailable. Verification messages are captured on this computer; they are not sent to an email provider."
+              ? "The local app saves accounts, reviewed learner and tutor access, and booking records. Authorized participants can open their saved meeting details. Local timing rules apply to booking changes; commercial terms and payments remain unavailable. Verification messages are captured on this computer by default; an explicitly configured local test can send verification to its permitted address."
               : privateWorkflow
                 ? privatePolicyBehavior[policy]
                 : content.localBehavior}

@@ -8225,3 +8225,102 @@ The cancelled booking's meeting section was unavailable. The walkthrough did not
 re-register the account or directly test an active Tutor session, changing a
 meeting link, or mobile layout. Hosted load/cost, real screening and production
 deployment remain unverified and separately gated.
+
+
+### 2026-11-11 — Local Resend verification implementation
+
+- Implemented in the separate `feature/resend-email-verification` worktree,
+  base `2a48b43`, under `prompts/features/m5-07-resend-email-verification.md`
+  (`AUTHORIZED — build-feature delegation`). Opt-in ordinary local verification
+  uses one configured recipient and the fixed Resend test sender. Other mail
+  retains capture; shared hosted sender/origin checks remain unchanged.
+- Independent GPT-6.1 Terra Review: `READY FOR VERIFICATION`, including final
+  fixture and test-wrapper deltas. Repairs addressed account-state disclosure,
+  rate-limit/validation and private-header preservation. Resend responses use
+  a bounded local timing floor, not a production constant-time guarantee.
+- Verification: `npm run check` PASS, 2,429 unit/component tests in 176 files.
+  Four new test-stub lint warnings were removed; final format/lint/typecheck
+  PASS with no lint warnings. Production webpack build PASS with 8 GB heap;
+  158 build traces contain zero private fixture/environment/memory paths.
+  Focused authentication, booking-notification and account-email PostgreSQL
+  regression suites PASS 62/62. Opt-in genuine Better Auth + intercepted Resend
+  runtime PASS 1/1 after an independent owned-fixture marker check; earlier
+  repeated runs also passed. Test wrappers refuse inherited live mail settings.
+- Obscura `--help`, Resend login and official test-sender docs loaded. Google
+  rejected its OAuth login as an unsupported/insecure browser. On the isolated
+  local app, public auth API calls through Obscura JS and genuine link navigation
+  passed signup, pre-verification sign-in denial, tampered-link refusal, genuine
+  verification and subsequent sign-in. Native form interaction did not invoke
+  the expected React handler and its submission was origin-rejected; no app
+  safeguard was relaxed. Real 1440/390 viewport smoke checks had no horizontal
+  overflow, but Obscura rendering showed noscript/fidelity limitations; this is
+  not a full Chromium UI walkthrough.
+- Initial broader DB tests found a Node `server-only` sentinel harness issue,
+  fixed by a Node-test-only mock; production guard stays intact. A repeated
+  opt-in run hit accumulated fixture throttling; the fixture now verifies an
+  independently provisioned private marker, server data directory and cluster
+  identifier before resetting only its own test route counters. See recovery
+  note and `docs/operations/resend-email-verification.md`.
+- Live follow-up (2026-11-11 19:09 Asia/Manila): owner completed Resend Google
+  login in Chrome and privately supplied a Sending key; the agent stopped
+  before key generation/reveal. Copied only the dedicated settings from the
+  original ignored env into the isolated ignored env and restarted only
+  DB55438/app3038. Owner completed Chrome signup with their own password and
+  reported receiving the expected verification email. Read-only isolated DB
+  query confirmed the new account has `email_verified = true`: live owner-only
+  inbox delivery and received-link verification PASS. No duplicate send or
+  proof/key retention. At 19:11 the owner also confirmed successful sign-in
+  after verification: the owner-led live walkthrough is complete. Provider
+  response ID and Free-plan/billing status were not separately inspected.
+  No source changes/new automated suite runs in this activation; prior checks
+  above apply. App/database remain running. No main database change, deployment
+  or merge. A verified sending domain and separate activation are still
+  required before general-user delivery. Other local mail stays captured.
+
+### 2026-11-11 — Branded local verification email
+
+- Owner requested a professional email and sender picture; scoped blueprint
+  `prompts/features/m5-07-verification-email-design.md` is AUTHORIZED —
+  build-feature delegation. Continued in the existing separate email worktree.
+- Local verification now uses Learli as sender display name, original wordmark
+  as a CID PNG, navy action, clear copy, private-link/ignored-request guidance,
+  copyable fallback and equivalent text. Email-native tables/inline styles and
+  fallback fonts; no external image/font/tracking request. Other email paths,
+  hosted checks, exact recipient and genuine-proof validation unchanged.
+- Same-agent read-only Review READY FOR VERIFICATION, no confirmed findings.
+  Separate execution: focused21/21 across4 files PASS; isolated real PostgreSQL
+  + intercepted-provider verification1/1 PASS; lint/typecheck/build PASS. PNG in
+  148/158 build traces; zero private paths. Chromium previews320/390/1440 and
+  long-proof/image-disabled/keyboard checks PASS; phone/desktop visually checked.
+  Detector's two Arial warnings are a documented email-only compatibility
+  exception, not a site font change. Evidence in operational handoff.
+- Gmail avatar cannot be set through HTML or for the shared test sender; no
+  personal profile/DNS/domain/certificate change. New body not sent to Gmail:
+  existing owner is verified and provider does not resend to verified accounts.
+  No verified-state reset, fake proof or extra live mail used. Prior live result
+  applies to prior body. No merge, deployment, main DB or dependency changes.
+
+### 2026-11-11 — Resend worktree rebase on remote main
+
+- Owner requested a safe rebase preserving both the email feature and newer
+  main-branch work. Fetched `origin/main` at `1958765`; it was five commits
+  ahead of the worktree's base `2a48b43`. All32 modified/untracked feature
+  files were independently copied and hash-checked under ignored `.local`;
+  Git stash `4ef7ca3` retained as an additional recovery checkpoint. Private
+  environment files and local databases were not included in either checkpoint.
+- Rebased the branch to `1958765` and applied the checkpoint without conflicts.
+  All32 files remain:28 byte-identical and four combined with main's PRD,
+  tracker, UI context and signup form. The Tutor signup option and the local
+  verification instructions coexist. No merge, push, commit, database reset
+  or deployment was performed; feature changes remain uncommitted.
+- Verification: `npm run check` PASS, 2,435 unit/component tests in177 files,
+  with format, lint and typecheck; isolated test PostgreSQL authentication,
+  account-email and booking notification integration PASS62/62; production build
+  PASS with8GB heap. Chromium read-only smoke at390/1440 verified all three
+  signup choices, configured verification guidance and the tutor-directory empty
+  state without overflow. The populated tutor grid was not exercised in this
+  smoke; full browser E2E was not run. Logs: `.local/rebase-{check,integration,build}.log`.
+- Follow-up to the earlier design checkpoint: owner authorized removing the
+  isolated verification test account, re-registered, and reported the new Gmail
+  email design was professional. No additional live email was sent during this
+  rebase. The main checkout and its database were not changed.

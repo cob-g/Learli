@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { localDatabaseConfig } from "../db/local-config";
+import { mailboxSchema } from "../email/mailbox";
 import { isLoopbackOrigin } from "../local-mode";
 
 const optionalValue = <T extends z.ZodType>(schema: T) =>
@@ -42,6 +43,10 @@ const serverEnvSchema = z
     DATABASE_URL_DIRECT: optionalValue(databaseUrl),
     BETTER_AUTH_SECRET: optionalValue(z.string().min(32)),
     BETTER_AUTH_URL: optionalValue(httpUrl),
+    LOCAL_VERIFICATION_RESEND_KEY: optionalValue(
+      z.string().regex(/^re_[A-Za-z0-9_-]{8,256}$/),
+    ),
+    LOCAL_VERIFICATION_RECIPIENT: optionalValue(mailboxSchema),
     RESEND_API_KEY: optionalValue(z.string().min(1)),
     EMAIL_FROM: optionalValue(z.email()),
     // Tutor profile photos (decision D-15). "local" keeps them on this machine's
@@ -49,6 +54,21 @@ const serverEnvSchema = z
     TUTOR_PHOTO_STORAGE: z.enum(["disabled", "local"]).default("disabled"),
   })
   .superRefine((env, ctx) => {
+    if (
+      (env.LOCAL_VERIFICATION_RESEND_KEY || env.LOCAL_VERIFICATION_RECIPIENT) &&
+      (!(
+        env.LOCAL_VERIFICATION_RESEND_KEY && env.LOCAL_VERIFICATION_RECIPIENT
+      ) ||
+        env.LOCAL_WORKFLOW_MODE !== "enabled" ||
+        env.APP_ENV !== "development" ||
+        env.AUTH_MODE !== "local" ||
+        env.DATABASE_MODE !== "local")
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["LOCAL_VERIFICATION_RESEND_KEY"],
+        message: "Dedicated local verification configuration required",
+      });
     if (env.LOCAL_WORKFLOW_MODE === "enabled") {
       let ownedDatabase = false;
       try {

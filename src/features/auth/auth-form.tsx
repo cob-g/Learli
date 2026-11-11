@@ -49,6 +49,7 @@ export function AuthForm({
   invalidToken = false,
   hosted = false,
   localWorkflow = false,
+  localVerificationEmail = false,
   presentation = "standard",
 }: {
   mode: Mode;
@@ -57,6 +58,7 @@ export function AuthForm({
   invalidToken?: boolean;
   hosted?: boolean;
   localWorkflow?: boolean;
+  localVerificationEmail?: boolean;
   presentation?: "standard" | "reference" | "sign-up-reference";
 }) {
   const signInReference = mode === "sign-in" && presentation === "reference";
@@ -231,9 +233,11 @@ export function AuthForm({
           notice(
             hosted
               ? "If verification is needed, a message request was accepted. Check the address; delivery has not been established."
-              : localWorkflow
-                ? "If verification is needed, its message was captured locally. Run npm run mail:open in your Learli terminal to open it. No email was sent."
-                : "If verification is needed, a message is available in your local mailbox.",
+              : localVerificationEmail
+                ? "If verification is needed, the request was received. Check the configured address; delivery has not been established."
+                : localWorkflow
+                  ? "If verification is needed, its message was captured locally. Run npm run mail:open in your Learli terminal to open it. No email was sent."
+                  : "If verification is needed, a message is available in your local mailbox.",
           );
       } else {
         const result = await authClient.resetPassword({
@@ -310,16 +314,20 @@ export function AuthForm({
         <p className="text-body">
           {hosted
             ? "For a new account, use the verification link for the address you entered, then sign in."
-            : localWorkflow
-              ? "For a new account, open the captured verification message, follow its link, then sign in."
-              : "For a new account, open the verification link in the local test mailbox, then sign in."}
+            : localVerificationEmail
+              ? "For a new account, check the configured address for a verification link, then sign in."
+              : localWorkflow
+                ? "For a new account, open the captured verification message, follow its link, then sign in."
+                : "For a new account, open the verification link in the local test mailbox, then sign in."}
         </p>
         <p className="text-small text-muted-foreground">
           {hosted
             ? "This screen does not confirm email delivery."
-            : localWorkflow
-              ? "Run npm run mail:open in your Learli terminal to open the latest captured message. No email was sent."
-              : "Local test messages are captured rather than sent to an inbox."}
+            : localVerificationEmail
+              ? "This screen does not confirm email delivery."
+              : localWorkflow
+                ? "Run npm run mail:open in your Learli terminal to open the latest captured message. No email was sent."
+                : "Local test messages are captured rather than sent to an inbox."}
         </p>
         <Link
           className={
@@ -504,7 +512,9 @@ export function AuthForm({
                 className="text-small wrap-anywhere text-muted-foreground"
               >
                 {localWorkflow
-                  ? "Use a valid email address. Account messages are captured locally."
+                  ? localVerificationEmail
+                    ? "Verification is available only for the configured address. Other account messages are captured locally."
+                    : "Use a valid email address. Account messages are captured locally."
                   : hosted
                     ? "Use an allowed address ending in .test."
                     : "Use an address ending in .test in this environment."}

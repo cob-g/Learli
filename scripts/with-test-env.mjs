@@ -11,6 +11,9 @@ const env = {
   DATABASE_MODE: "local",
   NEON_DEVELOPMENT_CONFIG_FILE: "",
   LOCAL_WORKFLOW_MODE: "disabled",
+  // A local verification key must never enable provider sends in test servers.
+  LOCAL_VERIFICATION_RESEND_KEY: "",
+  LOCAL_VERIFICATION_RECIPIENT: "",
   GOOGLE_MEET_ENABLED: "false",
   GOOGLE_MEET_CLIENT_ID: "",
   GOOGLE_MEET_CLIENT_SECRET: "",

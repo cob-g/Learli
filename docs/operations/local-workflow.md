@@ -128,3 +128,11 @@ booking/history rows and audits remain unchanged and readable under their
 original contracts; pending/rejected/revoked records are not auto-approved.
 Independent minor access, existing-account linking, public-market eligibility
 and consent/legal rules, and staffed safeguarding remain separate gates.
+
+## Optional owner-only verification email
+
+By default all account messages stay in the private local capture. For an explicitly authorized Resend test, set both `LOCAL_VERIFICATION_RESEND_KEY` and `LOCAL_VERIFICATION_RECIPIENT` privately in `.env.local`, then restart the app. The recipient must be the exact address of the Resend account owner and the account being verified. The sender is `onboarding@resend.dev`; provider restrictions apply. Other verification recipients are refused and reset, email-change and booking messages stay captured. The verification link points to this computer’s loopback app and must be opened there. API acceptance does not establish inbox delivery. Remove both settings and restart to return to capture. Never commit keys or links; a verified owned sending domain and separate activation are required for general-user mail.
+
+Resend documents its [test-sender account-recipient restriction](https://resend.com/docs/knowledge-base/403-error-resend-dev-domain).
+
+The local provider attempt is bounded to three seconds and verification resend responses have a 3.5-second minimum for this test mode. This reduces provider-dependent timing differences under normal local conditions; it is not a production timing guarantee or proof of delivery.
