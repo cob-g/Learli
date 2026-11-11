@@ -1,5 +1,34 @@
 # Learli — Progress Tracker
 
+### 2026-11-11 — Mobile responsiveness audit and fixes (CONDITIONAL PASS)
+
+- Owner asked for production mobile responsiveness across the whole app. New
+  `tests/e2e/responsive.spec.ts` (project `responsive`) signs in as each role
+  with long synthetic names and seeded child/booking/tutor records, opens 68
+  routes (public, auth, Parent, Student, Tutor, Admin, signed-in public) and
+  measures 13 widths (320–1920): page overflow, elements outside the viewport,
+  and controls under 24px. Before and after: 0 overflow, 0 outside elements,
+  0 small targets (884 measurements). No tables exist in the app. Private
+  journeys (`private-fictional-*`) now check the same 13 widths on their
+  populated Admin, booking and family pages.
+- Fixed from screenshot review (presentation only): workspace topbar on phones
+  is one row (Menu, workspace label, avatar) instead of ~170px; ≤22.5rem keeps
+  Menu + avatar; tablets share one row when it fits. Signed-in public header
+  below 64rem is a compact pill (tablet name, phone avatar) instead of a
+  130–150px block; every account state keeps one 4.375rem row with "Checking
+  account…" floating below. Booking details time block is tighter on phones.
+  Details in `context/ui-context.md` ("Mobile responsiveness — 2026-11-11").
+- Verified: `npm run check` PASS (2,409); build PASS; auth/header/shell/
+  foundation/responsive 68/68; full Playwright `--no-deps --workers=1` 211
+  passed, 9 failed = the 8 known stale-test failures plus one Axe
+  "document-title" flake in tutor-dashboard (rerun 8/8 twice); private 3/4
+  (known M5.4). `workspace-shell.spec.ts` now treats the visible account
+  trigger, not the visible name, as the settled-account signal.
+- Limits: Chromium emulation only (no physical iOS/Android, no Safari/Firefox
+  run in this pass); admin pages without staff grants and the booking request
+  form are audited in their unavailable state in the default build, and in
+  their populated state only through the private journeys' 13-width checks.
+
 ### 2026-11-11 — State-machine audit: booking phase, drift tests, four form fixes
 
 - Owner asked to find all implicit state machines and improve UX/DX without

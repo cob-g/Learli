@@ -366,6 +366,18 @@ export class PrivateAdminBrowser extends PrivateStudentBrowser {
   }
 
   async accessible(page: Page) {
+    // Every supported width must fit; Axe runs at the widths it always has.
+    for (const width of [
+      320, 360, 375, 390, 414, 430, 640, 768, 820, 1024, 1280, 1440, 1920,
+    ]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+        `fits at ${width}px`,
+      ).toBe(true);
+    }
     for (const width of [320, 390, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       expect(

@@ -666,6 +666,32 @@ requests) use the same page pieces. Every workspace role now has the
 `data-styled` shell and every account with a role gets the card `/account`;
 only signed-out and role-less chrome keeps the base rules.
 
+### Mobile responsiveness — 2026-11-11 (owner-requested)
+
+Audited every route as the role that opens it at 320, 360, 375, 390, 414, 430,
+640, 768, 820, 1024, 1280, 1440 and 1920px with long synthetic names; none
+scrolls sideways or places content outside the viewport, and no control is
+smaller than 24px. `tests/e2e/responsive.spec.ts` (Playwright project
+`responsive`) keeps that as a gate, and the private-workflow journeys check the
+same widths on their populated Admin, booking and family pages.
+
+- **Workspace topbar, below 40rem:** one row of Menu, the workspace label and
+  the account as its avatar; the breadcrumb is left to the page heading and the
+  account name to the open menu (the trigger's accessible name keeps both).
+  Below 22.5rem the workspace label also yields to the page's eyebrow. From
+  40rem to the sidebar breakpoint the heading shares the account's row when
+  both fit.
+- **Public header, signed in, below 64rem:** the account is a compact pill
+  without the "Account" label (tablets show the name, phones only the avatar),
+  replacing a tall block. Sign in, the checking slot and the chip share one
+  4.375rem row, with "Checking account…" floating below it as on desktop, so
+  the bar never changes height as the account settles. Desktop keeps its
+  wrapping chip.
+- **Booking details, below 40rem:** one level less padding around the lesson
+  time and a smaller date/time, so it keeps a readable line length.
+- Sticky save bars and the public dock float over content by design; full-page
+  screenshots show them mid-page.
+
 ### Account menu — 2026-11-10 (owner-requested)
 
 The signed-in account disclosure (public header and workspace topbar) opens a
