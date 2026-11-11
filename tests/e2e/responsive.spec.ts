@@ -384,3 +384,81 @@ test("admin workspace fits every width", async ({ page, context }) => {
   ]);
   expect(problems("admin")).toEqual([]);
 });
+
+test("workspace dock and its menu sheet work on phones and tablets", async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await tutorProfile(await signIn(page, ["tutor"]));
+  for (const width of [320, 390, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: width < 640 ? 844 : 1024 });
+    await page.goto("/tutor/availability");
+    const dock = page.getByRole("navigation", { name: "Workspace shortcuts" });
+    const menu = page.getByRole("button", { name: "Workspace menu" });
+    if (width >= 1024) {
+      await expect(dock).toBeHidden();
+      continue;
+    }
+    // Three destinations named as in the sidebar, then Menu.
+    await expect(dock).toBeVisible();
+    await expect(dock.getByRole("link")).toHaveText([
+      /Bookings/,
+      /Availability/,
+      /Time off/,
+    ]);
+    await expect(
+      dock.getByRole("link", { name: "Availability", exact: true }),
+    ).toHaveAttribute("aria-current", "page");
+    const box = (await dock.boundingBox())!;
+    expect(box.y + box.height).toBeLessThanOrEqual(page.viewportSize()!.height);
+    // The page's foot stays reachable above the dock.
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    const main = (await page.getByRole("main").boundingBox())!;
+    const lastInMain = await page
+      .getByRole("main")
+      .locator("button, a, input, select")
+      .last()
+      .boundingBox();
+    if (lastInMain)
+      expect(lastInMain.y + lastInMain.height).toBeLessThanOrEqual(
+        (await dock.boundingBox())!.y,
+      );
+    expect(main.width).toBeGreaterThan(0);
+    if (evidence) {
+      await mkdir(path.join(evidence, "dock"), { recursive: true });
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.screenshot({
+        path: path.join(evidence, "dock", `closed-${width}.png`),
+      });
+    }
+    // Menu opens every destination as a sheet above the dock.
+    await menu.click();
+    await expect(menu).toHaveAttribute("aria-expanded", "true");
+    const sheet = page.locator(".workspace-sidebar");
+    await expect(sheet).toBeVisible();
+    const sheetBox = (await sheet.boundingBox())!;
+    expect(sheetBox.y).toBeGreaterThanOrEqual(0);
+    expect(sheetBox.y + sheetBox.height).toBeLessThanOrEqual(
+      (await dock.boundingBox())!.y,
+    );
+    // Focus moves into the sheet, to its first link.
+    await expect(sheet.locator("a, summary").first()).toBeFocused();
+    if (evidence)
+      await page.screenshot({
+        path: path.join(evidence, "dock", `open-${width}.png`),
+      });
+    // A tap outside closes it; so does Escape, returning focus to Menu.
+    await page.mouse.click(5, 5);
+    await expect(menu).toHaveAttribute("aria-expanded", "false");
+    await menu.click();
+    await expect(menu).toHaveAttribute("aria-expanded", "true");
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveAttribute("aria-expanded", "false");
+    await expect(menu).toBeFocused();
+    // A destination in the sheet navigates and closes it.
+    await menu.click();
+    await sheet.getByRole("link", { name: "Profile", exact: true }).click();
+    await expect(page).toHaveURL(/\/tutor\/profile$/);
+    await expect(menu).toHaveAttribute("aria-expanded", "false");
+  }
+});

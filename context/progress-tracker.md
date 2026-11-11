@@ -1,5 +1,25 @@
 # Learli — Progress Tracker
 
+### 2026-11-11 — Workspace bottom dock on phones and tablets
+
+- Owner asked for a floating bottom navbar instead of the top Menu on mobile.
+  Below 64rem the workspace shows a dock with the role's three main
+  destinations and Menu; Menu opens the full sidebar as a sheet above the dock
+  (closes on a destination, outside tap or Escape, focus back to Menu). Dock
+  words are part of the sidebar names (rest is screen-reader text). Without
+  scripts the sidebar stays in place and dock links still work.
+- Found and fixed while verifying: the dock hid for typing and the save bar
+  dropped to match, so blurring a field moved "Submit application" from under
+  the tap (no click). The save bar now keeps its place above the dock.
+- Tests: new dock test in `responsive.spec.ts` (320/390/768: three items +
+  Menu, current item, sheet above dock and on screen, outside tap/Escape/focus,
+  navigation; hidden at 1024/1440); `tutor-dashboard.spec.ts` targets the
+  sidebar's "Tutor work areas" now that the dock repeats those names.
+- Verified: `npm run check` PASS (2,409); build PASS; full Playwright
+  `--no-deps --workers=1` 212 passed, 9 failed = known 8 + one Axe
+  "document-title" flake in six-feature-integration (rerun 2/2 pass); private
+  3/4 (known M5.4).
+
 ### 2026-11-11 — Mobile responsiveness audit and fixes (CONDITIONAL PASS)
 
 - Owner asked for production mobile responsiveness across the whole app. New

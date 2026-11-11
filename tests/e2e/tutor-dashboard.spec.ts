@@ -212,7 +212,11 @@ test("assigned tutor sees truthful next simulation, agenda/history and private a
   // At this width the work areas sit behind the workspace menu.
   await actor.page.getByRole("button", { name: "Workspace menu" }).focus();
   await actor.page.keyboard.press("Enter");
-  await actor.page.getByRole("link", { name: "Time off", exact: true }).focus();
+  // The dock repeats the main destinations; use the menu's own list.
+  await actor.page
+    .getByRole("navigation", { name: "Tutor work areas" })
+    .getByRole("link", { name: "Time off", exact: true })
+    .focus();
   await actor.page.keyboard.press("Enter");
   await expect(actor.page).toHaveURL(/\/tutor\/time-off$/);
   await unrelated.context.close();
@@ -283,6 +287,7 @@ test("empty tutor dashboard and navigation work without JavaScript", async ({
   ).toBeVisible();
   await actor.page.goto("/tutor");
   await actor.page
+    .getByRole("navigation", { name: "Tutor work areas" })
     .getByRole("link", { name: "Availability", exact: true })
     .focus();
   await actor.page.keyboard.press("Enter");

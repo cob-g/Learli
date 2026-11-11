@@ -675,12 +675,23 @@ smaller than 24px. `tests/e2e/responsive.spec.ts` (Playwright project
 `responsive`) keeps that as a gate, and the private-workflow journeys check the
 same widths on their populated Admin, booking and family pages.
 
-- **Workspace topbar, below 40rem:** one row of Menu, the workspace label and
-  the account as its avatar; the breadcrumb is left to the page heading and the
+- **Workspace navigation below 64rem (owner request):** a floating dock at the
+  foot of the screen replaces the top Menu button: the role's three main
+  destinations (Parent: Dashboard, Bookings, Book; Student: Bookings, Book,
+  Learners; Tutor: Bookings, Availability, Time off; Admin: Overview and its
+  main queues), then Menu, which opens the full sidebar as a sheet above the
+  dock (closes on a destination, a tap outside or Escape, returning focus to
+  Menu). The word shown is part of the sidebar name, the rest is screen-reader
+  text; below a 22rem dock only the current item keeps its word. Same material
+  as the topbar and save bars (translucent white, blur, hairline, no shadow);
+  states switch instantly; the page pads its foot, save bars float above the
+  dock, and the dock steps aside while typing. Without scripts the sidebar
+  stays in place and the dock links still work.
+- **Workspace topbar, below 40rem:** the workspace label and the account as
+  its avatar on one row; the breadcrumb is left to the page heading and the
   account name to the open menu (the trigger's accessible name keeps both).
-  Below 22.5rem the workspace label also yields to the page's eyebrow. From
-  40rem to the sidebar breakpoint the heading shares the account's row when
-  both fit.
+  From 40rem to the sidebar breakpoint the heading shares the account's row
+  when both fit.
 - **Public header, signed in, below 64rem:** the account is a compact pill
   without the "Account" label (tablets show the name, phones only the avatar),
   replacing a tall block. Sign in, the checking slot and the chip share one

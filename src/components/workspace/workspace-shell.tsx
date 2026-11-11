@@ -52,6 +52,60 @@ const roleNames: Record<Role, string> = {
   student: "Student",
 };
 
+/**
+ * The phone/tablet dock: each role's three main destinations, then Menu. The
+ * word shown is part of the destination's own name; the rest of the name
+ * stays available to assistive technology, so the dock and the sidebar name
+ * each destination the same way. Destinations absent in a mode are skipped.
+ */
+const dockPicks: Record<Role, [href: string, shown: string][]> = {
+  parent: [
+    ["/parent", "Dashboard"],
+    ["/bookings?scope=guardian", "Bookings"],
+    ["/bookings/new?scope=guardian", "Book"],
+    ["/bookings/new", "Book"],
+    ["/parent/children", "Children"],
+  ],
+  student: [
+    ["/student", "Bookings"],
+    ["/bookings/new?scope=student", "Book"],
+    ["/bookings/new", "Book"],
+    ["/learners", "Learners"],
+  ],
+  tutor: [
+    ["/tutor", "Bookings"],
+    ["/tutor/availability", "Availability"],
+    ["/tutor/time-off", "Time off"],
+    ["/tutor/profile", "Profile"],
+  ],
+  admin: [
+    ["/admin", "Overview"],
+    ["/admin/requests", "reviews"],
+    ["/admin/bookings", "bookings"],
+    ["/admin/support", "support"],
+    ["/admin/tutors", "Tutor review"],
+  ],
+};
+function dockLinks(role: Role | null, links: readonly GroupedNavLink[]) {
+  if (!role) return [];
+  return dockPicks[role]
+    .flatMap(([href, shown]) => {
+      const link = links.find((item) => item.href === href);
+      const at = link ? link.label.indexOf(shown) : -1;
+      return link && at >= 0
+        ? [
+            {
+              link,
+              before: link.label.slice(0, at),
+              shown,
+              after: link.label.slice(at + shown.length),
+            },
+          ]
+        : [];
+    })
+    .slice(0, 3);
+}
+
 type Account = { id: string; name: string; roles: Role[] };
 function parseAccount(value: unknown, userId: string): Account | null {
   if (
@@ -321,6 +375,21 @@ function WorkspaceChrome({
   useEffect(() => {
     if (open) panel.current?.querySelector<HTMLElement>("a, summary")?.focus();
   }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    // The open menu is a sheet over the page: a tap outside it closes it.
+    const dismiss = (event: PointerEvent) => {
+      const target = event.target;
+      if (
+        target instanceof Node &&
+        !panel.current?.contains(target) &&
+        !trigger.current?.contains(target)
+      )
+        setOpenRoute(null);
+    };
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, [open]);
   const links = workspaceLinks(role, {
     screening: screeningEnabled,
     privateWorkflow,
@@ -340,6 +409,18 @@ function WorkspaceChrome({
     { href: "/support", label: "Support requests" },
     { href: "/account", label: "Account settings" },
   ];
+  const grouped =
+    role === "admin"
+      ? groupAdminLinks(links)
+      : role === "tutor"
+        ? groupTutorLinks(links)
+        : role === "parent"
+          ? groupParentLinks(links)
+          : groupStudentLinks(links);
+  const dock = dockLinks(role, [
+    ...grouped.ungrouped,
+    ...grouped.groups.flatMap((group) => group.links),
+  ]);
   // The breadcrumb names the current role or shared destination.
   const page = [...links, ...common].find(
     (link) =>
@@ -356,29 +437,6 @@ function WorkspaceChrome({
         data-styled={styled || undefined}
       >
         <div className="workspace-heading">
-          <button
-            ref={trigger}
-            type="button"
-            className="action action-outline workspace-menu-toggle"
-            aria-label="Workspace menu"
-            aria-expanded={open}
-            aria-controls={panelId}
-            onClick={() => setOpenRoute(open ? null : routeKey)}
-            onKeyDown={(event) => {
-              // The toggle sits outside the sidebar, so it handles Escape itself.
-              if (event.key === "Escape" && open) {
-                event.preventDefault();
-                setOpenRoute(null);
-              }
-            }}
-          >
-            {open ? (
-              <X size={20} aria-hidden="true" />
-            ) : (
-              <Menu size={20} aria-hidden="true" />
-            )}{" "}
-            Menu
-          </button>
           {admin && (
             <span
               className="workspace-crumb workspace-crumb-root text-small"
@@ -495,19 +553,7 @@ function WorkspaceChrome({
         )}
         {links.length > 0 && (
           <nav aria-label={`${role ? roleNames[role] : "Student"} work areas`}>
-            <GroupedLinks
-              grouped={
-                role === "admin"
-                  ? groupAdminLinks(links)
-                  : role === "tutor"
-                    ? groupTutorLinks(links)
-                    : role === "parent"
-                      ? groupParentLinks(links)
-                      : groupStudentLinks(links)
-              }
-              pathname={pathname}
-              scope={scope}
-            />
+            <GroupedLinks grouped={grouped} pathname={pathname} scope={scope} />
           </nav>
         )}
         <nav aria-label="Workspace navigation" className="workspace-secondary">
@@ -560,6 +606,56 @@ function WorkspaceChrome({
           </a>
         </nav>
       </aside>
+      {/* Phones and tablets navigate from this dock; the sidebar above is its
+          Menu sheet. Wider screens hide the dock and keep the sidebar. */}
+      <nav aria-label="Workspace shortcuts" className="workspace-dock">
+        <ul role="list" className="workspace-dock-track">
+          {dock.map(({ link, before, shown, after }) => (
+            <li key={link.href}>
+              <Link
+                prefetch={false}
+                href={link.href}
+                className="workspace-dock-link"
+                aria-current={
+                  isCurrentLink(pathname, link, scope) ? "page" : undefined
+                }
+              >
+                <LinkIcon icon={link.icon} />
+                <span className="workspace-dock-label">
+                  {before && <span className="sr-only">{before}</span>}
+                  <span className="workspace-dock-word">{shown}</span>
+                  {after && <span className="sr-only">{after}</span>}
+                </span>
+              </Link>
+            </li>
+          ))}
+          <li>
+            <button
+              ref={trigger}
+              type="button"
+              className="workspace-dock-link workspace-menu-toggle"
+              aria-label="Workspace menu"
+              aria-expanded={open}
+              aria-controls={panelId}
+              onClick={() => setOpenRoute(open ? null : routeKey)}
+              onKeyDown={(event) => {
+                // The toggle sits outside the sidebar, so it handles Escape itself.
+                if (event.key === "Escape" && open) {
+                  event.preventDefault();
+                  setOpenRoute(null);
+                }
+              }}
+            >
+              {open ? (
+                <X size={22} aria-hidden="true" />
+              ) : (
+                <Menu size={22} aria-hidden="true" />
+              )}
+              <span className="workspace-dock-label">Menu</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
     </>
   );
 }
