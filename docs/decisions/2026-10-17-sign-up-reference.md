@@ -69,3 +69,15 @@ refusal alert over the decorative ribbon. A signup-only opaque existing surface
 restores readable contrast without changing alert semantics, copy, focus or
 registration behavior. R6 in the signup validation recovery note records this
 targeted correction and retained before-fix evidence.
+
+## Owner update — Tutor replaces Choose later (2026-11-11)
+
+The owner found "Choose later" unclear and asked to replace it with Tutor. The
+account type now offers Parent or guardian, College Student and Tutor ("I want
+to teach"), with none pre-selected. Tutor continues after verification to
+Become a tutor (and is pre-selected when sign-up comes from there); one press
+of "Start tutor application" grants the tutor role and opens the tutor
+workspace, so a page visit or verification still never grants a role, and
+admin approval is still required before a tutor is public. Leaving the type
+blank keeps the earlier plain-account path (continue to the destination or
+account settings), so existing flows are unchanged.

@@ -189,8 +189,9 @@ compact original-wordmark/copyright row, thin rule and Privacy draft, Terms
 draft and Help links. These keep real destinations and policy status, wrap on
 phones and reserve dock space. All other pages retain the shared footer.
 Signup-only 54px inputs/56px submit and 14px control corners follow the reference.
-Native radio cards retain all three existing account intentions and defaults:
-Choose later, Parent or guardian and College Student. Display name, validation,
+Native radio cards offer three account intentions: Parent or guardian, College
+Student and Tutor ("I want to teach"), with none pre-selected; Tutor spans the
+row. "Choose later" was removed (owner, 2026-11-11). Display name, validation,
 verification and downstream permission/eligibility rules stay unchanged.
 The reference's Get started label remains local content. No terms attestation,
 password meter, new account rule or simulated success is added. Enabled submit
@@ -540,7 +541,9 @@ unfinished booking or guardian workflows available, approve real-user intake,
 or establish deployment readiness.
 
 The approved parent journey starts with an optional “Account type” choice during
-signup: “Choose later” or “Parent or guardian”. Parent intent continues through
+signup (Parent or guardian, College Student or Tutor; left blank, a plain
+account). Tutor intent continues to Become a tutor, where “Start tutor
+application” opens the tutor workspace. Parent intent continues through
 verification and sign-in to a private setup page. “Continue as parent” is an
 explicit action; a page visit or verification callback never grants a role.
 Existing roleless accounts can use “Set up parent workspace” in account settings.

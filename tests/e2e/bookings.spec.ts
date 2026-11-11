@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { animationsSettled } from "../support/animations";
 import { test, expect, type Browser, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { createDatabase } from "../../src/lib/db/connection";
@@ -108,6 +109,8 @@ async function choose(page: Page, slug: string, multiple = false) {
   await expect(page.locator('input[name="time"]').first()).toBeVisible();
 }
 async function accessible(page: Page) {
+  // Scan the settled page, not a control mid colour transition.
+  await animationsSettled(page);
   expect(
     (
       await new AxeBuilder({ page })

@@ -83,7 +83,8 @@ describe("parent registration intent", () => {
   });
   it("keeps generic registration roleless and returns it to account settings", async () => {
     render(<AuthForm mode="sign-up" />);
-    expect(screen.getByLabelText("Account type")).toHaveValue("later");
+    // No account type chosen: a plain account, as before.
+    expect(screen.getByLabelText("Account type")).toHaveValue("");
     fillSignup();
     fireEvent.submit(
       screen.getByRole("button", { name: "Create account" }).closest("form")!,
