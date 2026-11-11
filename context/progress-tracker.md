@@ -1,5 +1,21 @@
 # Learli — Progress Tracker
 
+### 2026-11-11 — Sign-up offers Tutor instead of "Choose later"
+
+- Account type is now Parent or guardian / College Student / Tutor ("I want to
+  teach"), none pre-selected. Tutor continues to Become a tutor after
+  verification (pre-selected when sign-up comes from there); "Start tutor
+  application" still grants the role and opens the tutor workspace, and admin
+  approval still gates the public listing. A blank choice keeps the old plain
+  account path. Become a tutor copy links "Create an account as a tutor".
+  Decision record, UI context and the tutor QA checklist updated.
+- Tests: sign-up component tests cover the three options, Tutor continuation,
+  Tutor pre-selection from Become a tutor and the blank path.
+- Verified: `npm run check` PASS (2,419); build PASS; Playwright 221 passed,
+  failures = the known 8 plus bookings:267, an axe scan catching a button
+  mid colour transition; its scan now waits for transitions (3/3 PASS, the
+  bookings project otherwise only the known :353).
+
 ### 2026-11-11 — Find a tutor as a search sentence (owner reference)
 
 - `/tutors` now follows the owner's "Find a Tutor" reference: a search sentence

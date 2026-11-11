@@ -25,6 +25,16 @@ import {
 } from "@/features/student-onboarding/continuation";
 
 type Mode = "sign-in" | "sign-up" | "forgot" | "reset" | "verify";
+
+/** Who a new account is for; each choice continues to its own setup. */
+type AccountType = "parent" | "student" | "tutor" | "";
+const accountTypes = [
+  ["parent", "Parent or guardian", "For my child"],
+  ["student", "College Student", "For myself"],
+  ["tutor", "Tutor", "I want to teach"],
+] as const;
+/** Tutors continue to Become a tutor, where they start their application. */
+const tutorStart = "/become-a-tutor";
 const labels: Record<Mode, string> = {
   "sign-in": "Sign in",
   "sign-up": "Create account",
@@ -67,28 +77,35 @@ export function AuthForm({
   const signUpInFlight = useRef(false);
   const [signUpDetails, setSignUpDetails] = useState({ name: "", email: "" });
   const emailField = useRef<HTMLInputElement>(null);
-  const [accountType, setAccountType] = useState(
+  // Who the account is for. A choice only decides where sign-up continues;
+  // every role is still taken later by an explicit action. Left blank, the
+  // account is plain and continues to its destination or account settings.
+  const [accountType, setAccountType] = useState<AccountType>(
     isParentOnboardingPath(next)
       ? "parent"
       : isStudentOnboardingPath(next)
         ? "student"
-        : "later",
+        : next === tutorStart
+          ? "tutor"
+          : "",
   );
   const status = useRef<HTMLParagraphElement>(null);
   const studentIntent = isStudentOnboardingPath(next);
   const unwrappedStudent = studentIntent ? studentContinuation(next) : next;
   const returnTo =
-    mode === "sign-up" && accountType === "parent"
-      ? parentOnboardingHref(unwrappedStudent)
-      : mode === "sign-up" && accountType === "student"
-        ? studentOnboardingHref(
-            isParentOnboardingPath(next) ? parentContinuation(next) : next,
-          )
-        : mode === "sign-up" && studentIntent
-          ? safeBookingReturnPath(unwrappedStudent)
-          : studentIntent
-            ? studentOnboardingHref(next)
-            : safeBookingReturnPath(next);
+    mode === "sign-up" && accountType === "tutor"
+      ? tutorStart
+      : mode === "sign-up" && accountType === "parent"
+        ? parentOnboardingHref(unwrappedStudent)
+        : mode === "sign-up" && accountType === "student"
+          ? studentOnboardingHref(
+              isParentOnboardingPath(next) ? parentContinuation(next) : next,
+            )
+          : mode === "sign-up" && studentIntent
+            ? safeBookingReturnPath(unwrappedStudent)
+            : studentIntent
+              ? studentOnboardingHref(next)
+              : safeBookingReturnPath(next);
   const notice = (text: string, error = false) => {
     setMessage(text);
     setFailed(error);
@@ -375,15 +392,11 @@ export function AuthForm({
           {signUpReference && (
             <fieldset className="sign-up-choices">
               <legend>Account type</legend>
-              {[
-                ["parent", "Parent or guardian", "For my child"],
-                ["student", "College Student", "For myself"],
-                ["later", "Choose later", ""],
-              ].map(([value, label, description]) => (
+              {accountTypes.map(([value, label, description]) => (
                 <label
                   className="sign-up-option"
                   key={value}
-                  data-later={value === "later" ? "" : undefined}
+                  data-wide={value === "tutor" ? "" : undefined}
                 >
                   <input
                     type="radio"
@@ -392,15 +405,11 @@ export function AuthForm({
                     checked={accountType === value}
                     onChange={() => setAccountType(value)}
                     aria-labelledby={`account-${value}-label`}
-                    aria-describedby={
-                      description ? `account-${value}-help` : undefined
-                    }
+                    aria-describedby={`account-${value}-help`}
                   />
                   <span>
                     <span id={`account-${value}-label`}>{label}</span>
-                    {description && (
-                      <small id={`account-${value}-help`}>{description}</small>
-                    )}
+                    <small id={`account-${value}-help`}>{description}</small>
                   </span>
                 </label>
               ))}
@@ -418,17 +427,18 @@ export function AuthForm({
                 value={accountType}
                 onChange={(event) =>
                   setAccountType(
-                    event.target.value === "parent"
-                      ? "parent"
-                      : event.target.value === "student"
-                        ? "student"
-                        : "later",
+                    accountTypes.find(
+                      ([value]) => value === event.target.value,
+                    )?.[0] ?? "",
                   )
                 }
               >
-                <option value="later">Choose later</option>
-                <option value="parent">Parent or guardian</option>
-                <option value="student">College Student</option>
+                <option value="">Choose one</option>
+                {accountTypes.map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
               </select>
             </div>
           )}

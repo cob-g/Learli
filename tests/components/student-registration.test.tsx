@@ -85,7 +85,7 @@ describe("College Student signup intent and independent form default", () => {
       "student",
     );
   });
-  it.each(["parent", "later"])(
+  it.each(["parent", "tutor", ""])(
     "unwraps inherited College intent when switching to %s",
     async (choice) => {
       render(<AuthForm mode="sign-up" next={studentOnboardingHref(next)} />);
@@ -100,7 +100,13 @@ describe("College Student signup intent and independent form default", () => {
           client.signup.mock.calls[0][0].callbackURL,
           "https://staging.example.test",
         ).searchParams.get("next"),
-      ).toBe(choice === "parent" ? parentOnboardingHref(next) : next);
+      ).toBe(
+        choice === "parent"
+          ? parentOnboardingHref(next)
+          : choice === "tutor"
+            ? "/become-a-tutor"
+            : next,
+      );
     },
   );
   it("preserves selection when switching inherited Parent intent to College Student", async () => {

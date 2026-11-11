@@ -37,8 +37,8 @@ default admission and policy-booking compositions remain disabled.
 
 Role: New Tutor A.
 
-- [ ] Open Learli and create an account through Sign Up. Use Choose later for
-      the current generic signup path; do not expect a Tutor account-type option.
+- [ ] Open Learli and create an account through Sign Up and choose Tutor
+      ("I want to teach"); after verifying, sign-in continues to Become a tutor.
 - [ ] Verify the email using the approved environment's delivery mechanism.
 - [ ] Sign in and open Become a tutor.
 - [ ] Click Start tutor application and reach the Tutor profile form.

@@ -32,8 +32,12 @@ function Application() {
           </p>
           <p className="mt-6 max-w-prose text-body text-muted-foreground">
             This development preview lets you prepare a tutor application. Live
-            lesson terms are not set. You will need to{" "}
-            <Link href="/sign-in?next=%2Fbecome-a-tutor">sign in</Link> first.
+            lesson terms are not set. Start below: it opens your tutor
+            workspace. New here?{" "}
+            <Link href="/sign-up?next=%2Fbecome-a-tutor">
+              Create an account as a tutor
+            </Link>
+            , or <Link href="/sign-in?next=%2Fbecome-a-tutor">sign in</Link>.
           </p>
           <StartApplication />
         </div>

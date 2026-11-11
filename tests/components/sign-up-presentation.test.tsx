@@ -143,18 +143,20 @@ describe("reference sign-up presentation", () => {
     expect(choices.querySelector("legend")).toHaveTextContent("Account type");
     expect(radios).toHaveLength(3);
     for (const [name, value] of [
-      ["Choose later", "later"],
       ["Parent or guardian", "parent"],
       ["College Student", "student"],
+      ["Tutor", "tutor"],
     ]) {
       const radio = within(choices).getByRole("radio", { name });
       expect(radio).toHaveAttribute("name", "accountType");
       expect(radio).toHaveAttribute("value", value);
       expect(radio).toBeDisabled();
     }
+    // Nothing is chosen for the visitor; "Choose later" no longer exists.
+    for (const radio of radios) expect(radio).not.toBeChecked();
     expect(
-      within(choices).getByRole("radio", { name: "Choose later" }),
-    ).toBeChecked();
+      within(choices).queryByRole("radio", { name: "Choose later" }),
+    ).toBeNull();
     for (const field of [...fields, toggle, submit])
       expect(field).toBeDisabled();
     expect(fields[0]).toHaveAttribute("autocomplete", "nickname");
@@ -255,7 +257,7 @@ describe("reference sign-up presentation", () => {
     await expectContinuation(studentOnboardingHref(pendingBooking));
   });
 
-  it("lets Choose later remove inherited College intent while retaining the pending booking and roleless provider payload", async () => {
+  it("lets Tutor replace inherited College intent and continue to Become a tutor with a roleless provider payload", async () => {
     render(
       <AuthForm
         mode="sign-up"
@@ -263,10 +265,21 @@ describe("reference sign-up presentation", () => {
         next={studentOnboardingHref(pendingBooking)}
       />,
     );
-    fireEvent.click(screen.getByRole("radio", { name: "Choose later" }));
+    fireEvent.click(screen.getByRole("radio", { name: "Tutor" }));
     fillSignup();
     submitSignup();
-    await expectContinuation(pendingBooking);
+    await expectContinuation("/become-a-tutor");
+  });
+
+  it("preselects Tutor when sign-up comes from Become a tutor", () => {
+    render(
+      <AuthForm
+        mode="sign-up"
+        presentation="sign-up-reference"
+        next="/become-a-tutor"
+      />,
+    );
+    expect(screen.getByRole("radio", { name: "Tutor" })).toBeChecked();
   });
 
   it("toggles the same credential field with accessible state while preserving its value across account-choice changes", () => {
