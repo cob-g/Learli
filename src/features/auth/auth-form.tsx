@@ -59,6 +59,8 @@ export function AuthForm({
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
   const [failed, setFailed] = useState(false);
+  // A client-side validation failure, which the account-recovery links don't help.
+  const [invalid, setInvalid] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [signUpReceived, setSignUpReceived] = useState(false);
   const [signUpErrors, setSignUpErrors] = useState<SignUpErrors>({});
@@ -90,6 +92,7 @@ export function AuthForm({
   const notice = (text: string, error = false) => {
     setMessage(text);
     setFailed(error);
+    setInvalid(false);
     requestAnimationFrame(() => status.current?.focus());
   };
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -123,6 +126,7 @@ export function AuthForm({
       setSignUpErrors(errors);
       if (Object.keys(errors).length) {
         notice("Check the highlighted fields and try again.", true);
+        setInvalid(true);
         return;
       }
       signUpInFlight.current = true;
@@ -640,7 +644,7 @@ export function AuthForm({
             Request a new reset link
           </Link>
         )}
-        {mode === "sign-up" && failed && (
+        {mode === "sign-up" && failed && !invalid && (
           <>
             <Link
               className="inline-flex min-h-11 items-center"

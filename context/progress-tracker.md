@@ -1,5 +1,35 @@
 # Learli — Progress Tracker
 
+### 2026-11-11 — State-machine audit: booking phase, drift tests, four form fixes
+
+- Owner asked to find all implicit state machines and improve UX/DX without
+  breaking anything. Four read-only audits catalogued 11 domain machines (all
+  DB-enforced), 41 client form/session machines in five patterns, and the
+  live-update/shell machines. Catalog and rules: `docs/state-machines.md`;
+  short rule in `context/code-standards.md` ("State machines").
+- Decided NOT to merge all forms into one hook: key lifetime, uncertain-outcome
+  rules and recovery differ per endpoint and are pinned by tests.
+- Changed: exhaustive `bookingPhase()` replaces negation chains in read-status,
+  family dashboard and tutor agenda (equivalence pinned in
+  `tests/unit/booking-phase.test.ts`); the read-status "elapsed" latch is now per
+  deadline; `tests/integration/state-machine-drift.test.ts` asserts TS state
+  sets/transition pairs and delivery claim interval/attempt cap against live DB
+  constraints and functions (no drift found; `workflowStates`/`deliveryStates`
+  const arrays now back their types). Fixed with regression tests: tutor profile
+  no longer marks edits made during a save as saved; admin security announces
+  "Recovery codes replaced" as status, not an error alert; safety restriction
+  never shows raw "Failed to fetch"/SyntaxError text; sign-up validation errors
+  no longer show account-recovery links. `hosted-auth.spec.ts` now expects the
+  status role.
+- Verified: `npm run check` PASS (2,409); build PASS; integration 1,148 passed /
+  20 failed, none from this change (19 `google-meet.test.ts` fixtures now fail
+  M5.3 screening coverage, 1 `policy-booking.test.ts` uses a fixed 2026-11-11
+  time that has passed, hosted-auth needs its TLS port); drift test 5/5.
+  Playwright `--no-deps --workers=1`: the known 8 failures only, after the
+  hosted-auth expectation update (rerun 14/14 with four-feature-integration,
+  whose one axe "document-title" failure did not reproduce); private 3/4 (known).
+- Follow-ups listed in `docs/state-machines.md` §5.
+
 ### 2026-11-10 — Get matched shows honest closest alternatives
 
 - Owner request (option 2 of 3; the owner is adding subjects to the existing

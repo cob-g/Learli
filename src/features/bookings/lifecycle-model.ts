@@ -31,6 +31,34 @@ export const demoStateLabels: Record<BookingState, string> = {
 export function demoLiveState(state: BookingState) {
   return state === "demo_reserved" || state === "demo_confirmed";
 }
+
+/**
+ * Where each saved state sits in a booking's life, for presentation only: the
+ * database alone decides transitions. `held` is reserved with a deadline that
+ * can still expire; `confirmed` is a confirmed lesson; `ended` is no longer
+ * active. Every state must be placed here, so a new state fails to compile
+ * until it is, instead of falling silently into whichever branch a negation
+ * leaves it in.
+ */
+export type BookingPhase = "held" | "confirmed" | "ended";
+const bookingPhases = {
+  demo_reserved: "held",
+  demo_confirmed: "held",
+  provisional: "held",
+  confirmed: "confirmed",
+  demo_expired: "ended",
+  demo_cancelled: "ended",
+  demo_replaced: "ended",
+  demo_completed: "ended",
+  expired: "ended",
+  cancelled: "ended",
+  replaced: "ended",
+  completed: "ended",
+  no_show: "ended",
+} as const satisfies Record<BookingState, BookingPhase>;
+export function bookingPhase(state: BookingState): BookingPhase {
+  return bookingPhases[state];
+}
 export function effectiveDemoState(
   state: BookingState,
   expires: Date,

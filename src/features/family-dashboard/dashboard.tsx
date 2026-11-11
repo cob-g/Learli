@@ -1,4 +1,7 @@
-import { demoLiveState } from "@/features/bookings/lifecycle-model";
+import {
+  bookingPhase,
+  demoLiveState,
+} from "@/features/bookings/lifecycle-model";
 import Link from "next/link";
 import "./family-dashboard.css";
 import {
@@ -53,8 +56,7 @@ export function StatusBadge({
   state: ReservationView["state"];
   privateWorkflow?: boolean;
 }) {
-  const expired =
-    !demoLiveState(state) && state !== "provisional" && state !== "confirmed";
+  const expired = bookingPhase(state) === "ended";
   const success =
     privateWorkflow && (state === "confirmed" || state === "completed");
   const Icon = success ? Check : expired ? TimerOff : TriangleAlert;

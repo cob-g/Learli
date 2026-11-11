@@ -119,8 +119,11 @@ export function TutorProfileForm({
   }));
   const [dirty, setDirty] = useState(false);
   const offeringsRef = useRef<HTMLFieldSetElement>(null);
+  // Counts edits so a save can tell whether the tutor kept typing while it ran.
+  const editCount = useRef(0);
 
   function edited() {
+    editCount.current += 1;
     setDirty(true);
     setNotice((current) => (current?.failed ? current : undefined));
   }
@@ -158,6 +161,7 @@ export function TutorProfileForm({
       return;
     }
     const data = new FormData(event.currentTarget);
+    const editsAtSubmit = editCount.current;
     setPending(true);
     setNotice(undefined);
     setErrors({});
@@ -180,11 +184,15 @@ export function TutorProfileForm({
         fields?: FieldErrors;
       } = await response.json().catch(() => ({}));
       if (response.ok) {
-        setNotice({
-          text: body.submitted ? "Application submitted." : "Profile saved.",
-          failed: false,
-        });
-        setDirty(false);
+        // Edits made while saving were not sent: keep them flagged as unsaved
+        // (and let the unsaved indicator show instead of a "saved" notice).
+        if (editCount.current === editsAtSubmit) {
+          setNotice({
+            text: body.submitted ? "Application submitted." : "Profile saved.",
+            failed: false,
+          });
+          setDirty(false);
+        }
         router.refresh();
       } else {
         setErrors(body.fields ?? {});

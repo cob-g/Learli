@@ -3,6 +3,8 @@ import { useRef, useState } from "react";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useRouter } from "next/navigation";
+const uncertain =
+  "The change could not be confirmed. Reload the case to check its current status before trying again.";
 export function SafetyRestrictionForm({
   targetId,
   revision,
@@ -36,13 +38,20 @@ export function SafetyRestrictionForm({
               : "synthetic_safety_restore",
         }),
       });
-      const v = await r.json();
-      if (!r.ok) throw new Error(v.message);
+      const v: { message?: unknown } | null = await r.json().catch(() => null);
+      if (!r.ok || !v) {
+        setMessage(
+          !r.ok && typeof v?.message === "string" && v.message
+            ? v.message
+            : uncertain,
+        );
+        return;
+      }
       key.current = null;
       router.refresh();
       setMessage("Synthetic access action saved.");
-    } catch (e) {
-      setMessage(e instanceof Error ? e.message : "Action is unavailable.");
+    } catch {
+      setMessage(uncertain);
     } finally {
       setBusy(false);
       dialog.current?.close();

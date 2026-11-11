@@ -133,6 +133,18 @@ Values such as page size are **implementation examples**, not approved product p
 
 ---
 
+
+### State machines
+
+- Domain transitions belong to the database (CHECKs, event-shape CHECKs and
+  SECURITY DEFINER functions); TypeScript mirrors value lists only, and
+  `tests/integration/state-machine-drift.test.ts` must cover each mirror.
+- Present booking status through `bookingPhase()`; do not add new negation
+  chains over booking states.
+- Client forms follow one of the five lifecycle patterns in
+  `docs/state-machines.md` (keyed mutation, durable create, plain save,
+  multi-step, load + action), including its uncertain-outcome rules.
+
 ## Next.js (App Router)
 
 ### Components and rendering

@@ -486,4 +486,29 @@ describe("signup correction and safe request failures", () => {
     await received();
     expect(client.signup).toHaveBeenCalledTimes(2);
   });
+  it("offers account-recovery links only for request failures, not validation errors", async () => {
+    render(<AuthForm mode="sign-up" />);
+    fill({ password: "short" });
+    submit();
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Check the highlighted fields and try again.",
+    );
+    expect(
+      screen.queryByRole("link", { name: "Request another verification link" }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: "Reset your password" }),
+    ).toBeNull();
+
+    client.signup.mockRejectedValueOnce(new Error("network"));
+    fill();
+    submit();
+    expect(await screen.findByText(uncertain)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Request another verification link" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Reset your password" }),
+    ).toBeInTheDocument();
+  });
 });

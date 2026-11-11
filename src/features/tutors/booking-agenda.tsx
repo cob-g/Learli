@@ -1,4 +1,5 @@
 import {
+  bookingPhase,
   demoLiveState,
   type BookingState,
 } from "@/features/bookings/lifecycle-model";
@@ -39,9 +40,7 @@ export function nextTutorSimulation(
   return bookings
     .filter(
       (booking) =>
-        (demoLiveState(booking.state) ||
-          booking.state === "confirmed" ||
-          booking.state === "provisional") &&
+        bookingPhase(booking.state) !== "ended" &&
         new Date(booking.time.startAtUtc).getTime() > now,
     )
     .toSorted(
@@ -58,8 +57,7 @@ function SimulationStatus({
   state: TutorAgendaBooking["state"];
   privateWorkflow?: boolean;
 }) {
-  const expired =
-    !demoLiveState(state) && state !== "provisional" && state !== "confirmed";
+  const expired = bookingPhase(state) === "ended";
   const success =
     privateWorkflow && (state === "confirmed" || state === "completed");
   const Icon = success ? Check : expired ? TimerOff : Hourglass;

@@ -16,14 +16,16 @@ import type { WorkflowEvent } from "@/features/booking-workflows/model";
 import type { BookingMessageInput } from "@/lib/email/transactional-message";
 import type { DeliveryFailure } from "@/features/transactional-delivery/state";
 
-export type DeliveryState =
-  | "pending"
-  | "claimed"
-  | "retryable"
-  | "uncertain"
-  | "provider_accepted"
-  | "suppressed"
-  | "blocked";
+export const deliveryStates = [
+  "pending",
+  "claimed",
+  "retryable",
+  "uncertain",
+  "provider_accepted",
+  "suppressed",
+  "blocked",
+] as const;
+export type DeliveryState = (typeof deliveryStates)[number];
 export const transactionalDeliveries = pgTable(
   "transactional_deliveries",
   {
