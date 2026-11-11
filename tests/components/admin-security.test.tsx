@@ -60,4 +60,27 @@ describe("administrator security form", () => {
       "Enter the current authenticator code",
     );
   });
+  it("announces replaced recovery codes as a status, not an error alert", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ backupCodes: ["synthetic-code-1"] }),
+      }),
+    );
+    render(<AdminSecurityForm enrolled />);
+    fireEvent.change(
+      screen.getByLabelText("Current password for security change"),
+      { target: { value: "synthetic-password" } },
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Replace recovery codes" }),
+    );
+    const status = await screen.findByRole("status");
+    expect(status).toHaveTextContent("Recovery codes replaced.");
+    expect(status).not.toHaveClass("text-error");
+    expect(screen.queryByRole("alert")).toBeNull();
+    await waitFor(() => expect(status).toHaveFocus());
+  });
 });

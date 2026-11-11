@@ -516,7 +516,7 @@ test("real TOTP enrollment/password challenge, recovery reuse, rotation and disa
   await page.getByLabel("Current password for security change").fill(password);
   await page.getByRole("button", { name: "Replace recovery codes" }).click();
   await expect(
-    page.getByRole("alert").filter({ hasText: "Recovery codes replaced" }),
+    page.getByRole("status").filter({ hasText: "Recovery codes replaced" }),
   ).toBeVisible();
   expect(await page.content()).not.toContain(secret!);
   await page.getByRole("link", { name: "Close recovery codes" }).click();

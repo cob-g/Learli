@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Hourglass, TimerOff, CircleCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { demoLiveState } from "./lifecycle-model";
+import { bookingPhase, demoLiveState } from "./lifecycle-model";
 import { bookingStatusLabel } from "@/features/private-workflow/notice";
 import type { BookingSummary } from "./read-model";
 
@@ -15,13 +15,14 @@ export function BookingReadStatus({
   booking: BookingSummary;
   privateWorkflow?: boolean;
 }) {
-  const [elapsed, setElapsed] = useState(false);
+  // Elapsed for one deadline only: a later deadline starts unexpired.
+  const [elapsedFor, setElapsedFor] = useState<string | null>(null);
+  const elapsed = elapsedFor === booking.expiresAtUtc;
   const router = useRouter();
   // Refresh once per deadline so a lagging server snapshot cannot loop.
   const refreshedFor = useRef<string>(null);
   useEffect(() => {
-    if (!demoLiveState(booking.state) && booking.state !== "provisional")
-      return;
+    if (bookingPhase(booking.state) !== "held") return;
     const remaining =
       new Date(booking.expiresAtUtc).getTime() -
       new Date(booking.snapshotAtUtc).getTime();
@@ -29,7 +30,7 @@ export function BookingReadStatus({
     const delay = Math.max(0, remaining);
     const started = performance.now();
     const expire = () => {
-      setElapsed(true);
+      setElapsedFor(booking.expiresAtUtc);
       if (refreshedFor.current === booking.expiresAtUtc) return;
       refreshedFor.current = booking.expiresAtUtc;
       // Server-rendered actions (meeting link, reschedule, cancel) must be
@@ -50,13 +51,8 @@ export function BookingReadStatus({
   const expired =
     booking.state === "demo_expired" ||
     booking.state === "expired" ||
-    ((demoLiveState(booking.state) || booking.state === "provisional") &&
-      elapsed);
-  const terminal =
-    expired ||
-    (!demoLiveState(booking.state) &&
-      booking.state !== "provisional" &&
-      booking.state !== "confirmed");
+    (bookingPhase(booking.state) === "held" && elapsed);
+  const terminal = expired || bookingPhase(booking.state) === "ended";
   const Icon =
     booking.state === "confirmed"
       ? CircleCheck

@@ -1,12 +1,14 @@
 import { sql, type SQL } from "drizzle-orm";
-export type WorkflowState =
-  | "provisional"
-  | "confirmed"
-  | "completed"
-  | "no_show"
-  | "expired"
-  | "cancelled"
-  | "replaced";
+export const workflowStates = [
+  "provisional",
+  "confirmed",
+  "completed",
+  "no_show",
+  "expired",
+  "cancelled",
+  "replaced",
+] as const;
+export type WorkflowState = (typeof workflowStates)[number];
 export type WorkflowEvent =
   | "workflow_provisional"
   | "workflow_confirmed"

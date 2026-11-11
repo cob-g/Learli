@@ -42,6 +42,7 @@ export function AdminSecurityForm({
   const qrCanvas = useRef<HTMLCanvasElement>(null);
   const [codes, setCodes] = useState<string[]>([]);
   const [notice, setNotice] = useState("");
+  const [noticeOk, setNoticeOk] = useState(false);
   const [backup, setBackup] = useState(false);
   const status = useRef<HTMLParagraphElement>(null);
   useEffect(() => {
@@ -87,6 +88,7 @@ export function AdminSecurityForm({
     const field = action.startsWith("verify-") ? "code" : "password";
     const value = String(values.get(field) ?? "");
     if (!value || (action === "verify-totp" && !/^\d{6}$/.test(value))) {
+      setNoticeOk(false);
       setNotice(
         field === "code"
           ? "Enter the current authenticator code or a saved recovery code, then try again."
@@ -96,6 +98,7 @@ export function AdminSecurityForm({
       return;
     }
     setPending(true);
+    setNoticeOk(false);
     setNotice("");
     try {
       const response = await fetch(`/api/auth/two-factor/${action}`, {
@@ -125,6 +128,7 @@ export function AdminSecurityForm({
         setCodes(result.backupCodes ?? []);
       } else if (action === "generate-backup-codes") {
         setCodes(result.backupCodes ?? []);
+        setNoticeOk(true);
         setNotice(
           "Recovery codes replaced. Save these codes privately, then verify your authenticator again before opening administration.",
         );
@@ -142,6 +146,7 @@ export function AdminSecurityForm({
       }
     } catch {
       form.reset();
+      setNoticeOk(false);
       setNotice(
         "Security could not be confirmed. Sign in again and verify before continuing.",
       );
@@ -212,8 +217,12 @@ export function AdminSecurityForm({
         <p
           ref={status}
           tabIndex={-1}
-          role="alert"
-          className="rounded-control border border-error p-4 text-body text-error"
+          role={noticeOk ? "status" : "alert"}
+          className={
+            noticeOk
+              ? "rounded-control border border-border bg-subtle p-4 text-body"
+              : "rounded-control border border-error p-4 text-body text-error"
+          }
         >
           {notice}
         </p>

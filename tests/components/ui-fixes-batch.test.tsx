@@ -79,6 +79,26 @@ describe("read status expiry", () => {
     });
     expect(refresh).toHaveBeenCalledTimes(1);
   });
+
+  it("starts a later deadline on the same status as unexpired", () => {
+    vi.useFakeTimers();
+    const { rerender } = render(<BookingReadStatus booking={booking} />);
+    act(() => {
+      vi.advanceTimersByTime(10 * 60 * 1000 + 1);
+    });
+    expect(screen.getByText("Simulation expired")).toBeInTheDocument();
+    rerender(
+      <BookingReadStatus
+        booking={{
+          ...booking,
+          snapshotAtUtc: "2026-10-12T00:10:01.000Z",
+          expiresAtUtc: "2026-10-12T00:20:00.000Z",
+        }}
+      />,
+    );
+    expect(screen.queryByText("Simulation expired")).toBeNull();
+    expect(screen.getByText("Simulated reservation")).toBeInTheDocument();
+  });
 });
 
 describe("lifecycle non-JSON refusals", () => {
