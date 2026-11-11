@@ -682,7 +682,9 @@ same widths on their populated Admin, booking and family pages.
   main queues), then Menu, which opens the full sidebar as a sheet above the
   dock (closes on a destination, a tap outside or Escape, returning focus to
   Menu). The word shown is part of the sidebar name, the rest is screen-reader
-  text; below a 22rem dock only the current item keeps its word. Same material
+  text; below a 22rem dock only the current item keeps its word. One item is
+  filled at a time: while the sheet is open only Menu is, and the sheet marks
+  the current page (which stays aria-current). Same material
   as the topbar and save bars (translucent white, blur, hairline, no shadow);
   states switch instantly; the page pads its foot, save bars float above the
   dock, and the dock steps aside while typing. Without scripts the sidebar

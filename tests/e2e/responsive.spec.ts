@@ -441,6 +441,16 @@ test("workspace dock and its menu sheet work on phones and tablets", async ({
     expect(sheetBox.y + sheetBox.height).toBeLessThanOrEqual(
       (await dock.boundingBox())!.y,
     );
+    // Only Menu is filled while open; the page stays current for assistive
+    // technology and is marked inside the sheet.
+    const current = dock.getByRole("link", {
+      name: "Availability",
+      exact: true,
+    });
+    await expect(current).toHaveAttribute("aria-current", "page");
+    expect(
+      await current.evaluate((el) => getComputedStyle(el).backgroundColor),
+    ).toBe("rgba(0, 0, 0, 0)");
     // Focus moves into the sheet, to its first link.
     await expect(sheet.locator("a, summary").first()).toBeFocused();
     if (evidence)

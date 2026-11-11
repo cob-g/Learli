@@ -452,6 +452,14 @@
       background: var(--brand-navy);
       color: var(--text-inverse);
     }
+    /* One filled item at a time: while Menu is open it is the active one, and
+       the sheet marks the current page. The page stays aria-current. */
+    .workspace-dock:has([aria-expanded="true"])
+      .workspace-dock-link[aria-current] {
+      --focus-ring: var(--accent-strong);
+      background: transparent;
+      color: var(--brand-navy);
+    }
     @media (hover: hover) {
       .workspace-dock-link:not([aria-current]):not(
           [aria-expanded="true"]
