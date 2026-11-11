@@ -262,6 +262,8 @@ the app after build. No browser font-CDN stylesheet. Lexend is the interface fac
 headings, names, times, labels, controls and body. Literata is explicit
 `font-reading`, used for longer explanations/biographies, never booking data or
 form controls. Literata normal/italic are available; no arbitrary third family.
+Owner-approved exception (2026-11-11): Newsreader italic, loaded only by the
+workspace layout, for the sidebar workspace label (see below).
 
 | Role | Size/line | Weight |
 | --- | --- | --- |
@@ -605,7 +607,7 @@ workspace-shell decision and M1.5 blueprint; execution evidence is separate.
 
 Owner-supplied Admin workspace reference applied to the Admin role only. The
 sidebar groups the existing Admin links under Reviews, Operations and Support,
-with line icons, an Admin pill and a navy current link marked by a teal dot. The
+with line icons, the workspace label and a navy current link marked by a teal dot. The
 topbar shows a `learli / Admin workspace` crumb and a pill account chip. `/admin`
 leads with a navy hero (mint band, Literata italic accent), then work-area cards
 that repeat the sidebar destinations, then an access-scope note. Existing tokens
@@ -616,7 +618,7 @@ header with an eyebrow and large navy title, white rounded cards, status pills,
 and illustrated empty states. Admin and Tutor accounts get a card-based `/account`
 layout; Parent-only and Student-only accounts keep the original account page.
 The Tutor workspace shares the Admin sidebar and topbar style (grouped, iconed
-links, role pill and breadcrumb). `/tutor` uses a navy setup panel with numbered
+links, workspace label and breadcrumb). `/tutor` uses a navy setup panel with numbered
 readiness steps and a mint review strip above session cards.
 
 ### Admin and Tutor workspace style — 2026-10-21 (owner-approved)
@@ -651,7 +653,7 @@ only (the `data-styled` shell and the `/account` card layout for those roles):
 
 The owner asked for the Parent workspace to match the Tutor UI. The same style
 rules above now also apply to the Parent workspace: the `data-styled` shell
-(Parent pill; sidebar groups Bookings and Your family, then Account; iconed
+(workspace label; sidebar groups Bookings and Your family, then Account; iconed
 links including Find a tutor), the card-based `/account` layout for accounts
 with the Parent role, and the Parent pages (dashboard, bookings list and detail,
 reschedule, Book a session, Parent Profile, My Children, onboarding), which use
@@ -660,7 +662,7 @@ family dashboard are shared, so Student and Tutor booking pages render the
 same page style.
 
 The owner then asked for the Student workspace to match as well (same day).
-Student uses the same shell (Student pill; groups Bookings and Your learning,
+Student uses the same shell (workspace label; groups Bookings and Your learning,
 then Account) and its pages (dashboard, Learners, Student onboarding, learner
 requests) use the same page pieces. Every workspace role now has the
 `data-styled` shell and every account with a role gets the card `/account`;
@@ -726,6 +728,16 @@ people and break existing flows); accessible names stay "Account settings" and
 (no menu role), closing on Escape (focus back to the trigger), an outside tap
 or focus leaving it. The email appears only while the menu is open. The
 public desktop trigger is only as wide as its name.
+
+### Workspace sidebar label (owner reference, 2026-11-11)
+
+Every workspace sidebar names who it is for beside the wordmark, on its
+baseline: "learli *for tutors*" (Admin: for admins; Parent: for parents;
+Student: for students; any later role the same lowercase pattern). The label is
+Newsreader italic 400, 22px, letter-spacing -0.01em, line-height 1, #17695A,
+8px after the wordmark. It replaced the mint role pill. One shared component
+(`WorkspaceBrand`) takes the role; the phone menu sheet shows the same row. It
+is ordinary text (not aria-hidden), read with the wordmark.
 
 ### Parent Dashboard discovery — 2026-10-17
 

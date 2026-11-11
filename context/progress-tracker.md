@@ -1,5 +1,25 @@
 # Learli — Progress Tracker
 
+### 2026-11-11 — Workspace sidebar label ("learli for tutors")
+
+- Implemented the owner's sidebar reference: each workspace sidebar shows the
+  wordmark followed on its baseline by "for tutors" / "for admins" /
+  "for parents" / "for students" in Newsreader italic (#17695A, 22px). The mint
+  role pill is removed. Shared `WorkspaceBrand` component; Newsreader is loaded
+  only by the workspace layout as `--font-newsreader`. Same row in the phone
+  menu sheet; plain text, not aria-hidden. Nothing else in the sidebar changed.
+- Tests: workspace-shell component test checks each role's label and that the
+  pill is gone; responsive e2e checks the label sits after the wordmark on its
+  row at 390 (menu sheet) and 1440 for all four roles. Measured: label and
+  wordmark baselines match to the pixel at both widths.
+- Vitest now stubs `next/font/google` in `tests/setup.ts` (layouts load fonts;
+  next/font runs only inside Next's compiler).
+- Verified: `npm run check` PASS (2,411); build PASS; full Playwright 216
+  passed, 8 failed = the known pre-existing set (bookings:353,
+  booking-history:154/:421, tutor-screening:85, policy-booking:259,
+  review-publication:345, transactional-delivery:146,
+  hosted-workflows-integration:142); private 3/4 (known :879).
+
 ### 2026-11-11 — Account menu redesigned as the owner's "account pass"
 
 - Implemented the owner-supplied "Account menu v2" reference in the shared

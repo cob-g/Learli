@@ -15,6 +15,7 @@ import {
   isCurrentLink,
   workspaceLinks,
 } from "@/components/workspace/navigation";
+import type { Role } from "@/lib/db/schema/app";
 const state = vi.hoisted(() => ({
   pathname: "/parent",
   session: {
@@ -580,7 +581,7 @@ describe("first render from the server's account read", () => {
   const serverAccount = {
     id: "owner",
     name: "Server account name",
-    roles: ["admin" as const],
+    roles: ["admin"] as Role[],
     sessionId: "session",
   };
   function seeded(account = serverAccount) {
@@ -596,6 +597,22 @@ describe("first render from the server's account read", () => {
     state.session.isPending = true;
     state.session.isRefetching = true;
     state.session.data = null;
+  });
+  it("names each workspace beside the wordmark in place of the role pill", () => {
+    for (const [role, label] of [
+      ["admin", "for admins"],
+      ["parent", "for parents"],
+      ["student", "for students"],
+      ["tutor", "for tutors"],
+    ] as const) {
+      state.pathname = `/${role}`;
+      const view = render(seeded({ ...serverAccount, roles: [role] }));
+      const brand = screen.getByRole("link", { name: "Learli account" });
+      const named = within(brand.parentElement!).getByText(label);
+      expect(named.closest("[aria-hidden]")).toBeNull();
+      expect(view.container.querySelector(".workspace-role")).toBeNull();
+      view.unmount();
+    }
   });
   it("shows the full role sidebar and name before the session settles, with no repeat read", () => {
     const view = render(seeded());
