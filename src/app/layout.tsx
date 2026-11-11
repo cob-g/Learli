@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Lexend, Literata } from "next/font/google";
+import { Lexend, Literata, Newsreader } from "next/font/google";
 import { connection } from "next/server";
 import { GlassEffects } from "@/components/shared/glass-effects";
 import { NavigationProgress } from "@/components/shared/navigation-progress";
@@ -29,6 +29,17 @@ const literata = Literata({
   preload: false,
 });
 
+// Owner references set single words in Newsreader italic (the workspace label,
+// "Tutors on Learli"). Downloaded only where a page uses it.
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  style: ["italic"],
+  axes: ["opsz"],
+  display: "swap",
+  variable: "--font-newsreader",
+  preload: false,
+});
+
 /**
  * Whether the site may be indexed, and the origin its canonical URLs use, both
  * depend on where this build is running. They are read for each request so a
@@ -48,7 +59,10 @@ export default async function RootLayout({
     : null;
   const privateWorkflow = !!runtime && isPrivateWorkflow(runtime);
   return (
-    <html lang="en" className={`${lexend.variable} ${literata.variable}`}>
+    <html
+      lang="en"
+      className={`${lexend.variable} ${literata.variable} ${newsreader.variable}`}
+    >
       <body className="flex min-h-dvh flex-col bg-background font-sans text-body text-foreground antialiased">
         <a className="skip-link" href="#main-content">
           Skip to main content

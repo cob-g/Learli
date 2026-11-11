@@ -43,6 +43,14 @@
   }
 
   /* Quiet links that carry a direction. */
+  /* A single word in Newsreader italic (owner's tutor list reference). */
+  .home-italic {
+    color: #17695a;
+    font-family: var(--font-newsreader), Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
   .home-cue {
     display: inline-flex;
     min-height: 3rem;

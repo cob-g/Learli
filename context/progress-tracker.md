@@ -1,5 +1,25 @@
 # Learli — Progress Tracker
 
+### 2026-11-11 — "Tutors on Learli" photo grid (owner reference)
+
+- The landing page's tutor list (avatar rows with View profile buttons) is now
+  the owner's "Tutor List" photo grid: up to eight staggered 4:5 cards from the
+  same public catalog read (no new fields or queries); summary on hover,
+  keyboard focus or tap. "Learli" in the heading is Newsreader italic, now
+  loaded once by the root layout (the workspace layout no longer loads it).
+  New `src/features/home/tutor-grid.tsx` (+ `.css`, `tutor-grid-cards.ts`).
+  Deliberate departures from the reference: the panel stays open while focus
+  is on View profile, Escape keeps focus on the card, and the card focus ring
+  is the site's teal (the reference teal is too faint on the light page).
+- Tests: new `tutor-grid` Playwright project (4): photo and initials,
+  columns and offsets at 1440/1024/700/400, hover reveal and fade, whole-line
+  summary clamp (3 and 2 lines), white name on navy, keyboard Tab/Enter/Escape
+  and focus rings, axe on the grid, touch tap one-at-a-time with the touch
+  hint, reduced motion.
+- Verified: `npm run check` PASS (2,416); build PASS (12 GB heap); Playwright
+  221 passed; failures = the known 8 plus registration-feedback:55, which
+  passes 3/3 alone. `tutor-grid` 4/4 PASS.
+
 ### 2026-11-11 — Tutor profile photos (D-15, verified locally)
 
 - Owner decisions: "Local now, Neon later" storage and "After admin approves"

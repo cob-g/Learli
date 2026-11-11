@@ -515,6 +515,19 @@ export default defineConfig({
       },
     },
     {
+      name: "tutor-grid",
+      testMatch: "tutor-grid.spec.ts",
+      // After the empty-inventory checks; it lists eight tutors, then suspends them.
+      dependencies: ["catalog"],
+      workers: 1,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+        trace: "off",
+        screenshot: "off",
+      },
+    },
+    {
       name: "tutor-photos",
       testMatch: "tutor-photos.spec.ts",
       // After the empty-inventory checks; it lists one tutor, then suspends it.

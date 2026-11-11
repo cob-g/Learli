@@ -262,8 +262,9 @@ the app after build. No browser font-CDN stylesheet. Lexend is the interface fac
 headings, names, times, labels, controls and body. Literata is explicit
 `font-reading`, used for longer explanations/biographies, never booking data or
 form controls. Literata normal/italic are available; no arbitrary third family.
-Owner-approved exception (2026-11-11): Newsreader italic, loaded only by the
-workspace layout, for the sidebar workspace label (see below).
+Owner-approved exception (2026-11-11): Newsreader italic (root layout,
+`--font-newsreader`, downloaded only where used) for single words in owner
+references: the sidebar workspace label and "Learli" in "Tutors on Learli".
 
 | Role | Size/line | Weight |
 | --- | --- | --- |
@@ -751,6 +752,28 @@ now), Upload/Change and Remove outline buttons (44px), and a polite live status
 line. Admins see the waiting photo and the public one at 160px on the tutor's
 application page with Approve photo / Reject photo, and a "Photo to review"
 pill and "Photos to review" filter in the queue. Existing tokens only.
+
+### Tutors on Learli — photo grid (owner reference, 2026-11-11)
+
+The landing page's tutor section follows the owner's "Tutor List" reference:
+"Tutors on *Learli*" (Newsreader italic, #17695A), a hint ("Hover a tutor to
+see their summary"; "Tap a tutor…" on touch screens) beside "Browse all tutors
+→", a ruled line, then up to eight 4:5 photo cards (26px corners): 4 columns,
+22px gap, 2nd and 4th lowered 40px; 3 columns below 1100px (middle lowered);
+2 below 760px (2nd lowered 28px, 14px gap); 1 below 440px. At rest each card
+shows the approved photo, or the initials on mint #E8F6F1, and a white subject
+tag with a teal dot. Hover, keyboard focus or a tap (hover: none) slides up a
+navy #1E2873 panel (64–88% of the card, diagonal top) with a mint #A8DDCC band
+at −9° and a 34px teal #36C9A6 dot ringed in navy; name (Lexend 600, 19px,
+white), subject pill and levels, summary (bio; 3 whole lines, 2 below 1240px,
+never squeezed), teaching languages and a white View profile button fade up
+50ms apart; the photo zooms to 1.06 and the tag fades. Other cards fade to 55%
+and half saturation on hover only. Motion: cubic-bezier(.2,.8,.2,1), 0.55s
+panel; none under reduced motion. Each card is a tab stop named "Name,
+Subject"; Enter moves to View profile, Escape closes the card and keeps focus
+on it; touch taps open one card at a time. Focus uses the site's teal ring;
+inside the navy panel the ring is the reference teal. These colours are the
+reference's own values for this section.
 
 ### Parent Dashboard discovery — 2026-10-17
 
