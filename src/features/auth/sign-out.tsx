@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { LogOut } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 export function SignOut({
@@ -7,11 +7,12 @@ export function SignOut({
   variant = "button",
 }: {
   className?: string;
-  /** "menu" renders a row for the account menu; behaviour is identical. */
-  variant?: "button" | "menu";
+  /** "tile" renders the account menu's action tile; behaviour is identical. */
+  variant?: "button" | "tile";
 }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
+  const hint = useId();
   async function signOut() {
     setPending(true);
     setError(false);
@@ -31,22 +32,37 @@ export function SignOut({
   }
   return (
     <div className={className}>
-      <button
-        className={
-          variant === "menu" ? "account-menu-item" : "action action-outline"
-        }
-        type="button"
-        disabled={pending}
-        onClick={signOut}
-      >
-        {variant === "menu" && <LogOut size={18} aria-hidden="true" />}
-        {pending ? "Signing out…" : "Sign out"}
-      </button>
+      {variant === "tile" ? (
+        <button
+          className="account-pass-action account-pass-signout"
+          type="button"
+          disabled={pending}
+          onClick={signOut}
+          aria-describedby={hint}
+        >
+          <LogOut size={20} aria-hidden="true" />
+          <span>
+            <b>{pending ? "Signing out…" : "Sign out"}</b>
+            <small id={hint} aria-hidden="true">
+              On this device
+            </small>
+          </span>
+        </button>
+      ) : (
+        <button
+          className="action action-outline"
+          type="button"
+          disabled={pending}
+          onClick={signOut}
+        >
+          {pending ? "Signing out…" : "Sign out"}
+        </button>
+      )}
       {error && (
         <p
           className={
-            variant === "menu"
-              ? "account-menu-error"
+            variant === "tile"
+              ? "account-pass-error"
               : "mt-2 text-body text-error"
           }
           role="alert"

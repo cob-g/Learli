@@ -161,6 +161,10 @@
   /* Admin and Tutor workspace chrome: grouped icon navigation and a calmer topbar.
      Scoped by data-styled so other workspaces keep their styling. */
   .workspace-topbar[data-styled] {
+    /* Its own layer at every width, so the open account pass sits above the
+       page; wide screens also make it sticky below. */
+    position: relative;
+    z-index: 10;
     min-height: 4.25rem;
     padding-block: 0.75rem;
     background: color-mix(in srgb, var(--bg-base) 88%, transparent);
@@ -217,40 +221,41 @@
   .workspace-topbar[data-styled] .header-account-label > .text-small {
     display: none;
   }
-  .workspace-topbar[data-styled] .header-account-trigger:hover,
-  .workspace-topbar[data-styled] .header-account-trigger[aria-expanded="true"] {
+  .workspace-topbar[data-styled]
+    .header-account-trigger:hover:not([aria-expanded="true"]) {
     border-color: var(--border-control);
     background: var(--bg-surface);
+  }
+  /* Open: the trigger fills navy, as the account pass reference shows. */
+  .workspace-topbar[data-styled] .header-account-trigger[aria-expanded="true"] {
+    border-color: var(--brand-navy);
+    background: var(--brand-navy);
+    color: var(--text-inverse);
   }
   .workspace-sidebar[data-styled] {
     padding: 1.25rem 0.875rem 1rem;
   }
+  /* The wordmark and, on its baseline, who the workspace is for (owner's
+     sidebar reference): "learli for tutors". */
+  .workspace-sidebar[data-styled] .workspace-brand-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 1.375rem;
+    padding: 0.25rem 0.625rem 0;
+  }
   .workspace-sidebar[data-styled] .workspace-brand {
     margin-bottom: 0;
-    padding-inline: 0.625rem;
+    padding: 0;
   }
-  .workspace-role {
-    display: flex;
-    width: fit-content;
-    align-items: center;
-    gap: 0.375rem;
-    margin: 0.5rem 0.625rem 0.75rem;
-    padding: 0.25rem 0.5625rem;
-    border-radius: calc(infinity * 1px);
-    background: color-mix(in srgb, var(--brand-mint) 30%, var(--bg-surface));
-    color: var(--accent-strong);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    line-height: 1.4;
-    text-transform: uppercase;
-  }
-  .workspace-role::before {
-    content: "";
-    width: 0.375rem;
-    height: 0.375rem;
-    border-radius: 50%;
-    background: var(--accent-primary);
+  .workspace-brand-for {
+    color: #17695a;
+    font-family: var(--font-newsreader), Georgia, serif;
+    font-size: 1.375rem;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1;
   }
   .workspace-group {
     display: flex;

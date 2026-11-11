@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Newsreader } from "next/font/google";
 import { WorkspaceShell } from "@/components/workspace/workspace-shell";
 import "@/components/workspace/workspace-shell.css";
 import "@/components/workspace/workspace-page.css";
@@ -12,6 +13,17 @@ import { noIndex } from "@/lib/seo/metadata";
 
 // Every workspace page also says this itself; the layout covers any that forgets.
 export const metadata: Metadata = { robots: noIndex };
+
+// The sidebar's workspace label (owner's reference): Newsreader italic, only in
+// workspaces. Exposed as --font-newsreader for workspace-shell.css.
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  style: ["italic"],
+  axes: ["opsz"],
+  display: "swap",
+  variable: "--font-newsreader",
+  preload: false,
+});
 
 export default async function WorkspaceLayout({
   children,
@@ -27,18 +39,21 @@ export default async function WorkspaceLayout({
   const screeningEnabled =
     !!runtime && getScreeningContext(runtime).screening.mode !== "disabled";
   return (
-    <PrivateDocumentBoundary initialIdentity={document.identity}>
-      <WorkspaceShell
-        initialAccount={document.account}
-        screeningEnabled={screeningEnabled}
-        privateWorkflow={privatePacket !== null || localWorkflow}
-        privateAccounts={
-          privatePacket?.database.mode === "local-test" || localWorkflow
-        }
-        localWorkflow={localWorkflow}
-      >
-        {children}
-      </WorkspaceShell>
-    </PrivateDocumentBoundary>
+    // display: contents carries the font variable without adding a box.
+    <div className={`contents ${newsreader.variable}`}>
+      <PrivateDocumentBoundary initialIdentity={document.identity}>
+        <WorkspaceShell
+          initialAccount={document.account}
+          screeningEnabled={screeningEnabled}
+          privateWorkflow={privatePacket !== null || localWorkflow}
+          privateAccounts={
+            privatePacket?.database.mode === "local-test" || localWorkflow
+          }
+          localWorkflow={localWorkflow}
+        >
+          {children}
+        </WorkspaceShell>
+      </PrivateDocumentBoundary>
+    </div>
   );
 }

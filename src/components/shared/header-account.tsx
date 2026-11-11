@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Settings, UserRound } from "lucide-react";
+import { Check, ChevronDown, Copy, Settings, UserRound } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { SignOut } from "@/features/auth/sign-out";
 import { authClient } from "@/lib/auth-client";
@@ -96,20 +96,65 @@ export function HeaderAccount() {
   );
 }
 
+/** Copies the user's own address; the result is announced, never guessed. */
+function CopyEmail({ email }: { email: string }) {
+  const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
+  useEffect(() => {
+    if (state === "idle") return;
+    const reset = window.setTimeout(() => setState("idle"), 1600);
+    return () => window.clearTimeout(reset);
+  }, [state]);
+  return (
+    <>
+      <button
+        type="button"
+        className="account-pass-copy"
+        aria-label="Copy email"
+        onClick={() => {
+          (navigator.clipboard
+            ? navigator.clipboard.writeText(email)
+            : Promise.reject(new Error("Clipboard unavailable"))
+          ).then(
+            () => setState("copied"),
+            () => setState("failed"),
+          );
+        }}
+      >
+        {state === "copied" ? (
+          <Check size={14} aria-hidden="true" />
+        ) : (
+          <Copy size={14} aria-hidden="true" />
+        )}
+      </button>
+      <span className="sr-only" role="status">
+        {state === "copied"
+          ? "Email copied"
+          : state === "failed"
+            ? "The email could not be copied"
+            : ""}
+      </span>
+    </>
+  );
+}
+
 export function SignedInAccount({
   name,
   email,
+  role,
   pathname,
 }: {
   name: string;
   /** The signed-in user's own address, shown only inside their menu. */
   email?: string | null;
+  /** The workspace being used, when there is one (e.g. "Tutor"). */
+  role?: string | null;
   pathname: string;
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const panelId = useId();
+  const settingsHint = useId();
   const initials = nameInitials(name);
 
   useEffect(() => {
@@ -163,33 +208,44 @@ export function SignedInAccount({
         <ChevronDown size={16} aria-hidden="true" />
       </button>
       {open && (
-        <div id={panelId} className="header-account-panel account-menu">
-          <div className="account-menu-identity">
-            <span className="account-menu-avatar" aria-hidden="true">
-              {initials || <UserRound size={20} />}
+        // The account pass: who is signed in on the stub, the two account
+        // actions below the tear. Still a disclosure of a link and a button.
+        <div id={panelId} className="header-account-panel account-pass">
+          <div className="account-pass-stub">
+            <span className="account-pass-slot" aria-hidden="true" />
+            <span className="account-pass-avatar" aria-hidden="true">
+              {initials || <UserRound size={28} />}
             </span>
-            <span className="account-menu-who">
-              <span className="account-menu-name" dir="auto">
-                {name}
+            <span className="account-pass-name" dir="auto">
+              {name}
+            </span>
+            {role && <span className="account-pass-role">{role}</span>}
+            {email && (
+              <span className="account-pass-mail">
+                <span dir="auto">{email}</span>
+                <CopyEmail email={email} />
               </span>
-              {email && (
-                <span className="account-menu-email" dir="auto">
-                  {email}
-                </span>
-              )}
-            </span>
+            )}
           </div>
-          {/* Clear the previous document before loading private account data. */}
-          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-          <a
-            href="/account"
-            className="account-menu-item"
-            aria-current={pathname === "/account" ? "page" : undefined}
-          >
-            <Settings size={18} aria-hidden="true" />
-            Account settings
-          </a>
-          <SignOut variant="menu" className="account-menu-signout" />
+          <div className="account-pass-actions">
+            {/* Clear the previous document before loading private account data. */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a
+              href="/account"
+              className="account-pass-action account-pass-settings"
+              aria-current={pathname === "/account" ? "page" : undefined}
+              aria-describedby={settingsHint}
+            >
+              <Settings size={20} aria-hidden="true" />
+              <span>
+                <b>Account settings</b>
+                <small id={settingsHint} aria-hidden="true">
+                  Profile and password
+                </small>
+              </span>
+            </a>
+            <SignOut variant="tile" className="account-pass-out" />
+          </div>
         </div>
       )}
     </div>

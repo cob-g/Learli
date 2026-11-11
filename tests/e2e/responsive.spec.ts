@@ -507,3 +507,103 @@ test("every workspace role has its own dock", async ({ page, context }) => {
     }
   }
 });
+
+test("every workspace sidebar names who it is for beside the wordmark", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(240_000);
+  const roles = [
+    ["tutor", "/tutor", "for tutors"],
+    ["admin", "/admin", "for admins"],
+    ["parent", "/parent", "for parents"],
+    ["student", "/student", "for students"],
+  ] as const;
+  for (const [role, route, label] of roles) {
+    await context.clearCookies();
+    const id = await signIn(page, [role], "Test account");
+    if (role === "tutor") await tutorProfile(id);
+    if (role === "admin") await enrollBrowserAdmin(context, password);
+    // The desktop sidebar and the phone menu sheet show the same label.
+    for (const width of [390, 1440]) {
+      await page.setViewportSize({ width, height: width < 640 ? 844 : 900 });
+      await page.goto(route);
+      if (width < 1024)
+        await page.getByRole("button", { name: "Workspace menu" }).click();
+      const sidebar = page.locator(".workspace-sidebar");
+      const logo = (await sidebar
+        .getByRole("link", { name: "Learli account" })
+        .locator("img")
+        .boundingBox())!;
+      const named = sidebar.getByText(label, { exact: true });
+      await expect(named).toBeVisible();
+      const text = (await named.boundingBox())!;
+      // On the wordmark's row, after it.
+      expect(text.x).toBeGreaterThan(logo.x + logo.width);
+      expect(text.y).toBeLessThan(logo.y + logo.height);
+      expect(text.y + text.height).toBeGreaterThan(logo.y);
+      if (evidence) {
+        await mkdir(path.join(evidence, "label"), { recursive: true });
+        await page.screenshot({
+          path: path.join(evidence, "label", `${role}-${width}.png`),
+        });
+      }
+    }
+  }
+});
+
+test("account pass opens inside the viewport at every width", async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await tutorProfile(await signIn(page, ["tutor"], "Test tutor"));
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: width < 640 ? 844 : 900 });
+    await page.goto("/tutor");
+    const trigger = page.getByRole("button", { name: "Account Test tutor" });
+    await trigger.click();
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    const pass = page.locator(".account-pass");
+    await expect(pass).toBeVisible();
+    await expect(pass.getByText("Tutor", { exact: true })).toBeVisible();
+    await expect(
+      pass.getByRole("button", { name: "Copy email" }),
+    ).toBeVisible();
+    const box = (await pass.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(width);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    if (evidence) {
+      await mkdir(path.join(evidence, "pass"), { recursive: true });
+      await page.waitForTimeout(400);
+      await page.screenshot({
+        path: path.join(evidence, "pass", `pass-${width}.png`),
+      });
+    }
+    await page.keyboard.press("Escape");
+    await expect(trigger).toBeFocused();
+  }
+  // The public header opens the same pass, without a workspace role.
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: width < 640 ? 844 : 900 });
+    await page.goto("/");
+    const trigger = page.getByRole("button", { name: "Account Test tutor" });
+    await trigger.click();
+    const pass = page.locator(".account-pass");
+    await expect(pass).toBeVisible();
+    const box = (await pass.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(width);
+    if (evidence) {
+      await page.waitForTimeout(400);
+      await page.screenshot({
+        path: path.join(evidence, "pass", `public-${width}.png`),
+      });
+    }
+    await page.keyboard.press("Escape");
+  }
+});

@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import type { Role } from "@/lib/db/schema/app";
-import { BrandLogo } from "@/components/shared/brand-logo";
 import { SignedInAccount } from "@/components/shared/header-account";
 import { SignOut } from "@/features/auth/sign-out";
 import { groupAdminLinks } from "@/features/admin/admin-navigation";
@@ -25,6 +24,7 @@ import { groupTutorLinks } from "@/features/tutors/tutor-navigation";
 import { groupParentLinks } from "@/features/family-dashboard/parent-navigation";
 import { groupStudentLinks } from "@/features/family-dashboard/student-navigation";
 import type { GroupedNavLink } from "./link-groups";
+import { WorkspaceBrand } from "./workspace-brand";
 import {
   currentWorkspace,
   isCurrentLink,
@@ -459,6 +459,7 @@ function WorkspaceChrome({
               key={`${pathname}:${account.id}:${account.name}`}
               name={account.name}
               email={email}
+              role={role ? roleNames[role] : null}
               pathname={pathname}
             />
           ) : (
@@ -509,14 +510,7 @@ function WorkspaceChrome({
           }
         }}
       >
-        <Link
-          href="/account"
-          className="workspace-brand"
-          aria-label="Learli account"
-        >
-          <BrandLogo />
-        </Link>
-        {role && <p className="workspace-role">{roleNames[role]}</p>}
+        <WorkspaceBrand role={role} />
         {roles && (
           <div className="workspace-chooser">
             {roles.length > 1 ? (
