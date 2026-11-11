@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { animationsSettled } from "../support/animations";
 import { test, expect, type Browser, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { createDatabase } from "../../src/lib/db/connection";
@@ -16,6 +17,7 @@ const sizes = [
 ];
 
 async function accessible(page: Page) {
+  await animationsSettled(page);
   expect(
     (
       await new AxeBuilder({ page })
@@ -260,10 +262,10 @@ test("directory composes filters, retains pagination/removal and excludes inelig
   const pending = await fixture("Pending synthetic", ["es"], "pending");
   await fixture("Suspended synthetic", ["ar"], "suspended");
   await page.goto("/tutors?subject=math&level=college_support&language=en");
-  await expect(page.getByRole("status")).toHaveText("22 tutors");
+  await expect(page.getByRole("status")).toHaveText("22 tutors match");
   await expect(
     page.getByLabel("Teaching language", { exact: true }).locator("option"),
-  ).toHaveText(["Any teaching language", "English", "Filipino"]);
+  ).toHaveText(["any language", "English", "Filipino"]);
   for (const [width, height] of sizes) {
     await page.setViewportSize({ width, height });
     await accessible(page);
@@ -280,40 +282,25 @@ test("directory composes filters, retains pagination/removal and excludes inelig
   await expect(page.getByRole("link", { name: /View profile:/ })).toHaveCount(
     2,
   );
-  await expect(
-    page.getByRole("link", { name: "Remove filter: Math", exact: true }),
-  ).toHaveAttribute("href", "/tutors?level=college_support&language=en");
-  await page
-    .getByRole("link", {
-      name: "Remove filter: Teaching language: English",
-      exact: true,
-    })
-    .click();
+  // Each bracket updates the results as it changes; "any …" removes it.
+  await page.getByLabel("Teaching language", { exact: true }).selectOption("");
   await expect(page).toHaveURL(/subject=math&level=college_support$/);
-  await expect(page.getByRole("status")).toHaveText("23 tutors");
+  await expect(page.getByRole("status")).toHaveText("23 tutors match");
   await page
     .getByLabel("Teaching language", { exact: true })
     .selectOption("fil");
-  await page
-    .getByRole("button", { name: "Apply filters", exact: true })
-    .click();
-  await expect(page.getByRole("status")).toHaveText("1 tutor");
+  await expect(page.getByRole("status")).toHaveText("1 tutor match");
   await page.getByLabel("Level", { exact: true }).selectOption("high_school");
-  await page
-    .getByRole("button", { name: "Apply filters", exact: true })
-    .click();
   await expect(
     page.getByRole("heading", {
       name: "No tutors match these filters",
       exact: true,
     }),
   ).toBeVisible();
+  await expect(page).toHaveURL(/subject=math&level=high_school&language=fil$/);
   await expect(
-    page.getByRole("link", {
-      name: "Remove filter: Teaching language: Filipino",
-      exact: true,
-    }),
-  ).toHaveAttribute("href", "/tutors?subject=math&level=high_school");
+    page.getByRole("link", { name: "clear filters", exact: true }),
+  ).toHaveAttribute("href", "/tutors");
   await page.screenshot({ path: info.outputPath("empty.png"), fullPage: true });
   await page.goto("/tutors?language=es");
   await expect(
@@ -328,22 +315,22 @@ test("directory composes filters, retains pagination/removal and excludes inelig
       .locator("option:checked"),
   ).toHaveText("Spanish (no tutors listed)");
   await page.goto("/tutors?subject=english&language=en");
+  await expect(page.getByLabel("Subject", { exact: true })).toHaveValue(
+    "english",
+  );
   await expect(
-    page.getByRole("link", { name: "Remove filter: English", exact: true }),
-  ).toHaveAttribute("href", "/tutors?language=en");
+    page.getByLabel("Teaching language", { exact: true }),
+  ).toHaveValue("en");
   await expect(
-    page.getByRole("link", {
-      name: "Remove filter: Teaching language: English",
-      exact: true,
-    }),
-  ).toHaveAttribute("href", "/tutors?subject=english");
+    page.getByRole("link", { name: "Clear filters", exact: true }),
+  ).toHaveAttribute("href", "/tutors");
   expect((await page.goto(`/tutors/${pending.slug}`))?.status()).toBe(404);
   await page.goto(`/tutors/${missing.slug}`);
   await expect(
     page.getByText("No teaching languages listed", { exact: true }),
   ).toBeVisible();
   await page.goto("/tutors?language=%3Cscript%3Ealert(1)%3C%2Fscript%3E");
-  await expect(page.getByRole("status")).toHaveText("23 tutors");
+  await expect(page.getByRole("status")).toHaveText("23 tutors on Learli");
   await expect(page.getByRole("main")).not.toContainText("alert(1)");
   await page.emulateMedia({ forcedColors: "active", reducedMotion: "reduce" });
   await page.setViewportSize({ width: 640, height: 400 });
@@ -369,10 +356,10 @@ test("language GET filter works without JavaScript", async ({ browser }) => {
       .getByLabel("Teaching language", { exact: true })
       .selectOption("fil");
     await page
-      .getByRole("button", { name: "Apply filters", exact: true })
+      .getByRole("button", { name: "Show tutors", exact: true })
       .click();
     await expect(page).toHaveURL(/language=fil$/);
-    await expect(page.getByRole("status")).toHaveText("1 tutor");
+    await expect(page.getByRole("status")).toHaveText("1 tutor match");
     await expect(
       page.getByRole("heading", {
         name: "Synthetic Filipino tutor",

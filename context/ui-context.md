@@ -775,6 +775,28 @@ on it; touch taps open one card at a time. Focus uses the site's teal ring;
 inside the navy panel the ring is the reference teal. These colours are the
 reference's own values for this section.
 
+### Find a tutor — search sentence (owner reference, 2026-11-11)
+
+`/tutors` keeps the site header, "Find a tutor" and its intro, then one white
+search card (`--radius-feature` 28px, thin border, soft shadow, a faint mint
+band at −8° and a teal dot top right) holding the sentence "I'm looking for a
+tutor in [any subject] at [any level], who teaches in [any language]."
+(22–34px). Each bracket is a real select set as inline text: Lexend 600 navy,
+2.5px mint underline that turns teal once set, teal-ink chevron, width of the
+chosen label (a hidden copy sizes it). Results follow each change through the
+address (short debounce); no Apply button. The card foot has a dashed
+"Lesson time (optional)" button (clock, + turning ×) opening Days (Mon–Sun)
+and Time of day (our four windows, one at a time) as toggle buttons that turn
+navy, plus "Times in" (zone), and "Clear filters" at the right while anything
+is set. Without JavaScript the time choices stay open and a "Show tutors"
+button submits the same GET form. Below: "N tutors *on Learli*" or "N tutors
+*match*" (Newsreader italic, `--brand-teal-ink`, a polite live region) with the
+hover/tap hint, then the shared tutor photo grid (cards fade up as they
+appear) or a dashed empty card "No tutors match these filters". With a lesson
+time, fitting tutors come first ("Fits your time", navy tag, "Next fit: …" in
+the panel); others read "Other times". The header is unchanged: it already
+moves to the bottom dock on small screens.
+
 ### Parent Dashboard discovery — 2026-10-17
 
 The parent overview at `/parent` uses **Parent Dashboard** for its sidebar entry,

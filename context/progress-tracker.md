@@ -1,5 +1,28 @@
 # Learli — Progress Tracker
 
+### 2026-11-11 — Find a tutor as a search sentence (owner reference)
+
+- `/tutors` now follows the owner's "Find a Tutor" reference: a search sentence
+  (`DirectorySearch`) with inline selects that update results as they change
+  (router replace, short debounce), a Lesson time panel (Days, Time of day,
+  Times in), Clear filters, a live results count, the shared photo grid with
+  an entrance fade, and a dashed empty card. Same data source, API and query
+  parameters; the GET form still works without JavaScript ("Show tutors").
+- Behaviour change recorded in the PRD: a lesson time reorders (fitting tutors
+  first, "Fits your time" / "Other times") instead of hiding tutors; over-cap
+  or unreadable times fall back to the usual order with a notice.
+- Shared card extended (time-fit tag and "Next fit" line, entrance, shared
+  hint); the old directory filter variant of `TutorFilterForm` removed (the
+  landing finder stays). Tokens added: `--brand-teal-ink`, `--radius-feature`.
+- Tests: component tests for the sentence (GET values, live update, partial
+  time hint, toggle, Clear filters, errors and focus); directory, language,
+  catalog, rename, three-feature, private-workflow and cross-browser browser
+  tests moved to the new interaction; axe checks wait for card fades.
+- Verified: `npm run check` PASS (2,417); build PASS (12 GB heap); Playwright
+  222 passed, failures = the known 8; private 3/4 (known :879, failing at its
+  rescheduling step after the updated directory step passed). Cross-browser
+  config not run (needs its other browsers).
+
 ### 2026-11-11 — "Tutors on Learli" photo grid (owner reference)
 
 - The landing page's tutor list (avatar rows with View profile buttons) is now

@@ -1,6 +1,6 @@
 import "../home.css";
 import Link from "next/link";
-import { X } from "lucide-react";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDomainAuthRuntime } from "@/lib/auth";
 import { hasPersistentWorkflow } from "@/features/local-workflow/presentation";
@@ -10,23 +10,24 @@ import {
   sanitizeDirectoryParams,
 } from "@/features/tutors/search";
 import type { LessonTimeValue } from "@/features/bookings/lesson-time";
-import { learnerLevelOptions } from "@/features/subjects/catalog";
-import { filterTutors } from "@/features/tutors/eligibility";
+import { filterTutors, type PublicTutor } from "@/features/tutors/eligibility";
 import {
   readDirectoryTimes,
   readPublicCatalog,
   tutorsHref,
   tutorsPerPage,
 } from "@/features/tutors/public";
-import { TutorList } from "@/features/tutors/tutor-card";
-import { TutorFilterForm } from "@/features/tutors/tutor-filter-form";
+import { DirectorySearch } from "@/features/tutors/directory-search";
+import { TutorGrid, TutorGridHint } from "@/features/home/tutor-grid";
+import { tutorGridCards } from "@/features/home/tutor-grid-cards";
+import {
+  parseVisitTimeZone,
+  visitTimeZoneKey,
+} from "@/features/public-availability/visit-timezone";
 import { EmptyState } from "@/components/shared/empty-state";
 import { FindATutorGuide } from "@/features/home/page-guides";
 import { publicPageMetadata } from "@/lib/seo/metadata";
-import {
-  declaredTeachingLanguages,
-  teachingLanguageLabels,
-} from "@/features/tutors/teaching-languages";
+import { declaredTeachingLanguages } from "@/features/tutors/teaching-languages";
 
 export const dynamic = "force-dynamic";
 // One canonical address for every filter, time and page of the directory.
@@ -95,10 +96,8 @@ async function Directory({ searchParams }: DirectoryProps) {
       </div>
     );
 
-  const subjectName = catalog.subjects.find(
-    (item) => item.slug === subject,
-  )?.name;
-  const levelName = learnerLevelOptions.find(([value]) => value === level)?.[1];
+  // A lesson time never hides anyone: tutors with a fitting open time come
+  // first, then everyone else the filters allow.
   let matches = filterTutors(catalog.tutors, { subject, level, language });
   let nextTimes: Record<string, LessonTimeValue> | undefined;
   let unavailable = false;
@@ -109,11 +108,13 @@ async function Directory({ searchParams }: DirectoryProps) {
       preferences,
     );
     if (result) {
-      matches = result.tutors;
       nextTimes = result.nextTimes;
+      const fits = (tutor: PublicTutor) =>
+        Object.hasOwn(result.nextTimes, tutor.slug);
+      matches = [...matches.filter(fits), ...matches.filter((t) => !fits(t))];
     } else unavailable = true;
   }
-  const invalid = optIn && !preferences;
+  const fitting = nextTimes ? Object.keys(nextTimes).length : 0;
   const runtime = preferences ? await getDomainAuthRuntime() : null;
   const privateWorkflow = !!runtime && hasPersistentWorkflow(runtime);
   const pages = Math.max(1, Math.ceil(matches.length / tutorsPerPage));
@@ -122,24 +123,11 @@ async function Directory({ searchParams }: DirectoryProps) {
     (current - 1) * tutorsPerPage,
     current * tutorsPerPage,
   );
-  const applied = [
-    subject && {
-      label: subjectName ?? "Unknown subject",
-      href: tutorsHref({ level, language, preferences }),
-    },
-    levelName && {
-      label: levelName,
-      href: tutorsHref({ subject, language, preferences }),
-    },
-    language && {
-      label: `Teaching language: ${teachingLanguageLabels[language]}`,
-      href: tutorsHref({ subject, level, preferences }),
-    },
-    preferences && {
-      label: "Lesson time",
-      href: tutorsHref({ subject, level, language }),
-    },
-  ].filter((item) => !!item);
+  const filtered = !!(subject || level || language);
+  const zone =
+    preferences?.timezone ??
+    draft.timezone ??
+    parseVisitTimeZone((await cookies()).get(visitTimeZoneKey)?.value);
 
   return (
     <div className="page-shell page-space">
@@ -148,157 +136,107 @@ async function Directory({ searchParams }: DirectoryProps) {
         Compare tutors by the subjects and levels they teach. Add a time
         preference to see times that fit.
       </p>
-      <div className="mt-8 lg:flex lg:gap-12">
-        <div className="mb-8 self-start rounded-surface border border-border bg-surface p-6 lg:mb-0 lg:w-72 lg:shrink-0">
-          <TutorFilterForm
-            key={sanitized.href}
-            variant="filters"
-            subjects={catalog.subjects}
-            subject={subject}
-            level={level}
-            languages={declaredTeachingLanguages(catalog.tutors)}
-            language={language}
-            draft={draft}
-            fields={fields}
-            zones={listTimeZoneOptions(
-              new Date(),
-              draft.timezone ? [draft.timezone] : [],
-            )}
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-          {preferences && !unavailable && (
-            <p className="mb-4 max-w-prose text-small text-muted-foreground">
-              {privateWorkflow
-                ? "Available times over the next 14 days, for 60-minute lessons. Times are checked again when you request a booking. Confirmation requires assigned review."
-                : "Local simulation: actual dated open times over the next 14 days, for 60-minute lessons. Times are advisory and checked again when reserving. No payment or confirmed lesson."}
-            </p>
-          )}
-          {invalid ? (
-            <p role="alert" className="text-body">
-              Check your lesson time choices to see tutors.
-            </p>
-          ) : unavailable ? (
-            <div>
-              <p role="alert" className="text-body">
-                Lesson times are temporarily unavailable. Choose a subject,
-                level or teaching language to narrow your search, or try again.
-              </p>
-              <div className="mt-4 flex flex-wrap gap-4">
-                <Link
-                  className="inline-flex min-h-11 items-center"
-                  href={sanitized.href}
-                >
-                  Try again
-                </Link>
-                <Link
-                  className="inline-flex min-h-11 items-center"
-                  href={tutorsHref({ subject, level, language })}
-                >
-                  Clear lesson time filter
-                </Link>
-              </div>
-            </div>
-          ) : matches.length === 0 ? (
-            subjectName && !level && !language && !preferences ? (
-              <EmptyState
-                title={`No tutors teach ${subjectName} on Learli right now`}
-                href="/tutors"
-                action="Browse all tutors"
-              />
-            ) : (
-              <EmptyState
-                title="No tutors match these filters"
-                href="/tutors"
-                action="Clear filters"
-              >
-                <p>{applied.map((item) => item.label).join(" · ")}</p>
-                <div className="mt-2 flex flex-wrap gap-x-4">
-                  {applied.map((item) => (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      aria-label={`Remove filter: ${item.label}`}
-                      className="inline-flex min-h-11 items-center gap-1 text-label"
-                    >
-                      {item.label}
-                      <X size={16} aria-hidden="true" />
-                    </Link>
-                  ))}
-                </div>
-              </EmptyState>
-            )
-          ) : (
-            <>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                <p role="status" className="text-body">
-                  {matches.length === 1
-                    ? "1 tutor"
-                    : `${matches.length} tutors`}
-                </p>
-                {applied.map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    aria-label={`Remove filter: ${item.label}`}
-                    className="inline-flex min-h-11 items-center gap-1 text-label"
-                  >
-                    {item.label}
-                    <X size={16} aria-hidden="true" />
-                  </Link>
-                ))}
-              </div>
-              <div className="mt-6">
-                <TutorList
-                  tutors={shown}
-                  nextTimes={nextTimes}
-                  timezone={preferences?.timezone}
-                  subject={subject}
-                  level={level}
-                />
-              </div>
-              {pages > 1 && (
-                <nav
-                  aria-label="Tutor pages"
-                  className="mt-4 flex flex-wrap items-center gap-x-6"
-                >
-                  {current > 1 && (
-                    <Link
-                      className="inline-flex min-h-11 items-center"
-                      href={tutorsHref({
-                        subject,
-                        level,
-                        language,
-                        preferences,
-                        page: current - 1,
-                      })}
-                    >
-                      Previous page
-                    </Link>
-                  )}
-                  <p className="text-small text-muted-foreground">
-                    Page {current} of {pages}
-                  </p>
-                  {current < pages && (
-                    <Link
-                      className="inline-flex min-h-11 items-center"
-                      href={tutorsHref({
-                        subject,
-                        level,
-                        language,
-                        preferences,
-                        page: current + 1,
-                      })}
-                    >
-                      Next page
-                    </Link>
-                  )}
-                </nav>
-              )}
-            </>
-          )}
-        </div>
+      <DirectorySearch
+        href={sanitized.href}
+        subjects={catalog.subjects}
+        subject={subject}
+        level={level}
+        languages={declaredTeachingLanguages(catalog.tutors)}
+        language={language}
+        draft={draft}
+        zone={zone}
+        zones={listTimeZoneOptions(new Date(), zone ? [zone] : [])}
+        fields={fields}
+      />
+      <div className="tutor-results-bar">
+        <p role="status" aria-live="polite" className="tutor-results-count">
+          {matches.length} {matches.length === 1 ? "tutor" : "tutors"}{" "}
+          <em>{filtered ? "match" : "on Learli"}</em>
+        </p>
+        {matches.length > 0 && <TutorGridHint />}
       </div>
+      {preferences && !unavailable && (
+        <p className="tutor-results-notice">
+          {fitting === 1
+            ? "1 tutor fits your time. "
+            : `${fitting} tutors fit your time. `}
+          {privateWorkflow
+            ? "Available times over the next 14 days, for 60-minute lessons. Times are checked again when you request a booking. Confirmation requires assigned review."
+            : "Local simulation: actual dated open times over the next 14 days, for 60-minute lessons. Times are advisory and checked again when reserving. No payment or confirmed lesson."}
+        </p>
+      )}
+      {unavailable && (
+        <p role="alert" className="tutor-results-notice">
+          Lesson times are temporarily unavailable, so tutors are shown in their
+          usual order. <Link href={sanitized.href}>Try again</Link>
+        </p>
+      )}
+      {optIn && !preferences && (
+        <p role="alert" className="tutor-results-notice">
+          Check your lesson time choices to sort tutors by your time.
+        </p>
+      )}
+      {matches.length === 0 ? (
+        <div className="tutor-results-empty">
+          <h2>No tutors match these filters</h2>
+          <p>
+            Try a different subject or level, or{" "}
+            <Link href="/tutors">clear filters</Link>
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="tutor-results-grid">
+            <TutorGrid
+              entrance
+              cards={tutorGridCards(shown, {
+                subject,
+                level,
+                timezone: preferences?.timezone,
+                nextTimes,
+              })}
+            />
+          </div>
+          {pages > 1 && (
+            <nav
+              aria-label="Tutor pages"
+              className="mt-4 flex flex-wrap items-center gap-x-6"
+            >
+              {current > 1 && (
+                <Link
+                  className="inline-flex min-h-11 items-center"
+                  href={tutorsHref({
+                    subject,
+                    level,
+                    language,
+                    preferences,
+                    page: current - 1,
+                  })}
+                >
+                  Previous page
+                </Link>
+              )}
+              <p className="text-small text-muted-foreground">
+                Page {current} of {pages}
+              </p>
+              {current < pages && (
+                <Link
+                  className="inline-flex min-h-11 items-center"
+                  href={tutorsHref({
+                    subject,
+                    level,
+                    language,
+                    preferences,
+                    page: current + 1,
+                  })}
+                >
+                  Next page
+                </Link>
+              )}
+            </nav>
+          )}
+        </>
+      )}
     </div>
   );
 }

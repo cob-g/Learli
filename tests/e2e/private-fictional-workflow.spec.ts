@@ -1196,10 +1196,11 @@ test("normal private build connects guardian booking interruption, cross-role ch
   await filters
     .getByLabel("Level", { exact: true })
     .selectOption("middle_school");
-  await filters
-    .getByRole("button", { name: "Apply filters", exact: true })
-    .click();
-  await expect(parent.page.getByRole("status")).toHaveText("1 tutor");
+  await expect(parent.page).toHaveURL(/subject=math&level=middle_school/);
+  await expect(parent.page.getByRole("status")).toHaveText("1 tutor match");
+  await parent.page
+    .getByRole("article", { name: /^Fictional tutor, / })
+    .hover();
   await parent.page
     .getByRole("link", { name: "View profile: Fictional tutor", exact: true })
     .click();

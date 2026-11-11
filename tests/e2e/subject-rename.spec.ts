@@ -1,4 +1,5 @@
 import { enrollBrowserAdmin } from "../support/browser-admin-mfa";
+import { animationsSettled } from "../support/animations";
 import { randomUUID } from "node:crypto";
 import { mkdir } from "node:fs/promises";
 import { test, expect, type Browser, type Page } from "@playwright/test";
@@ -52,6 +53,7 @@ function editor(page: Page, subjectId: string) {
   });
 }
 async function accessible(page: Page) {
+  await animationsSettled(page);
   expect(
     (
       await new AxeBuilder({ page })
@@ -155,7 +157,9 @@ test("admin corrects name by keyboard and existing public references read it tru
             exact: true,
           }),
         })
-        .getByText(name, { exact: true }),
+        // The card's subject tag (the panel repeats it).
+        .getByText(name, { exact: true })
+        .first(),
     ).toBeVisible();
     await expect(
       page.getByRole("link", {

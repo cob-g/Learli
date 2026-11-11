@@ -156,9 +156,7 @@ test("public discovery, real matching, denied tutors and responsive keyboard con
     }),
   ).toHaveCount(0);
   await page.getByLabel("Level", { exact: true }).selectOption("high_school");
-  await page
-    .getByRole("button", { name: "Apply filters", exact: true })
-    .click();
+  await expect(page).toHaveURL(/level=high_school/);
   await expect(
     page.getByRole("heading", {
       name: "No tutors match these filters",
@@ -338,9 +336,8 @@ test("native public GET and time selection preserve a safe auth return without J
   await page
     .getByLabel("Level", { exact: true })
     .selectOption("college_support");
-  await page
-    .getByRole("button", { name: "Apply filters", exact: true })
-    .click();
+  // Without JavaScript the sentence submits through its fallback button.
+  await page.getByRole("button", { name: "Show tutors", exact: true }).click();
   await expect(page).toHaveURL(/subject=math/);
   await expect(
     page.getByRole("link", {

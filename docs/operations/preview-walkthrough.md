@@ -54,10 +54,10 @@ This is what a family sees before creating an account.
 2. Go to **Find a tutor**. You should see **2 tutors**: Sample Tutor Ben and
    Sample Tutor Maya. The applicant is not listed, because nobody has approved
    that application yet.
-3. Narrow the list. Choose a **Subject**, a **Level** or a **Teaching
-   language**, then press **Apply filters**. Try Science: only Maya remains.
-   Press **Clear filters** to see both again.
-4. Press **View profile** on Sample Tutor Maya. The profile shows her subjects
+3. Narrow the list in the search sentence ("I'm looking for a tutor in … at …,
+   who teaches in …"): the results update as you choose. Try Science: only
+   Maya remains. Press **Clear filters** to see both again.
+4. Hover (or tap) Sample Tutor Maya's card and press **View profile**. The profile shows her subjects
    and levels, teaching languages, introduction and teaching background.
 5. In the **Choose a time** panel, pick **Subject** Math and **Level** High
    School, leave **Time zone** as it is, and press **Load open times**. You see

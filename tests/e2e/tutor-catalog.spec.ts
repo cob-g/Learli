@@ -1,4 +1,5 @@
 import { provisionScreeningAssignment } from "../../src/features/tutor-screening/fixture-tooling";
+import { animationsSettled } from "../support/animations";
 import { enrollBrowserAdmin } from "../support/browser-admin-mfa";
 import { test, expect, type Browser, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
@@ -73,6 +74,7 @@ async function open(browser: Browser, who: keyof typeof sessions) {
   return context.newPage();
 }
 async function expectAccessible(page: Page) {
+  await animationsSettled(page);
   expect(
     (
       await new AxeBuilder({ page })
@@ -324,7 +326,7 @@ test("a tutor applies, an admin decides, and each sees the stored result", async
   ]) {
     await visitor.setViewportSize({ width, height });
     await visitor.goto("/tutors");
-    await expect(visitor.getByRole("status")).toHaveText("1 tutor");
+    await expect(visitor.getByRole("status")).toHaveText("1 tutor on Learli");
     await expectAccessible(visitor);
     await visitor.screenshot({
       path: info.outputPath(`directory-${width}.png`),
@@ -332,20 +334,17 @@ test("a tutor applies, an admin decides, and each sees the stored result", async
     });
   }
   await visitor.setViewportSize({ width: 1440, height: 900 });
+  // The search sentence updates the results as each bracket changes.
   await visitor.getByLabel("Subject").selectOption("math");
+  await expect(visitor).toHaveURL("/tutors?subject=math");
   await visitor.getByLabel("Level").selectOption("high_school");
-  await visitor.getByRole("button", { name: "Apply filters" }).click();
   await expect(visitor).toHaveURL("/tutors?subject=math&level=high_school");
   await expect(visitor.getByRole("heading", { name: tutorName })).toBeVisible();
-  await visitor
-    .getByRole("link", { name: "Remove filter: High School" })
-    .click();
+  await visitor.getByLabel("Level").selectOption("");
   await expect(visitor).toHaveURL("/tutors?subject=math");
   await visitor.goto("/tutors?subject=science");
   await expect(
-    visitor.getByRole("heading", {
-      name: "No tutors teach Science on Learli right now",
-    }),
+    visitor.getByRole("heading", { name: "No tutors match these filters" }),
   ).toBeVisible();
   await visitor.goto("/tutors?subject=math&level=college_support");
   await expect(
@@ -431,6 +430,8 @@ test("a tutor applies, an admin decides, and each sees the stored result", async
   await visitor.getByRole("search").getByLabel("Subject").selectOption("math");
   await visitor.getByRole("button", { name: "Find a tutor" }).click();
   await expect(visitor).toHaveURL(/\/tutors\?subject=math/);
+  // A card's summary and View profile open on hover.
+  await visitor.getByRole("article", { name: `${tutorName}, Math` }).hover();
   await visitor
     .getByRole("link", { name: `View profile: ${tutorName}` })
     .click();

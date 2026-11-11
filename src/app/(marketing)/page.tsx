@@ -10,7 +10,7 @@ import {
   learnerLevelOptions,
 } from "@/features/subjects/catalog";
 import { readPublicCatalog, tutorsHref } from "@/features/tutors/public";
-import { TutorGrid } from "@/features/home/tutor-grid";
+import { TutorGrid, TutorGridHint } from "@/features/home/tutor-grid";
 import { tutorGridCards } from "@/features/home/tutor-grid-cards";
 import { TutorFilterForm } from "@/features/tutors/tutor-filter-form";
 import { JsonLd } from "@/components/shared/json-ld";
@@ -126,10 +126,7 @@ export default async function Home() {
               Tutors on <em className="home-italic">Learli</em>
             </h2>
             <div className="flex flex-wrap items-center gap-x-7 gap-y-2">
-              <p className="tutor-grid-hint">
-                <span data-hover="">Hover a tutor to see their summary</span>
-                <span data-touch="">Tap a tutor to see their summary</span>
-              </p>
+              <TutorGridHint />
               <Link className="home-cue" href="/tutors">
                 Browse all tutors
                 <ArrowRight size={20} aria-hidden="true" />
