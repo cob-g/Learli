@@ -462,3 +462,38 @@ test("workspace dock and its menu sheet work on phones and tablets", async ({
     await expect(menu).toHaveAttribute("aria-expanded", "false");
   }
 });
+
+test("every workspace role has its own dock", async ({ page, context }) => {
+  test.setTimeout(240_000);
+  const roles: [role: string, path: string, items: RegExp[]][] = [
+    // The third item depends on the deployment: Book where booking is on,
+    // otherwise the next destination (Children).
+    ["parent", "/parent", [/Dashboard/, /Bookings/, /Book|Children/]],
+    ["student", "/student", [/Bookings/, /Learners/]],
+    ["admin", "/admin", [/Overview/]],
+  ];
+  for (const [role, route, items] of roles) {
+    await context.clearCookies();
+    await signIn(page, [role]);
+    if (role === "admin") await enrollBrowserAdmin(context, password);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(route);
+    const dock = page.getByRole("navigation", { name: "Workspace shortcuts" });
+    await expect(dock).toBeVisible();
+    const links = dock.getByRole("link");
+    expect(await links.count()).toBeGreaterThanOrEqual(items.length);
+    expect(await links.count()).toBeLessThanOrEqual(3);
+    for (const [index, item] of items.entries())
+      await expect(links.nth(index)).toHaveText(item);
+    await expect(links.first()).toHaveAttribute("aria-current", "page");
+    await expect(
+      dock.getByRole("button", { name: "Workspace menu" }),
+    ).toBeVisible();
+    if (evidence) {
+      await mkdir(path.join(evidence, "dock"), { recursive: true });
+      await page.screenshot({
+        path: path.join(evidence, "dock", `${role}-390.png`),
+      });
+    }
+  }
+});
