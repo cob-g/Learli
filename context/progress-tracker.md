@@ -1,5 +1,24 @@
 # Learli — Progress Tracker
 
+### 2026-11-11 — Account menu redesigned as the owner's "account pass"
+
+- Implemented the owner-supplied "Account menu v2" reference in the shared
+  account disclosure (public header and workspace topbar): navy open trigger;
+  pass with navy stub, mint band, lanyard slot, large avatar with teal dot,
+  name, workspace eyebrow (workspace only), email chip with Copy (announced
+  result), perforated tear and two tiles (Account settings / Sign out).
+  Kept: single-press Sign out (not press-and-hold), accessible names with tile
+  subtitles as descriptions, disclosure semantics, Escape/outside/blur closing.
+  The workspace topbar now has its own layer so the pass sits above the page on
+  phones; the public desktop trigger is only as wide as its name.
+- Tests: header-account component test for names, descriptions and Copy;
+  responsive e2e opens the pass at 320/390/768/1440 (workspace) and 390/1440
+  (public) and checks it stays on screen; header-navigation keyboard path now
+  includes Copy email before the two actions.
+- Verified: `npm run check` PASS (2,410); build PASS; full Playwright 213
+  passed, failures = known 8 + one registration-feedback focus timing flake
+  (passes 3/3 alone); auth project 44/45 with that flake; private 3/4 (known).
+
 ### 2026-11-11 — Workspace bottom dock on phones and tablets
 
 - Owner asked for a floating bottom navbar instead of the top Menu on mobile.

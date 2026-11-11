@@ -30,7 +30,10 @@ vi.mock("@/lib/auth-client", () => ({
     signOut: mocks.signOut,
   },
 }));
-import { HeaderAccount } from "@/components/shared/header-account";
+import {
+  HeaderAccount,
+  SignedInAccount,
+} from "@/components/shared/header-account";
 import { SignOut } from "@/features/auth/sign-out";
 
 beforeEach(() => {
@@ -299,5 +302,36 @@ describe("shared header account", () => {
       "Sign-out could not be completed. Try again.",
     );
     expect(screen.getByRole("button", { name: "Sign out" })).toBeEnabled();
+  });
+
+  it("shows the account pass with the same action names, descriptions and copy", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    render(
+      <SignedInAccount
+        name="Alex Rivera"
+        email="alex@learli.test"
+        role="Tutor"
+        pathname="/tutor"
+      />,
+    );
+    openAccount();
+    expect(screen.getByText("Tutor")).toBeVisible();
+    const settings = screen.getByRole("link", { name: "Account settings" });
+    expect(settings).toHaveAttribute("href", "/account");
+    expect(settings).toHaveAccessibleDescription("Profile and password");
+    const signOut = screen.getByRole("button", { name: "Sign out" });
+    expect(signOut).toHaveAccessibleDescription("On this device");
+    fireEvent.click(screen.getByRole("button", { name: "Copy email" }));
+    expect(await screen.findByText("Email copied")).toBeInTheDocument();
+    expect(writeText).toHaveBeenCalledWith("alex@learli.test");
+    writeText.mockRejectedValueOnce(new Error("denied"));
+    fireEvent.click(screen.getByRole("button", { name: "Copy email" }));
+    expect(
+      await screen.findByText("The email could not be copied"),
+    ).toBeInTheDocument();
   });
 });

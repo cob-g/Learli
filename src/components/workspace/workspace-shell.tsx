@@ -459,6 +459,7 @@ function WorkspaceChrome({
               key={`${pathname}:${account.id}:${account.name}`}
               name={account.name}
               email={email}
+              role={role ? roleNames[role] : null}
               pathname={pathname}
             />
           ) : (

@@ -161,6 +161,10 @@
   /* Admin and Tutor workspace chrome: grouped icon navigation and a calmer topbar.
      Scoped by data-styled so other workspaces keep their styling. */
   .workspace-topbar[data-styled] {
+    /* Its own layer at every width, so the open account pass sits above the
+       page; wide screens also make it sticky below. */
+    position: relative;
+    z-index: 10;
     min-height: 4.25rem;
     padding-block: 0.75rem;
     background: color-mix(in srgb, var(--bg-base) 88%, transparent);
@@ -217,10 +221,16 @@
   .workspace-topbar[data-styled] .header-account-label > .text-small {
     display: none;
   }
-  .workspace-topbar[data-styled] .header-account-trigger:hover,
-  .workspace-topbar[data-styled] .header-account-trigger[aria-expanded="true"] {
+  .workspace-topbar[data-styled]
+    .header-account-trigger:hover:not([aria-expanded="true"]) {
     border-color: var(--border-control);
     background: var(--bg-surface);
+  }
+  /* Open: the trigger fills navy, as the account pass reference shows. */
+  .workspace-topbar[data-styled] .header-account-trigger[aria-expanded="true"] {
+    border-color: var(--brand-navy);
+    background: var(--brand-navy);
+    color: var(--text-inverse);
   }
   .workspace-sidebar[data-styled] {
     padding: 1.25rem 0.875rem 1rem;

@@ -507,3 +507,59 @@ test("every workspace role has its own dock", async ({ page, context }) => {
     }
   }
 });
+
+test("account pass opens inside the viewport at every width", async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await tutorProfile(await signIn(page, ["tutor"], "Test tutor"));
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: width < 640 ? 844 : 900 });
+    await page.goto("/tutor");
+    const trigger = page.getByRole("button", { name: "Account Test tutor" });
+    await trigger.click();
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    const pass = page.locator(".account-pass");
+    await expect(pass).toBeVisible();
+    await expect(pass.getByText("Tutor", { exact: true })).toBeVisible();
+    await expect(
+      pass.getByRole("button", { name: "Copy email" }),
+    ).toBeVisible();
+    const box = (await pass.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(width);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    if (evidence) {
+      await mkdir(path.join(evidence, "pass"), { recursive: true });
+      await page.waitForTimeout(400);
+      await page.screenshot({
+        path: path.join(evidence, "pass", `pass-${width}.png`),
+      });
+    }
+    await page.keyboard.press("Escape");
+    await expect(trigger).toBeFocused();
+  }
+  // The public header opens the same pass, without a workspace role.
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: width < 640 ? 844 : 900 });
+    await page.goto("/");
+    const trigger = page.getByRole("button", { name: "Account Test tutor" });
+    await trigger.click();
+    const pass = page.locator(".account-pass");
+    await expect(pass).toBeVisible();
+    const box = (await pass.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(width);
+    if (evidence) {
+      await page.waitForTimeout(400);
+      await page.screenshot({
+        path: path.join(evidence, "pass", `public-${width}.png`),
+      });
+    }
+    await page.keyboard.press("Escape");
+  }
+});

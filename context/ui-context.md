@@ -705,18 +705,27 @@ same widths on their populated Admin, booking and family pages.
 - Sticky save bars and the public dock float over content by design; full-page
   screenshots show them mid-page.
 
-### Account menu — 2026-11-10 (owner-requested)
+### Account menu — account pass (owner reference, 2026-11-11)
 
-The signed-in account disclosure (public header and workspace topbar) opens a
-flat menu: an identity header with a 40px Mint initials avatar, the name and
-the user's own email (shown only while their menu is open), then iconed rows for
-Account settings and Sign out separated by hairlines. Rows are 44px tall with
-12px corners, Mist on hover and a Mint tint for the current page; the panel uses
-the overlay radius and a Stone border, no shadow. The trigger chevron flips when
-open. In the workspace topbar the closed chip fits its content (avatar, name,
-chevron) at the bar's end, without the visible "Account" label, matching the
-public header. Initials stay the avatar because V1 has no photo uploads. Accessible names
-(Account <name>, Account settings, Sign out) and sign-out behaviour are unchanged.
+The signed-in disclosure (public header and workspace topbar) follows the
+owner-supplied "Account menu v2" reference as an account pass: the trigger
+fills navy with a mint chevron while open; the pass (340px, phones the screen
+width less 2rem) has a navy stub with a mint diagonal band, a lanyard slot, a
+76px Mint initials avatar with a teal dot, the name, the workspace as a mint
+eyebrow (workspace only), and the user's own email in a chip with a Copy
+button (result announced; failure says so); a perforated tear with side
+notches; then two tiles: Account settings ("Profile and password") and Sign
+out ("On this device"). Owner-approved exceptions for this surface only: a
+soft drop shadow, the stub band, the notches and a 350ms entrance (none under
+reduced motion; forced colours drop the decoration and add borders).
+
+Deliberately kept from the previous behaviour: Sign out is a single press, not
+the reference's press-and-hold (that would change the action, slow it for some
+people and break existing flows); accessible names stay "Account settings" and
+"Sign out" with the tile subtitles as descriptions; it remains a disclosure
+(no menu role), closing on Escape (focus back to the trigger), an outside tap
+or focus leaving it. The email appears only while the menu is open. The
+public desktop trigger is only as wide as its name.
 
 ### Parent Dashboard discovery — 2026-10-17
 

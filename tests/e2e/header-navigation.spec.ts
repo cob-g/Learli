@@ -270,6 +270,11 @@ test("long account names and 200% text remain readable through navigation", asyn
     await expect(account).toBeVisible();
     await page.unroute("**/api/auth/get-session**", handler);
     await account.click();
+    // The pass reads top to bottom: copy the email, then the two actions.
+    await page.keyboard.press("Tab");
+    await expect(
+      header.getByRole("button", { name: "Copy email" }),
+    ).toBeFocused();
     await page.keyboard.press("Tab");
     await expect(
       header.getByRole("link", { name: "Account settings" }),
