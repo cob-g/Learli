@@ -148,6 +148,8 @@ async function main() {
     "DATABASE_URL_DIRECT",
     "RESEND_API_KEY",
     "EMAIL_FROM",
+    // Local photo disk storage is refused outside loopback dev and tests.
+    "TUTOR_PHOTO_STORAGE",
   ])
     delete source[field];
   const launch = (env: NodeJS.ProcessEnv, label: string) => {

@@ -25,3 +25,5 @@ export * from "./transactional-delivery";
 export * from "./local-workflow";
 
 export * from "./google-meet";
+
+export * from "./tutor-photos";

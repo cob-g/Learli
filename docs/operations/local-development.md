@@ -109,6 +109,19 @@ does not send email. Payment and real-user launch decisions remain deferred.
 - Browser tests start by clearing tutor profiles in `learli_test` and run the
   zero-inventory checks before the spec that lists a tutor.
 
+## Tutor profile photos (D-15)
+
+- `TUTOR_PHOTO_STORAGE=local` in `.env.local` turns on tutor photo uploads in
+  development; the test runner sets it for tests. Photos are owner-only files in
+  `.local/tutor-photos/development` (or `test`); the database keeps only their
+  keys (`tutor_photos`, migration `0048`). Leave the setting `disabled` on any
+  hosted environment: the configuration is refused there, and tutors keep
+  their initials until hosted storage is approved.
+- A tutor uploads from Account settings → Profile settings. The photo stays
+  private ("Pending review") until an admin who may review that tutor approves
+  it on `/admin/tutors/<id>`; use the queue's "Photos to review" filter to find
+  them. Rejected, replaced and removed photo files are deleted.
+
 ## Schema and verification
 
 ```sh

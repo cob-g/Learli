@@ -1,5 +1,44 @@
 # Learli — Progress Tracker
 
+### 2026-11-11 — Tutor profile photos (D-15, verified locally)
+
+- Owner decisions: "Local now, Neon later" storage and "After admin approves"
+  review (`docs/decisions/2026-11-11-tutor-profile-photos.md`; PRD,
+  architecture §15, build plan D-15, overview, AGENTS.md and UI context updated).
+- Tutor: Account settings → Profile settings has a Profile photo row (upload,
+  change, remove; "Pending review"; status note). Uploads (JPG/PNG/WebP, ≤5 MB,
+  ≥128 px) are re-encoded to a 512 px WebP without metadata.
+- Admin: application page shows the waiting and current photo with Approve /
+  Reject (own photo refused); queue shows "Photo to review" and a "Photos to
+  review" filter. Every submit/approve/reject/remove is audited.
+- Public: the approved photo replaces the initials in the directory, profile and
+  Get Matched, only for publicly eligible tutors; initials otherwise.
+- Data: migration `0048_tutor_photos` (keys and review state only; one pending
+  and one approved per tutor enforced by partial unique indexes; audit actions
+  added); runtime grants SELECT/INSERT and UPDATE of review columns only.
+  Applied to `learli_test` and to `learli_dev` after a private backup in
+  `.local/dev-backups/`. Storage: `TUTOR_PHOTO_STORAGE=local` →
+  `.local/tutor-photos/<APP_ENV>`; the env schema refuses it outside loopback
+  development/test, so hosted sites keep initials until hosted storage is
+  approved. `sharp` loads lazily (a static import pushed this checkout's
+  webpack build over the 8 GB heap).
+- Tests: unit (processing, storage keys/modes, config guard), integration
+  (privacy of pending photos, approval/replacement, rejection, concurrent
+  review and uploads, removal, refusals, route origin/size/content, queue
+  filter) and browser (`tutor-photos` project: upload → private → admin
+  approval → public → removal; phone fit). Migration inventory, catalog shape
+  and hosted harness envs updated.
+- Verified: `npm run check` PASS (2,416); `npm run test:integration` 80/88 files
+  before inventory fixes → all photo/migration files pass; remaining failures
+  pre-existing: `google-meet.test.ts` (fixture screening valid 1 day vs lessons
+  48 h+ under the 2026-11-10 coverage rule) and `hosted-auth.test.ts` (needs its
+  TLS harness). Build PASS with `--max-old-space-size=12288` (8192 intermittently
+  OOMs in this checkout; a clean checkout compiles in seconds). Playwright 216
+  passed; failures = the known 8 plus two timing flakes that pass alone
+  (registration-feedback:55, bookings:267 3/3). `tutor-photos` 2/2 PASS.
+- Next: hosted photo storage decision (Neon Object Storage or other) before any
+  hosted environment enables photos.
+
 ### 2026-11-11 — Workspace sidebar label ("learli for tutors")
 
 - Implemented the owner's sidebar reference: each workspace sidebar shows the

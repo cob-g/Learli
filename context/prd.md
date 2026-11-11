@@ -233,7 +233,7 @@ Do **not** implement these unless founders approve a revised scope:
 - Custom calendar synchronization, advanced tutor payout systems, and subscription infrastructure **unless required by an explicitly approved payment model**.
 - Complex infrastructure: microservices, Redis, Kafka, Kubernetes, external search clusters, separate front/back repositories.
 
-**Photos and storage:** Use initials avatars and static brand assets initially. No upload service is needed for basic V1. Evaluate storage (potentially Neon Object Storage) only after approving a genuine file requirement.
+**Photos and storage:** Use initials avatars and static brand assets initially. Tutor profile photos are approved (2026-11-11, `docs/decisions/2026-11-11-tutor-profile-photos.md`): a tutor uploads from Account settings; an admin approves before the public sees it; initials remain the fallback. Local development/test disk storage only for now; hosted storage (potentially Neon Object Storage) still needs separate approval. No other upload service is in scope.
 
 ### 2.5 Important distinction: minimal operations vs advanced tutor management
 
@@ -459,7 +459,7 @@ Each requirement has an **ID**, **priority**, **status**, a user-visible outcome
 - Only valid public review data is shown under the approved review policy.
 - Profile has a clear booking action when eligible; suspended/closed profiles are not bookable.
 - Public pages omit child data and private Zoom/Meet details.
-- Static/initials avatars are acceptable. Uploading headshots or intro videos is **not a V1 requirement**.
+- Initials avatars remain the default. An optional tutor headshot shows once an admin approves it (`docs/decisions/2026-11-11-tutor-profile-photos.md`); intro videos are **not a V1 requirement**.
 
 #### PUB-05 — Clear help, trust, and policies `P0 for paid launch [GATED]`
 
@@ -1290,7 +1290,7 @@ This section summarizes the agreed stack; implementation details belong to `arch
 | Hosting | **Railway** | One conventional Next.js Node service initially |
 | Transactional email | **Resend (start Free tier)** | Test on supported recipients; verify owned sending domain for broad public mail |
 | Live instruction | **Zoom / Google Meet** | External lesson links; no Learli media processing |
-| File uploads | **Not provisioned** | Use static branded assets/initials avatars |
+| File uploads | **Tutor profile photos only** | Local dev/test disk; hosted storage not provisioned, so hosted sites show initials |
 | Payments | **Provider `[OPEN]`** | No live checkout until legal/business decisions |
 | Optional future storage | Neon Object Storage **only if justified** | Not an MVP account or dependency |
 
@@ -1332,7 +1332,7 @@ This section summarizes the agreed stack; implementation details belong to `arch
 ### 14.3 Public trust
 
 - List only real eligible tutors; no placeholder faces, invented testimonial quotes, fake reviews, inflated counts, or unverified credentials in production.
-- If no profile photo upload is implemented, use a consistent initials/avatar design.
+- Tutors without an approved photo keep the consistent initials avatar; never a placeholder face.
 - A tutor bio does not imply platform endorsement beyond the actual stated review process.
 - Avoid “Book a Free Trial” as an unconditional CTA until the trial policy is `[AGREED]`.
 

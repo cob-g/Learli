@@ -9,7 +9,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { levelNames } from "@/features/subjects/catalog";
 import { readPublicTutor } from "@/features/tutors/public";
-import { InitialsAvatar } from "@/features/tutors/tutor-card";
+import { TutorAvatar } from "@/features/tutors/tutor-card";
 import { ProfilePicker } from "@/features/public-availability/profile-picker";
 import { loadProfilePreview } from "@/features/public-availability/profile";
 import { listTimeZoneOptions } from "@/lib/time/zones";
@@ -77,7 +77,7 @@ export default async function TutorPage({
         Browse all tutors
       </Link>
       <div className="flex items-start gap-4 border-b border-border pb-8 md:gap-6">
-        <InitialsAvatar name={tutor.displayName} large />
+        <TutorAvatar name={tutor.displayName} photoId={tutor.photoId} large />
         <div className="min-w-0 wrap-anywhere">
           <h1 className="text-page-title wrap-anywhere">{tutor.displayName}</h1>
           <p className="mt-2 max-w-prose text-body wrap-anywhere">

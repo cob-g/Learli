@@ -20,6 +20,10 @@ import { SignOut } from "@/features/auth/sign-out";
 import { AdmissionEntry } from "@/features/learner-admission/navigation";
 import "./account-settings-cards.css";
 import { nameInitials } from "@/lib/initials";
+import Image from "next/image";
+import { TutorPhotoField } from "@/features/tutor-photos/photo-field";
+import { tutorPhotoUrl } from "@/features/tutor-photos/photo-url";
+import type { OwnTutorPhoto } from "@/features/tutor-photos/service";
 
 const roleIcons: Record<Role, LucideIcon> = {
   admin: LayoutGrid,
@@ -54,6 +58,8 @@ export function AccountSettingsCards({
   timeZones,
   workspaceRoles,
   localWorkflow,
+  tutorPhoto = null,
+  photoUploads = false,
 }: {
   account: {
     id: string;
@@ -65,12 +71,25 @@ export function AccountSettingsCards({
   timeZones: TimeZoneOption[];
   workspaceRoles: Role[];
   localWorkflow: boolean;
+  /** Present for a tutor with a profile; null hides the photo control. */
+  tutorPhoto?: OwnTutorPhoto | null;
+  photoUploads?: boolean;
 }) {
   return (
     <div className="workspace-page">
       <header className="settings-me">
         <span className="settings-avatar" aria-hidden="true">
-          {nameInitials(account.name) || <UserRound size={24} />}
+          {tutorPhoto?.approvedId ? (
+            <Image
+              src={tutorPhotoUrl(tutorPhoto.approvedId)}
+              alt=""
+              width={72}
+              height={72}
+              unoptimized
+            />
+          ) : (
+            nameInitials(account.name) || <UserRound size={24} />
+          )}
         </span>
         <div className="min-w-0">
           <h1>Your account</h1>
@@ -89,6 +108,13 @@ export function AccountSettingsCards({
               </span>
               <h2 id="account-profile-heading">Profile settings</h2>
             </div>
+            {tutorPhoto && (
+              <TutorPhotoField
+                name={account.name}
+                {...tutorPhoto}
+                available={photoUploads}
+              />
+            )}
             <AccountForm account={account} timeZones={timeZones} panel />
           </section>
           <PasswordForm panel />

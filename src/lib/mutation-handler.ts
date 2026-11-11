@@ -36,17 +36,24 @@ export async function handleJsonMutation(
   try {
     return privateJson(await run(runtime, input));
   } catch (error) {
-    if (error instanceof AccessError || error instanceof RuleError) {
-      if (error instanceof AccessError && error.status === 503)
-        emitDiagnostic("mutation.unavailable");
-      return privateJson({ message: error.message }, error.status);
-    }
-    if (error instanceof ZodError)
-      return privateJson(options.invalid(error), 400);
-    emitDiagnostic("mutation.failed");
-    return privateJson(
-      { message: "This service is unavailable. Try again later." },
-      503,
-    );
+    return mutationErrorResponse(error, options.invalid);
   }
+}
+
+/** Safe translation of a failed write: known rule and access errors keep their message. */
+export function mutationErrorResponse(
+  error: unknown,
+  invalid: (error: ZodError) => Record<string, unknown>,
+) {
+  if (error instanceof AccessError || error instanceof RuleError) {
+    if (error instanceof AccessError && error.status === 503)
+      emitDiagnostic("mutation.unavailable");
+    return privateJson({ message: error.message }, error.status);
+  }
+  if (error instanceof ZodError) return privateJson(invalid(error), 400);
+  emitDiagnostic("mutation.failed");
+  return privateJson(
+    { message: "This service is unavailable. Try again later." },
+    503,
+  );
 }

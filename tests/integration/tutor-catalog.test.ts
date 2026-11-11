@@ -681,6 +681,7 @@ describe("admin review", () => {
         reviewStatus: "pending",
         createdAt: expect.any(Date),
         screening: null,
+        photoPending: false,
       },
     ]);
     expect(
@@ -944,6 +945,7 @@ describe("public eligibility", () => {
       {
         slug,
         displayName: "Listed tutor",
+        photoId: null,
         headline: "Synthetic algebra tutor",
         bio: "Fictional introduction for an automated test.",
         teachingBackground: "Fictional background for an automated test.",

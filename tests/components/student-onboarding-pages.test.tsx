@@ -94,6 +94,12 @@ vi.mock("@/lib/auth", () => ({
   getDomainAuthRuntime: reads.domainRuntime,
 }));
 vi.mock("@/features/account/service", () => ({ readAccount: reads.account }));
+vi.mock("@/features/tutor-photos/service", () => ({
+  readOwnTutorPhoto: async () => null,
+}));
+vi.mock("@/features/tutor-photos/configured", () => ({
+  photoStorage: () => null,
+}));
 vi.mock("@/features/account/account-form", () => ({
   AccountForm: () => <form aria-label="Account profile" />,
 }));

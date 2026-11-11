@@ -25,7 +25,9 @@ export default async function TutorReviewQueuePage({
   const status =
     requested === "all"
       ? undefined
-      : (reviewStatuses.find((value) => value === requested) ?? "pending");
+      : requested === "photo"
+        ? ("photo" as const)
+        : (reviewStatuses.find((value) => value === requested) ?? "pending");
   const data = await loadPrivatePage(
     "/admin/tutors",
     async (runtime, headers) => ({

@@ -60,6 +60,8 @@ export const runtimeGrantsSql = `
     GRANT SELECT ON tutor_profiles TO learli_app;
     GRANT INSERT (user_id,slug,headline,bio,teaching_background,timezone) ON tutor_profiles TO learli_app;
     GRANT UPDATE (headline,bio,teaching_background,timezone,availability_version,updated_at) ON tutor_profiles TO learli_app;
+    GRANT SELECT, INSERT ON tutor_photos TO learli_app;
+    GRANT UPDATE (status, reviewed_at, reviewed_by_user_id) ON tutor_photos TO learli_app;
     GRANT SELECT, INSERT, UPDATE, DELETE ON tutor_subjects, tutor_availability TO learli_app;
     GRANT SELECT, INSERT, DELETE ON tutor_availability_exceptions TO learli_app;
     GRANT SELECT, INSERT, DELETE ON tutor_teaching_languages TO learli_app;

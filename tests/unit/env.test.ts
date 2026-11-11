@@ -9,6 +9,7 @@ describe("server environment safety", () => {
       DATABASE_MODE: "local",
       LOCAL_WORKFLOW_MODE: "disabled",
       APP_URL: "http://localhost:3000",
+      TUTOR_PHOTO_STORAGE: "disabled",
     });
     expect(
       parseServerEnv({

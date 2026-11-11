@@ -339,8 +339,8 @@ Do **not** build these unless the founders approve a scope change:
 | App hosting | **Railway** | Deploy and run the Next.js Node server | [AGREED] |
 | Transactional email | **Resend (start on Free tier)** | Verification, password resets, booking email | [AGREED] |
 | Live lessons | **Zoom / Google Meet** | Audio, video, screen sharing outside Learli | [AGREED] |
-| Object/file storage | **None required initially** | Default avatars and text records are enough for V1 | [AGREED] |
-| File storage if later needed | Neon Object Storage | Optional future tutor photos/documents; re-check availability/pricing | [LATER] |
+| Object/file storage | **Tutor profile photos only** | Local dev/test disk behind an adapter; keys and review state in `tutor_photos` (`docs/decisions/2026-11-11-tutor-profile-photos.md`) | [AGREED] |
+| Hosted photo storage | Neon Object Storage (candidate) | Needed before hosted tutor photos; re-check availability/pricing | [LATER] |
 | Payment processor | **Not selected** | Secure checkout and payments | [OPEN] |
 | Checkout model | Learli-mediated vs tutor-direct | Business and legal settlement flow | [OPEN] |
 | Currency / pricing | Not selected | Sessions, packages, commissions, fees | [OPEN] |
@@ -1284,7 +1284,9 @@ If later the product genuinely needs tutor profile photos or limited verificatio
 4. Store only metadata/object keys in PostgreSQL, not large binary files in ordinary records.
 5. Add retention, deletion, malware scanning, and file-type/size restrictions appropriate to the file type.
 
-**Important:** Neon Object Storage exists, but this architecture does **not** require provisioning it for the initial marketplace.
+**Tutor profile photos (approved 2026-11-11, `docs/decisions/2026-11-11-tutor-profile-photos.md`):** the first approved use. Uploads are re-encoded to a 512px WebP (metadata dropped), stored through `src/features/tutor-photos/storage.ts` (local disk under `.local/tutor-photos/<APP_ENV>`, development/test on loopback only), with only the object key and review state in PostgreSQL (`tutor_photos`). A photo is public only when approved by an admin who may review that tutor and the tutor is publicly eligible; pending photos are visible only to the tutor and that admin.
+
+**Important:** Neon Object Storage exists, but this architecture does **not** require provisioning it for the initial marketplace. Hosted tutor photos need it (or another approved store) first.
 
 ---
 
@@ -1564,7 +1566,7 @@ Passing local tests alone is **not** enough to declare a platform handling minor
 
 ### 20.2 Later additions — only when justified
 
-- Tutor profile photo uploads → evaluate Neon Object Storage.
+- Hosted storage for the approved tutor profile photos → evaluate Neon Object Storage.
 - Automated Zoom/Meet meeting creation.
 - Reliable scheduled reminders via a background job service.
 - Tutor payouts and subscription billing, if the chosen revenue model requires them.
