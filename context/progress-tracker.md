@@ -8386,3 +8386,9 @@ deployment remain unverified and separately gated.
   the next future New York fall-back transition, retaining its exact DST
   assertion; all six booking-history browser tests passed. Full verification
   and remote CI still need completion.
+- A later browser run passed 223 cases before the retained synthetic tutor had
+  no matching slot: its two-hour screening check did not cover minimum notice,
+  slot rounding and lesson duration. The helper now gives the synthetic check
+  24 hours within its test policy window; both focused tutor-screening browser
+  cases passed. No screening coverage rule was relaxed. Full verification and
+  GitHub CI remain pending.
