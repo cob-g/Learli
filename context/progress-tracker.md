@@ -8377,3 +8377,7 @@ deployment remain unverified and separately gated.
   the old animation-frame implementation (2,433 tests passed). They now assert
   the actual focused error directly; the complete 10-test component file passed.
   The full check must be rerun.
+- The next full browser run passed 109 cases before a booking test expected a
+  link on an old URL that now redirects to the current booking. The test now
+  checks that redirect and separately checks the historical view's link; all
+  five booking browser tests passed. Full browser and GitHub checks remain open.

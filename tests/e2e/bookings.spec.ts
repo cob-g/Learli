@@ -446,6 +446,8 @@ test("lifecycle: keyboard reschedule/cancel preserves history and current dashbo
       page.getByRole("heading", { name: "Simulation rescheduled", level: 1 }),
     ).toBeVisible();
     await page.goto(`/bookings/${id}?scope=guardian`);
+    await expect(page).toHaveURL(`/bookings/${replacement}?scope=guardian`);
+    await page.goto(`/bookings/${id}?scope=guardian&history=1`);
     await expect(
       page.getByRole("link", { name: "View current simulation" }),
     ).toHaveAttribute("href", `/bookings/${replacement}?scope=guardian`);
