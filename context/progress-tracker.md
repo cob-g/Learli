@@ -8373,3 +8373,7 @@ deployment remain unverified and separately gated.
   Typecheck and a new production build passed; the five registration-feedback
   browser tests passed at desktop and phone widths. Full browser and GitHub CI
   checks remain pending for the final change.
+- The first post-focus `npm run check` exposed two component tests coupled to
+  the old animation-frame implementation (2,433 tests passed). They now assert
+  the actual focused error directly; the complete 10-test component file passed.
+  The full check must be rerun.

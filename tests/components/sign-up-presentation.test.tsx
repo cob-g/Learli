@@ -78,23 +78,6 @@ function submitSignup() {
   );
 }
 
-function queuedFocusFrame() {
-  const frames: FrameRequestCallback[] = [];
-  const requestFrame = vi.fn((callback: FrameRequestCallback) => {
-    frames.push(callback);
-    return frames.length;
-  });
-  vi.stubGlobal("requestAnimationFrame", requestFrame);
-  return (feedback: HTMLElement) => {
-    // Run the requested browser frame after React commits the async feedback.
-    expect(feedback).toBeInTheDocument();
-    expect(requestFrame).toHaveBeenCalledTimes(1);
-    expect(frames).toHaveLength(1);
-    act(() => frames[0](performance.now()));
-    expect(feedback).toHaveFocus();
-  };
-}
-
 async function expectContinuation(destination: string) {
   await waitFor(() => expect(client.signUp).toHaveBeenCalledTimes(1));
   expect(client.signUp).toHaveBeenCalledExactlyOnceWith({
@@ -310,7 +293,6 @@ describe("reference sign-up presentation", () => {
   });
 
   it("masks and clears a revealed credential before provider submission, disables pending controls and recovers from a safe refusal", async () => {
-    const runFocusFrame = queuedFocusFrame();
     let finish!: (result: { error: { code: string; message: string } }) => void;
     const response = new Promise<{ error: { code: string; message: string } }>(
       (resolve) => {
@@ -370,7 +352,7 @@ describe("reference sign-up presentation", () => {
     );
     expect(alert).not.toHaveTextContent("Private provider detail");
     expect(alert).not.toHaveTextContent(credential);
-    runFocusFrame(alert);
+    expect(alert).toHaveFocus();
     expect(form).toHaveAttribute("aria-busy", "false");
     expect(password).toHaveAttribute("type", "password");
     expect(password).toHaveValue("");
@@ -392,7 +374,6 @@ describe("reference sign-up presentation", () => {
   });
 
   it("keeps credentials cleared and reports a safe focused failure when the account service cannot be reached", async () => {
-    const runFocusFrame = queuedFocusFrame();
     client.signUp.mockRejectedValueOnce(new Error("Private connection detail"));
     render(<AuthForm mode="sign-up" presentation="sign-up-reference" />);
     fillSignup();
@@ -405,7 +386,7 @@ describe("reference sign-up presentation", () => {
     );
     expect(alert).not.toHaveTextContent("Private connection detail");
     expect(alert).not.toHaveTextContent(credential);
-    runFocusFrame(alert);
+    expect(alert).toHaveFocus();
     expect(screen.getByLabelText("Password")).toHaveValue("");
     expect(screen.getByLabelText("Password")).toHaveAttribute(
       "type",
