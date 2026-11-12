@@ -8357,3 +8357,8 @@ deployment remain unverified and separately gated.
   of the regression counted unrelated provider SQL; it was corrected to inspect
   advisory-lock statements specifically. Typecheck passed. Full CI and browser
   verification remain pending.
+- Browser startup exposed the server-only marker in the synthetic readiness
+  mirror and Playwright fixture workers. The test runner now uses the React
+  server condition for those Node processes while restoring the original Node
+  options for the web servers. A browser suite is in progress; its result and
+  a rerun with this scoped configuration still need verification.
