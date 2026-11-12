@@ -241,6 +241,7 @@ export const bookingMessageInput = z
       .refine((v) => !/[\u0000-\u001f\u007f]/.test(v)),
     startAtUtc: z.iso.datetime({ offset: true }),
     endAtUtc: z.iso.datetime({ offset: true }),
+    expiresAtUtc: z.iso.datetime({ offset: true }).optional(),
     timezone: z.string().refine(isValidTimeZone),
     detailPath: z
       .string()
@@ -268,7 +269,12 @@ export function createLocalBookingMessageConstructor(
     if (!parsed.success || parsed.data.source !== "local_operation")
       return { ok: false, code: "payload" };
     const kind = z.enum(localBookingNoticeKinds).safeParse(parsed.data.kind);
-    if (!kind.success) return { ok: false, code: "payload" };
+    if (
+      !kind.success ||
+      (kind.data === "provisional" && !parsed.data.expiresAtUtc) ||
+      (kind.data !== "provisional" && parsed.data.expiresAtUtc !== undefined)
+    )
+      return { ok: false, code: "payload" };
     const value = parsed.data;
     const rendered = renderBookingEmail(capability.origin, {
       ...value,
@@ -306,7 +312,8 @@ export function createBookingMessageConstructor(config: unknown) {
   return (input: unknown): MessageConstruction => {
     if (!parsed.success) return { ok: false, code: "configuration" };
     const notice = bookingMessageInput.safeParse(input);
-    if (!notice.success) return { ok: false, code: "payload" };
+    if (!notice.success || notice.data.expiresAtUtc !== undefined)
+      return { ok: false, code: "payload" };
     const value = notice.data;
     const { appOrigin, identitySecret } = parsed.data;
     const outcomes: Record<BookingMessageInput["kind"], string> = {

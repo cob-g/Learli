@@ -32,9 +32,10 @@ export async function currentDeliveryMaterial(
   if (!recipient) return null;
   const presentation = await db.execute<{
     timezone: string;
+    expiresAtUtc: string;
     scope: "student" | "guardian" | "tutor" | null;
   }>(sql`
-    SELECT u.timezone, CASE
+    SELECT u.timezone, b.expires_at::text AS "expiresAtUtc", CASE
       WHEN b.booked_by_user_id=u.id AND l.management='guardian' AND l.user_id IS NULL THEN 'guardian'
       WHEN b.booked_by_user_id=u.id AND l.management='self' AND l.user_id=u.id THEN 'student'
       WHEN t.user_id=u.id THEN 'tutor'
@@ -66,6 +67,10 @@ export async function currentDeliveryMaterial(
     subject: current.subjectName,
     startAtUtc: new Date(current.startAtUtc).toISOString(),
     endAtUtc: new Date(current.endAtUtc).toISOString(),
+    ...(current.source === "local_operation" &&
+    current.kind === "workflow_provisional"
+      ? { expiresAtUtc: new Date(view.expiresAtUtc).toISOString() }
+      : {}),
     timezone: view.timezone,
     detailPath: `/bookings/${current.bookingId}?scope=${view.scope}`,
   });

@@ -1,5 +1,9 @@
 # Learli — Product Requirements Document (PRD)
 
+### Owner-only booking lifecycle notices — 2026-11-12
+
+OPS-04/BKG-01/02/06/M5.7/8: the requested provisional, expiry, recorded completion and recorded no-show notices now join the three existing owner-only local messages. Provisional explicitly says not confirmed and shows its persisted deadline. Expired means the hold is no longer reserved. Outcome copy describes a recorded status, not verified attendance, and directs discrepancies to support. Current participant, exact owner, role/time/assignment rules and general-recipient domain gates remain. Local workspace/read activity and explicit recovery process bounded overdue holds/retries; no exact-time delivery or inferred outcome is promised.
+
 ### Owner-only local booking notices — 2026-11-12
 
 OPS-04/M5.7/8: confirmed, rescheduled and cancelled ordinary local bookings may

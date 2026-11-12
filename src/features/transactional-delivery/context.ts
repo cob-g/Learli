@@ -108,9 +108,13 @@ export function bindLocalTransactionalDelivery(
     // Exclude unrelated/unsupported rows before claiming; never redirect them.
     candidateFilter: and(
       inArray(deliveries.kind, [
+        "workflow_provisional",
         "workflow_confirmed",
         "workflow_rescheduled",
         "workflow_cancelled",
+        "workflow_expired",
+        "workflow_completed",
+        "workflow_no_show",
       ]),
       sql`EXISTS (SELECT 1 FROM public."user" u WHERE u.id=${deliveries.recipientUserId} AND u.email=${recipient})`,
       sql`EXISTS (SELECT 1 FROM public.booking_lifecycle_events e JOIN public.bookings b ON b.id=coalesce(e.replacement_booking_id,e.booking_id) WHERE e.id=${deliveries.eventId} AND b.source='local_operation')`,

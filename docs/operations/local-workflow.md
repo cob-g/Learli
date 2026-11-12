@@ -143,13 +143,14 @@ The sender remains the Resend test sender until an owned domain is verified.
 
 Resend documents its [test-sender account-recipient restriction](https://resend.com/docs/knowledge-base/403-error-resend-dev-domain).
 
-### Booking confirmation, reschedule and cancellation email
+### Booking lifecycle email
 
-The same optional key/recipient settings also enable these three ordinary local
-booking notices. The configured account owner must be a current authorized
+The same optional key/recipient settings also enable all seven ordinary local
+booking notices: provisional, confirmed, rescheduled, cancelled, expired,
+completed and no-show. The configured account owner must be a current authorized
 participant of that booking. Other destinations are not redirected or emailed;
-their delivery rows remain pending. Unrequested provisional, expiry, completion
-and no-show notices are not activated. Without the settings, existing behavior
+their delivery rows remain pending. Provisional messages include the actual deadline and say not confirmed;
+completion/no-show describe recorded outcomes, not verified attendance. Without the settings, existing behavior
 stays unchanged.
 
 A successful workflow mutation schedules a bounded event-specific send after
@@ -160,10 +161,20 @@ link, not learner names or meeting URLs. Reschedule uses the replacement time.
 Provider acceptance does not prove inbox delivery. Email failure does not undo
 the booking, and an ambiguous send retains its original retry identity.
 
-Next after is best effort, not a durable scheduler. To recover missed/due
+Authenticated workspace renders and successful booking GETs also schedule
+maintenance at most once per minute per runtime pool. Before a non-event-specific
+drain, up to25 due owner-linked tutors are reconciled through the existing expiry
+function. Its tutor-level operation may expire other already-overdue holds; mail
+remains limited to the exact current owner. Locks release before any provider
+call. A contention failure leaves expiry for a later run and does not undo bookings.
+No automatic completion/no-show or new hold duration is introduced.
+
+Next after is best effort, not a durable clock scheduler. No activity means
+expiry mail/retries may wait for explicit recovery; exact-deadline sending is not
+guaranteed. To recover missed/due
 retryable work explicitly, run `npm run delivery:local -- 25` (limit 1–25).
 This loads the private local env, requires admitted local runtime authority,
-selects only the exact current owner and three kinds, and prints counts only.
+selects only the exact current owner and seven kinds, and prints counts only.
 Existing retry deadlines, attempt caps, immutable body/configuration and provider
 idempotency retention still apply; no forced resend or public endpoint is added.
 It may process other eligible owner rows up to the limit, so inspect the local

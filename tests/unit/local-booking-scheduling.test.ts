@@ -1,7 +1,12 @@
 import { afterAll, afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createLocalAuth } from "@/lib/auth-factory";
 import { bindLocalTransactionalDelivery } from "@/features/transactional-delivery/context";
-import { scheduleLocalBookingNotices } from "@/features/transactional-delivery/local";
+import {
+  scheduleLocalBookingNotices,
+  scheduleLocalBookingMaintenance,
+  drainLocalBookingNotices,
+} from "@/features/transactional-delivery/local";
+import * as expiry from "@/features/transactional-delivery/expiry";
 import * as drain from "@/features/transactional-delivery/drain";
 import { handleWorkflowMutation } from "@/features/booking-workflows/handler";
 import {
@@ -12,6 +17,9 @@ import { bookingWorkflowContext } from "@/features/booking-workflows/composition
 import { PgDialect } from "drizzle-orm/pg-core";
 import { after } from "next/server";
 
+vi.mock("@/features/transactional-delivery/expiry", () => ({
+  reconcileLocalBookingExpiry: vi.fn(),
+}));
 vi.mock("server-only", () => ({}));
 vi.mock("next/server", () => ({ after: vi.fn() }));
 vi.mock("@/features/booking-workflows/service", () => ({
@@ -68,7 +76,7 @@ const request = () =>
     body: "{}",
   });
 
-it("binds actual local runtime settings and filters exact owner/local source/three kinds before claims", () => {
+it("binds actual local runtime settings and filters exact owner/local source/seven kinds before claims", () => {
   const context = bindLocalTransactionalDelivery(runtime)!;
   const query = new PgDialect().sqlToQuery(context.candidateFilter!);
   expect(query.params).toContain(source.LOCAL_VERIFICATION_RECIPIENT);
@@ -77,9 +85,13 @@ it("binds actual local runtime settings and filters exact owner/local source/thr
       (v) => typeof v === "string" && v.startsWith("workflow_"),
     ),
   ).toEqual([
+    "workflow_provisional",
     "workflow_confirmed",
     "workflow_rescheduled",
     "workflow_cancelled",
+    "workflow_expired",
+    "workflow_completed",
+    "workflow_no_show",
   ]);
   expect(query.sql).toContain("local_operation");
   expect(query.sql).toContain('"recipient_user_id"');
@@ -178,7 +190,7 @@ it("does not schedule before commit resolution or after a rejected transaction",
 });
 
 it.each(["confirm", "reschedule", "cancel", "complete", "no_show"] as const)(
-  "schedules only requested kinds after %s",
+  "schedules committed event after %s",
   async (action) => {
     vi.mocked(changePolicyBooking).mockResolvedValue(receipt);
     expect(
@@ -192,8 +204,55 @@ it.each(["confirm", "reschedule", "cancel", "complete", "no_show"] as const)(
         )
       ).status,
     ).toBe(200);
-    expect(after).toHaveBeenCalledTimes(
-      ["confirm", "reschedule", "cancel"].includes(action) ? 1 : 0,
-    );
+    expect(after).toHaveBeenCalledTimes(1);
   },
 );
+
+it("bounds maintenance to once per minute and rebinds before callback work", async () => {
+  vi.useFakeTimers();
+  try {
+    vi.setSystemTime(new Date("2030-01-01T00:00:00Z"));
+    scheduleLocalBookingMaintenance(runtime);
+    scheduleLocalBookingMaintenance(runtime);
+    expect(after).toHaveBeenCalledTimes(1);
+    const callback = vi.mocked(after).mock.calls[0]![0] as () => Promise<void>;
+    expect(expiry.reconcileLocalBookingExpiry).not.toHaveBeenCalled();
+    await callback();
+    expect(expiry.reconcileLocalBookingExpiry).toHaveBeenCalledTimes(1);
+    expect(drain.drainTransactionalDeliveries).toHaveBeenCalledWith(
+      expect.anything(),
+      { limit: 25 },
+    );
+    vi.advanceTimersByTime(60_000);
+    scheduleLocalBookingMaintenance(runtime);
+    expect(after).toHaveBeenCalledTimes(2);
+    vi.stubEnv("LOCAL_VERIFICATION_RESEND_KEY", undefined);
+    vi.stubEnv("LOCAL_VERIFICATION_RECIPIENT", undefined);
+    await (vi.mocked(after).mock.calls[1]![0] as () => Promise<void>)();
+    expect(expiry.reconcileLocalBookingExpiry).toHaveBeenCalledTimes(1);
+  } finally {
+    vi.useRealTimers();
+  }
+});
+
+it("isolates expiry contention from delivery and does not reconcile on immediate event sends", async () => {
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  vi.mocked(expiry.reconcileLocalBookingExpiry).mockRejectedValueOnce(
+    Error("Synthetic lock timeout"),
+  );
+  await expect(
+    drainLocalBookingNotices(runtime, { limit: 2 }),
+  ).resolves.toMatchObject({ status: "completed" });
+  expect(drain.drainTransactionalDeliveries).toHaveBeenCalledTimes(1);
+  vi.mocked(expiry.reconcileLocalBookingExpiry).mockClear();
+  await drainLocalBookingNotices(runtime, { eventId, limit: 2 });
+  expect(expiry.reconcileLocalBookingExpiry).not.toHaveBeenCalled();
+});
+
+it("disabled maintenance does not schedule or query", () => {
+  vi.stubEnv("LOCAL_VERIFICATION_RESEND_KEY", undefined);
+  vi.stubEnv("LOCAL_VERIFICATION_RECIPIENT", undefined);
+  scheduleLocalBookingMaintenance(runtime);
+  expect(after).not.toHaveBeenCalled();
+  expect(expiry.reconcileLocalBookingExpiry).not.toHaveBeenCalled();
+});

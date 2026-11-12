@@ -115,9 +115,9 @@ it("escapes dynamic subject content and keeps key/material stable across constru
 
 it.each([
   { kind: "provisional" },
-  { kind: "expired" },
-  { kind: "completed" },
-  { kind: "no_show" },
+  { kind: "unknown" },
+  { kind: "confirmed", expiresAtUtc: "2026-11-01T05:00:00Z" },
+  { kind: "provisional", expiresAtUtc: "invalid" },
   { source: "synthetic_readiness" },
   { source: "local_simulation" },
   { detailPath: "/account" },
@@ -221,3 +221,49 @@ it("bounds a stalled local send and preserves a stable retry key", async () => {
     ),
   ).toEqual([proof.idempotencyKey, proof.idempotencyKey]);
 });
+
+it.each([
+  { kind: "provisional", title: "Provisional booking", copy: "not confirmed" },
+  { kind: "expired", title: "Booking expired", copy: "no longer reserved" },
+  {
+    kind: "completed",
+    title: "Booking marked completed",
+    copy: "does not verify lesson attendance",
+  },
+  {
+    kind: "no_show",
+    title: "Booking marked no-show",
+    copy: "does not verify lesson attendance",
+  },
+])(
+  "renders truthful branded $kind lifecycle update",
+  async ({ kind, title, copy }) => {
+    const proof = message({
+      ...input,
+      kind,
+      ...(kind === "provisional"
+        ? { expiresAtUtc: "2026-11-01T05:00:00Z" }
+        : {}),
+    });
+    const body = readValidatedMessage(proof)!;
+    document.documentElement.innerHTML = body.html;
+    expect(document.querySelector("h1")).toHaveTextContent(title);
+    expect(body.subject).toBe(`${title} | Learli`);
+    expect(body.text).toContain(copy);
+    expect(body.text).toContain("GMT-4");
+    expect(body.text).toContain("GMT-5");
+    if (kind === "provisional") {
+      expect(body.text).toContain(
+        "Confirmation deadline: Sunday, November 1, 2026. 1:00 AM GMT-4",
+      );
+    }
+    if (kind === "completed" || kind === "no_show")
+      expect(body.text).toContain("contact support");
+    await expect(
+      createLocalBookingResendTransport(capability, config).send(proof),
+    ).resolves.toMatchObject({ status: "accepted" });
+    expect(JSON.parse(request.mock.calls[0]![1]!.body as string).to).toEqual([
+      config.recipient,
+    ]);
+  },
+);
