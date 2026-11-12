@@ -10,7 +10,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 45
     services:
       postgres:
         image: postgres:17.11-bookworm@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
@@ -18,12 +18,12 @@ jobs:
           POSTGRES_USER: learli_owner
           # Synthetic credential for this disposable loopback CI service only.
           POSTGRES_PASSWORD: local-disposable-ci-only
-          POSTGRES_DB: postgres
+          POSTGRES_DB: learli_ci_ephemeral
           TZ: UTC
         ports:
-          - 127.0.0.1:55432:5432
+          - 127.0.0.1:5432:5432
         options: >-
-          --health-cmd "pg_isready -U learli_owner -d postgres"
+          --health-cmd "pg_isready -U learli_owner -d learli_ci_ephemeral"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
@@ -36,6 +36,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: .nvmrc

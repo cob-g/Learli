@@ -160,9 +160,16 @@ describe("W7 fresh and populated forward source/grant/preservation proof", () =>
           accepted[file] ??
           createHash("sha256")
             .update(
-              spawnSync("git", ["show", `2fa0294:${file}`], {
-                encoding: "utf8",
-              }).stdout,
+              (() => {
+                const result = spawnSync("git", ["show", `2fa0294:${file}`], {
+                  encoding: "utf8",
+                });
+                if (result.status !== 0 || result.error)
+                  throw new Error(
+                    `Cannot read historical migration ${file}; ensure Git history is available.`,
+                  );
+                return result.stdout;
+              })(),
             )
             .digest("hex");
       expect(e.hash, file).toBe(expected);

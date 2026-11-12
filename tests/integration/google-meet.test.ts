@@ -280,7 +280,7 @@ beforeAll(async () => {
     expect(
       (
         await world.runtime.pool.query(
-          "SELECT * FROM public.record_tutor_screening_check($1,$2,$3,$4,$5,$6,'passed',$7,clock_timestamp()-interval '1 minute',clock_timestamp()+interval '1 day')",
+          "SELECT * FROM public.record_tutor_screening_check($1,$2,$3,$4,$5,$6,'passed',$7,clock_timestamp()-interval '1 minute',clock_timestamp()+interval '30 days')",
           [
             admin.id,
             adminSession,

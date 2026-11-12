@@ -8324,3 +8324,23 @@ deployment remain unverified and separately gated.
   isolated verification test account, re-registered, and reported the new Gmail
   email design was professional. No additional live email was sent during this
   rebase. The main checkout and its database were not changed.
+
+
+### 2026-11-12 — PR CI repair in progress
+
+- The owner requested fixing CI before merging PR #1. GitHub failures also
+  occurred on the base branch. Recovery evidence and scope are recorded in
+  `prompts/recovery/2026-11-12-ci-fixtures.md`. CI now checks out migration
+  history and aligns its disposable PostgreSQL server and client ports; setup
+  is limited to a GitHub Actions workspace and checks the bootstrap database
+  identity. The job timeout allows the integration and browser stages to run.
+- Synthetic Google Meet screening now covers its future bookings; the
+  cross-role fixture orders recipient IDs consistently. Migration history
+  reads fail explicitly when Git cannot provide a source. Production booking,
+  authentication and screening rules were not changed.
+- Verification so far: six affected integration files PASS (85 tests);
+  `npm run check` PASS (2,435 unit/component tests); production build PASS
+  using the isolated test environment. Full integration, browser E2E, and
+  GitHub CI are still pending. The first build with the separate local Resend
+  environment failed configuration validation; the test-environment build
+  passed without changing local credentials.
