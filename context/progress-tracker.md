@@ -8396,3 +8396,6 @@ deployment remain unverified and separately gated.
   tests after the focus fix: assertions ran before the post-commit effect. The
   tests now wait for actual focus; both affected component files pass (40 tests).
   A fresh remote check is required.
+- Full local browser verification passed: 237/237 Chromium tests, including
+  responsive widths, booking/history, screening and hosted workflow integration
+  against the isolated synthetic test database. GitHub CI remains pending.
