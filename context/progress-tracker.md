@@ -8399,3 +8399,11 @@ deployment remain unverified and separately gated.
 - Full local browser verification passed: 237/237 Chromium tests, including
   responsive widths, booking/history, screening and hosted workflow integration
   against the isolated synthetic test database. GitHub CI remains pending.
+- GitHub's full integration run passed 1,161 tests but failed 23 private-operator
+  cases. The container service did not satisfy the operator's local server
+  identity guard. CI now starts the existing checkout-owned PostgreSQL cluster
+  on host loopback and verifies its actual address, port, role, database and data
+  directory before issuing the fixture receipt. In a fresh isolated local CI-like
+  workspace, setup and reviewed migrations succeeded and both the operator and
+  signup atomicity suites passed (52 tests). The operator guard is unchanged;
+  a new GitHub run is required.
