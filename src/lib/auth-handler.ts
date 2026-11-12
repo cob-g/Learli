@@ -99,13 +99,13 @@ export async function handleAuthRequest(
     request.method !== "GET",
   );
   // Direct loopback server: forwarded headers are not trusted client identity.
-  const localVerification =
+  const localProofRequest =
     !("hosted" in runtime) &&
     "localVerificationRecipient" in runtime &&
     typeof runtime.localVerificationRecipient === "string" &&
-    route === "send-verification-email";
+    ["send-verification-email", "request-password-reset"].includes(route);
   const verificationStart = performance.now();
-  const verificationReceived = (previous: Response) => {
+  const proofReceived = (previous: Response) => {
     const headers = new Headers(previous.headers);
     headers.delete("content-length");
     headers.delete("content-encoding");
@@ -114,7 +114,9 @@ export async function handleAuthRequest(
     return Response.json(
       {
         message:
-          "Verification request received. Delivery has not been established.",
+          route === "request-password-reset"
+            ? "Reset request received. Delivery has not been established."
+            : "Verification request received. Delivery has not been established.",
       },
       { status: 200, headers },
     );
@@ -234,8 +236,8 @@ export async function handleAuthRequest(
           ? await runtime.mailAttempt.run(call)
           : { value: await call(), failed: false };
       const response = attempt.failed
-        ? localVerification
-          ? verificationReceived(attempt.value)
+        ? localProofRequest
+          ? proofReceived(attempt.value)
           : refusedMailResponse(attempt.value)
         : attempt.value;
       if (
@@ -288,13 +290,13 @@ export async function handleAuthRequest(
     const response = route.startsWith("two-factor/")
       ? await runtime.adminSecurity.run(dispatch)
       : await dispatch();
-    if (localVerification) {
+    if (localProofRequest) {
       const remaining =
         LOCAL_VERIFICATION_RESPONSE_FLOOR_MS -
         (performance.now() - verificationStart);
       if (remaining > 0)
         await new Promise((resolve) => setTimeout(resolve, remaining));
-      if (response.ok) return verificationReceived(response);
+      if (response.ok) return proofReceived(response);
     }
     for (const [name, value] of Object.entries(privateHeaders))
       response.headers.set(name, value);

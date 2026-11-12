@@ -129,9 +129,9 @@ original contracts; pending/rejected/revoked records are not auto-approved.
 Independent minor access, existing-account linking, public-market eligibility
 and consent/legal rules, and staffed safeguarding remain separate gates.
 
-## Optional owner-only verification email
+## Optional owner-only verification and password-reset email
 
-By default all account messages stay in the private local capture. For an explicitly authorized Resend test, set both `LOCAL_VERIFICATION_RESEND_KEY` and `LOCAL_VERIFICATION_RECIPIENT` privately in `.env.local`, then restart the app. The recipient must be the exact address of the Resend account owner and the account being verified. The sender is `onboarding@resend.dev`; provider restrictions apply. Other verification recipients are refused and reset, email-change and booking messages stay captured. The verification link points to this computer’s loopback app and must be opened there. API acceptance does not establish inbox delivery. Remove both settings and restart to return to capture. Never commit keys or links; a verified owned sending domain and separate activation are required for general-user mail.
+By default all account messages stay in the private local capture. For an explicitly authorized Resend test, set both `LOCAL_VERIFICATION_RESEND_KEY` and `LOCAL_VERIFICATION_RECIPIENT` privately in `.env.local`, then restart the app. The recipient must be the exact address of the Resend account owner and the account receiving verification or password reset. The sender is `onboarding@resend.dev`; provider restrictions apply. Other verification/reset recipients are refused; email-change and booking messages stay captured. Reset links expire after 30 minutes, are single use, and successful resets revoke existing sessions. The account link points to this computer’s loopback app and must be opened there. API acceptance does not establish inbox delivery. Remove both settings and restart to return to capture. Never commit keys or links; a verified owned sending domain and separate activation are required for general-user mail.
 
 Resend documents its [test-sender account-recipient restriction](https://resend.com/docs/knowledge-base/403-error-resend-dev-domain).
 

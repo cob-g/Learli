@@ -18,7 +18,7 @@ import { handleAuthRequest } from "@/lib/auth-handler";
 describe.skipIf(process.env.LEARLI_LOCAL_VERIFICATION_INTEGRATION !== "1")(
   "local verification runtime",
   () => {
-    it("sends the real signup proof and verifies only its untampered link", async () => {
+    it("delivers real verification and reset proofs with uniform recovery and single-use reset", async () => {
       const source = parse(readFileSync(".env.local"));
       const database = new URL(source.DATABASE_URL);
       if (
@@ -241,11 +241,170 @@ describe.skipIf(process.env.LEARLI_LOCAL_VERIFICATION_INTEGRATION !== "1")(
           [email],
         );
         expect(result.rows[0]?.email_verified).toBe(true);
+        request.mockClear();
+        const post = (route: string, body: object, selected = runtime) =>
+          handleAuthRequest(
+            selected,
+            new Request(`${selected.origin}/api/auth/${route}`, {
+              method: "POST",
+              headers: {
+                origin: selected.origin,
+                "content-type": "application/json",
+              },
+              body: JSON.stringify(body),
+            }),
+          );
+        const login = await post("sign-in/email", {
+          email,
+          password: "Synthetic-only-passphrase-123",
+        });
+        expect(login.status).toBe(200);
+        const cookie = login.headers
+          .getSetCookie()
+          .map((value) => value.split(";")[0])
+          .join("; ");
+        const reset = (target: string, selected = runtime) =>
+          post(
+            "request-password-reset",
+            { email: target, redirectTo: "/reset-password" },
+            selected,
+          );
+        const accepted = await reset(email);
+        expect(accepted.status).toBe(200);
+        const received = await accepted.text();
+        expect(request).toHaveBeenCalledTimes(1);
+        const resetMail = JSON.parse(
+          request.mock.calls[0]![1]!.body as string,
+        ) as { subject: string; text: string; to: string[] };
+        expect(resetMail.subject).toBe("Reset your Learli password");
+        expect(resetMail.to).toEqual([email]);
+        const resetUrl = resetMail.text.match(
+          /^http:\/\/127\.0\.0\.1:[^\s]+$/m,
+        )?.[0];
+        if (!resetUrl) throw new Error("Synthetic reset proof missing.");
+        const unknownEmail = `missing-${randomUUID()}@example.test`;
+        vi.stubEnv("LOCAL_VERIFICATION_RECIPIENT", unknownEmail);
+        const unknownRuntime = createLocalAuth({
+          ...source,
+          DATABASE_URL_DIRECT: undefined,
+          LOCAL_WORKFLOW_MODE: "enabled",
+          LOCAL_VERIFICATION_RESEND_KEY: "re_testkey123456",
+          LOCAL_VERIFICATION_RECIPIENT: unknownEmail,
+        });
+        try {
+          for (const target of [unknownEmail, email]) {
+            const response = await reset(target, unknownRuntime);
+            expect(response.status).toBe(200);
+            expect(await response.text()).toBe(received);
+            expect(response.headers.get("cache-control")).toBe(
+              "private, no-store, max-age=0",
+            );
+          }
+          expect(request).toHaveBeenCalledTimes(1);
+        } finally {
+          await unknownRuntime.pool.end();
+        }
+        vi.stubEnv("LOCAL_VERIFICATION_RECIPIENT", email);
+        request.mockResolvedValueOnce(
+          new Response("private provider failure", { status: 403 }),
+        );
+        const providerFailure = await reset(email);
+        expect(providerFailure.status).toBe(200);
+        expect(await providerFailure.text()).toBe(received);
+        expect(request).toHaveBeenCalledTimes(2);
+        // The original provider proof is still valid; a failed send never consumes it.
+        const resetToken = new URL(resetUrl).pathname.split("/").at(-1)!;
+        const replacementPassword = "Synthetic-replacement-passphrase-456";
+        expect(
+          (
+            await post("reset-password", {
+              token: "invalid-synthetic-token",
+              newPassword: replacementPassword,
+            })
+          ).ok,
+        ).toBe(false);
+        const proofRedirect = await handleAuthRequest(
+          runtime,
+          new Request(resetUrl),
+        );
+        expect(
+          new URL(proofRedirect.headers.get("location")!, runtime.origin)
+            .pathname,
+        ).toBe("/reset-password");
+        expect(
+          (
+            await post("reset-password", {
+              token: resetToken,
+              newPassword: replacementPassword,
+            })
+          ).status,
+        ).toBe(200);
+        expect(
+          (
+            await post("reset-password", {
+              token: resetToken,
+              newPassword: replacementPassword,
+            })
+          ).ok,
+        ).toBe(false);
+        expect(
+          (
+            await post("sign-in/email", {
+              email,
+              password: "Synthetic-only-passphrase-123",
+            })
+          ).status,
+        ).toBe(401);
+        expect(
+          (
+            await post("sign-in/email", {
+              email,
+              password: replacementPassword,
+            })
+          ).status,
+        ).toBe(200);
+        const oldSession = await handleAuthRequest(
+          runtime,
+          new Request(`${runtime.origin}/api/auth/get-session`, {
+            headers: { cookie },
+          }),
+        );
+        expect(await oldSession.json()).toBeNull();
+        expect((await reset(email)).status).toBe(200);
+        expect((await reset(email)).status).toBe(429);
+        const lastMail = JSON.parse(
+          request.mock.calls.at(-1)![1]!.body as string,
+        ) as { text: string };
+        const expiredUrl = lastMail.text.match(
+          /^http:\/\/127\.0\.0\.1:[^\s]+$/m,
+        )?.[0];
+        if (!expiredUrl) throw new Error("Synthetic expiry proof missing.");
+        const expiredToken = new URL(expiredUrl).pathname.split("/").at(-1)!;
+        const expirationOwner = new Pool({
+          connectionString: source.DATABASE_URL_DIRECT,
+        });
+        try {
+          const expired = await expirationOwner.query(
+            "UPDATE verification SET expires_at=clock_timestamp()-interval '1 second' WHERE identifier=$1",
+            [`reset-password:${expiredToken}`],
+          );
+          expect(expired.rowCount).toBe(1);
+        } finally {
+          await expirationOwner.end();
+        }
+        expect(
+          (
+            await post("reset-password", {
+              token: expiredToken,
+              newPassword: "Synthetic-never-applied-passphrase-789",
+            })
+          ).ok,
+        ).toBe(false);
       } finally {
         await runtime.pool.end();
         vi.unstubAllGlobals();
         vi.unstubAllEnvs();
       }
-    }, 30_000);
+    }, 60_000);
   },
 );

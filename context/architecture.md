@@ -1,5 +1,18 @@
 # Learli — System Architecture
 
+### Owner-only password reset extension — 2026-11-12
+
+The owner extended the optional local Resend path to password-reset links
+(AUTH-02, M2.3/M5.7). The existing private verification key/recipient settings
+now enable both genuine verification and reset proofs for that exact account
+owner only. Better Auth owns 30-minute single-use reset links and session
+revocation. Default capture, email-change capture and booking mail behavior
+remain. Generic reset responses preserve account privacy; no general-recipient
+or hosted activation is authorized. See
+`prompts/features/m5-07-resend-password-reset.md` and
+`docs/decisions/2026-11-12-local-password-reset-email.md`.
+
+
 ### Booking performance implementation — 2026-11-10
 
 Confirmed workflow replacements preserve the original finite hold deadline even

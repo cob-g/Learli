@@ -1,5 +1,16 @@
 # Learli — UI Context
 
+### Owner-only password-reset email — 2026-11-12
+
+The optional owner-only reset email shares the established verification email
+layout and logo. Use “Reset your Learli password” and “Reset password,” a private
+copyable fallback, and equivalent plain text. State the provider-configured
+30-minute lifetime and single use, with ignored-request guidance. When enabled,
+Forgot password directs users to check the configured address and does not
+claim delivery. Email-change messages retain capture instructions. This extends
+the earlier verification-only scope; general-user sending remains gated.
+
+
 ### Verification email presentation — 2026-11-11
 
 The optional owner-only local verification email uses the supplied Learli
