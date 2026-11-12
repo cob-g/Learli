@@ -2,11 +2,12 @@ import { screeningMirrorOrigin } from "./tests/support/readiness-placement";
 import { hostedBrowserOrigin } from "./tests/support/hosted-auth-placement";
 import { defineConfig, devices } from "@playwright/test";
 
-// Playwright fixture workers import server-only modules outside Next.js. Keep
-// the React server condition on those workers, not on the Next web servers.
-const webServerNodeOptions = process.env.NODE_OPTIONS ?? "";
-process.env.NODE_OPTIONS =
-  `${webServerNodeOptions} --conditions=react-server`.trim();
+// The test launcher gives fixture workers the React server condition while
+// preserving the caller's original options for the Next web servers.
+const webServerNodeOptions =
+  process.env.LEARLI_PLAYWRIGHT_SERVER_NODE_OPTIONS ??
+  process.env.NODE_OPTIONS ??
+  "";
 
 const baseURL = process.env.APP_URL ?? "http://127.0.0.1:3100";
 const target = new URL(baseURL);
@@ -102,7 +103,7 @@ export default defineConfig({
       name: "catalog",
       testMatch: "tutor-catalog.spec.ts",
       // Finish empty-inventory checks and auth throttle assertions before catalog setup.
-      dependencies: ["desktop", "phone", "narrow", "auth"],
+      dependencies: ["desktop", "phone", "narrow", "auth", "responsive"],
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1440, height: 900 },
@@ -550,6 +551,7 @@ export default defineConfig({
       // Every route at every supported width; also the responsive audit.
       name: "responsive",
       testMatch: "responsive.spec.ts",
+      dependencies: ["desktop", "phone", "narrow", "auth"],
       workers: 1,
       use: {
         ...devices["Desktop Chrome"],

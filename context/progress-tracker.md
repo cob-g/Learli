@@ -8362,3 +8362,9 @@ deployment remain unverified and separately gated.
   server condition for those Node processes while restoring the original Node
   options for the web servers. A browser suite is in progress; its result and
   a rerun with this scoped configuration still need verification.
+- The first browser execution reached 82 passing cases, then exposed catalog
+  pollution from responsive tests that had created approved synthetic tutors.
+  Responsive fixtures now retire only their own tutors, and catalog waits for
+  that cleanup. A scoped-worker rerun is in progress; no full browser pass is
+  claimed yet. The launcher supplies the worker condition before Playwright
+  starts, while preserving the caller's Node options for its web servers.

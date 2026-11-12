@@ -28,6 +28,13 @@ if (env.APP_ENV !== "test" || env.AUTH_MODE !== "local")
   throw new Error("Dedicated local test configuration required.");
 const [command, ...args] = process.argv.slice(2);
 if (!command) throw new Error("A test command is required.");
+// Playwright fixtures import server-only modules in Node worker processes.
+// Preserve the original options so its Next web servers do not inherit this.
+if (command.endsWith("/playwright")) {
+  env.LEARLI_PLAYWRIGHT_SERVER_NODE_OPTIONS = env.NODE_OPTIONS ?? "";
+  env.NODE_OPTIONS =
+    `${env.NODE_OPTIONS ?? ""} --conditions=react-server`.trim();
+}
 const child = spawn(command, args, { stdio: "inherit", env });
 child.on("exit", (code) => {
   process.exitCode = code ?? 1;
