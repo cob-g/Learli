@@ -9,10 +9,12 @@ export function EmailForm({
   currentEmail,
   hosted = false,
   localWorkflow = false,
+  localAccountEmail = false,
 }: {
   currentEmail: string;
   hosted?: boolean;
   localWorkflow?: boolean;
+  localAccountEmail?: boolean;
 }) {
   const ready = useHydrated();
   const [stage, setStage] = useState<"start" | "current" | "new">("start");
@@ -101,13 +103,16 @@ export function EmailForm({
         setErrors({});
         setStage(parsed.data.action === "start" ? "current" : "new");
         setNotice({
-          message: hosted
-            ? "A confirmation request was accepted. Check the requested address for its code; delivery has not been established."
-            : parsed.data.action === "start"
-              ? localWorkflow
-                ? "Your current-address code was captured locally. Run npm run mail:open in your Learli terminal to open it. No email was sent."
-                : "A current-address confirmation code is available in your private local capture. No email was sent."
-              : "If the new address can be used, its code is available in your private local capture. Your current email is still unchanged.",
+          message:
+            localWorkflow && localAccountEmail
+              ? "A confirmation request was accepted. Check the requested inbox if it is the configured Resend account-owner address. For a synthetic .test address, run npm run mail:open in your Learli terminal. Delivery has not been established; your current email is still unchanged."
+              : hosted
+                ? "A confirmation request was accepted. Check the requested address for its code; delivery has not been established."
+                : parsed.data.action === "start"
+                  ? localWorkflow
+                    ? "Your current-address code was captured locally. Run npm run mail:open in your Learli terminal to open it. No email was sent."
+                    : "A current-address confirmation code is available in your private local capture. No email was sent."
+                  : "If the new address can be used, its code is available in your private local capture. Your current email is still unchanged.",
           failed: false,
         });
       } else {
@@ -190,6 +195,14 @@ export function EmailForm({
         in five minutes. Completion ends your other signed-in sessions and keeps
         this session.
       </p>
+      {localWorkflow && localAccountEmail && (
+        <p className="mt-4 text-small text-muted-foreground">
+          Local email testing: only the configured Resend account-owner address
+          receives email. Use a synthetic .test address for the other side of
+          the change; its code stays in private local capture. Other real
+          addresses require a verified sending domain.
+        </p>
+      )}
       {!ready && (
         <p className="mt-4 text-body">
           Enable JavaScript to change your email here.

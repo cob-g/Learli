@@ -131,7 +131,15 @@ and consent/legal rules, and staffed safeguarding remain separate gates.
 
 ## Optional owner-only verification and password-reset email
 
-By default all account messages stay in the private local capture. For an explicitly authorized Resend test, set both `LOCAL_VERIFICATION_RESEND_KEY` and `LOCAL_VERIFICATION_RECIPIENT` privately in `.env.local`, then restart the app. The recipient must be the exact address of the Resend account owner and the account receiving verification or password reset. The sender is `onboarding@resend.dev`; provider restrictions apply. Other verification/reset recipients are refused; email-change and booking messages stay captured. Reset links expire after 30 minutes, are single use, and successful resets revoke existing sessions. The account link points to this computer’s loopback app and must be opened there. API acceptance does not establish inbox delivery. Remove both settings and restart to return to capture. Never commit keys or links; a verified owned sending domain and separate activation are required for general-user mail.
+By default all account messages stay in the private local capture. For an explicitly authorized Resend test, set both `LOCAL_VERIFICATION_RESEND_KEY` and `LOCAL_VERIFICATION_RECIPIENT` privately in `.env.local`, then restart the app. The recipient must be the exact address of the Resend account owner and the account receiving verification or password reset. The sender is `onboarding@resend.dev`; provider restrictions apply. Other verification/reset recipients are refused; booking messages stay captured. Email-change delivery is described below. Reset links expire after 30 minutes, are single use, and successful resets revoke existing sessions. The account link points to this computer’s loopback app and must be opened there. API acceptance does not establish inbox delivery. Remove both settings and restart to return to capture. Never commit keys or links; a verified owned sending domain and separate activation are required for general-user mail.
+
+Email changes also use this optional setting: current/new-address codes go live
+only to the exact configured account-owner mailbox. Use a synthetic `.test`
+address for the counterpart, whose code remains in private local capture
+(`npm run mail:open`). Other real recipients are refused; a failed live send
+does not fall back to capture. Both codes are still required and expire after
+five minutes. Never substitute recipients or put codes in navigation URLs.
+The sender remains the Resend test sender until an owned domain is verified.
 
 Resend documents its [test-sender account-recipient restriction](https://resend.com/docs/knowledge-base/403-error-resend-dev-domain).
 

@@ -493,6 +493,12 @@ software unit does not activate the wider booking workflow.
   `prompts/features/m5-07-resend-password-reset.md`. This does not complete M5.7
   or activate other recipients; executed evidence belongs in the tracker.
 
+  **2026-11-12 email-change extension:** AUTH-02/03/04, M2.9/M5.7 current/new
+  codes can use the existing exact-owner Resend transport; synthetic counterparts
+  keep capture and other real destinations are refused. Blueprint:
+  `prompts/features/m5-07-resend-email-change.md`. Full M5.7/general-user sending
+  remains gated; see the tracker for actual verification.
+
 - [ ] **M5.8 — Respect transaction boundaries.** Send booking notices **after the booking DB transition commits**. Failed email delivery must not undo a valid booking or create a false confirmation. Scheduled reminders are optional and require a justified reliable scheduler.
 
   Local M5.7–M5.8 slice (2026-10-11 six-feature delegation): event-driven durable

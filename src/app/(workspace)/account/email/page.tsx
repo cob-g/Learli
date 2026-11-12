@@ -17,11 +17,16 @@ export default async function AccountEmailPage() {
   let account;
   let hosted = false;
   let localWorkflow = false;
+  let localAccountEmail = false;
   try {
     const runtime = await getAccountAuthRuntime();
     if (!runtime) throw new AccessError(503);
     hosted = "hosted" in runtime;
     localWorkflow = !!getLocalWorkflow(runtime);
+    localAccountEmail =
+      localWorkflow &&
+      "localVerificationRecipient" in runtime &&
+      !!runtime.localVerificationRecipient;
     account = await readAccount(runtime, await headers());
   } catch (error) {
     if (error instanceof AccessError && error.status === 401)
@@ -45,6 +50,7 @@ export default async function AccountEmailPage() {
           currentEmail={account.email}
           hosted={hosted}
           localWorkflow={localWorkflow}
+          localAccountEmail={localAccountEmail}
         />
       </div>
       <Link href="/account" className="mt-8 inline-flex min-h-11 items-center">

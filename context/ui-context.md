@@ -1,5 +1,13 @@
 # Learli — UI Context
 
+### Owner-only email-change messages — 2026-11-12
+
+Optional local Resend email changes reuse the branded account-email shell and
+CID wordmark, with distinct current/new headings, a readable six-digit code,
+five-minute single-use guidance and proof-free account navigation. The existing
+form explains exact-owner inbox delivery versus synthetic .test capture at both
+stages without promising delivery. Capture-only and hosted copy stays unchanged.
+
 ### Owner-only password-reset email — 2026-11-12
 
 The optional owner-only reset email shares the established verification email

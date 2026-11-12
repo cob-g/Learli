@@ -10,6 +10,41 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { EmailForm } from "@/features/account-email/email-form";
 afterEach(() => vi.unstubAllGlobals());
+it("explains owner-only inbox and synthetic capture at both enabled confirmation steps", async () => {
+  const fetch = vi.fn(async () => Response.json({ status: true }));
+  vi.stubGlobal("fetch", fetch);
+  render(
+    <EmailForm
+      currentEmail="old@learli.test"
+      localWorkflow
+      localAccountEmail
+    />,
+  );
+  const user = userEvent.setup();
+  expect(
+    screen.getByText(/only the configured Resend account-owner address/),
+  ).toBeVisible();
+  await user.click(
+    screen.getByRole("button", { name: "Send current-address code" }),
+  );
+  await waitFor(() => expect(screen.getByRole("status")).toHaveFocus());
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "Check the requested inbox",
+  );
+  expect(screen.getByRole("status")).toHaveTextContent("npm run mail:open");
+  expect(screen.getByRole("status")).not.toHaveTextContent("No email was sent");
+  await user.type(screen.getByLabelText("New email"), "owner@example.com");
+  await user.type(screen.getByLabelText("Current-address code"), "123456");
+  await user.click(
+    screen.getByRole("button", { name: "Confirm current address" }),
+  );
+  await waitFor(() => expect(screen.getByRole("status")).toHaveFocus());
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "Delivery has not been established",
+  );
+  expect(screen.getByLabelText("New-address code")).toHaveValue("");
+  expect(fetch).toHaveBeenCalledTimes(2);
+});
 it("keeps current email unchanged while pending, clears codes and focuses safe status", async () => {
   const fetch = vi.fn(async () => Response.json({ status: true }));
   vi.stubGlobal("fetch", fetch);
