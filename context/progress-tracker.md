@@ -8381,3 +8381,8 @@ deployment remain unverified and separately gated.
   link on an old URL that now redirects to the current booking. The test now
   checks that redirect and separately checks the historical view's link; all
   five booking browser tests passed. Full browser and GitHub checks remain open.
+- The subsequent full browser run passed 124 cases before two history-filter
+  checks exposed a fixed lesson date that had passed. The fixture now selects
+  the next future New York fall-back transition, retaining its exact DST
+  assertion; all six booking-history browser tests passed. Full verification
+  and remote CI still need completion.

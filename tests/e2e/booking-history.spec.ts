@@ -81,14 +81,24 @@ async function fixture(
   );
   const subjectId = subject.rows[0].id as string;
   let counter = 0;
+  // Preserve the New York fall-back assertion while keeping lessons future-dated.
+  const fallBack = (year: number) => {
+    const firstNovemberWeekday = new Date(Date.UTC(year, 10, 1)).getUTCDay();
+    const firstSunday = 1 + ((7 - firstNovemberWeekday) % 7);
+    return Date.UTC(year, 10, firstSunday, 5, 30);
+  };
+  const year = new Date().getUTCFullYear();
+  const firstStart =
+    fallBack(year) > Date.now() + 3 * 86400000
+      ? fallBack(year)
+      : fallBack(year + 1);
   async function booking({
     expired = false,
     materialized = false,
     remainingMs = 600000,
   } = {}) {
     const id = randomUUID();
-    const start =
-      new Date("2026-11-01T05:30Z").getTime() + counter++ * 86400000;
+    const start = firstStart + counter++ * 86400000;
     const created = new Date(
       Date.now() - (expired ? 1200000 : 600000 - remainingMs),
     );
