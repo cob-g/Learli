@@ -8392,3 +8392,7 @@ deployment remain unverified and separately gated.
   24 hours within its test policy window; both focused tutor-screening browser
   cases passed. No screening coverage rule was relaxed. Full verification and
   GitHub CI remain pending.
+- GitHub's slower runner exposed a timing assumption in registration component
+  tests after the focus fix: assertions ran before the post-commit effect. The
+  tests now wait for actual focus; both affected component files pass (40 tests).
+  A fresh remote check is required.
