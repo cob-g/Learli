@@ -36,8 +36,7 @@ export function handleWorkflowMutation(
         ? changePolicyBooking(c, request.headers, bookingId, action, input)
         : createPolicyReservation(c, request.headers, input));
       // Service resolution establishes that the transaction has committed.
-      if (!action || ["confirm", "reschedule", "cancel"].includes(action))
-        scheduleLocalBookingNotices(runtime, receipt.eventId);
+      scheduleLocalBookingNotices(runtime, receipt.eventId);
       return receipt;
     },
   );

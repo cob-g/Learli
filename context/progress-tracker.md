@@ -1,5 +1,86 @@
 # Learli — Progress Tracker
 
+### 2026-11-12 — Owner-requested live lifecycle email previews
+
+- User explicitly requested all four emails in their personal inbox. Sent one
+  labeled preview each: **Preview: Provisional booking | Learli**,
+  **Preview: Booking expired | Learli**, **Preview: Booking marked completed | Learli**
+  and **Preview: Booking marked no-show | Learli**.
+- All four returned **HTTP200 with valid provider message IDs**. Provider
+  acceptance observed; the owner subsequently reported all four good and
+  explicitly authorized commit, push and merge. Production
+  renderer/CID branding reused, provisional includes a sample deadline in
+  Asia/Manila. Clear preview banner and Parent workspace CTA avoid fictitious
+  record navigation. No booking/event/queue or personal account mutation.
+- Exact configured owner and fixed test sender only. Stable per-preview keys
+  saved privately before dispatch; no duplicate resend or other recipients.
+  Safe receipts `.local/booking-notice-checks/live-{provisional,expired,completed,no_show}-preview-result.json`.
+  These are live presentation/provider tests, distinct from the prior actual
+  committed-event synthetic delivery checks. Implementation remains uncommitted.
+
+### 2026-11-12 — Owner-only lifecycle notices (verified locally)
+
+- Blueprint `prompts/features/m5-07-resend-booking-lifecycle.md`, **AUTHORIZED —
+  build-feature delegation** for the explicit provisional/expiry/completion/no-show
+  request. Four branded templates, actual provisional deadline, committed outcome
+  scheduling and bounded local expiry/queue maintenance implemented. Exact current
+  owner participant only; no recipient substitution or personal booking change.
+- Successful authenticated workspace/booking reads schedule best-effort maintenance
+  once per minute per runtime pool. `delivery:local` provides bounded recovery.
+  Existing tutor-scoped SQL expiry remains authoritative; expiry may process other
+  overdue holds for a selected tutor, but mail stays exact-owner/current-authority.
+  No always-running clock worker, exact-deadline guarantee or inferred attendance.
+- Migration0049 changes only the strict delivery-material guard: local provisional
+  deadline must equal the actual saved booking expiry. All identity, claim,
+  immutable preparation and terminal checks preserved; table snapshots identical
+  except migration identity. Applied to owned fixture55439, local development and
+  test55432. Existing operating booking count preserved; no policy rewrite.
+- Same-agent read-only Review against the blueprint and scoped migration amendment:
+  alignment/integrity/unintended-change PASS, **READY FOR VERIFICATION**, final
+  changes re-reviewed; no blocking findings. This is not an independent review or
+  hosted release signoff. Architecture, PRD, UI context, build plan, decision and
+  local operations guide updated; no engineering/product boundary change elsewhere.
+- **125/125 focused unit checks PASS** across local booking email/scheduling,
+  transactional message/delivery, verification/reset/email-change, local mail
+  guards and diagnostics. Includes truthful outcomes/deadline, DST offsets, missing
+  or misplaced deadline rejection, post-commit all-action scheduling, disabled and
+  rate-bounded maintenance, callback rebind and expiry-failure isolation.
+- **5/5 isolated ordinary-local PostgreSQL cases PASS** using
+  `LEARLI_BOOKING_NOTICE_FIXTURE=/Users/cob/learli/.local/booking-notice-tests npx vitest run --config vitest.local-operation.config.ts tests/local-operation/booking-email.test.ts`.
+  Genuine seven event kinds/queue material, actual legacy admission review,
+  historical rows inserted once with guards enabled, wrong/private deadline
+  rejection, concurrent expiry exactly once, no premature expiry, stale suppression,
+  future/confirmed preservation, elapsed-time/actor/assignment denial, replay,
+  exact-owner Parent/Tutor scope and identical rate-limit retry body/key covered.
+- **9/9 selected existing PostgreSQL delivery regressions PASS** (14 unselected)
+  with `npm run test:integration -- tests/integration/transactional-delivery.test.ts`
+  and filter `queue/event creation|drains on an independent|simultaneous drains|altered-key409|revoked current guardian|changed recipient address|superseded confirmation|actual policy expiry|runtime cannot insert`.
+  No full integration/E2E claim; no unrelated long CI loop.
+- Production build PASS with
+  `NODE_OPTIONS=--max-old-space-size=12288 node scripts/with-test-env.mjs npm run build`.
+  Production HTTP/Chromium check PASS: actual workspace maintenance produced
+  provisional/expired notices; authorized complete/no_show HTTP mutations produced
+  one notice each, replay produced zero duplicates; Parent role denials and actual
+  expired state observed. Four templates fit390/1440 (8 previews); outcome pages
+  also fit both widths. Provisional/no-show phone screenshots visually inspected.
+- Final `npm run typecheck`, full lint plus final changed-test/source ESLint,
+  scoped Prettier and `git diff --check` PASS. Initial snapshot formatting warning
+  corrected. First new PG run caught strict allowlist rejection of expiresAtUtc
+  and an incorrect expected no-show denial code (actual403); forward migration
+  and test expectation fixed without weakening guards. First browser driver used
+  Student heading on Parent dashboard; corrected to actual Parent Dashboard.
+  Initial development migration command safely refused absent direct URL; reused
+  validated owned-loopback owner state privately for successful migration, no env edit.
+- Automated provider traffic was intercepted; **no live lifecycle email/inbox test**
+  this slice. Existing personal Resend settings retained. Test app3339/database55439
+  stopped with data retained; normal local app3000 restored, health HTTP200.
+  Private evidence `.local/booking-notice-tests/lifecycle-browser-result.json`,
+  production provider interception and screenshots in that folder; email previews
+  in `.local/booking-notice-checks/`. No dependency, commit/push/merge or deployment.
+- Supersedes earlier three-kind-only exclusions below. General recipients remain
+  domain-gated; inactive deployments need explicit recovery for overdue expiry/mail.
+  Next: optional owner-requested live previews or commit/release.
+
 ### 2026-11-12 — Owner-requested live booking email previews
 
 - Owner subsequently confirmed seeing the reschedule preview in Gmail and

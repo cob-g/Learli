@@ -1,5 +1,9 @@
 # Learli — UI Context
 
+### Local lifecycle email presentation — 2026-11-12
+
+Provisional, expired, completed and no-show updates reuse the branded booking email shell and private record link. Provisional shows the real confirmation deadline in the recipient timezone and says not confirmed. Outcome headings say marked completed/no-show and explicitly distinguish recorded status from verified attendance, with support guidance. No child names or meeting URLs. Existing three message bodies remain stable for durable retries.
+
 ### Local booking email presentation — 2026-11-12
 
 Confirmation/reschedule/cancellation messages reuse the existing navy/teal

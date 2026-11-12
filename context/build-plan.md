@@ -508,6 +508,12 @@ software unit does not activate the wider booking workflow.
   Blueprint `prompts/features/m5-07-resend-booking-notices.md`; no general-user
   activation or other lifecycle mail. Actual verification belongs in the tracker.
 
+  **2026-11-12 lifecycle extension:** provisional/expired/completed/no-show
+  owner-only local messages added by `prompts/features/m5-07-resend-booking-lifecycle.md`.
+  Activity-bounded maintenance and explicit recovery reconcile existing overdue
+  holds and retries; no clock worker, policy change or hosted activation.
+  Earlier three-kind-only statements above describe the preceding slice.
+
   Local M5.7–M5.8 slice (2026-10-11 six-feature delegation): event-driven durable
   queue plus bounded owned manual HTML capture for simulation-created notices
   only; exact current creator/tutor authorization, recipient dedup, safe expiry

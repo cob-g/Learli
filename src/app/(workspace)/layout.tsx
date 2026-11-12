@@ -8,6 +8,7 @@ import { getScreeningContext } from "@/features/tutor-screening/composition";
 import { readWorkspaceDocument } from "@/lib/permissions/workspace";
 import { getLocalWorkflow } from "@/features/local-workflow/runtime";
 import { getPrivateWorkflow } from "@/features/private-workflow/runtime";
+import { scheduleLocalBookingMaintenance } from "@/features/transactional-delivery/local";
 import { noIndex } from "@/lib/seo/metadata";
 
 // Every workspace page also says this itself; the layout covers any that forgets.
@@ -24,6 +25,8 @@ export default async function WorkspaceLayout({
   const runtime = await getDomainAuthRuntime();
   const privatePacket = runtime ? getPrivateWorkflow(runtime) : null;
   const localWorkflow = !!runtime && getLocalWorkflow(runtime) !== null;
+  if (runtime && localWorkflow && document.identity)
+    scheduleLocalBookingMaintenance(runtime);
   const screeningEnabled =
     !!runtime && getScreeningContext(runtime).screening.mode !== "disabled";
   return (

@@ -1,5 +1,9 @@
 # Learli — System Architecture
 
+### Owner-only lifecycle email extension — 2026-11-12
+
+The same local capability-bound queue now includes provisional, expired, completed and no_show events. Provisional material includes the stored expires_at; old three message snapshots/keys stay unchanged. Outcome attempts follow committed explicit mutations, never inferred attendance. Successful authenticated workspace/booking reads schedule bounded Next after maintenance at most once per minute per runtime pool. Maintenance and delivery:local reconcile up to25 owner-linked overdue tutor holds through the existing expiry function before draining; its tutor-scoped operation may expire other overdue holds, but never redirects email. Transactions release before provider I/O. No clock worker, exact-deadline guarantee, policy change, hosted activation or new tables. A guard-only migration0049 admits only the actual stored deadline on local provisional material. See prompts/features/m5-07-resend-booking-lifecycle.md.
+
 ### Owner-only local booking email — 2026-11-12
 
 OPS-04/M5.7/8 extends the existing private local mail settings to confirmed,

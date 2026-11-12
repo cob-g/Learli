@@ -48,15 +48,30 @@ import {
 } from "@/features/booking-workflows/service";
 import { bindLocalTransactionalDelivery } from "@/features/transactional-delivery/context";
 import { drainTransactionalDeliveries } from "@/features/transactional-delivery/drain";
+import { drainLocalBookingNotices } from "@/features/transactional-delivery/local";
+import { reconcileLocalBookingExpiry } from "@/features/transactional-delivery/expiry";
+import { admissionContext } from "@/features/learner-admission/context";
+import {
+  createAdmission,
+  readAssignedAdmission,
+  mutateAdmissionReview,
+} from "@/features/learner-admission/service";
+import {
+  localBookingPolicy,
+  localParentBookingPolicy,
+} from "@/features/booking-workflows/policy";
+import { localGuardianAdmissionPolicy } from "@/features/learner-admission/policy";
 import { sql } from "drizzle-orm";
 
 vi.mock("server-only", () => ({}));
+vi.mock("next/server", () => ({ after: vi.fn() }));
 const root = path.resolve(".local/booking-notice-tests");
 const password = `Synthetic-booking-notice-${randomUUID()}`;
 let runtime: ReturnType<typeof createLocalAuth>,
   owner: ReturnType<typeof createDatabase>;
 type Actor = { id: string; email: string; cookie: string; headers: Headers };
-let parent: Actor,
+let admin: Actor,
+  parent: Actor,
   tutor: Actor,
   choice: {
     learnerId: string;
@@ -65,6 +80,7 @@ let parent: Actor,
     displayTimezone: string;
   };
 let context: ReturnType<typeof bookingWorkflowContext>;
+let historicalLearnerId: string;
 let requests: { body: string; key: string | null }[] = [];
 let mode: "accepted" | "429" | "lost" = "accepted";
 function post(route: string, body: object, cookie = "") {
@@ -169,7 +185,7 @@ beforeAll(async () => {
     await client.query("ROLLBACK");
     client.release();
   }
-  const admin = await actor("Synthetic booking notice reviewer");
+  admin = await actor("Synthetic booking notice reviewer");
   parent = await actor("Synthetic booking notice parent");
   tutor = await actor("Synthetic booking notice tutor");
   await owner.pool.query(
@@ -290,6 +306,7 @@ beforeAll(async () => {
       parentCookie: parent.cookie,
       parentEmail: parent.email,
       tutorCookie: tutor.cookie,
+      adminCookie: admin.cookie,
       choice,
     }),
     { mode: 0o600 },
@@ -523,4 +540,372 @@ it("suppresses stale confirmation and revoked participant notices, and never cla
       (r) => r.recipient_user_id === tutor.id,
     )?.state,
   ).toBe("pending");
+});
+
+async function claim(kind: string, target: string) {
+  const identity = await runtime.auth.api.getSession({
+    headers: admin.headers,
+    query: { disableCookieCache: true },
+  });
+  if (!identity) throw Error("Synthetic reviewer missing.");
+  const result = await runtime.db.execute<{ outcome: string }>(
+    sql`SELECT * FROM public.claim_local_workflow_task(${admin.id},${identity.session.id},${kind},${target},${randomUUID()}::uuid)`,
+  );
+  expect(["claimed", "replayed", "saved", "existing"]).toContain(
+    result.rows[0]?.outcome,
+  );
+}
+/** Inserts new synthetic historical records once with all database guards on.
+ * No existing booking time, deadline, policy or event is rewritten. */
+async function historical(input: {
+  learnerId: string;
+  state: "provisional" | "confirmed";
+  due?: boolean;
+  endedOffset?: number;
+  startOffset?: number;
+}) {
+  const tutorId = (
+    await owner.pool.query("SELECT id FROM tutor_profiles WHERE user_id=$1", [
+      tutor.id,
+    ])
+  ).rows[0].id;
+  const subjectId = (
+    await owner.pool.query("SELECT id FROM subjects WHERE slug='math'")
+  ).rows[0].id;
+  const provisional = input.state === "provisional";
+  const policy = provisional ? localBookingPolicy : localParentBookingPolicy;
+  const admissionId = provisional
+    ? localBookingPolicy.admissionPolicyId
+    : localGuardianAdmissionPolicy.policyId;
+  const id = randomUUID(),
+    eventId = randomUUID(),
+    key = randomUUID();
+  const end =
+    input.endedOffset === undefined
+      ? Date.now() + (input.startOffset ?? 4) * 3600000
+      : Date.now() - input.endedOffset * 60000;
+  const start = end - 3600000;
+  const created =
+    input.due || !provisional ? Date.now() - 2 * 3600000 : Date.now() - 60000;
+  const expires = created + 10 * 60000;
+  const client = await owner.pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query(
+      "INSERT INTO bookings(id,source,tutor_id,learner_id,booked_by_user_id,subject_id,start_at_utc,end_at_utc,display_timezone,idempotency_key,request_fingerprint,state,created_at,expires_at,workflow_policy_id,admission_policy_id) VALUES($1,'local_operation',$2,$3,$4,$5,$6,$7,'Asia/Manila',$8,$9,$10,$11,$12,$13,$14)",
+      [
+        id,
+        tutorId,
+        input.learnerId,
+        parent.id,
+        subjectId,
+        new Date(start).toISOString(),
+        new Date(end).toISOString(),
+        key,
+        "a".repeat(64),
+        input.state,
+        new Date(created),
+        new Date(expires),
+        policy.policyId,
+        admissionId,
+      ],
+    );
+    await client.query(
+      "INSERT INTO booking_lifecycle_events(id,logical_booking_id,booking_id,actor_user_id,event,request_id,request_fingerprint,created_at,workflow_policy_id,workflow_revision,reason_code) VALUES($1,$2,$2,$3,$4,$5,$6,$7,$8,0,$9)",
+      [
+        eventId,
+        id,
+        parent.id,
+        provisional ? "workflow_provisional" : "workflow_confirmed",
+        key,
+        "a".repeat(64),
+        new Date(created),
+        policy.policyId,
+        provisional ? "local_request" : "local_parent_booking",
+      ],
+    );
+    await client.query("COMMIT");
+  } finally {
+    await client.query("ROLLBACK");
+    client.release();
+  }
+  return { id, eventId, expiresAtUtc: new Date(expires).toISOString() };
+}
+
+it("sends genuine provisional deadline and expires overdue holds exactly once without premature expiry or stale mail", async () => {
+  mode = "accepted";
+  requests = [];
+  const admission = admissionContext(runtime);
+  if (admission.admission.authority === "disabled")
+    throw Error("Legacy fixture policy missing.");
+  const pending = await createAdmission(admission, parent.headers, {
+    requestId: randomUUID(),
+    policyVersion: admission.admission.version,
+    policyDigest: admission.admission.contentDigest,
+    management: "guardian",
+    displayName: "Historical synthetic child",
+    level: "middle_school",
+    grade: 8,
+    timezone: "Asia/Manila",
+  });
+  await claim("admission", pending.id);
+  for (const checkCode of ["guardian_authority", "guardian_notice"]) {
+    const current = await readAssignedAdmission(
+      admission,
+      admin.headers,
+      pending.id,
+    );
+    await mutateAdmissionReview(
+      admission,
+      admin.headers,
+      pending.id,
+      "evidence",
+      {
+        requestId: randomUUID(),
+        revision: current.revision,
+        checkCode,
+        reference: `local:${randomUUID()}`,
+      },
+    );
+  }
+  const reviewed = await readAssignedAdmission(
+    admission,
+    admin.headers,
+    pending.id,
+  );
+  await mutateAdmissionReview(
+    admission,
+    admin.headers,
+    pending.id,
+    "decision",
+    {
+      requestId: randomUUID(),
+      revision: reviewed.revision,
+      action: "authorize",
+    },
+  );
+  historicalLearnerId = pending.learner.id;
+  const confirmed = await booking();
+  const fresh = await historical({
+    learnerId: pending.learner.id,
+    state: "provisional",
+    startOffset: 9,
+  });
+  const due = await historical({
+    learnerId: pending.learner.id,
+    state: "provisional",
+    due: true,
+    startOffset: 11,
+  });
+  const { currentDeliveryMaterial } =
+    await import("@/features/transactional-delivery/recipient");
+  const attempt = Date.now();
+  const payload = await currentDeliveryMaterial(
+    runtime.db,
+    fresh.eventId,
+    parent.id,
+    "workflow_provisional",
+    attempt,
+  );
+  expect(payload).not.toBeNull();
+  for (const overrides of [
+    { expiresAtUtc: new Date(attempt + 60000).toISOString() },
+    { learnerName: "private" },
+  ]) {
+    const guarded = await owner.pool.connect();
+    try {
+      await guarded.query("BEGIN");
+      await guarded.query(
+        "UPDATE transactional_deliveries SET state='claimed',claim_token=$1,claim_until=clock_timestamp()+interval '60 seconds' WHERE event_id=$2 AND recipient_user_id=$3",
+        [randomUUID(), fresh.eventId, parent.id],
+      );
+      await expect(
+        guarded.query(
+          "UPDATE transactional_deliveries SET payload=$1,idempotency_key=$2,payload_fingerprint=$3,configuration_fingerprint=$3,first_attempt_at=$4,last_attempt_at=$4,attempts=1 WHERE event_id=$5 AND recipient_user_id=$6",
+          [
+            { ...payload, ...overrides },
+            `learli/${"a".repeat(64)}`,
+            "a".repeat(64),
+            new Date(attempt),
+            fresh.eventId,
+            parent.id,
+          ],
+        ),
+      ).rejects.toMatchObject({ code: "23514" });
+    } finally {
+      await guarded.query("ROLLBACK");
+      guarded.release();
+    }
+  }
+  expect(
+    (await drainTransactionalDeliveries(delivery(), { eventId: fresh.eventId }))
+      .providerAccepted,
+  ).toBe(1);
+  expect(JSON.parse(requests[0]!.body).text).toContain("not confirmed");
+  const material = (
+    await owner.pool.query(
+      "SELECT payload FROM transactional_deliveries WHERE event_id=$1 AND recipient_user_id=$2",
+      [fresh.eventId, parent.id],
+    )
+  ).rows[0].payload;
+  expect(material.expiresAtUtc).toBe(fresh.expiresAtUtc);
+  await Promise.all([
+    reconcileLocalBookingExpiry(runtime),
+    reconcileLocalBookingExpiry(runtime),
+  ]);
+  const events = (
+    await owner.pool.query(
+      "SELECT id FROM booking_lifecycle_events WHERE booking_id=$1 AND event='workflow_expired'",
+      [due.id],
+    )
+  ).rows;
+  expect(events).toHaveLength(1);
+  expect(
+    (await drainTransactionalDeliveries(delivery(), { eventId: due.eventId }))
+      .suppressed,
+  ).toBe(1);
+  expect(
+    (await drainTransactionalDeliveries(delivery(), { eventId: events[0].id }))
+      .providerAccepted,
+  ).toBe(1);
+  expect(JSON.parse(requests.at(-1)!.body).subject).toBe(
+    "Booking expired | Learli",
+  );
+  await drainLocalBookingNotices(runtime, { limit: 25 });
+  const states = (
+    await owner.pool.query(
+      "SELECT id,state FROM bookings WHERE id=ANY($1::uuid[])",
+      [[fresh.id, due.id, confirmed.id]],
+    )
+  ).rows;
+  expect(states.find((r) => r.id === fresh.id).state).toBe("provisional");
+  expect(states.find((r) => r.id === due.id).state).toBe("expired");
+  expect(states.find((r) => r.id === confirmed.id).state).toBe("confirmed");
+  expect(
+    (await rows(events[0].id)).find((r) => r.recipient_user_id === tutor.id)
+      .state,
+  ).toBe("pending");
+});
+
+it("emails recorded completion/no-show only after authorized elapsed-time outcomes and preserves replay identity", async () => {
+  requests = [];
+  mode = "accepted";
+  const future = await booking();
+  await expect(
+    changePolicyBooking(context, tutor.headers, future.id, "complete", {
+      requestId: randomUUID(),
+      expectedRevision: 0,
+      reasonCode: "local_completed",
+    }),
+  ).rejects.toMatchObject({ status: 409 });
+  const completed = await historical({
+    learnerId: choice.learnerId,
+    state: "confirmed",
+    endedOffset: 30,
+  });
+  const noShow = await historical({
+    learnerId: choice.learnerId,
+    state: "confirmed",
+    endedOffset: 100,
+  });
+  for (const [value, action, reasonCode, actor] of [
+    [completed, "complete", "local_completed", tutor],
+    [noShow, "no_show", "local_no_show", admin],
+  ] as const) {
+    const input = { requestId: randomUUID(), expectedRevision: 0, reasonCode };
+    await expect(
+      changePolicyBooking(context, parent.headers, value.id, action, input),
+    ).rejects.toMatchObject({ status: action === "no_show" ? 403 : 404 });
+    if (action === "no_show") {
+      await expect(
+        changePolicyBooking(context, admin.headers, value.id, action, input),
+      ).rejects.toMatchObject({ status: 404 });
+      // Explicit trusted assignment for this new synthetic historical outcome;
+      // the ordinary claim UI only accepts live provisional confirmation tasks.
+      await owner.pool.query(
+        "INSERT INTO booking_workflow_grants(logical_booking_id,actor_user_id,action,active,valid_until,reference) VALUES($1,$2,'no_show',true,NULL,$3)",
+        [value.id, admin.id, `local:${randomUUID()}`],
+      );
+    }
+    const saved = await changePolicyBooking(
+      context,
+      actor.headers,
+      value.id,
+      action,
+      input,
+    );
+    expect(saved.state).toBe(action === "complete" ? "completed" : "no_show");
+    expect(
+      (
+        await drainTransactionalDeliveries(delivery(), {
+          eventId: saved.eventId,
+        })
+      ).providerAccepted,
+    ).toBe(1);
+    expect(JSON.parse(requests.at(-1)!.body).text).toContain(
+      "does not verify lesson attendance",
+    );
+    expect(
+      await changePolicyBooking(
+        context,
+        actor.headers,
+        value.id,
+        action,
+        input,
+      ),
+    ).toEqual(saved);
+    expect(
+      (
+        await drainTransactionalDeliveries(delivery(), {
+          eventId: saved.eventId,
+        })
+      ).providerAccepted,
+    ).toBe(0);
+    expect(
+      (
+        await drainTransactionalDeliveries(delivery(), {
+          eventId: value.eventId,
+        })
+      ).suppressed,
+    ).toBe(1);
+  }
+  expect(requests.map((r) => JSON.parse(r.body).subject)).toEqual([
+    "Booking marked completed | Learli",
+    "Booking marked no-show | Learli",
+  ]);
+  const browserProvisional = await historical({
+    learnerId: historicalLearnerId,
+    state: "provisional",
+    startOffset: 15,
+  });
+  const browserDue = await historical({
+    learnerId: historicalLearnerId,
+    state: "provisional",
+    due: true,
+    startOffset: 13,
+  });
+  const browserCompleted = await historical({
+    learnerId: choice.learnerId,
+    state: "confirmed",
+    endedOffset: 160,
+  });
+  const browserNoShow = await historical({
+    learnerId: choice.learnerId,
+    state: "confirmed",
+    endedOffset: 230,
+  });
+  await owner.pool.query(
+    "INSERT INTO booking_workflow_grants(logical_booking_id,actor_user_id,action,active,valid_until,reference) VALUES($1,$2,'no_show',true,NULL,$3)",
+    [browserNoShow.id, admin.id, `local:${randomUUID()}`],
+  );
+  writeFileSync(
+    path.join(root, "lifecycle-fixture.json"),
+    JSON.stringify({
+      provisional: browserProvisional,
+      due: browserDue,
+      completed: browserCompleted,
+      noShow: browserNoShow,
+    }),
+    { mode: 0o600 },
+  );
 });

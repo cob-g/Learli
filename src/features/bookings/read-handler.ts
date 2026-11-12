@@ -1,3 +1,4 @@
+import { scheduleLocalBookingMaintenance } from "@/features/transactional-delivery/local";
 import { ZodError } from "zod";
 import type { AuthRuntime } from "@/lib/auth-factory";
 import { privateJson, sameDomainOrigin } from "@/lib/auth-handler";
@@ -28,22 +29,22 @@ export async function handleBookingRead(
       if ([...params.keys()].some((key) => key !== "scope"))
         return privateJson({ message: "Choose valid booking filters." }, 400);
       const scope = bookingReadScope.parse(params.get("scope"));
-      return privateJson(
-        await readParticipantBooking(
-          runtime,
-          request.headers,
-          bookingId,
-          scope,
-        ),
-      );
-    }
-    return privateJson(
-      await listParticipantBookings(
+      const booking = await readParticipantBooking(
         runtime,
         request.headers,
-        Object.fromEntries(params),
-      ),
+        bookingId,
+        scope,
+      );
+      scheduleLocalBookingMaintenance(runtime);
+      return privateJson(booking);
+    }
+    const bookings = await listParticipantBookings(
+      runtime,
+      request.headers,
+      Object.fromEntries(params),
     );
+    scheduleLocalBookingMaintenance(runtime);
+    return privateJson(bookings);
   } catch (error) {
     if (error instanceof AccessError)
       return privateJson(
