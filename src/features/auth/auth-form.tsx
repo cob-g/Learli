@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ChevronRight } from "lucide-react";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { authClient } from "@/lib/auth-client";
@@ -70,6 +70,7 @@ export function AuthForm({
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
+  const [noticeSequence, setNoticeSequence] = useState(0);
   const [failed, setFailed] = useState(false);
   // A client-side validation failure, which the account-recovery links don't help.
   const [invalid, setInvalid] = useState(false);
@@ -92,6 +93,9 @@ export function AuthForm({
           : "",
   );
   const status = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (noticeSequence > 0 && message && !pending) status.current?.focus();
+  }, [noticeSequence, message, pending]);
   const studentIntent = isStudentOnboardingPath(next);
   const unwrappedStudent = studentIntent ? studentContinuation(next) : next;
   const returnTo =
@@ -112,7 +116,7 @@ export function AuthForm({
     setMessage(text);
     setFailed(error);
     setInvalid(false);
-    requestAnimationFrame(() => status.current?.focus());
+    setNoticeSequence((value) => value + 1);
   };
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

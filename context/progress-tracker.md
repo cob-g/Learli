@@ -8368,3 +8368,8 @@ deployment remain unverified and separately gated.
   that cleanup. A scoped-worker rerun is in progress; no full browser pass is
   claimed yet. The launcher supplies the worker condition before Playwright
   starts, while preserving the caller's Node options for its web servers.
+- The scoped browser run also exposed a signup error-focus timing race. Notice
+  focus now occurs after React commits the message, including repeated notices.
+  Typecheck and a new production build passed; the five registration-feedback
+  browser tests passed at desktop and phone widths. Full browser and GitHub CI
+  checks remain pending for the final change.
