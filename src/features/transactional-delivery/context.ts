@@ -1,12 +1,21 @@
 import "server-only";
 import { createHmac } from "node:crypto";
 import { z } from "zod";
+import { and, inArray, sql, type SQL } from "drizzle-orm";
 import type { Database } from "@/lib/db/connection";
+import type { AuthRuntime } from "@/lib/auth-factory";
+import { getLocalWorkflow } from "@/features/local-workflow/runtime";
+import { parseServerEnv } from "@/lib/env/schema";
+import { transactionalDeliveries as deliveries } from "@/lib/db/schema/transactional-delivery";
 import { mailboxSchema } from "@/lib/email/mailbox";
-import { createResendTransport } from "@/lib/email/resend-transport";
+import {
+  createResendTransport,
+  createLocalBookingResendTransport,
+} from "@/lib/email/resend-transport";
 import {
   createBookingMessageConstructor,
   exactHttpsOrigin,
+  createLocalBookingMessageConstructor,
 } from "@/lib/email/transactional-message";
 
 const configuration = z
@@ -52,6 +61,7 @@ export function bindTransactionalDelivery(
   const { identitySecret, ...transportConfiguration } = config;
   const context = Object.freeze({
     db,
+    candidateFilter: undefined as SQL | undefined,
     configurationFingerprint: createHmac("sha256", identitySecret)
       .update(
         JSON.stringify([
@@ -71,6 +81,57 @@ export function bindTransactionalDelivery(
       identitySecret,
     }),
     transport: createResendTransport(transportConfiguration, testing),
+  });
+  registered.add(context);
+  return context;
+}
+
+/** Reads only current admitted private local settings; no recipient override. */
+export function bindLocalTransactionalDelivery(
+  runtime: AuthRuntime,
+  source: Record<string, string | undefined> = process.env,
+): DeliveryContext | null {
+  const capability = getLocalWorkflow(runtime, source);
+  if (!capability) return null;
+  const env = parseServerEnv(source);
+  if (
+    !env.LOCAL_VERIFICATION_RESEND_KEY ||
+    !env.LOCAL_VERIFICATION_RECIPIENT ||
+    !env.BETTER_AUTH_SECRET
+  )
+    return null;
+  const key = env.LOCAL_VERIFICATION_RESEND_KEY;
+  const recipient = env.LOCAL_VERIFICATION_RECIPIENT;
+  const secret = env.BETTER_AUTH_SECRET;
+  const context: DeliveryContext = Object.freeze({
+    db: runtime.db,
+    // Exclude unrelated/unsupported rows before claiming; never redirect them.
+    candidateFilter: and(
+      inArray(deliveries.kind, [
+        "workflow_confirmed",
+        "workflow_rescheduled",
+        "workflow_cancelled",
+      ]),
+      sql`EXISTS (SELECT 1 FROM public."user" u WHERE u.id=${deliveries.recipientUserId} AND u.email=${recipient})`,
+      sql`EXISTS (SELECT 1 FROM public.booking_lifecycle_events e JOIN public.bookings b ON b.id=coalesce(e.replacement_booking_id,e.booking_id) WHERE e.id=${deliveries.eventId} AND b.source='local_operation')`,
+    ),
+    configurationFingerprint: createHmac("sha256", secret)
+      .update(
+        JSON.stringify([
+          "local-booking-delivery-v1",
+          capability.origin,
+          key,
+          recipient,
+          "booking-notice-v1",
+          "resend-6.32.1",
+        ]),
+      )
+      .digest("hex"),
+    construct: createLocalBookingMessageConstructor(capability, secret),
+    transport: createLocalBookingResendTransport(capability, {
+      key,
+      recipient,
+    }),
   });
   registered.add(context);
   return context;

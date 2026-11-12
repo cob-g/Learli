@@ -85,6 +85,7 @@ export async function drainTransactionalDeliveries(
       .where(
         and(
           candidatesWhere(),
+          context.candidateFilter,
           options.eventId ? eq(deliveries.eventId, options.eventId) : undefined,
         ),
       )

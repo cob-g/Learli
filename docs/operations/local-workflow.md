@@ -131,7 +131,7 @@ and consent/legal rules, and staffed safeguarding remain separate gates.
 
 ## Optional owner-only verification and password-reset email
 
-By default all account messages stay in the private local capture. For an explicitly authorized Resend test, set both `LOCAL_VERIFICATION_RESEND_KEY` and `LOCAL_VERIFICATION_RECIPIENT` privately in `.env.local`, then restart the app. The recipient must be the exact address of the Resend account owner and the account receiving verification or password reset. The sender is `onboarding@resend.dev`; provider restrictions apply. Other verification/reset recipients are refused; booking messages stay captured. Email-change delivery is described below. Reset links expire after 30 minutes, are single use, and successful resets revoke existing sessions. The account link points to this computer’s loopback app and must be opened there. API acceptance does not establish inbox delivery. Remove both settings and restart to return to capture. Never commit keys or links; a verified owned sending domain and separate activation are required for general-user mail.
+By default all account messages stay in the private local capture. For an explicitly authorized Resend test, set both `LOCAL_VERIFICATION_RESEND_KEY` and `LOCAL_VERIFICATION_RECIPIENT` privately in `.env.local`, then restart the app. The recipient must be the exact address of the Resend account owner and the account receiving verification or password reset. The sender is `onboarding@resend.dev`; provider restrictions apply. Other verification/reset recipients are refused. Email-change and booking delivery rules are described below. Reset links expire after 30 minutes, are single use, and successful resets revoke existing sessions. The account link points to this computer’s loopback app and must be opened there. API acceptance does not establish inbox delivery. Remove both settings and restart to return to capture. Never commit keys or links; a verified owned sending domain and separate activation are required for general-user mail.
 
 Email changes also use this optional setting: current/new-address codes go live
 only to the exact configured account-owner mailbox. Use a synthetic `.test`
@@ -142,5 +142,35 @@ five minutes. Never substitute recipients or put codes in navigation URLs.
 The sender remains the Resend test sender until an owned domain is verified.
 
 Resend documents its [test-sender account-recipient restriction](https://resend.com/docs/knowledge-base/403-error-resend-dev-domain).
+
+### Booking confirmation, reschedule and cancellation email
+
+The same optional key/recipient settings also enable these three ordinary local
+booking notices. The configured account owner must be a current authorized
+participant of that booking. Other destinations are not redirected or emailed;
+their delivery rows remain pending. Unrequested provisional, expiry, completion
+and no-show notices are not activated. Without the settings, existing behavior
+stays unchanged.
+
+A successful workflow mutation schedules a bounded event-specific send after
+the booking transaction commits and the HTTP response finishes. The durable
+queue rechecks current permissions, latest revision, state and material before
+provider I/O. Emails show genuine subject/schedule/timezone and a private record
+link, not learner names or meeting URLs. Reschedule uses the replacement time.
+Provider acceptance does not prove inbox delivery. Email failure does not undo
+the booking, and an ambiguous send retains its original retry identity.
+
+Next after is best effort, not a durable scheduler. To recover missed/due
+retryable work explicitly, run `npm run delivery:local -- 25` (limit 1–25).
+This loads the private local env, requires admitted local runtime authority,
+selects only the exact current owner and three kinds, and prints counts only.
+Existing retry deadlines, attempt caps, immutable body/configuration and provider
+idempotency retention still apply; no forced resend or public endpoint is added.
+It may process other eligible owner rows up to the limit, so inspect the local
+test scope before invocation. Do not use it to replay personal historical mail.
+
+Remove both optional settings and restart to stop live local sends. No queue
+history is deleted. A verified owned sending domain and separate activation are
+still required for general-user/hosted sending.
 
 The local provider attempt is bounded to three seconds and verification resend responses have a 3.5-second minimum for this test mode. This reduces provider-dependent timing differences under normal local conditions; it is not a production timing guarantee or proof of delivery.

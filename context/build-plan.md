@@ -501,6 +501,13 @@ software unit does not activate the wider booking workflow.
 
 - [ ] **M5.8 — Respect transaction boundaries.** Send booking notices **after the booking DB transition commits**. Failed email delivery must not undo a valid booking or create a false confirmation. Scheduled reminders are optional and require a justified reliable scheduler.
 
+  **2026-11-12 owner-only booking extension:** the existing local key/recipient
+  can enable post-commit confirmed/rescheduled/cancelled local_operation notices
+  to that exact current participant. Reuse durable queue/retry checks; Next after
+  handles the immediate attempt and delivery:local is explicit bounded recovery.
+  Blueprint `prompts/features/m5-07-resend-booking-notices.md`; no general-user
+  activation or other lifecycle mail. Actual verification belongs in the tracker.
+
   Local M5.7–M5.8 slice (2026-10-11 six-feature delegation): event-driven durable
   queue plus bounded owned manual HTML capture for simulation-created notices
   only; exact current creator/tutor authorization, recipient dedup, safe expiry

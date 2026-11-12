@@ -7,7 +7,8 @@ type DiagnosticCategory =
   | "mutation.unavailable"
   | "mutation.failed"
   | "database.setup_failed"
-  | "database.pool_failed";
+  | "database.pool_failed"
+  | "booking.notice_unavailable";
 
 const windowMilliseconds = 60_000;
 const maxEventsPerWindow = 20;
@@ -21,7 +22,8 @@ export function emitDiagnostic(category: DiagnosticCategory): void {
     category !== "mutation.unavailable" &&
     category !== "mutation.failed" &&
     category !== "database.setup_failed" &&
-    category !== "database.pool_failed"
+    category !== "database.pool_failed" &&
+    category !== "booking.notice_unavailable"
   )
     return;
   try {

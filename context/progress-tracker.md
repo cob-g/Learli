@@ -1,5 +1,78 @@
 # Learli — Progress Tracker
 
+### 2026-11-12 — Owner-requested live booking email previews
+
+- Owner subsequently confirmed seeing the reschedule preview in Gmail and
+  explicitly requested confirmation/cancellation previews. Sent one of each to
+  the same exact configured owner; both returned **HTTP 200 with valid message
+  IDs**. Subjects: **Preview: Booking confirmed | Learli** and
+  **Preview: Booking cancelled | Learli**. Owner then reported all good and
+  authorized commit/push/merge; no automated inbox inspection was performed.
+  Same sample schedule, clear preview banner and workspace CTA;
+  no booking/event/queue changes. Private receipts: `live-confirmed-preview-result.json`
+  and `live-cancelled-preview-result.json` in `.local/booking-notice-checks/`.
+
+- User requested a reschedule test to see the message. Read-only local checks
+  found the configured verified owner has Parent role and no bookings. Sent one
+  explicitly labeled **Preview: Booking rescheduled | Learli** using the current
+  production renderer and fixed Resend test sender to the exact configured owner.
+- Preview banner says no booking was created or changed; sample Science schedule
+  is November 13, 2026, 5–6 PM Asia/Manila. The CTA/fallback open the Parent
+  workspace rather than a fictitious booking. No fake event/queue row, actual
+  reschedule, personal identity/password or policy mutation.
+- Live provider response **HTTP 200 with valid message ID**: acceptance observed,
+  subsequent inbox receipt reported by the owner. This is presentation/provider testing, not proof
+  of a real owner booking reschedule. Earlier synthetic full-flow results remain.
+  Private receipt: `.local/booking-notice-checks/live-reschedule-preview-result.json`.
+
+### 2026-11-12 — Owner-only booking confirmation/change emails (verified locally)
+
+- Blueprint `prompts/features/m5-07-resend-booking-notices.md`; exact configured
+  owner must be a current participant. Three requested local event kinds only.
+  Existing queue/drain, separate local Resend binding, branded messages,
+  post-commit Next after scheduling and bounded local recovery command added.
+- Same-agent read-only Review: plan alignment and unintended-change audit PASS,
+  READY FOR VERIFICATION. SDK attachment correction and scoped final changes
+  re-reviewed; no confirmed blocking findings. Not an independent release review.
+- **118/118 focused unit checks PASS** across local booking email/scheduling,
+  transactional message/delivery, verification/reset/email-change renderers,
+  local account-mail guards and safe diagnostics. Final diagnostic-category
+  regression rerun **5/5 PASS**. Tests caught the SDK's camelCase contentId
+  requirement (3 initial failures); production adapter now maps to SDK input
+  correctly and serialized content_id/CID wordmark checks pass.
+- **8/8 selected existing PostgreSQL drain regressions PASS**: committed visibility,
+  released locks before I/O, simultaneous drains, timeout/conflict safety,
+  revocation, changed configuration/material, stale notices and runtime grants.
+  The remaining 15 cases in that file were not selected; no full-suite claim.
+- **3/3 isolated ordinary-local database tests PASS** on newly owned loopback
+  fixture port 55439, real local runtime/services/policies and synthetic actors:
+  confirmation → replacement time → cancellation, no duplicate replay or concurrent
+  drain, exact owner selection, Parent/Tutor navigation, durable rate-limit retry
+  with identical body/key, stale and revoked-recipient suppression. A fixture
+  screening-reference prefix was corrected before its first successful run;
+  production guards were preserved.
+- Production-build HTTP/Chromium flow PASS: committed confirmation, reschedule
+  and normal disclosed cancellation each produced exactly one intercepted notice;
+  create replay produced no duplicate. Booking page fit at 390/1440. The first
+  browser driver mistook the collapsed cancellation summary for an exposed button
+  and then a link; source inspection corrected the driver to open the disclosure.
+  No application fix was needed. All three email previews fit at 390/1440, with
+  phone reschedule preview visually inspected.
+- `npm run typecheck` (final), `npm run lint`, final changed-file ESLint,
+  scoped Prettier and `git diff --check` PASS. Production build PASS using the
+  documented command-only 12 GB heap; no default-heap retry needed this slice.
+- Private fixture/evidence: `.local/booking-notice-tests/` and
+  `.local/booking-notice-checks/`. Isolated app3339/database55439 stopped with data
+  retained; normal app3000 restored using unchanged private owner settings.
+  Automated verification used intercepted provider traffic; the later authorized
+  live presentation previews are recorded above. No personal account mutation,
+  dependency/schema/migration change to operating data, commit/push/merge or
+  deployment. Review/verification cover the local owner-only slice, not hosted
+  activation or a durable scheduler. Explicit `delivery:local` recovery is
+  provided; no automatic periodic retry worker or public resend endpoint.
+- Next: optional legitimate owner-participant Gmail walkthrough; commit/release
+  only on request. Provisional/expiry/completion/no-show sending remains excluded.
+
 ### 2026-11-12 — Owner-only Resend email-change delivery (verified locally)
 
 - Blueprint `prompts/features/m5-07-resend-email-change.md`; exact owner receives

@@ -1,5 +1,17 @@
 # Learli — System Architecture
 
+### Owner-only local booking email — 2026-11-12
+
+OPS-04/M5.7/8 extends the existing private local mail settings to confirmed,
+rescheduled and cancelled local_operation booking events for the exact owner
+only when a current authorized participant. A separate capability-bound local
+constructor/transport retains hosted HTTPS/domain restrictions. The existing
+durable queue rechecks authority and immutable current material before sending;
+the workflow handler schedules a bounded event-specific Next after task only
+after service commit. Failure cannot undo booking success. Explicit delivery:local
+is the bounded recovery path; no periodic scheduler. No schema/dependency or
+unrequested lifecycle sending. See the 2026-11-12 local-booking-notice decision.
+
 ### Owner-only email-change delivery — 2026-11-12
 
 The optional local Resend transport now supports current/new email-change
