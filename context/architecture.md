@@ -1,5 +1,16 @@
 # Learli — System Architecture
 
+### Owner-only email-change delivery — 2026-11-12
+
+The optional local Resend transport now supports current/new email-change
+codes for its exact configured owner. Synthetic .test counterpart codes use
+private local capture; other real destinations are refused without recipient
+substitution or failed-send capture fallback. Existing Better Auth proof,
+freshness, binding, expiry, throttling and session controls remain. No hosted
+activation, schema/dependency or booking-mail change. This extends the earlier
+capture-only email-change boundary; see
+`docs/decisions/2026-11-12-local-email-change-delivery.md`.
+
 ### Owner-only password reset extension — 2026-11-12
 
 The owner extended the optional local Resend path to password-reset links

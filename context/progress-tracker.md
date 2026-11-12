@@ -1,5 +1,46 @@
 # Learli — Progress Tracker
 
+### 2026-11-12 — Owner-only Resend email-change delivery (verified locally)
+
+- Blueprint `prompts/features/m5-07-resend-email-change.md`; exact owner receives
+  current/new codes, synthetic counterparts retain deliberate local capture,
+  other real destinations are refused. Branded code messages and enabled local
+  form guidance added. Existing proof/session rules and verification/reset
+  behavior remain; no migration, hosted activation or personal email mutation.
+- Same-agent read-only Review: plan alignment and unintended-change audit PASS;
+  READY FOR VERIFICATION, no blocking findings. One outdated operations sentence
+  corrected; test-only failure-boundary repair re-reviewed. No independent
+  reviewer or production release clearance is claimed.
+- Focused Vitest command covering local-verification, local-email-change,
+  email-change-email, verification-email, password-reset-email,
+  local-verification-response and account-email component: **45/45 PASS**.
+- Real isolated PostgreSQL: existing account-email/auth suites **35/35 PASS**;
+  new local-email-change-delivery suite **3/3 PASS** after correcting its test
+  harness to explicitly exercise enabled-mode mail-attempt failure handling.
+  Initial capture-only harness incorrectly expected an enabled-mode failure
+  response (37/38 initially); no production guard was weakened to resolve it.
+- Additional actual ordinary-local factory/handler check: **3/3 PASS** on owned
+  loopback development PostgreSQL, synthetic actors only, intercepted provider:
+  owner on current side, owner on new side, provider rejection returns 503.
+  Test-only transport capability and test-mailbox capture adaptation in the
+  committed integration suite are not claimed as full local runtime admission.
+- `npm run typecheck`, `npm run lint`, updated-test scoped ESLint, scoped Prettier
+  and `git diff --check` PASS. Production build PASS with command-only
+  `NODE_OPTIONS=--max-old-space-size=12288`; default 4 GB heap attempt OOMed in
+  this checkout before the documented larger-heap retry succeeded.
+- Production-build Chromium email-change round trips PASS at **390/1440**:
+  correct enabled guidance, masked transient proofs, completed saved email,
+  viewport fit and **zero axe WCAG A/AA violations**. Both current/new email
+  previews fit at those widths; phone email/form visually inspected. Private
+  synthetic evidence/scripts: `.local/email-change-checks/`.
+- Existing private owner-mail configuration retained. **No live Gmail email sent
+  or inbox receipt retested**; provider calls were intercepted. Personal account
+  email/password unchanged. No schema/dependency, commit/push/merge/deployment.
+  Existing `designs/` and archived worktree state preserved. Local app is running
+  at `http://127.0.0.1:3000` with its existing owner-only settings.
+- Next: optional owner inbox walkthrough through Account settings → Change email,
+  then user-authorized commit/release. General recipients remain domain-gated.
+
 ### 2026-11-11 — Sign-up offers Tutor instead of "Choose later"
 
 - Account type is now Parent or guardian / College Student / Tutor ("I want to

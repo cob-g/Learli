@@ -18,6 +18,7 @@ type AccountEmailCopy = Readonly<{
 export function renderAccountProofEmail(
   proofUrl: string,
   copy: AccountEmailCopy,
+  code?: string,
 ) {
   const url = escapeHtml(proofUrl);
   wordmark ??= readFileSync(
@@ -28,6 +29,7 @@ export function renderAccountProofEmail(
     text: [
       copy.heading,
       copy.introduction,
+      ...(code ? [`Your confirmation code: ${code}`] : []),
       `${copy.action}:\n${proofUrl}`,
       copy.guidance,
       copy.ignore,
@@ -57,6 +59,7 @@ export function renderAccountProofEmail(
               <td style="padding:0 24px;">
                 <h1 style="margin:0 0 20px;color:#1e2a78;font-size:28px;font-weight:700;line-height:36px;">${copy.heading}</h1>
                 <p style="margin:0 0 28px;font-size:16px;line-height:26px;">${copy.introduction}</p>
+                ${code ? `<p style="margin:0 0 8px;color:#55605d;font-size:14px;line-height:22px;">Your confirmation code</p><p style="margin:0 0 28px;padding:16px;background-color:#f5f8f6;border:1px solid #c9d3ce;border-radius:10px;color:#1e2a78;font-family:monospace;font-size:32px;font-weight:700;letter-spacing:6px;line-height:40px;text-align:center;">${escapeHtml(code)}</p>` : ""}
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                   <tr>
                     <td align="center" bgcolor="#1e2a78" style="background-color:#1e2a78;border-radius:10px;mso-padding-alt:16px 24px;">

@@ -1,5 +1,16 @@
 # Learli — Product Requirements Document (PRD)
 
+### Owner-only email-change delivery — 2026-11-12
+
+AUTH-02/03/04, M2.9/M5.7: the owner authorized local Resend current/new-address
+confirmation codes for the existing exact account-owner recipient. Synthetic
+.test counterparts retain private capture; other real recipients are refused.
+Both proofs remain required before mutation, with existing expiry, attempt,
+fresh-session and revocation rules. Default capture and booking mail remain;
+general-user sending is still domain-gated. This supersedes earlier local
+email-change capture-only wording only for this optional path. See
+`prompts/features/m5-07-resend-email-change.md` and the corresponding decision.
+
 ### Owner-only password reset extension — 2026-11-12
 
 The owner extended the optional local Resend path to password-reset links
