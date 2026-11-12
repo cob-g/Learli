@@ -5,6 +5,11 @@ import { escapeHtml } from "./escape-html";
 import { mailboxSchema } from "./mailbox";
 import { safeReturnPath } from "@/lib/permissions/return-path";
 import { isValidTimeZone } from "@/lib/time/time-zone";
+import {
+  assertLocalWorkflowCapability,
+  type LocalWorkflow,
+} from "@/features/local-workflow/runtime";
+import { renderBookingEmail, localBookingNoticeKinds } from "./booking-email";
 
 export { mailboxSchema } from "./mailbox";
 
@@ -28,6 +33,11 @@ type Material = Readonly<{
   subject: string;
   text: string;
   html: string;
+  attachments?: ReadonlyArray<{
+    filename: string;
+    content: string;
+    content_id: string;
+  }>;
 }>;
 const material = new WeakMap<ValidatedMessage, Material>();
 
@@ -244,6 +254,46 @@ export const bookingMessageInput = z
   })
   .refine((v) => Date.parse(v.endAtUtc) > Date.parse(v.startAtUtc));
 export type BookingMessageInput = z.infer<typeof bookingMessageInput>;
+
+/** Separate capability-bound local path; the hosted HTTPS constructor is unchanged. */
+export function createLocalBookingMessageConstructor(
+  capability: LocalWorkflow,
+  identitySecret: string,
+) {
+  assertLocalWorkflowCapability(capability);
+  const secret = z.string().min(32).max(512).parse(identitySecret);
+  return (input: unknown): MessageConstruction => {
+    assertLocalWorkflowCapability(capability);
+    const parsed = bookingMessageInput.safeParse(input);
+    if (!parsed.success || parsed.data.source !== "local_operation")
+      return { ok: false, code: "payload" };
+    const kind = z.enum(localBookingNoticeKinds).safeParse(parsed.data.kind);
+    if (!kind.success) return { ok: false, code: "payload" };
+    const value = parsed.data;
+    const rendered = renderBookingEmail(capability.origin, {
+      ...value,
+      kind: kind.data,
+    });
+    const body: Material = Object.freeze({
+      appOrigin: capability.origin,
+      to: value.recipientEmail,
+      ...rendered,
+      attachments: Object.freeze(
+        rendered.attachments.map((entry) => Object.freeze(entry)),
+      ),
+    });
+    const hmac = (tuple: unknown[]) =>
+      createHmac("sha256", secret).update(JSON.stringify(tuple)).digest("hex");
+    const message: ValidatedMessage = Object.freeze({
+      template: "booking-notice-v1",
+      idempotencyKey: `learli/${hmac(["local-booking-identity-v1", value.eventId, value.recipientEmail, value.kind])}`,
+      payloadFingerprint: hmac(["local-booking-payload-v1", body]),
+      firstAttemptAt: value.firstAttemptAt,
+    });
+    material.set(message, body);
+    return { ok: true, message };
+  };
+}
 
 /** Reconstruct only the exact immutable domain snapshot persisted before dispatch. */
 export function createBookingMessageConstructor(config: unknown) {

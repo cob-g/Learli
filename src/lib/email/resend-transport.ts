@@ -3,6 +3,10 @@ import { Resend, type Response as SdkResponse } from "resend";
 import { z } from "zod";
 import { mailboxSchema } from "./mailbox";
 import {
+  assertLocalWorkflowCapability,
+  type LocalWorkflow,
+} from "@/features/local-workflow/runtime";
+import {
   exactHttpsOrigin,
   readValidatedMessage,
   type ValidatedMessage,
@@ -108,6 +112,41 @@ export function createResendTransport(
   const parsed = configSchema.safeParse(configuration);
   const config = parsed.success ? parsed.data : undefined;
   const permitted = config && (!testing || config.environment === "test");
+  return boundResendTransport(permitted ? config : undefined, testing);
+}
+
+/** Test sender only, admitted by local runtime capability; public HTTPS rules stay strict. */
+export function createLocalBookingResendTransport(
+  capability: LocalWorkflow,
+  input: { key: string; recipient: string },
+) {
+  assertLocalWorkflowCapability(capability);
+  const config = z
+    .strictObject({
+      key: z.string().regex(/^re_[A-Za-z0-9_-]{8,256}$/),
+      recipient: mailboxSchema,
+    })
+    .parse(input);
+  return boundResendTransport({
+    enabled: true,
+    environment: "development",
+    appOrigin: capability.origin,
+    apiKey: config.key,
+    sender: "Learli <onboarding@resend.dev>",
+    verifiedSender: {
+      sender: "onboarding@resend.dev",
+      environment: "development",
+      appOrigin: capability.origin,
+    },
+    allowedRecipients: [config.recipient],
+    timeoutMs: 3_000,
+  });
+}
+
+function boundResendTransport(
+  config: z.infer<typeof configSchema> | undefined,
+  testing?: { fetch: typeof fetch; now?: () => number },
+): { send(message: ValidatedMessage): Promise<TransportResult> } {
   const immutable = new Map<
     string,
     { fingerprint: string; firstAttemptAt: number }
@@ -115,8 +154,7 @@ export function createResendTransport(
   let sdk: PrivateResend | undefined;
   return Object.freeze({
     async send(message: ValidatedMessage): Promise<TransportResult> {
-      if (!permitted || !config)
-        return { status: "rejected", code: "configuration" };
+      if (!config) return { status: "rejected", code: "configuration" };
       const body = readValidatedMessage(message);
       if (!body) return { status: "rejected", code: "payload" };
       if (body.appOrigin !== config.appOrigin)
@@ -164,6 +202,17 @@ export function createResendTransport(
               subject: body.subject,
               text: body.text,
               html: body.html,
+              ...(body.attachments
+                ? {
+                    attachments: body.attachments.map(
+                      ({ filename, content, content_id }) => ({
+                        filename,
+                        content,
+                        contentId: content_id,
+                      }),
+                    ),
+                  }
+                : {}),
             },
             {
               idempotencyKey: message.idempotencyKey,

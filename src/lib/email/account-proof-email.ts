@@ -41,10 +41,10 @@ export function renderAccountProofEmail(
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
-    <title>${copy.subject}</title>
+    <title>${escapeHtml(copy.subject)}</title>
   </head>
   <body style="margin:0;padding:0;background-color:#f5f8f6;color:#131a3d;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;">
-    <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${copy.preview}</div>
+    <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(copy.preview)}</div>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f8f6;">
       <tr>
         <td align="center" style="padding:32px 16px;">
@@ -57,18 +57,18 @@ export function renderAccountProofEmail(
             </tr>
             <tr>
               <td style="padding:0 24px;">
-                <h1 style="margin:0 0 20px;color:#1e2a78;font-size:28px;font-weight:700;line-height:36px;">${copy.heading}</h1>
-                <p style="margin:0 0 28px;font-size:16px;line-height:26px;">${copy.introduction}</p>
+                <h1 style="margin:0 0 20px;color:#1e2a78;font-size:28px;font-weight:700;line-height:36px;">${escapeHtml(copy.heading)}</h1>
+                <p style="margin:0 0 28px;font-size:16px;line-height:26px;overflow-wrap:anywhere;word-break:break-word;">${escapeHtml(copy.introduction)}</p>
                 ${code ? `<p style="margin:0 0 8px;color:#55605d;font-size:14px;line-height:22px;">Your confirmation code</p><p style="margin:0 0 28px;padding:16px;background-color:#f5f8f6;border:1px solid #c9d3ce;border-radius:10px;color:#1e2a78;font-family:monospace;font-size:32px;font-weight:700;letter-spacing:6px;line-height:40px;text-align:center;">${escapeHtml(code)}</p>` : ""}
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                   <tr>
                     <td align="center" bgcolor="#1e2a78" style="background-color:#1e2a78;border-radius:10px;mso-padding-alt:16px 24px;">
-                      <a href="${url}" rel="noreferrer" style="display:inline-block;padding:16px 24px;border:1px solid #1e2a78;border-radius:10px;color:#ffffff;font-size:16px;font-weight:700;line-height:24px;text-align:center;text-decoration:none;">${copy.action}</a>
+                      <a href="${url}" rel="noreferrer" style="display:inline-block;padding:16px 24px;border:1px solid #1e2a78;border-radius:10px;color:#ffffff;font-size:16px;font-weight:700;line-height:24px;text-align:center;text-decoration:none;">${escapeHtml(copy.action)}</a>
                     </td>
                   </tr>
                 </table>
-                <p style="margin:24px 0 0;color:#55605d;font-size:14px;line-height:22px;">${copy.guidance}</p>
-                <p style="margin:24px 0 28px;font-size:16px;line-height:26px;">${copy.ignore}</p>
+                <p style="margin:24px 0 0;color:#55605d;font-size:14px;line-height:22px;">${escapeHtml(copy.guidance)}</p>
+                <p style="margin:24px 0 28px;font-size:16px;line-height:26px;">${escapeHtml(copy.ignore)}</p>
                 <p style="margin:0 0 28px;font-size:16px;line-height:26px;">The Learli team</p>
               </td>
             </tr>

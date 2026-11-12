@@ -1,5 +1,14 @@
 # Learli — UI Context
 
+### Local booking email presentation — 2026-11-12
+
+Confirmation/reschedule/cancellation messages reuse the existing navy/teal
+branded email shell, CID wordmark, text alternative and record CTA. Subject and
+heading state the specific outcome; copy includes genuine lesson subject,
+saved/replacement schedule and recipient timezone. Cancellation labels the
+cancelled time. Local-test footer stays truthful; no child names, meeting URLs,
+payment or attendance claims. Existing workspace controls are unchanged.
+
 ### Owner-only email-change messages — 2026-11-12
 
 Optional local Resend email changes reuse the branded account-email shell and

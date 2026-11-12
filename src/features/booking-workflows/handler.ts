@@ -8,6 +8,7 @@ import {
   type BookingWorkflowContext,
 } from "./service";
 import type { WorkflowAction } from "./input";
+import { scheduleLocalBookingNotices } from "@/features/transactional-delivery/local";
 export function handleWorkflowMutation(
   runtime: AuthRuntime | null,
   request: Request,
@@ -30,9 +31,14 @@ export function handleWorkflowMutation(
       method: "POST",
       invalid: () => ({ message: "Check the booking details and try again." }),
     },
-    (_r, input) =>
-      bookingId && action
+    async (_r, input) => {
+      const receipt = await (bookingId && action
         ? changePolicyBooking(c, request.headers, bookingId, action, input)
-        : createPolicyReservation(c, request.headers, input),
+        : createPolicyReservation(c, request.headers, input));
+      // Service resolution establishes that the transaction has committed.
+      if (!action || ["confirm", "reschedule", "cancel"].includes(action))
+        scheduleLocalBookingNotices(runtime, receipt.eventId);
+      return receipt;
+    },
   );
 }

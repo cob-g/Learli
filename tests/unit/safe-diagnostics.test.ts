@@ -21,6 +21,7 @@ describe("closed diagnostic output", () => {
       "mutation.unavailable",
       "database.pool_failed",
       "database.setup_failed",
+      "booking.notice_unavailable",
     ] as const;
     categories.forEach(emit);
     const identifiers = new Set<string>();
@@ -34,7 +35,7 @@ describe("closed diagnostic output", () => {
       );
       identifiers.add(record.correlationId);
     }
-    expect(identifiers.size).toBe(4);
+    expect(identifiers.size).toBe(categories.length);
   });
 
   it("ignores invalid runtime categories without inspecting or coercing objects", () => {

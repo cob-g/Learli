@@ -1,5 +1,17 @@
 # Learli — Product Requirements Document (PRD)
 
+### Owner-only local booking notices — 2026-11-12
+
+OPS-04/M5.7/8: confirmed, rescheduled and cancelled ordinary local bookings may
+email the exact configured personal owner only as a current participant. Never
+redirect other participants' messages. Automatic event-specific attempts run
+after commit; failures preserve booking success and remain durably recoverable.
+Messages show actual saved subject/time/timezone and authorized record links,
+without learner/meeting details or payment/attendance claims. Existing auth and
+hosted safeguards remain. This scoped extension supersedes earlier capture-only
+wording for these three local events only; other lifecycle and general-recipient
+delivery remain gated. See `prompts/features/m5-07-resend-booking-notices.md`.
+
 ### Owner-only email-change delivery — 2026-11-12
 
 AUTH-02/03/04, M2.9/M5.7: the owner authorized local Resend current/new-address
