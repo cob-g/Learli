@@ -488,6 +488,11 @@ software unit does not activate the wider booking workflow.
   `prompts/features/m5-07-resend-email-verification.md`. Local code checks and
   provider acceptance are separate; see the tracker for actual results. This
   does not complete M5.7, enable booking email, or authorize general-user sending.
+  **2026-11-12 owner-only reset extension:** AUTH-02 reset links use the same
+  configured owner-only transport and branded presentation. Blueprint:
+  `prompts/features/m5-07-resend-password-reset.md`. This does not complete M5.7
+  or activate other recipients; executed evidence belongs in the tracker.
+
 - [ ] **M5.8 — Respect transaction boundaries.** Send booking notices **after the booking DB transition commits**. Failed email delivery must not undo a valid booking or create a false confirmation. Scheduled reminders are optional and require a justified reliable scheduler.
 
   Local M5.7–M5.8 slice (2026-10-11 six-feature delegation): event-driven durable

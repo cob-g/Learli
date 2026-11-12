@@ -113,9 +113,7 @@ describe("ordinary local account guidance", () => {
       );
       await waitFor(() =>
         expect(screen.getByRole("status")).toHaveTextContent(
-          mode === "verify"
-            ? "delivery has not been established"
-            : "No email was sent.",
+          "delivery has not been established",
         ),
       );
     },

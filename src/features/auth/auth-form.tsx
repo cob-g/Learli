@@ -219,9 +219,11 @@ export function AuthForm({
           notice(
             hosted
               ? "If an account matches this address, a reset request was accepted. Check the address for the link; delivery has not been established."
-              : localWorkflow
-                ? "If an account matches this address, its reset message was captured locally. Run npm run mail:open in your Learli terminal to open it. No email was sent."
-                : "If an account matches this address, a reset message is available in your local mailbox.",
+              : localVerificationEmail
+                ? "If an account matches this address, the request was received. Check the configured address for a reset link; delivery has not been established."
+                : localWorkflow
+                  ? "If an account matches this address, its reset message was captured locally. Run npm run mail:open in your Learli terminal to open it. No email was sent."
+                  : "If an account matches this address, a reset message is available in your local mailbox.",
           );
       } else if (mode === "verify") {
         const result = await authClient.sendVerificationEmail({

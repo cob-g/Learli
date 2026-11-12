@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { parseServerEnv } from "@/lib/env/schema";
 import { validateLocalWorkflowBinding } from "@/features/local-workflow/runtime";
-import { localVerificationMail } from "@/lib/email/local-verification";
+import { localAccountProofMail } from "@/lib/email/local-verification";
 
 vi.mock("server-only", () => ({}));
 const source = {
@@ -52,7 +52,7 @@ describe("local verification delivery", () => {
       }),
     ).not.toThrow();
   });
-  it("sends only a valid verification for the exact recipient", async () => {
+  it("sends only a valid account proof for the exact recipient", async () => {
     const request = vi.fn(
       async () =>
         new Response(
@@ -60,7 +60,7 @@ describe("local verification delivery", () => {
           { status: 200 },
         ),
     );
-    const send = localVerificationMail(
+    const send = localAccountProofMail(
       validateLocalWorkflowBinding(source, pool)!,
       config,
       request,
@@ -91,8 +91,47 @@ describe("local verification delivery", () => {
     ).rejects.toThrow();
     expect(request).toHaveBeenCalledTimes(1);
   });
+
+  it("sends a reset link unchanged and rejects other recipients and unsafe callbacks", async () => {
+    const request = vi.fn<typeof fetch>(
+      async () =>
+        new Response(
+          JSON.stringify({ id: "00000000-0000-4000-8000-000000000000" }),
+        ),
+    );
+    const send = localAccountProofMail(
+      validateLocalWorkflowBinding(source, pool)!,
+      config,
+      request,
+    );
+    const reset = {
+      kind: "reset" as const,
+      to: config.recipient,
+      url: "http://127.0.0.1:3000/api/auth/reset-password/abcdefghijklmnop?callbackURL=%2Freset-password",
+    };
+    await send(reset);
+    const body = JSON.parse(request.mock.calls[0]![1]!.body as string);
+    expect(body.subject).toBe("Reset your Learli password");
+    expect(body.text).toContain(reset.url);
+    expect(body.text).toContain("30 minutes");
+    expect(body.to).toEqual([config.recipient]);
+    await expect(send({ ...reset, to: "other@example.com" })).rejects.toThrow();
+    await expect(
+      send({ ...reset, url: reset.url.replace("127.0.0.1", "example.com") }),
+    ).rejects.toThrow();
+    await expect(
+      send({
+        ...reset,
+        url: reset.url.replace("%2Freset-password", "https%3A%2F%2Fevil.test"),
+      }),
+    ).rejects.toThrow();
+    await expect(
+      send({ ...reset, url: reset.url + "&callbackURL=%2Freset-password" }),
+    ).rejects.toThrow();
+    expect(request).toHaveBeenCalledTimes(1);
+  });
   it("hides provider failures", async () => {
-    const send = localVerificationMail(
+    const send = localAccountProofMail(
       validateLocalWorkflowBinding(source, pool)!,
       config,
       vi.fn(async () => {
@@ -111,7 +150,7 @@ describe("local verification delivery", () => {
           { status: 200 },
         ),
     );
-    const send = localVerificationMail(
+    const send = localAccountProofMail(
       validateLocalWorkflowBinding(source, pool)!,
       { ...config, recipient: "different@example.com" },
       request,
@@ -135,7 +174,7 @@ describe("local verification delivery", () => {
                 json: () => new Promise(() => {}),
               } as Response),
         );
-        const send = localVerificationMail(
+        const send = localAccountProofMail(
           validateLocalWorkflowBinding(source, pool)!,
           config,
           request,
@@ -157,7 +196,7 @@ describe("local verification delivery", () => {
     new Response("private", { status: 403 }),
     new Response(null, { status: 302 }),
   ])("refuses an invalid provider response", async (response) => {
-    const send = localVerificationMail(
+    const send = localAccountProofMail(
       validateLocalWorkflowBinding(source, pool)!,
       config,
       vi.fn(async () => response),

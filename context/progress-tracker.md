@@ -8407,3 +8407,42 @@ deployment remain unverified and separately gated.
   workspace, setup and reviewed migrations succeeded and both the operator and
   signup atomicity suites passed (52 tests). The operator guard is unchanged;
   a new GitHub run is required.
+
+### 2026-11-12 — Owner-only Resend password-reset links
+
+- Owner requested Forgot password/reset links through Resend using their personal
+  recipient until a sending domain exists. Blueprint
+  `prompts/features/m5-07-resend-password-reset.md` is AUTHORIZED — build-feature
+  delegation. Work is uncommitted on `feature/resend-password-reset`, based on
+  merged PR #1 (`f77361c`), in the existing isolated email checkout.
+- Existing private local verification settings now select real verification and
+  reset proofs for the exact owner recipient. Reset email shares the Learli
+  wordmark/CID image, navy action, text and fallback with 30-minute/single-use
+  guidance. Forgot password shows generic inbox guidance only when enabled.
+  Better Auth retains token, password, session, origin and rate controls. Default
+  capture and other mail paths remain unchanged; no dependency/schema change.
+- Same-agent read-only Review: READY FOR VERIFICATION, no confirmed findings
+  against the delegated blueprint. Executed verification: 26 focused unit and
+  component tests PASS; existing auth PostgreSQL tests PASS15; opt-in owned
+  database verification/reset runtime PASS1, including known/unknown/excluded
+  recipient and provider-failure response parity, throttling, valid reset,
+  invalid/expired/reused proof denial, old-password denial and session revocation.
+  Typecheck, lint, scoped formatting, diff check and production build PASS.
+  Email previews and actual Forgot password guidance fit390/1440 in Chromium.
+  The broad browser/CI suites were not repeated for this scoped change.
+- One actual owner reset request returned200 and Resend accepted it with a valid
+  message receipt. Inbox receipt and personal password reset are not observed;
+  no personal password or verification state was changed. A preflight requiring
+  verified status initially withheld the send because the local account was
+  unverified; the provider-supported recovery request then used the existing
+  account without altering verification. Automated password mutations used only
+  a synthetic account with intercepted provider calls.
+- Local dev startup initially rejected owner DB credentials in the runtime env;
+  process-only startup now omits that owner URL, retaining runtime-role access
+  and the unchanged private env file. The app is open on loopback3038 with the
+  requested mail path enabled. No new commit/push/merge/deployment. Next: owner
+  can inspect the reset email and complete the reset in the browser; a domain is
+  still required before general-recipient activation.
+- The owner subsequently authorized committing, pushing and merging this exact
+  slice. Existing scoped verification above applies; the release result is
+  recorded by the feature commit and PR. No production deployment is implied.
