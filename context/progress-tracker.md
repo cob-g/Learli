@@ -8336,11 +8336,24 @@ deployment remain unverified and separately gated.
   identity. The job timeout allows the integration and browser stages to run.
 - Synthetic Google Meet screening now covers its future bookings; the
   cross-role fixture orders recipient IDs consistently. Migration history
-  reads fail explicitly when Git cannot provide a source. Production booking,
-  authentication and screening rules were not changed.
+  reads fail explicitly when Git cannot provide a source. Production booking
+  and screening rules were not changed.
 - Verification so far: six affected integration files PASS (85 tests);
   `npm run check` PASS (2,435 unit/component tests); production build PASS
   using the isolated test environment. Full integration, browser E2E, and
   GitHub CI are still pending. The first build with the separate local Resend
   environment failed configuration validation; the test-environment build
   passed without changing local credentials.
+- Follow-up investigation identified an email-change lock ordering race that
+  could reject both concurrent requests. The service now fails immediately if
+  the capacity lock is unavailable, as password changes already do; identity,
+  proof, and session checks remain intact. A booking lifecycle fixture avoids
+  choosing a slot at the moving notice boundary. GitHub uses the test environment
+  for its production build. The initial full local integration run had 1,175
+  passing tests, one regression-test failure and a hosted suite setup failure
+  because its local TLS port was not supplied; follow-up verification is pending.
+- Follow-up verification: the new PostgreSQL lock regression and both complete
+  account-email and booking-lifecycle files PASS (43 tests). The first version
+  of the regression counted unrelated provider SQL; it was corrected to inspect
+  advisory-lock statements specifically. Typecheck passed. Full CI and browser
+  verification remain pending.

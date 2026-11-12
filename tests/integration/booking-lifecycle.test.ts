@@ -91,10 +91,16 @@ async function fixture(actor?: TestAccount) {
     actor.headers,
     choice,
   );
+  // Avoid selecting a slot at the rolling minimum-notice boundary: the
+  // service correctly recalculates availability when the reservation is made.
+  const slot = options.times.find(
+    (candidate) => Date.parse(candidate.startAtUtc) > Date.now() + 2 * 3600000,
+  );
+  if (!slot) throw new Error("Expected a buffered lifecycle fixture slot.");
   const input = {
     ...choice,
-    startAtUtc: options.times[0].startAtUtc,
-    endAtUtc: options.times[0].endAtUtc,
+    startAtUtc: slot.startAtUtc,
+    endAtUtc: slot.endAtUtc,
     idempotencyKey: randomUUID(),
   };
   const reservation = await createDemoReservation(
