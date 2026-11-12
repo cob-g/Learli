@@ -29,10 +29,12 @@ export async function changeOwnEmail(
     const capacity = await tx.execute<{ acquired: boolean }>(
       sql`SELECT pg_try_advisory_xact_lock(41003, 0) AS acquired`,
     );
+    if (!capacity.rows[0]?.acquired)
+      throw new RuleError(409, "Account changes are busy. Try again shortly.");
     const lock = await tx.execute<{ acquired: boolean }>(
       sql`SELECT pg_try_advisory_xact_lock(41004, hashtext(${identity.userId})) AS acquired`,
     );
-    if (!capacity.rows[0]?.acquired || !lock.rows[0]?.acquired)
+    if (!lock.rows[0]?.acquired)
       throw new RuleError(409, "Account changes are busy. Try again shortly.");
     await recheckIdentity(tx, identity);
     const [current] = await tx

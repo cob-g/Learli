@@ -1,7 +1,16 @@
 import { randomUUID } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { PgDialect } from "drizzle-orm/pg-core";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { handleAccountEmail } from "@/features/account-email/handler";
 import { expectedProofIdentifiers } from "@/features/account-email/proof-context";
 import { handleAuthRequest } from "@/lib/auth-handler";
@@ -326,6 +335,46 @@ describe("real provider signed-in email changes", () => {
     }
     await world.owner.pool.query("UPDATE rate_limit SET count=0");
     expect((await change(nextAccount, next.body)).status).toBe(400);
+  });
+
+  it("does not attempt the user lock after another transaction owns capacity", async () => {
+    const account = await createAccount(world);
+    const pending = await prepare(account);
+    const holder = await world.owner.pool.connect();
+    const transaction = world.runtime.db.transaction.bind(world.runtime.db);
+    const advisoryStatements: string[] = [];
+    const dialect = new PgDialect();
+    const spy = vi
+      .spyOn(world.runtime.db, "transaction")
+      .mockImplementation((callback, config) =>
+        transaction(async (tx) => {
+          const execute = tx.execute.bind(tx);
+          vi.spyOn(tx, "execute").mockImplementation((...args) => {
+            const statement =
+              typeof args[0] === "string"
+                ? args[0]
+                : dialect.sqlToQuery(args[0].getSQL()).sql;
+            if (statement.includes("pg_try_advisory_xact_lock"))
+              advisoryStatements.push(statement);
+            return execute(...args);
+          });
+          return callback(tx);
+        }, config),
+      );
+    try {
+      await holder.query("BEGIN");
+      await holder.query("SELECT pg_advisory_xact_lock(41003, 0)");
+      expect((await change(account, pending.body)).status).toBe(409);
+      expect(advisoryStatements).toHaveLength(1);
+      expect(advisoryStatements[0]).toContain("41003");
+      expect((await saved(account)).email).toBe(account.email);
+    } finally {
+      spy.mockRestore();
+      await holder.query("ROLLBACK");
+      holder.release();
+    }
+    expect((await change(account, pending.body)).status).toBe(200);
+    expect((await saved(account)).email).toBe(pending.newEmail);
   });
 
   it("concurrent final consumers cannot both succeed and capture contexts do not mix", async () => {

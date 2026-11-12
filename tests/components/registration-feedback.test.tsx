@@ -1,5 +1,12 @@
 // @vitest-environment jsdom
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { bookingSelectionHref } from "@/features/bookings/selection";
 import { parentOnboardingHref } from "@/features/parent-onboarding/continuation";
@@ -127,7 +134,7 @@ describe("registration pending and stable verification receipt", () => {
       "Registration request received.",
     );
     flushFocus();
-    expect(screen.getByRole("status")).toHaveFocus();
+    await waitFor(() => expect(screen.getByRole("status")).toHaveFocus());
     expect(client.signup).toHaveBeenCalledTimes(1);
   });
 
@@ -184,7 +191,7 @@ describe("registration pending and stable verification receipt", () => {
       expect(panel).not.toHaveTextContent(password);
       expect(storage).not.toHaveBeenCalled();
       flushFocus();
-      expect(screen.getByRole("status")).toHaveFocus();
+      await waitFor(() => expect(screen.getByRole("status")).toHaveFocus());
     },
   );
 
@@ -335,7 +342,7 @@ describe("signup correction and safe request failures", () => {
         "Check the highlighted fields and try again.",
       );
       flushFocus();
-      expect(screen.getByRole("alert")).toHaveFocus();
+      await waitFor(() => expect(screen.getByRole("alert")).toHaveFocus());
       expect(screen.getByLabelText("Email")).toHaveAttribute("required");
       expect(screen.getByLabelText("Email")).toHaveAttribute("type", "email");
       expect(screen.getByLabelText("Email")).toHaveAttribute(
@@ -381,7 +388,7 @@ describe("signup correction and safe request failures", () => {
       expect(screen.getByLabelText("Display name")).toHaveValue(name);
       expect(screen.getByLabelText("Email")).toHaveValue(email);
       flushFocus();
-      expect(alert).toHaveFocus();
+      await waitFor(() => expect(alert).toHaveFocus());
     },
   );
 
@@ -429,7 +436,7 @@ describe("signup correction and safe request failures", () => {
         screen.getByRole("link", { name: "Reset your password" }),
       ).toHaveAttribute("href", "/forgot-password");
       flushFocus();
-      expect(alert).toHaveFocus();
+      await waitFor(() => expect(alert).toHaveFocus());
       fireEvent.change(screen.getByLabelText("Password"), {
         target: { value: password },
       });
@@ -478,7 +485,7 @@ describe("signup correction and safe request failures", () => {
     expect(screen.getByLabelText("Email")).toHaveValue(email);
     expect(screen.getByLabelText("Display name")).toHaveValue(name);
     flushFocus();
-    expect(alert).toHaveFocus();
+    await waitFor(() => expect(alert).toHaveFocus());
     fireEvent.change(screen.getByLabelText("Password"), {
       target: { value: password },
     });

@@ -10,6 +10,8 @@ import {
 import { safeHostedCallback } from "@/features/hosted-auth/callback";
 import { refusedMailResponse } from "@/features/hosted-auth/mail-attempt";
 
+export const LOCAL_VERIFICATION_RESPONSE_FLOOR_MS = 3_500;
+
 export const privateHeaders = {
   "Cache-Control": "private, no-store, max-age=0",
   "Referrer-Policy": "no-referrer",
@@ -97,6 +99,26 @@ export async function handleAuthRequest(
     request.method !== "GET",
   );
   // Direct loopback server: forwarded headers are not trusted client identity.
+  const localVerification =
+    !("hosted" in runtime) &&
+    "localVerificationRecipient" in runtime &&
+    typeof runtime.localVerificationRecipient === "string" &&
+    route === "send-verification-email";
+  const verificationStart = performance.now();
+  const verificationReceived = (previous: Response) => {
+    const headers = new Headers(previous.headers);
+    headers.delete("content-length");
+    headers.delete("content-encoding");
+    for (const [name, value] of Object.entries(privateHeaders))
+      headers.set(name, value);
+    return Response.json(
+      {
+        message:
+          "Verification request received. Delivery has not been established.",
+      },
+      { status: 200, headers },
+    );
+  };
   let body: string | undefined;
   if (request.method === "POST") {
     if ("hosted" in runtime && new URL(request.url).search)
@@ -212,7 +234,9 @@ export async function handleAuthRequest(
           ? await runtime.mailAttempt.run(call)
           : { value: await call(), failed: false };
       const response = attempt.failed
-        ? refusedMailResponse(attempt.value)
+        ? localVerification
+          ? verificationReceived(attempt.value)
+          : refusedMailResponse(attempt.value)
         : attempt.value;
       if (
         response.ok &&
@@ -264,6 +288,14 @@ export async function handleAuthRequest(
     const response = route.startsWith("two-factor/")
       ? await runtime.adminSecurity.run(dispatch)
       : await dispatch();
+    if (localVerification) {
+      const remaining =
+        LOCAL_VERIFICATION_RESPONSE_FLOOR_MS -
+        (performance.now() - verificationStart);
+      if (remaining > 0)
+        await new Promise((resolve) => setTimeout(resolve, remaining));
+      if (response.ok) return verificationReceived(response);
+    }
     for (const [name, value] of Object.entries(privateHeaders))
       response.headers.set(name, value);
     if (response.status >= 500) {

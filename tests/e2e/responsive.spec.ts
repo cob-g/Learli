@@ -33,11 +33,17 @@ type Finding = {
   smallTargets: string[];
 };
 const findings: Finding[] = [];
+const responsiveTutorIds: string[] = [];
 
 test.beforeEach(async () => {
   await owner.pool.query("DELETE FROM rate_limit");
 });
 test.afterAll(async () => {
+  // Only retire profiles created by this responsive fixture before catalog tests.
+  await owner.pool.query(
+    "UPDATE tutor_profiles SET review_status='suspended' WHERE id = ANY($1::uuid[])",
+    [responsiveTutorIds],
+  );
   if (evidence) {
     await mkdir(evidence, { recursive: true });
     await writeFile(
@@ -80,6 +86,7 @@ async function tutorProfile(userId: string) {
     "INSERT INTO tutor_profiles(user_id,slug,headline,bio,teaching_background,timezone,review_status) VALUES ($1,$2,'Synthetic mathematics and science support for every learner level','Synthetic profile only. A long biography that keeps going so the page has to wrap it properly on a narrow phone screen without spilling past the edge.','Synthetic fixture only.','Asia/Manila','approved') RETURNING id,slug",
     [userId, `responsive-${randomUUID()}`],
   );
+  responsiveTutorIds.push(profile.rows[0].id);
   await owner.pool.query(
     "INSERT INTO tutor_subjects(tutor_id,subject_id,levels) SELECT $1,id,ARRAY['elementary','middle_school','high_school','college_support']::text[] FROM subjects WHERE slug IN ('math','science','english')",
     [profile.rows[0].id],

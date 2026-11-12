@@ -84,7 +84,8 @@ export async function restoreW6BrowserTutor(
           outcome: "passed",
           reference: `screening:${randomUUID()}`,
           checkedAt: new Date(Date.now() - 60000).toISOString(),
-          expiresAt: new Date(Date.now() + 2 * 3600000).toISOString(),
+          // Cover future candidate lessons, including notice and slot rounding.
+          expiresAt: new Date(Date.now() + 24 * 3600000).toISOString(),
         },
       },
     );

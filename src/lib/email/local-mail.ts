@@ -68,6 +68,37 @@ export async function captureOperationalMail(
   root = process.cwd(),
 ) {
   assertLocalWorkflowCapability(capability);
+  const message = validateOperationalMail(capability, input);
+  let directory = path.resolve(root);
+  for (const segment of [".local", "mail", "development"]) {
+    directory = path.join(directory, segment);
+    await mkdir(directory, { mode: 0o700 }).catch((error: unknown) => {
+      if (!(
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === "EEXIST"
+      ))
+        throw error;
+    });
+    const stat = await lstat(directory);
+    if (
+      !stat.isDirectory() ||
+      stat.isSymbolicLink() ||
+      stat.uid !== process.getuid?.() ||
+      (stat.mode & 0o7777) !== 0o700
+    )
+      throw new Error("Private local mailbox is unavailable.");
+  }
+  await writeLocalCapture(directory, message, true);
+}
+
+/** Validate an actual provider callback against the registered local capability. */
+export function validateOperationalMail(
+  capability: LocalWorkflow,
+  input: LocalMessage,
+) {
+  assertLocalWorkflowCapability(capability);
   const message = operationalMessage.parse(input);
   const url = new URL(message.url);
   if (
@@ -107,28 +138,7 @@ export async function captureOperationalMail(
     )
       throw new Error("Local account link rejected.");
   }
-  let directory = path.resolve(root);
-  for (const segment of [".local", "mail", "development"]) {
-    directory = path.join(directory, segment);
-    await mkdir(directory, { mode: 0o700 }).catch((error: unknown) => {
-      if (!(
-        error &&
-        typeof error === "object" &&
-        "code" in error &&
-        error.code === "EEXIST"
-      ))
-        throw error;
-    });
-    const stat = await lstat(directory);
-    if (
-      !stat.isDirectory() ||
-      stat.isSymbolicLink() ||
-      stat.uid !== process.getuid?.() ||
-      (stat.mode & 0o7777) !== 0o700
-    )
-      throw new Error("Private local mailbox is unavailable.");
-  }
-  await writeLocalCapture(directory, message, true);
+  return message;
 }
 
 async function writeLocalCapture(

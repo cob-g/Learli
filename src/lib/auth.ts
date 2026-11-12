@@ -65,6 +65,8 @@ export function getAuthRuntime() {
         env.BETTER_AUTH_SECRET,
         env.DATABASE_URL,
         env.LOCAL_WORKFLOW_MODE,
+        env.LOCAL_VERIFICATION_RESEND_KEY,
+        env.LOCAL_VERIFICATION_RECIPIENT,
       ]),
     )
     .digest("hex");
@@ -86,6 +88,7 @@ export function getAuthPresentation() {
   return {
     hosted: env.AUTH_MODE === "hosted-synthetic",
     localWorkflow: !!runtime && !!getLocalWorkflow(runtime),
+    localVerificationEmail: !!runtime && !!env.LOCAL_VERIFICATION_RESEND_KEY,
   };
 }
 export async function getAccountAuthRuntime(): Promise<AuthRuntime | null> {

@@ -85,6 +85,10 @@ This supersedes routine-review wording below only for this new local slice;
 public-market/legal/minor-safeguarding gates are unchanged. See
 `docs/decisions/2026-10-18-automatic-parent-child-onboarding.md`.
 
+### Local verification test — 2026-11-11
+
+The owner authorized an explicitly configured local-only Resend verification test to the account owner’s address. Default local capture and capture-only reset, email-change and booking notices remain. An owner-only live test was subsequently reported successful; see the progress tracker for evidence. General-user sending requires a verified owned domain and separate activation. See `prompts/features/m5-07-resend-email-verification.md`.
+
 ### Local operating override — 2026-10-18
 
 The owner requested normal local-main registration and saved role workflows,

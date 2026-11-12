@@ -172,7 +172,7 @@ async function recordedState() {
     [fixture.profile.id],
   );
   const intents = await world.owner.pool.query<Notice>(
-    "SELECT i.event_id,i.recipient_user_id,i.kind FROM booking_workflow_notice_intents i JOIN booking_lifecycle_events e ON e.id=i.event_id JOIN bookings b ON b.id=e.booking_id WHERE b.tutor_id=$1 ORDER BY i.event_id,i.recipient_user_id",
+    'SELECT i.event_id,i.recipient_user_id,i.kind FROM booking_workflow_notice_intents i JOIN booking_lifecycle_events e ON e.id=i.event_id JOIN bookings b ON b.id=e.booking_id WHERE b.tutor_id=$1 ORDER BY i.event_id,i.recipient_user_id COLLATE "C"',
     [fixture.profile.id],
   );
   return {

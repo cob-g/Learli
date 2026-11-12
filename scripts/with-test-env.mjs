@@ -11,6 +11,9 @@ const env = {
   DATABASE_MODE: "local",
   NEON_DEVELOPMENT_CONFIG_FILE: "",
   LOCAL_WORKFLOW_MODE: "disabled",
+  // A local verification key must never enable provider sends in test servers.
+  LOCAL_VERIFICATION_RESEND_KEY: "",
+  LOCAL_VERIFICATION_RECIPIENT: "",
   GOOGLE_MEET_ENABLED: "false",
   GOOGLE_MEET_CLIENT_ID: "",
   GOOGLE_MEET_CLIENT_SECRET: "",
@@ -25,6 +28,13 @@ if (env.APP_ENV !== "test" || env.AUTH_MODE !== "local")
   throw new Error("Dedicated local test configuration required.");
 const [command, ...args] = process.argv.slice(2);
 if (!command) throw new Error("A test command is required.");
+// Playwright fixtures import server-only modules in Node worker processes.
+// Preserve the original options so its Next web servers do not inherit this.
+if (command.endsWith("/playwright")) {
+  env.LEARLI_PLAYWRIGHT_SERVER_NODE_OPTIONS = env.NODE_OPTIONS ?? "";
+  env.NODE_OPTIONS =
+    `${env.NODE_OPTIONS ?? ""} --conditions=react-server`.trim();
+}
 const child = spawn(command, args, { stdio: "inherit", env });
 child.on("exit", (code) => {
   process.exitCode = code ?? 1;

@@ -96,6 +96,31 @@ describe("ordinary local account guidance", () => {
     },
   );
 
+  it.each(["verify", "forgot"] as const)(
+    "gives truthful %s guidance with verification delivery enabled",
+    async (mode) => {
+      render(<AuthForm mode={mode} localWorkflow localVerificationEmail />);
+      fireEvent.change(screen.getByLabelText("Email"), {
+        target: { value: "person@example.com" },
+      });
+      fireEvent.submit(
+        screen
+          .getByRole("button", {
+            name:
+              mode === "verify" ? "Resend verification" : "Request reset link",
+          })
+          .closest("form")!,
+      );
+      await waitFor(() =>
+        expect(screen.getByRole("status")).toHaveTextContent(
+          mode === "verify"
+            ? "delivery has not been established"
+            : "No email was sent.",
+        ),
+      );
+    },
+  );
+
   it("retains synthetic-only signup by default", async () => {
     render(<AuthForm mode="sign-up" />);
     fireEvent.change(screen.getByLabelText("Display name"), {

@@ -2,6 +2,13 @@ import { screeningMirrorOrigin } from "./tests/support/readiness-placement";
 import { hostedBrowserOrigin } from "./tests/support/hosted-auth-placement";
 import { defineConfig, devices } from "@playwright/test";
 
+// The test launcher gives fixture workers the React server condition while
+// preserving the caller's original options for the Next web servers.
+const webServerNodeOptions =
+  process.env.LEARLI_PLAYWRIGHT_SERVER_NODE_OPTIONS ??
+  process.env.NODE_OPTIONS ??
+  "";
+
 const baseURL = process.env.APP_URL ?? "http://127.0.0.1:3100";
 const target = new URL(baseURL);
 const hostedBrowser = process.env.LEARLI_HOSTED_BROWSER ?? "chromium";
@@ -96,7 +103,7 @@ export default defineConfig({
       name: "catalog",
       testMatch: "tutor-catalog.spec.ts",
       // Finish empty-inventory checks and auth throttle assertions before catalog setup.
-      dependencies: ["desktop", "phone", "narrow", "auth"],
+      dependencies: ["desktop", "phone", "narrow", "auth", "responsive"],
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1440, height: 900 },
@@ -544,6 +551,7 @@ export default defineConfig({
       // Every route at every supported width; also the responsive audit.
       name: "responsive",
       testMatch: "responsive.spec.ts",
+      dependencies: ["desktop", "phone", "narrow", "auth"],
       workers: 1,
       use: {
         ...devices["Desktop Chrome"],
@@ -573,18 +581,25 @@ export default defineConfig({
       command: `npm run start -- --hostname 127.0.0.1 --port ${target.port}`,
       url: `${baseURL}/api/health`,
       reuseExistingServer: false,
-      env: { APP_ENV: "test", APP_URL: baseURL },
+      env: {
+        APP_ENV: "test",
+        APP_URL: baseURL,
+        NODE_OPTIONS: webServerNodeOptions,
+      },
       timeout: 60_000,
     },
     {
-      command: "node --import tsx scripts/w6-readiness-mirror.ts serve",
+      command:
+        "node --conditions=react-server --import tsx scripts/w6-readiness-mirror.ts serve",
       url: `${screeningMirrorOrigin}/api/health`,
+      env: { NODE_OPTIONS: webServerNodeOptions },
       reuseExistingServer: false,
       timeout: 120000,
     },
     {
       command: "node --import tsx tests/support/hosted-auth-app.ts",
       url: `${hostedBrowserOrigin}/api/health`,
+      env: { NODE_OPTIONS: webServerNodeOptions },
       ignoreHTTPSErrors: true,
       reuseExistingServer: false,
       timeout: 240_000,
